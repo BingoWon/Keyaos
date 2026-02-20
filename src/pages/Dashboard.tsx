@@ -15,7 +15,7 @@ interface Stats {
 
 export function Dashboard() {
 	const { t } = useTranslation();
-	const { data: stats, loading, error } = useFetch<Stats>("/pool/stats");
+	const { data: stats, loading, error } = useFetch<Stats>("/api/pool/stats");
 
 	if (error) {
 		return (

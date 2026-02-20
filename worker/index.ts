@@ -14,7 +14,7 @@ export type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Global error handler — all ApiErrors return JSON
+// Global error handler
 app.onError((err, c) => {
 	if (err instanceof ApiError) {
 		return c.json(err.toJSON(), err.statusCode as 400);
@@ -35,31 +35,41 @@ app.use(
 	}),
 );
 
+// Public endpoints
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Auth middleware
-app.use("*", async (c, next) => {
-	if (new URL(c.req.url).pathname === "/health") return next();
-
+// Auth middleware — only for /api/* and /v1/* routes
+app.use("/api/*", async (c, next) => {
 	const authHeader = c.req.header("Authorization");
 	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
-
 	if (!token || token !== c.env.ADMIN_TOKEN) {
 		throw new AuthenticationError("Invalid or missing token");
 	}
-
 	return next();
 });
 
-app.route("/v1/chat", chatRouter);
-app.route("/v1/models", modelsRouter);
-app.route("/keys", keysRouter);
-app.route("/", systemRouter);
+app.use("/v1/*", async (c, next) => {
+	const authHeader = c.req.header("Authorization");
+	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
+	if (!token || token !== c.env.ADMIN_TOKEN) {
+		throw new AuthenticationError("Invalid or missing token");
+	}
+	return next();
+});
 
-app.post("/sync", async (c) => {
+// ─── API Routes ─────────────────────────────────────────────
+// Management (under /api/)
+app.route("/api/keys", keysRouter);
+app.route("/api", systemRouter);
+
+app.post("/api/sync", async (c) => {
 	await syncAllProviders(c.env.DB);
 	return c.json({ message: "Sync completed" });
 });
+
+// OpenAI-compatible (under /v1/)
+app.route("/v1/chat", chatRouter);
+app.route("/v1/models", modelsRouter);
 
 export default {
 	fetch: app.fetch,

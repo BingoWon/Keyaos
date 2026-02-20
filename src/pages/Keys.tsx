@@ -25,7 +25,11 @@ export function Keys() {
 	const { t } = useTranslation();
 	const { token } = useAuth();
 
-	const { data, loading, refetch: fetchKeys } = useFetch<KeyInfo[]>("/keys");
+	const {
+		data,
+		loading,
+		refetch: fetchKeys,
+	} = useFetch<KeyInfo[]>("/api/keys");
 	const keys = data || [];
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
@@ -57,7 +61,7 @@ export function Keys() {
 				body.credits = Number.parseFloat(newKey.credits) || 0;
 			}
 
-			const res = await fetch("/keys", {
+			const res = await fetch("/api/keys", {
 				method: "POST",
 				headers,
 				body: JSON.stringify(body),
@@ -81,7 +85,7 @@ export function Keys() {
 	const handleUpdateCredits = async (id: string) => {
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/keys/${id}/credits`, {
+			const res = await fetch(`/api/keys/${id}/credits`, {
 				method: "PATCH",
 				headers,
 				body: JSON.stringify({
@@ -106,7 +110,7 @@ export function Keys() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/keys/${id}`, {
+			const res = await fetch(`/api/keys/${id}`, {
 				method: "DELETE",
 				headers,
 			});
