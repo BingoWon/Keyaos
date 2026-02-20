@@ -8,8 +8,6 @@ import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useAuth } from "../stores/auth";
 
-const AUTO_CREDIT_PROVIDERS = new Set(["openrouter"]);
-
 interface KeyInfo {
 	id: string;
 	provider: string;
@@ -47,8 +45,6 @@ export function Keys() {
 		Authorization: `Bearer ${token}`,
 	};
 
-	const needsManualCredits = !AUTO_CREDIT_PROVIDERS.has(newKey.provider);
-
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const tid = toast.loading(t("common.loading"));
@@ -56,10 +52,8 @@ export function Keys() {
 			const body: Record<string, unknown> = {
 				provider: newKey.provider,
 				apiKey: newKey.apiKey,
+				credits: Number.parseFloat(newKey.credits) || 0,
 			};
-			if (needsManualCredits) {
-				body.credits = Number.parseFloat(newKey.credits) || 0;
-			}
 
 			const res = await fetch("/api/keys", {
 				method: "POST",
@@ -204,7 +198,7 @@ export function Keys() {
 								</button>
 							</div>
 						</div>
-						{needsManualCredits && (
+						{
 							<div className="w-full sm:w-32">
 								<label
 									htmlFor="credits"
@@ -226,7 +220,7 @@ export function Keys() {
 									placeholder="10.00"
 								/>
 							</div>
-						)}
+						}
 						<div className="flex gap-2 w-full sm:w-auto">
 							<button
 								type="button"

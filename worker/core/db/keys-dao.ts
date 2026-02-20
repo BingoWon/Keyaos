@@ -1,8 +1,7 @@
 import type { DbKeyPool } from "./schema";
 
-
 export class KeysDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async addKey(params: {
 		ownerId: string;
@@ -41,6 +40,13 @@ export class KeysDao {
 		return this.db
 			.prepare("SELECT * FROM key_pool WHERE id = ?")
 			.bind(id)
+			.first<DbKeyPool>();
+	}
+
+	async findByApiKey(apiKey: string): Promise<DbKeyPool | null> {
+		return this.db
+			.prepare("SELECT * FROM key_pool WHERE api_key = ?")
+			.bind(apiKey)
 			.first<DbKeyPool>();
 	}
 

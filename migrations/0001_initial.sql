@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS key_pool (
     created_at INTEGER NOT NULL
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_key_pool_api_key
+    ON key_pool(api_key);
+
 -- 供应商模型价格表 (Cron 自动同步)
 CREATE TABLE IF NOT EXISTS models (
     id TEXT PRIMARY KEY,                    -- "provider:upstream_id"

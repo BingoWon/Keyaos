@@ -41,26 +41,37 @@ keysRouter.post("/", async (c) => {
 		);
 	}
 
-	// Determine credits
+	// Check for duplicate key
+	const keysDao = new KeysDao(c.env.DB);
+	const existing = await keysDao.findByApiKey(body.apiKey);
+	if (existing) {
+		throw new BadRequestError("This API key has already been added.");
+	}
+
+	// ─── Determine credits ─────────────────────────────────
+	// Try auto-fetch first, fall back to user-provided value
 	let creditsCents = 0;
 	let creditsSource: "auto" | "manual" = "manual";
 
 	if (provider.info.supportsAutoCredits) {
-		creditsSource = "auto";
 		const credits = await provider.fetchCredits(body.apiKey);
 		if (credits?.remainingUsd != null) {
 			creditsCents = Math.round(credits.remainingUsd * 100);
+			creditsSource = "auto";
 		}
-	} else {
-		if (body.credits == null || body.credits <= 0) {
-			throw new BadRequestError(
-				`${body.provider} does not support automatic credit detection. Please provide a "credits" value (in USD).`,
-			);
-		}
-		creditsCents = Math.round(body.credits * 100);
 	}
 
-	const keysDao = new KeysDao(c.env.DB);
+	// If auto-fetch didn't return a value, use manual input
+	if (creditsSource === "manual") {
+		if (body.credits != null && body.credits > 0) {
+			creditsCents = Math.round(body.credits * 100);
+		} else {
+			throw new BadRequestError(
+				'Could not detect credits automatically. Please provide a "credits" value (in USD).',
+			);
+		}
+	}
+
 	const key = await keysDao.addKey({
 		ownerId: "owner",
 		provider: body.provider,
@@ -100,7 +111,6 @@ keysRouter.get("/", async (c) => {
 	});
 });
 
-// Update credits (manual providers only)
 keysRouter.patch("/:id/credits", async (c) => {
 	const id = c.req.param("id");
 	const keysDao = new KeysDao(c.env.DB);
@@ -108,12 +118,6 @@ keysRouter.patch("/:id/credits", async (c) => {
 
 	if (!key) {
 		throw new ApiError("Key not found", 404, "not_found", "key_not_found");
-	}
-
-	if (key.credits_source === "auto") {
-		throw new BadRequestError(
-			"Cannot manually set credits for auto-credit providers.",
-		);
 	}
 
 	let body: { credits: number };
@@ -128,8 +132,9 @@ keysRouter.patch("/:id/credits", async (c) => {
 	}
 
 	const creditsCents = Math.round(body.credits * 100);
-	await keysDao.updateCredits(id, creditsCents);
+	await keysDao.updateCredits(id, creditsCents, "manual");
 
+	// Reactivate if credits > 0 and key was deactivated
 	if (creditsCents > 0 && key.is_active === 0 && key.health_status !== "dead") {
 		await c.env.DB.prepare("UPDATE key_pool SET is_active = 1 WHERE id = ?")
 			.bind(id)
@@ -168,21 +173,19 @@ keysRouter.get("/:id/credits", async (c) => {
 		creditsSource: key.credits_source,
 	};
 
-	// For auto providers, fetch live data and sync
-	if (key.credits_source === "auto") {
-		const provider = getProvider(key.provider);
-		if (provider) {
-			const upstream = await provider.fetchCredits(key.api_key);
-			if (upstream) {
-				result.upstream = {
-					remainingUsd: upstream.remainingUsd,
-					usageUsd: upstream.usageUsd,
-				};
-				if (upstream.remainingUsd != null) {
-					const newCents = Math.round(upstream.remainingUsd * 100);
-					await keysDao.updateCredits(id, newCents, "auto");
-					result.credits = newCents / 100;
-				}
+	// Try to fetch live upstream data
+	const provider = getProvider(key.provider);
+	if (provider) {
+		const upstream = await provider.fetchCredits(key.api_key);
+		if (upstream) {
+			result.upstream = {
+				remainingUsd: upstream.remainingUsd,
+				usageUsd: upstream.usageUsd,
+			};
+			if (upstream.remainingUsd != null) {
+				const newCents = Math.round(upstream.remainingUsd * 100);
+				await keysDao.updateCredits(id, newCents, "auto");
+				result.credits = newCents / 100;
 			}
 		}
 	}
