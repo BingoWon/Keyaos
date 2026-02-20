@@ -63,10 +63,21 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
 			const json = (await res.json()) as Record<string, unknown>;
 
-			// OpenRouter: GET /api/v1/auth/key
-			// Returns { data: { usage, limit, limit_remaining } }
+			// OpenRouter: GET /api/v1/credits
+			// Returns { data: { total_credits, total_usage } }
 			if (json.data && typeof json.data === "object") {
 				const d = json.data as Record<string, number | null>;
+
+				// /credits endpoint: total_credits - total_usage
+				if (d.total_credits != null) {
+					const remaining = (d.total_credits ?? 0) - (d.total_usage ?? 0);
+					return {
+						remainingUsd: Math.max(remaining, 0),
+						usageUsd: d.total_usage ?? null,
+					};
+				}
+
+				// /auth/key fallback
 				return {
 					remainingUsd: d.limit_remaining ?? null,
 					usageUsd: d.usage ?? null,

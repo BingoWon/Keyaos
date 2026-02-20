@@ -15,7 +15,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		name: "OpenRouter",
 		baseUrl: "https://openrouter.ai/api/v1",
 		supportsAutoCredits: true,
-		creditsUrl: "https://openrouter.ai/api/v1/auth/key",
+		creditsUrl: "https://openrouter.ai/api/v1/credits",
 	},
 	{
 		id: "zenmux",
