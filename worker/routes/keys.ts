@@ -10,7 +10,7 @@ const keysRouter = new Hono<{ Bindings: Env }>();
 
 keysRouter.post("/", async (c) => {
 	const keyPool = new KeyPoolService(c.env.DB);
-	let body: { provider: string; apiKey: string; models?: string[] };
+	let body: { provider: string; apiKey: string };
 	try {
 		body = await c.req.json();
 	} catch {
@@ -28,7 +28,9 @@ keysRouter.post("/", async (c) => {
 		);
 	}
 
-	const provider = getProvider(body.provider)!;
+	const provider = getProvider(body.provider);
+	if (!provider) throw new BadRequestError("Provider not found");
+
 	const isValid = await provider.validateKey(body.apiKey);
 	if (!isValid) {
 		throw new BadRequestError(
@@ -40,7 +42,6 @@ keysRouter.post("/", async (c) => {
 		Config.ADMIN_MOCK_USER_ID,
 		body.provider,
 		body.apiKey,
-		body.models || [],
 	);
 
 	return c.json(
@@ -64,9 +65,7 @@ keysRouter.get("/", async (c) => {
 		provider: k.provider,
 		health: k.health_status,
 		isActive: k.is_active === 1,
-		supportedModels: k.supported_models ? JSON.parse(k.supported_models) : [],
-		failureCount: 0,
-		lastUsedAt: Date.now(),
+		priceRatio: k.price_ratio,
 		createdAt: k.created_at,
 	}));
 	return c.json({ data: keys });
@@ -97,11 +96,7 @@ keysRouter.get("/:id/balance", async (c) => {
 	}
 
 	const balance = await provider.checkBalance(key.api_key_encrypted);
-	return c.json({
-		id: key.id,
-		provider: key.provider,
-		balance,
-	});
+	return c.json({ id: key.id, provider: key.provider, balance });
 });
 
 export default keysRouter;

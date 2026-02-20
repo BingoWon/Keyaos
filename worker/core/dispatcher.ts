@@ -37,7 +37,7 @@ export async function dispatch(
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
-		const key = await keyPool.selectKey(offering.provider, model);
+		const key = await keyPool.selectKey(offering.provider);
 		if (!key) continue;
 
 		return {

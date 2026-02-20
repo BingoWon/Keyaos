@@ -18,13 +18,11 @@ export interface DbKeyPool {
 	owner_id: string;
 	provider: string;
 	api_key_encrypted: string;
-	supported_models: string; // JSON array string
 	price_ratio: number;
 	remaining_balance_cents: number | null;
 	is_active: number;
 	health_status: "ok" | "degraded" | "dead" | "unknown";
 	last_health_check: number | null;
-	expires_at: number | null;
 	created_at: number;
 }
 
