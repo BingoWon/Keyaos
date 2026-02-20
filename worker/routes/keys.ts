@@ -8,7 +8,7 @@ import { ApiError, BadRequestError } from "../shared/errors";
 const keysRouter = new Hono<{ Bindings: Env }>();
 
 keysRouter.post("/", async (c) => {
-	let body: { provider: string; apiKey: string };
+	let body: { provider: string; apiKey: string; credits?: number };
 	try {
 		body = await c.req.json();
 	} catch {
@@ -36,16 +36,43 @@ keysRouter.post("/", async (c) => {
 		);
 	}
 
-	// Encrypt before storage
-	const encryptedKey = await encrypt(body.apiKey, c.env.ENCRYPTION_KEY);
+	// ─── Determine credits ─────────────────────────────────
+	let creditsCents = 0;
+	let creditsSource: "auto" | "manual" = "manual";
 
+	if (provider.info.supportsAutoCredits) {
+		// Auto: fetch from upstream, reject manual input
+		creditsSource = "auto";
+		const credits = await provider.fetchCredits(body.apiKey);
+		if (credits?.remainingUsd != null) {
+			creditsCents = Math.round(credits.remainingUsd * 100);
+		}
+	} else {
+		// Manual: require user-provided credits
+		if (body.credits == null || body.credits <= 0) {
+			throw new BadRequestError(
+				`${body.provider} does not support automatic credit detection. Please provide a "credits" value (in USD).`,
+			);
+		}
+		creditsCents = Math.round(body.credits * 100);
+	}
+
+	const encryptedKey = await encrypt(body.apiKey, c.env.ENCRYPTION_KEY);
 	const keysDao = new KeysDao(c.env.DB);
-	const key = await keysDao.addKey("owner", body.provider, encryptedKey);
+	const key = await keysDao.addKey({
+		ownerId: "owner",
+		provider: body.provider,
+		encryptedKey,
+		creditsCents,
+		creditsSource,
+	});
 
 	return c.json(
 		{
 			id: key.id,
 			provider: key.provider,
+			credits: key.credits_cents / 100,
+			creditsSource: key.credits_source,
 			health: key.health_status,
 			createdAt: key.created_at,
 			message: "Key added successfully",
@@ -61,11 +88,57 @@ keysRouter.get("/", async (c) => {
 		data: dbKeys.map((k) => ({
 			id: k.id,
 			provider: k.provider,
+			credits: k.credits_cents / 100,
+			creditsSource: k.credits_source,
 			health: k.health_status,
 			isActive: k.is_active === 1,
 			priceRatio: k.price_ratio,
 			createdAt: k.created_at,
 		})),
+	});
+});
+
+// Update credits (manual providers only)
+keysRouter.patch("/:id/credits", async (c) => {
+	const id = c.req.param("id");
+	const keysDao = new KeysDao(c.env.DB);
+	const key = await keysDao.getKey(id);
+
+	if (!key) {
+		throw new ApiError("Key not found", 404, "not_found", "key_not_found");
+	}
+
+	if (key.credits_source === "auto") {
+		throw new BadRequestError(
+			"Cannot manually set credits for auto-credit providers. Credits are fetched from the upstream API.",
+		);
+	}
+
+	let body: { credits: number };
+	try {
+		body = await c.req.json();
+	} catch {
+		throw new BadRequestError("Invalid JSON body");
+	}
+
+	if (body.credits == null || body.credits < 0) {
+		throw new BadRequestError("credits must be a non-negative number (USD)");
+	}
+
+	const creditsCents = Math.round(body.credits * 100);
+	await keysDao.updateCredits(id, creditsCents);
+
+	// Reactivate if credits > 0 and key was deactivated due to zero credits
+	if (creditsCents > 0 && key.is_active === 0 && key.health_status !== "dead") {
+		await c.env.DB.prepare("UPDATE key_pool SET is_active = 1 WHERE id = ?")
+			.bind(id)
+			.run();
+	}
+
+	return c.json({
+		id,
+		credits: creditsCents / 100,
+		message: "Credits updated",
 	});
 });
 
@@ -79,7 +152,7 @@ keysRouter.delete("/:id", async (c) => {
 	return c.json({ message: "Key removed", id });
 });
 
-keysRouter.get("/:id/balance", async (c) => {
+keysRouter.get("/:id/credits", async (c) => {
 	const id = c.req.param("id");
 	const keysDao = new KeysDao(c.env.DB);
 	const key = await keysDao.getKey(id);
@@ -88,15 +161,35 @@ keysRouter.get("/:id/balance", async (c) => {
 		throw new ApiError("Key not found", 404, "not_found", "key_not_found");
 	}
 
-	const provider = getProvider(key.provider);
-	if (!provider) {
-		throw new ApiError("Provider not found", 500);
+	const result: Record<string, unknown> = {
+		id: key.id,
+		provider: key.provider,
+		credits: key.credits_cents / 100,
+		creditsSource: key.credits_source,
+	};
+
+	// For auto providers, also fetch live data from upstream
+	if (key.credits_source === "auto") {
+		const provider = getProvider(key.provider);
+		if (provider) {
+			const rawKey = await decrypt(key.api_key_encrypted, c.env.ENCRYPTION_KEY);
+			const upstream = await provider.fetchCredits(rawKey);
+			if (upstream) {
+				result.upstream = {
+					remainingUsd: upstream.remainingUsd,
+					usageUsd: upstream.usageUsd,
+				};
+				// Sync credits if upstream reports remaining
+				if (upstream.remainingUsd != null) {
+					const newCents = Math.round(upstream.remainingUsd * 100);
+					await keysDao.updateCredits(id, newCents, "auto");
+					result.credits = newCents / 100;
+				}
+			}
+		}
 	}
 
-	// Decrypt key before checking balance with upstream
-	const rawKey = await decrypt(key.api_key_encrypted, c.env.ENCRYPTION_KEY);
-	const balance = await provider.checkBalance(rawKey);
-	return c.json({ id: key.id, provider: key.provider, balance });
+	return c.json(result);
 });
 
 export default keysRouter;

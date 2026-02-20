@@ -14,6 +14,7 @@ systemRouter.get("/providers", (c) => {
 	const providers = getAllProviders().map((p) => ({
 		id: p.info.id,
 		name: p.info.name,
+		supportsAutoCredits: p.info.supportsAutoCredits,
 	}));
 	return c.json({ data: providers });
 });

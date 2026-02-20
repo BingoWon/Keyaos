@@ -6,19 +6,20 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     api_key TEXT UNIQUE NOT NULL,          -- 平台生成的 pk-xxx
     balance_cents INTEGER DEFAULT 0,       -- 余额 (分)
-    max_price_ratio REAL DEFAULT 1.0,      -- 买方最高价格比率 (如 0.75 = 市场价75%)
+    max_price_ratio REAL DEFAULT 1.0,      -- 用户愿意接受的最高价格比率
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 );
 
--- Key 池 (卖家提交的 Key)
+-- Key 池
 CREATE TABLE IF NOT EXISTS key_pool (
     id TEXT PRIMARY KEY,
-    owner_id TEXT NOT NULL,                -- 卖家 user_id
+    owner_id TEXT NOT NULL,
     provider TEXT NOT NULL,                -- openrouter / zenmux / deepinfra
-    api_key_encrypted TEXT NOT NULL,       -- 加密存储
-    price_ratio REAL DEFAULT 0.5,          -- 卖价比率 (如 0.5 = 上游成本的50%)
-    remaining_balance_cents INTEGER,       -- 预估剩余余额
+    api_key_encrypted TEXT NOT NULL,       -- AES-GCM 加密存储
+    price_ratio REAL DEFAULT 0.5,          -- 折扣比率 (如 0.5 = 上游成本的50%)
+    credits_cents INTEGER DEFAULT 0,       -- 剩余 credits (分)
+    credits_source TEXT DEFAULT 'manual',  -- 'auto' (API获取) | 'manual' (用户设置)
     is_active INTEGER DEFAULT 1,
     health_status TEXT DEFAULT 'unknown',  -- ok / degraded / dead
     last_health_check INTEGER,
@@ -49,15 +50,15 @@ CREATE INDEX IF NOT EXISTS idx_models_routing
 CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
     buyer_id TEXT NOT NULL,
-    key_id TEXT NOT NULL,                  -- 执行请求的 Key
+    key_id TEXT NOT NULL,
     provider TEXT NOT NULL,
     model TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,
     output_tokens INTEGER NOT NULL,
-    upstream_cost_cents INTEGER DEFAULT 0, -- 上游真实成本
-    cost_cents INTEGER NOT NULL,           -- 买家实际支付
-    seller_income_cents INTEGER DEFAULT 0, -- 卖家收入
-    platform_fee_cents INTEGER DEFAULT 0,  -- 平台收入
+    upstream_cost_cents INTEGER DEFAULT 0,  -- 上游真实成本
+    cost_cents INTEGER NOT NULL,            -- 用户实际支付
+    seller_income_cents INTEGER DEFAULT 0,  -- Key 提供者收入
+    platform_fee_cents INTEGER DEFAULT 0,   -- 平台收入
     created_at INTEGER NOT NULL,
     FOREIGN KEY (buyer_id) REFERENCES users(id),
     FOREIGN KEY (key_id) REFERENCES key_pool(id)

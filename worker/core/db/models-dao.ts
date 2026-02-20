@@ -4,7 +4,7 @@
 import type { DbModel } from "./schema";
 
 export class ModelsDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async upsertModels(models: Omit<DbModel, "synced_at">[]): Promise<void> {
 		const now = Date.now();

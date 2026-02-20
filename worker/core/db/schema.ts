@@ -19,7 +19,8 @@ export interface DbKeyPool {
 	provider: string;
 	api_key_encrypted: string;
 	price_ratio: number;
-	remaining_balance_cents: number | null;
+	credits_cents: number;
+	credits_source: "auto" | "manual";
 	is_active: number;
 	health_status: "ok" | "degraded" | "dead" | "unknown";
 	last_health_check: number | null;
@@ -27,12 +28,12 @@ export interface DbKeyPool {
 }
 
 export interface DbModel {
-	id: string; // "provider:upstream_id"
+	id: string;
 	provider: string;
 	upstream_id: string;
 	display_name: string | null;
-	input_cost: number; // cents per 1M tokens
-	output_cost: number; // cents per 1M tokens
+	input_cost: number;
+	output_cost: number;
 	context_length: number | null;
 	is_active: number;
 	synced_at: number;

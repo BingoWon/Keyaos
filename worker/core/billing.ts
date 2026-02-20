@@ -4,12 +4,11 @@
  * Mode 1: If upstream returns cost (OpenRouter/DeepInfra), use it directly.
  * Mode 2: If not (ZenMux), calculate from models table pricing × tokens.
  *
- * buyer_cost = upstream_cost + platform_fee
- * seller_income = upstream_cost (what the seller's key was worth)
- * platform_fee = upstream_cost × platform_fee_ratio
+ * After recording the transaction, deducts credits from the key.
  */
 
 import { Config } from "./config";
+import { KeysDao } from "./db/keys-dao";
 import { TransactionsDao } from "./db/transactions-dao";
 import { UsersDao } from "./db/users-dao";
 import type { TokenUsage } from "./utils/stream";
@@ -50,17 +49,16 @@ export async function recordTransaction(
 	}
 
 	// ─── Calculate costs ───────────────────────────────────
-	// Seller income = upstream cost × price_ratio (what they're willing to sell for)
 	const sellerIncomeCents = Math.max(
 		Math.ceil(upstreamCostCents * priceRatio),
 		1,
 	);
-	// Platform fee = seller income × fee ratio
 	const platformFeeCents = Math.ceil(
 		sellerIncomeCents * Config.PLATFORM_FEE_RATIO,
 	);
-	// Buyer pays = seller income + platform fee
 	const costCents = sellerIncomeCents + platformFeeCents;
+
+	const keysDao = new KeysDao(db);
 
 	try {
 		await new TransactionsDao(db).createTransaction({
@@ -76,12 +74,10 @@ export async function recordTransaction(
 			platform_fee_cents: platformFeeCents,
 		});
 
-		const deducted = await new UsersDao(db).deductBalance(buyerId, costCents);
-		if (!deducted) {
-			console.warn(
-				`[BILLING] Insufficient funds for ${buyerId}: ${costCents}c`,
-			);
-		}
+		await new UsersDao(db).deductBalance(buyerId, costCents);
+
+		// Deduct credits from the key (auto-deactivates at 0)
+		await keysDao.deductCredits(keyId, upstreamCostCents);
 	} catch (err) {
 		console.error("[BILLING] Transaction write failed:", err);
 	}

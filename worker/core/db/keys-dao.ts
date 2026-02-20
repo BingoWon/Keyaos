@@ -1,7 +1,7 @@
 /**
  * Keys Data Access Object
  *
- * Handles all key_pool operations including CRUD, selection,
+ * Handles all key_pool operations including CRUD, credits,
  * health tracking, and statistics.
  */
 import type { DbKeyPool } from "./schema";
@@ -9,22 +9,34 @@ import type { DbKeyPool } from "./schema";
 export class KeysDao {
 	constructor(private db: D1Database) {}
 
-	async addKey(
-		ownerId: string,
-		provider: string,
-		encryptedKey: string,
-		priceRatio = 0.5,
-	): Promise<DbKeyPool> {
+	async addKey(params: {
+		ownerId: string;
+		provider: string;
+		encryptedKey: string;
+		priceRatio?: number;
+		creditsCents?: number;
+		creditsSource?: "auto" | "manual";
+	}): Promise<DbKeyPool> {
 		const id = `key_${crypto.randomUUID()}`;
 
 		await this.db
 			.prepare(
 				`INSERT INTO key_pool (
 					id, owner_id, provider, api_key_encrypted,
-					price_ratio, is_active, health_status, created_at
-				) VALUES (?, ?, ?, ?, ?, 1, 'ok', ?)`,
+					price_ratio, credits_cents, credits_source,
+					is_active, health_status, created_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'ok', ?)`,
 			)
-			.bind(id, ownerId, provider, encryptedKey, priceRatio, Date.now())
+			.bind(
+				id,
+				params.ownerId,
+				params.provider,
+				params.encryptedKey,
+				params.priceRatio ?? 0.5,
+				params.creditsCents ?? 0,
+				params.creditsSource ?? "manual",
+				Date.now(),
+			)
 			.run();
 
 		const key = await this.getKey(id);
@@ -73,6 +85,40 @@ export class KeysDao {
 			.prepare("SELECT * FROM key_pool")
 			.all<DbKeyPool>();
 		return res.results || [];
+	}
+
+	/** Deduct credits from a key. Deactivates if credits reach 0. */
+	async deductCredits(id: string, cents: number): Promise<void> {
+		await this.db
+			.prepare(
+				`UPDATE key_pool
+				 SET credits_cents = MAX(credits_cents - ?, 0),
+				     is_active = CASE WHEN credits_cents - ? <= 0 THEN 0 ELSE is_active END
+				 WHERE id = ?`,
+			)
+			.bind(cents, cents, id)
+			.run();
+	}
+
+	/** Update credits (for manual adjustment or auto-refresh) */
+	async updateCredits(
+		id: string,
+		creditsCents: number,
+		source?: "auto" | "manual",
+	): Promise<void> {
+		if (source) {
+			await this.db
+				.prepare(
+					"UPDATE key_pool SET credits_cents = ?, credits_source = ? WHERE id = ?",
+				)
+				.bind(creditsCents, source, id)
+				.run();
+		} else {
+			await this.db
+				.prepare("UPDATE key_pool SET credits_cents = ? WHERE id = ?")
+				.bind(creditsCents, id)
+				.run();
+		}
 	}
 
 	async reportSuccess(id: string): Promise<void> {

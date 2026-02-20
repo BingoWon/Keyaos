@@ -1,24 +1,24 @@
 /**
- * Provider adapter interface and types
+ * Provider adapter interface
  *
- * All providers are OpenAI-compatible. Only the base URL
- * and credit-check endpoint differ.
+ * All providers are OpenAI-compatible. Only the base URL,
+ * credit-check endpoint, and response parsing differ.
  */
 
 export interface ProviderInfo {
-	/** Unique provider id, e.g. "openrouter", "zenmux" */
 	id: string;
-	/** Display name */
 	name: string;
-	/** Fixed API base URL */
 	baseUrl: string;
+	/** Whether this provider supports automatic credit fetching */
+	supportsAutoCredits: boolean;
 }
 
-export interface KeyBalance {
-	/** Remaining balance in USD (null if not queryable) */
+/** Credits info fetched from upstream provider */
+export interface ProviderCredits {
+	/** Remaining credits in USD (null if unknown) */
 	remainingUsd: number | null;
-	/** Total balance in USD (null if not queryable) */
-	totalUsd: number | null;
+	/** Total usage in USD (null if unknown) */
+	usageUsd: number | null;
 }
 
 export interface ProviderAdapter {
@@ -27,8 +27,8 @@ export interface ProviderAdapter {
 	/** Validate that an API key is working */
 	validateKey(apiKey: string): Promise<boolean>;
 
-	/** Check remaining balance for a key (null if unsupported) */
-	checkBalance(apiKey: string): Promise<KeyBalance | null>;
+	/** Fetch credits/usage info for a key (null if unsupported) */
+	fetchCredits(apiKey: string): Promise<ProviderCredits | null>;
 
 	/** Forward a chat completion request to the upstream provider */
 	forwardRequest(
