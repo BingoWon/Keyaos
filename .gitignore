@@ -3,6 +3,7 @@ dist/
 .env
 .env.*
 !.env.example
+.dev.vars
 .DS_Store
 .wrangler/
 coverage/

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Key 池
 CREATE TABLE IF NOT EXISTS key_pool (
     id TEXT PRIMARY KEY,
-    owner_id TEXT NOT NULL,
+    owner_id TEXT NOT NULL DEFAULT 'owner',
     provider TEXT NOT NULL,                -- openrouter / zenmux / deepinfra
     api_key_encrypted TEXT NOT NULL,       -- AES-GCM 加密存储
     price_ratio REAL DEFAULT 0.5,          -- 折扣比率 (如 0.5 = 上游成本的50%)
@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS key_pool (
     is_active INTEGER DEFAULT 1,
     health_status TEXT DEFAULT 'unknown',  -- ok / degraded / dead
     last_health_check INTEGER,
-    created_at INTEGER NOT NULL,
-    FOREIGN KEY (owner_id) REFERENCES users(id)
+    created_at INTEGER NOT NULL
 );
 
 -- 供应商模型价格表 (Cron 自动同步)
@@ -59,7 +58,5 @@ CREATE TABLE IF NOT EXISTS transactions (
     cost_cents INTEGER NOT NULL,            -- 用户实际支付
     seller_income_cents INTEGER DEFAULT 0,  -- Key 提供者收入
     platform_fee_cents INTEGER DEFAULT 0,   -- 平台收入
-    created_at INTEGER NOT NULL,
-    FOREIGN KEY (buyer_id) REFERENCES users(id),
-    FOREIGN KEY (key_id) REFERENCES key_pool(id)
+    created_at INTEGER NOT NULL
 );
