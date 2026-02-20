@@ -24,6 +24,11 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		name: "ZenMux",
 		baseUrl: "https://zenmux.ai/api/v1",
 	},
+	{
+		id: "deepinfra",
+		name: "DeepInfra",
+		baseUrl: "https://api.deepinfra.com/v1/openai",
+	},
 ];
 
 // Build adapter instances

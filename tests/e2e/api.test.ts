@@ -5,11 +5,13 @@ const API_BASE = "http://localhost:8787";
 
 const OR_KEY = process.env.OR_KEY || "sk-or-your-key-here";
 const ZENMUX_KEY = process.env.ZENMUX_KEY || "sk-zenmux-your-key-here";
+const DEEPINFRA_KEY = process.env.DEEPINFRA_KEY || "sk-deepinfra-your-key-here";
 
 const ADMIN_TOKEN = "admin"; // Match wrangler.toml [vars]
 
 let orKeyId: string;
 let zenmuxKeyId: string;
+let deepinfraKeyId: string;
 
 test("Health check", async () => {
 	const res = await fetch(`${API_BASE}/health`);
@@ -56,13 +58,32 @@ test("Add ZenMux key", async () => {
 	zenmuxKeyId = data.id;
 });
 
+test("Add DeepInfra key", async () => {
+	const res = await fetch(`${API_BASE}/keys`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${ADMIN_TOKEN}`
+		},
+		body: JSON.stringify({
+			provider: "deepinfra",
+			apiKey: DEEPINFRA_KEY,
+			models: [], // all models
+		}),
+	});
+	const data = await res.json();
+	console.log("Add DeepInfra:", data);
+	assert.strictEqual(res.status, 201);
+	deepinfraKeyId = data.id;
+});
+
 test("Get all keys", async () => {
 	const res = await fetch(`${API_BASE}/keys`, {
 		headers: { "Authorization": `Bearer ${ADMIN_TOKEN}` }
 	});
 	const data = await res.json();
 	assert.strictEqual(res.status, 200);
-	assert.ok(data.data.length >= 2);
+	assert.ok(data.data.length >= 3);
 });
 
 test("Check OpenRouter balance", async () => {
@@ -82,6 +103,15 @@ test("Check ZenMux balance (should return null)", async () => {
 	console.log("ZenMux Balance:", data);
 	assert.strictEqual(res.status, 200);
 	assert.strictEqual(data.balance, null);
+});
+
+test("Check DeepInfra balance", async () => {
+	const res = await fetch(`${API_BASE}/keys/${deepinfraKeyId}/balance`, {
+		headers: { "Authorization": `Bearer ${ADMIN_TOKEN}` }
+	});
+	const data = await res.json();
+	console.log("DeepInfra Balance:", data);
+	assert.strictEqual(res.status, 200);
 });
 
 test("List models", async () => {
@@ -140,6 +170,30 @@ test("Chat Completion (ZenMux)", async () => {
 		JSON.stringify(data.choices?.[0]?.message ?? data, null, 2),
 	);
 	assert.ok((res.status >= 200 && res.status < 300) || res.status === 404); // Let's see if the model exists
+});
+
+test("Chat Completion (DeepInfra)", async () => {
+	const reqBody = {
+		model: "deepinfra/meta-llama/Meta-Llama-3-8B-Instruct",
+		messages: [{ role: "user", content: 'Say "hello deepinfra" directly' }],
+	};
+
+	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(reqBody),
+	});
+
+	if (res.status !== 200) {
+		console.error("DeepInfra Error:", await res.text());
+	}
+	assert.strictEqual(res.status, 200);
+
+	const data = await res.json();
+	console.log(
+		"Chat (DeepInfra) Response:",
+		JSON.stringify(data.choices?.[0]?.message ?? data, null, 2),
+	);
 });
 
 test("Chat Completion (Streaming OpenRouter)", async () => {
