@@ -45,7 +45,8 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 					...this.config.extraHeaders,
 				},
 			});
-			return res.ok;
+			// 401 = invalid key; anything else (200, 404, etc.) means key is valid
+			return res.status !== 401;
 		} catch {
 			return false;
 		}
