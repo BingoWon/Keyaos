@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     api_key TEXT UNIQUE NOT NULL,          -- 平台生成的 pk-xxx
     balance_cents INTEGER DEFAULT 0,       -- 余额 (分)
-    max_price_ratio REAL DEFAULT 1.0,      -- 用户愿意接受的最高价格比率
+    max_price_ratio REAL DEFAULT 1.0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 );
@@ -23,9 +23,10 @@ CREATE TABLE IF NOT EXISTS key_pool (
     is_active INTEGER DEFAULT 1,
     health_status TEXT DEFAULT 'unknown',  -- ok / degraded / dead / unknown
     last_health_check INTEGER,
-    created_at INTEGER NOT NULL
+    added_at INTEGER NOT NULL              -- 添加时间
 );
 
+-- 防止同一个 API Key 被重复添加
 CREATE UNIQUE INDEX IF NOT EXISTS idx_key_pool_api_key
     ON key_pool(api_key);
 

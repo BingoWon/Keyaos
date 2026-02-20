@@ -17,7 +17,7 @@ export class KeysDao {
 				`INSERT INTO key_pool (
 					id, owner_id, provider, api_key,
 					credits_cents, credits_source,
-					is_active, health_status, created_at
+					is_active, health_status, added_at
 				) VALUES (?, ?, ?, ?, ?, ?, 1, 'ok', ?)`,
 			)
 			.bind(

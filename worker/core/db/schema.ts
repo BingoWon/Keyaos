@@ -23,7 +23,7 @@ export interface DbKeyPool {
 	is_active: number;
 	health_status: "ok" | "degraded" | "dead" | "unknown";
 	last_health_check: number | null;
-	created_at: number;
+	added_at: number;
 }
 
 export interface DbModel {

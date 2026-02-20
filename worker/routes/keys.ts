@@ -103,7 +103,7 @@ keysRouter.get("/", async (c) => {
 			creditsSource: k.credits_source,
 			health: k.health_status,
 			isActive: k.is_active === 1,
-			createdAt: k.created_at,
+			addedAt: k.added_at,
 		})),
 	});
 });

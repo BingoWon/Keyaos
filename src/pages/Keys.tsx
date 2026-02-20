@@ -19,7 +19,7 @@ interface KeyInfo {
 	creditsSource: "auto" | "manual";
 	health: HealthStatus;
 	isActive: boolean;
-	createdAt: number;
+	addedAt: number;
 }
 
 export function Keys() {
@@ -285,6 +285,12 @@ export function Keys() {
 										</th>
 										<th
 											scope="col"
+											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+										>
+											{t("keys.added")}
+										</th>
+										<th
+											scope="col"
 											className="relative py-3.5 pl-3 pr-4 sm:pr-6"
 										>
 											<span className="sr-only">{t("keys.actions")}</span>
@@ -294,14 +300,14 @@ export function Keys() {
 								<tbody className="divide-y divide-gray-200 bg-white dark:divide-white/10 dark:bg-gray-900">
 									{loading ? (
 										<tr>
-											<td colSpan={5} className="py-10">
+											<td colSpan={6} className="py-10">
 												<PageLoader />
 											</td>
 										</tr>
 									) : keys.length === 0 ? (
 										<tr>
 											<td
-												colSpan={5}
+												colSpan={6}
 												className="py-4 text-center text-sm text-gray-500 dark:text-gray-400"
 											>
 												{t("keys.no_keys")}
@@ -369,6 +375,9 @@ export function Keys() {
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													<HealthBadge status={key.health} />
+												</td>
+												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+													{new Date(key.addedAt).toLocaleDateString()}
 												</td>
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
 													<button
