@@ -1,0 +1,49 @@
+{
+	"common": {
+		"loading": "Loading...",
+		"error": "An error occurred",
+		"save": "Save",
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"edit": "Edit",
+		"add": "Add",
+		"confirm": "Confirm"
+	},
+	"nav": {
+		"dashboard": "Dashboard",
+		"keys": "API Keys",
+		"billing": "Billing",
+		"settings": "Settings",
+		"logout": "Log out"
+	},
+	"theme": {
+		"light": "Light",
+		"dark": "Dark",
+		"system": "System"
+	},
+	"login": {
+		"title": "Sign in to your account",
+		"password": "Password",
+		"submit": "Sign in",
+		"error": "Invalid password"
+	},
+	"dashboard": {
+		"title": "Overview",
+		"total_keys": "Total Keys",
+		"active_keys": "Active Keys",
+		"total_balance": "Est. Balance"
+	},
+	"keys": {
+		"title": "API Keys",
+		"add_new": "Add Key",
+		"provider": "Provider",
+		"key": "API Key",
+		"health": "Health",
+		"balance": "Balance",
+		"created": "Added",
+		"actions": "Actions",
+		"status_ok": "OK",
+		"status_degraded": "Degraded",
+		"status_dead": "Dead"
+	}
+}

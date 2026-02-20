@@ -1,0 +1,49 @@
+{
+	"common": {
+		"loading": "加载中...",
+		"error": "发生错误",
+		"save": "保存",
+		"cancel": "取消",
+		"delete": "删除",
+		"edit": "编辑",
+		"add": "添加",
+		"confirm": "确认"
+	},
+	"nav": {
+		"dashboard": "仪表盘",
+		"keys": "API 密钥",
+		"billing": "账单",
+		"settings": "设置",
+		"logout": "退出登录"
+	},
+	"theme": {
+		"light": "浅色",
+		"dark": "深色",
+		"system": "跟随系统"
+	},
+	"login": {
+		"title": "登录",
+		"password": "密码",
+		"submit": "登录",
+		"error": "密码错误"
+	},
+	"dashboard": {
+		"title": "概览",
+		"total_keys": "总密钥数",
+		"active_keys": "活跃密钥",
+		"total_balance": "预估总余额"
+	},
+	"keys": {
+		"title": "API 密钥",
+		"add_new": "添加密钥",
+		"provider": "供应商",
+		"key": "API 密钥",
+		"health": "健康状态",
+		"balance": "余额",
+		"created": "添加时间",
+		"actions": "操作",
+		"status_ok": "正常",
+		"status_degraded": "降级",
+		"status_dead": "失效"
+	}
+}
