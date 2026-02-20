@@ -7,6 +7,13 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 MODE = "personal"
+ADMIN_EMAILS = "your-email@example.com"  # Comma-separated list of admin emails
 
 # [assets]
 # directory = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "keyaos-db"
+database_id = "YOUR_D1_DATABASE_ID_HERE"      # Users must replace this after running `npx wrangler d1 create keyaos-db`
+migrations_dir = "migrations"
