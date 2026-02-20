@@ -1,23 +1,10 @@
--- Keyaos D1 Schema
-
--- 用户表
-CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    api_key TEXT UNIQUE NOT NULL,          -- 平台生成的 pk-xxx
-    balance_cents INTEGER DEFAULT 0,       -- 余额 (分)
-    max_price_ratio REAL DEFAULT 1.0,
-    created_at INTEGER NOT NULL,
-    updated_at INTEGER NOT NULL
-);
+-- Keyaos D1 Schema (Core Mode)
 
 -- Key 池
 CREATE TABLE IF NOT EXISTS key_pool (
     id TEXT PRIMARY KEY,
-    owner_id TEXT NOT NULL DEFAULT 'owner',
     provider TEXT NOT NULL,                -- openrouter / zenmux / deepinfra
     api_key TEXT NOT NULL,                 -- 上游 API Key
-    price_ratio REAL DEFAULT 0.5,
     credits_cents INTEGER DEFAULT 0,       -- 剩余 credits (分)
     credits_source TEXT DEFAULT 'manual',  -- 'auto' | 'manual'
     is_active INTEGER DEFAULT 1,
@@ -49,18 +36,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_models_provider_upstream
 CREATE INDEX IF NOT EXISTS idx_models_routing
     ON models(upstream_id, is_active, input_cost);
 
--- 交易记录
+-- 用量记录
 CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
-    buyer_id TEXT NOT NULL,
     key_id TEXT NOT NULL,
     provider TEXT NOT NULL,
     model TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,
     output_tokens INTEGER NOT NULL,
-    upstream_cost_cents INTEGER DEFAULT 0,
-    cost_cents INTEGER NOT NULL,
-    seller_income_cents INTEGER DEFAULT 0,
-    platform_fee_cents INTEGER DEFAULT 0,
+    cost_cents INTEGER NOT NULL,           -- 上游成本 (分)
     created_at INTEGER NOT NULL
 );

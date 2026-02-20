@@ -1,5 +1,5 @@
 /**
- * Shared error utilities
+ * Shared error types
  */
 
 export class ApiError extends Error {
@@ -30,12 +30,6 @@ export class AuthenticationError extends ApiError {
 	}
 }
 
-export class InsufficientBalanceError extends ApiError {
-	constructor(message = "Insufficient balance") {
-		super(message, 402, "billing_error", "insufficient_balance");
-	}
-}
-
 export class BadRequestError extends ApiError {
 	constructor(message: string) {
 		super(message, 400, "invalid_request_error", "bad_request");
@@ -50,15 +44,5 @@ export class NoKeyAvailableError extends ApiError {
 			"service_unavailable",
 			"no_key_available",
 		);
-	}
-}
-
-export class UpstreamError extends ApiError {
-	constructor(
-		message: string,
-		statusCode: number,
-		public provider: string,
-	) {
-		super(message, statusCode, "upstream_error", "upstream_request_failed");
 	}
 }

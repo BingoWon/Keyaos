@@ -10,44 +10,33 @@ export class TransactionsDao {
 		tx: Omit<DbTransaction, "id" | "created_at">,
 	): Promise<string> {
 		const id = `tx_${crypto.randomUUID()}`;
-		const now = Date.now();
 
 		await this.db
 			.prepare(
 				`INSERT INTO transactions (
-					id, buyer_id, key_id, provider, model,
-					input_tokens, output_tokens, upstream_cost_cents,
-					cost_cents, seller_income_cents, platform_fee_cents, created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					id, key_id, provider, model,
+					input_tokens, output_tokens, cost_cents, created_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
-				tx.buyer_id,
 				tx.key_id,
 				tx.provider,
 				tx.model,
 				tx.input_tokens,
 				tx.output_tokens,
-				tx.upstream_cost_cents,
 				tx.cost_cents,
-				tx.seller_income_cents,
-				tx.platform_fee_cents,
-				now,
+				Date.now(),
 			)
 			.run();
 
 		return id;
 	}
 
-	async getTransactionsForBuyer(
-		buyerId: string,
-		limit = 50,
-	): Promise<DbTransaction[]> {
+	async getRecentTransactions(limit = 50): Promise<DbTransaction[]> {
 		const res = await this.db
-			.prepare(
-				"SELECT * FROM transactions WHERE buyer_id = ? ORDER BY created_at DESC LIMIT ?",
-			)
-			.bind(buyerId, limit)
+			.prepare("SELECT * FROM transactions ORDER BY created_at DESC LIMIT ?")
+			.bind(limit)
 			.all<DbTransaction>();
 
 		return res.results || [];

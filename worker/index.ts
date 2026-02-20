@@ -35,39 +35,41 @@ app.use(
 	}),
 );
 
-// Public endpoints
+// Public
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Auth middleware — only for /api/* and /v1/* routes
+// Auth middleware — shared for /api/* and /v1/*
+function requireAuth(c: {
+	req: { header: (name: string) => string | undefined };
+	env: Env;
+}) {
+	const token = c.req
+		.header("Authorization")
+		?.replace(/^Bearer\s+/i, "")
+		.trim();
+	if (!token || token !== c.env.ADMIN_TOKEN) {
+		throw new AuthenticationError("Invalid or missing token");
+	}
+}
+
 app.use("/api/*", async (c, next) => {
-	const authHeader = c.req.header("Authorization");
-	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
-	if (!token || token !== c.env.ADMIN_TOKEN) {
-		throw new AuthenticationError("Invalid or missing token");
-	}
+	requireAuth(c);
 	return next();
 });
-
 app.use("/v1/*", async (c, next) => {
-	const authHeader = c.req.header("Authorization");
-	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
-	if (!token || token !== c.env.ADMIN_TOKEN) {
-		throw new AuthenticationError("Invalid or missing token");
-	}
+	requireAuth(c);
 	return next();
 });
 
-// ─── API Routes ─────────────────────────────────────────────
-// Management (under /api/)
+// Management API
 app.route("/api/keys", keysRouter);
 app.route("/api", systemRouter);
-
 app.post("/api/sync", async (c) => {
 	await syncAllProviders(c.env.DB);
 	return c.json({ message: "Sync completed" });
 });
 
-// OpenAI-compatible (under /v1/)
+// OpenAI-compatible API
 app.route("/v1/chat", chatRouter);
 app.route("/v1/models", modelsRouter);
 

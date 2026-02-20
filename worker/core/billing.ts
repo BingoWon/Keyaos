@@ -1,10 +1,5 @@
 /**
  * Billing — Core mode: usage tracking + key credit deduction
- *
- * No marketplace pricing in core mode. Simply records:
- * - upstream cost (what the provider charged)
- * - token usage (for analytics)
- * Then deducts credits from the key.
  */
 
 import { KeysDao } from "./db/keys-dao";
@@ -29,37 +24,31 @@ export async function recordUsage(
 
 	if (totalTokens <= 0) return;
 
-	// ─── Determine upstream cost ───────────────────────────
-	let upstreamCostCents: number;
+	// Determine cost in cents
+	let costCents: number;
 
 	const reportedCostUsd = usage.cost ?? usage.estimated_cost;
 	if (reportedCostUsd != null && reportedCostUsd > 0) {
-		upstreamCostCents = Math.ceil(reportedCostUsd * 100);
+		costCents = Math.ceil(reportedCostUsd * 100);
 	} else {
 		const inputCost =
 			(usage.prompt_tokens / 1_000_000) * modelCost.inputCentsPerM;
 		const outputCost =
 			(usage.completion_tokens / 1_000_000) * modelCost.outputCentsPerM;
-		upstreamCostCents = Math.ceil(inputCost + outputCost);
+		costCents = Math.ceil(inputCost + outputCost);
 	}
 
 	try {
-		// Record transaction for analytics
 		await new TransactionsDao(db).createTransaction({
-			buyer_id: "owner",
 			key_id: keyId,
 			provider,
 			model,
 			input_tokens: usage.prompt_tokens,
 			output_tokens: usage.completion_tokens,
-			upstream_cost_cents: upstreamCostCents,
-			cost_cents: upstreamCostCents,
-			seller_income_cents: 0,
-			platform_fee_cents: 0,
+			cost_cents: costCents,
 		});
 
-		// Deduct credits from the key (auto-deactivates at 0)
-		await new KeysDao(db).deductCredits(keyId, upstreamCostCents);
+		await new KeysDao(db).deductCredits(keyId, costCents);
 	} catch (err) {
 		console.error("[BILLING] Transaction write failed:", err);
 	}

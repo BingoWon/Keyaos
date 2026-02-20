@@ -4,7 +4,6 @@ export class KeysDao {
 	constructor(private db: D1Database) {}
 
 	async addKey(params: {
-		ownerId: string;
 		provider: string;
 		apiKey: string;
 		creditsCents?: number;
@@ -15,14 +14,13 @@ export class KeysDao {
 		await this.db
 			.prepare(
 				`INSERT INTO key_pool (
-					id, owner_id, provider, api_key,
+					id, provider, api_key,
 					credits_cents, credits_source,
 					is_active, health_status, added_at
-				) VALUES (?, ?, ?, ?, ?, ?, 1, 'ok', ?)`,
+				) VALUES (?, ?, ?, ?, ?, 1, 'ok', ?)`,
 			)
 			.bind(
 				id,
-				params.ownerId,
 				params.provider,
 				params.apiKey,
 				params.creditsCents ?? 0,
@@ -32,7 +30,7 @@ export class KeysDao {
 			.run();
 
 		const key = await this.getKey(id);
-		if (!key) throw new Error("Failed to retrieve newly created key");
+		if (!key) throw new Error("Failed to retrieve newly added key");
 		return key;
 	}
 
@@ -58,12 +56,13 @@ export class KeysDao {
 		return result.success && result.meta?.rows_written === 1;
 	}
 
+	/** Select the best available key — prefer keys with more credits */
 	async selectKey(provider: string): Promise<DbKeyPool | null> {
 		return this.db
 			.prepare(
 				`SELECT * FROM key_pool
 				 WHERE provider = ? AND is_active = 1 AND health_status != 'dead'
-				 ORDER BY price_ratio ASC
+				 ORDER BY credits_cents DESC
 				 LIMIT 1`,
 			)
 			.bind(provider)

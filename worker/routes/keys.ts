@@ -70,7 +70,6 @@ keysRouter.post("/", async (c) => {
 	}
 
 	const key = await keysDao.addKey({
-		ownerId: "owner",
 		provider: body.provider,
 		apiKey: body.apiKey,
 		creditsCents,

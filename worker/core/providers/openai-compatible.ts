@@ -67,8 +67,6 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			// Returns { data: { total_credits, total_usage } }
 			if (json.data && typeof json.data === "object") {
 				const d = json.data as Record<string, number | null>;
-
-				// /credits endpoint: total_credits - total_usage
 				if (d.total_credits != null) {
 					const remaining = (d.total_credits ?? 0) - (d.total_usage ?? 0);
 					return {
@@ -76,12 +74,6 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 						usageUsd: d.total_usage ?? null,
 					};
 				}
-
-				// /auth/key fallback
-				return {
-					remainingUsd: d.limit_remaining ?? null,
-					usageUsd: d.usage ?? null,
-				};
 			}
 
 			return null;
