@@ -8,5 +8,6 @@ dist/
 coverage/
 docs/
 references/
+scripts/
 *.log
 *.pid
