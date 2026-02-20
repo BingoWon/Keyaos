@@ -1,10 +1,11 @@
 /**
  * OpenAI-compatible provider adapter
  *
- * Shared by all providers. Each instance differs in baseUrl,
- * credits endpoint, and response parsing.
+ * Shared by all providers. Each instance differs only in config.
+ * Config is the SINGLE SOURCE OF TRUTH for all provider-specific behavior.
  */
 import type {
+	ParsedModel,
 	ProviderAdapter,
 	ProviderCredits,
 	ProviderInfo,
@@ -16,16 +17,50 @@ export interface OpenAICompatibleConfig {
 	baseUrl: string;
 	/** Whether this provider supports automatic credit fetching */
 	supportsAutoCredits: boolean;
-	/** Native currency of this provider */
+	/** Native currency */
 	currency: "USD" | "CNY";
-	/** Absolute URL for credits/usage query */
+	/** URL for credits/usage query (absolute) */
 	creditsUrl?: string;
-	/** Absolute URL for key validation (must return 401 for invalid keys) */
+	/** URL for key validation (must return 401 for invalid keys) */
 	validationUrl?: string;
-	/** Custom response parser for credits endpoint */
+	/** URL for models list (defaults to baseUrl + /models) */
+	modelsUrl?: string;
+	/** Custom credits response parser */
 	parseCredits?: (json: Record<string, unknown>) => ProviderCredits | null;
-	/** Custom headers to add to all requests */
+	/** Custom models response parser (raw JSON → ParsedModel[]) */
+	parseModels?: (
+		raw: Record<string, unknown>,
+		cnyUsdRate: number,
+	) => ParsedModel[];
+	/** Custom headers for all requests */
 	extraHeaders?: Record<string, string>;
+}
+
+/** USD dollars → integer cents per 1M tokens */
+const dollarsToCentsPerM = (usd: number): number => Math.round(usd * 100);
+
+/**
+ * Default models parser — handles OpenAI-standard /models response.
+ * Providers with non-standard pricing formats override via parseModels config.
+ */
+function defaultParseModels(
+	raw: Record<string, unknown>,
+	providerId: string,
+): ParsedModel[] {
+	const data = raw.data as Record<string, unknown>[] | undefined;
+	if (!data) return [];
+	return data
+		.filter((m) => m.id)
+		.map((m) => ({
+			id: `${providerId}:${m.id}`,
+			provider: providerId,
+			upstream_id: m.id as string,
+			display_name: (m.name as string) || null,
+			input_cost: 0,
+			output_cost: 0,
+			context_length: (m.context_length as number) || null,
+			is_active: 1,
+		}));
 }
 
 export class OpenAICompatibleAdapter implements ProviderAdapter {
@@ -50,7 +85,6 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 					...this.config.extraHeaders,
 				},
 			});
-			// 401 = invalid key; anything else (200, 404, etc.) means key is valid
 			return res.status !== 401;
 		} catch {
 			return false;
@@ -69,16 +103,13 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			});
 
 			if (!res.ok) return null;
-
 			const json = (await res.json()) as Record<string, unknown>;
 
-			// Use custom parser if provided
 			if (this.config.parseCredits) {
 				return this.config.parseCredits(json);
 			}
 
-			// Default: OpenRouter /credits format
-			// { data: { total_credits, total_usage } }
+			// Default: OpenRouter /credits format { data: { total_credits, total_usage } }
 			if (json.data && typeof json.data === "object") {
 				const d = json.data as Record<string, number | null>;
 				if (d.total_credits != null) {
@@ -89,10 +120,26 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 					};
 				}
 			}
-
 			return null;
 		} catch {
 			return null;
+		}
+	}
+
+	async fetchModels(cnyUsdRate = 7): Promise<ParsedModel[]> {
+		const url = this.config.modelsUrl || `${this.config.baseUrl}/models`;
+
+		try {
+			const res = await fetch(url);
+			if (!res.ok) return [];
+			const raw = (await res.json()) as Record<string, unknown>;
+
+			if (this.config.parseModels) {
+				return this.config.parseModels(raw, cnyUsdRate);
+			}
+			return defaultParseModels(raw, this.config.id);
+		} catch {
+			return [];
 		}
 	}
 
@@ -133,3 +180,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		});
 	}
 }
+
+// ─── Reusable parser helpers (used in registry.ts parseModels configs) ──
+
+export { dollarsToCentsPerM };

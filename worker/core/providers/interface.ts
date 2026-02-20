@@ -5,6 +5,8 @@
  * credit-check endpoint, and response parsing differ.
  */
 
+import type { DbModel } from "../db/schema";
+
 export interface ProviderInfo {
 	id: string;
 	name: string;
@@ -23,6 +25,8 @@ export interface ProviderCredits {
 	usage: number | null;
 }
 
+export type ParsedModel = Omit<DbModel, "synced_at">;
+
 export interface ProviderAdapter {
 	info: ProviderInfo;
 
@@ -38,4 +42,11 @@ export interface ProviderAdapter {
 		request: Request,
 		body: Record<string, unknown>,
 	): Promise<Response>;
+
+	/**
+	 * Fetch and parse models from upstream.
+	 * Returns parsed models with pricing in USD cents/M tokens.
+	 * @param cnyUsdRate - exchange rate for CNY providers
+	 */
+	fetchModels(cnyUsdRate?: number): Promise<ParsedModel[]>;
 }
