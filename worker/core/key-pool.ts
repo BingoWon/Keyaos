@@ -177,20 +177,27 @@ class KeyPool {
 	 * Get pool stats.
 	 */
 	getStats(): {
-		total: number;
-		active: number;
-		byProvider: Record<string, number>;
+		totalKeys: number;
+		activeProviders: number;
+		deadKeys: number;
 	} {
 		const all = this.getAllKeys();
-		const byProvider: Record<string, number> = {};
-		let active = 0;
+		const providerSet = new Set<string>();
+		let deadKeys = 0;
 
 		for (const k of all) {
-			byProvider[k.provider] = (byProvider[k.provider] || 0) + 1;
-			if (k.isActive && k.health !== "dead") active++;
+			if (k.health === "dead") {
+				deadKeys++;
+			} else if (k.isActive) {
+				providerSet.add(k.provider);
+			}
 		}
 
-		return { total: all.length, active, byProvider };
+		return {
+			totalKeys: all.length,
+			activeProviders: providerSet.size,
+			deadKeys
+		};
 	}
 }
 

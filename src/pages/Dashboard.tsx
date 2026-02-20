@@ -3,9 +3,9 @@ import {
 	DocumentCheckIcon,
 	KeyIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
+import { useFetch } from "../hooks/useFetch";
 
 interface Stats {
 	totalKeys: number;
@@ -15,21 +15,15 @@ interface Stats {
 
 export function Dashboard() {
 	const { t } = useTranslation();
-	const [stats, setStats] = useState<Stats | null>(null);
-	const [loading, setLoading] = useState(true);
+	const { data: stats, loading, error } = useFetch<Stats>("/pool/stats");
 
-	useEffect(() => {
-		fetch("/pool/stats")
-			.then((res) => res.json())
-			.then((data) => {
-				setStats(data);
-				setLoading(false);
-			})
-			.catch((err) => {
-				console.error("Failed to fetch stats", err);
-				setLoading(false);
-			});
-	}, []);
+	if (error) {
+		return (
+			<div className="p-4 text-sm text-red-500 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+				Failed to load stats: {error.message}
+			</div>
+		);
+	}
 
 	const cards = [
 		{
@@ -39,10 +33,11 @@ export function Dashboard() {
 		},
 		{
 			name: t("dashboard.active_keys"),
-			stat: (stats?.totalKeys ?? 0) - (stats?.deadKeys ?? 0),
+			stat: stats ? stats.totalKeys - stats.deadKeys : "-",
 			icon: DocumentCheckIcon,
 		},
 		{
+			// Example placeholder for now until billing is implemented
 			name: t("dashboard.total_balance"),
 			stat: "---",
 			icon: CurrencyDollarIcon,

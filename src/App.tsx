@@ -5,7 +5,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Keys } from "./pages/Keys";
 import { Login } from "./pages/Login";
 import { NotFound } from "./pages/NotFound";
-import { AuthProvider, useAuth } from "./stores/auth";
+import { useAuth } from "./stores/auth";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 	const { isAuthenticated } = useAuth();
@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 export default function App() {
 	return (
-		<AuthProvider>
+		<>
 			<Routes>
 				<Route path="/login" element={<Login />} />
 				<Route
@@ -35,6 +35,6 @@ export default function App() {
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 			<Toaster position="top-right" />
-		</AuthProvider>
+		</>
 	);
 }

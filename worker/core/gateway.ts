@@ -14,7 +14,7 @@
 
 import type { Hono } from "hono";
 import type { Env } from "../index";
-import { ApiError, BadRequestError } from "../shared/errors";
+import { ApiError, AuthenticationError, BadRequestError } from "../shared/errors";
 import { dispatch } from "./dispatcher";
 import { keyPool } from "./key-pool";
 import {
@@ -24,6 +24,27 @@ import {
 } from "./providers/registry";
 
 export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
+	// ─── Middleware: Admin Auth Guard ──────────────────────────────
+	app.use("*", async (c, next) => {
+		const path = new URL(c.req.url).pathname;
+
+		// Public routes: health, and all /v1/ OpenAI-compatible endpoints
+		if (path === "/health" || path.startsWith("/v1/")) {
+			return next();
+		}
+
+		// Admin routes: require Bearer token matching ADMIN_TOKEN
+		const authHeader = c.req.header("Authorization");
+		const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
+		const validToken = c.env.ADMIN_TOKEN || "admin";
+
+		if (!token || token !== validToken) {
+			throw new AuthenticationError("Admin access denied");
+		}
+
+		return next();
+	});
+
 	// ─── Chat Completions (main endpoint) ──────────────────────────
 
 	app.post("/v1/chat/completions", async (c) => {

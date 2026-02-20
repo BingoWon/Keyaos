@@ -1,10 +1,12 @@
 import { PlusIcon } from "@heroicons/react/20/solid";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
+import { useFetch } from "../hooks/useFetch";
+import { useAuth } from "../stores/auth";
 
 interface KeyInfo {
 	id: string;
@@ -20,26 +22,18 @@ function _classNames(...classes: string[]) {
 
 export function Keys() {
 	const { t } = useTranslation();
-	const [keys, setKeys] = useState<KeyInfo[]>([]);
-	const [loading, setLoading] = useState(true);
+	const { token } = useAuth();
+
+	const { data, loading, refetch: fetchKeys } = useFetch<KeyInfo[]>("/keys");
+	const keys = data || [];
+
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [newKey, setNewKey] = useState({ provider: "openrouter", apiKey: "" });
 
-	const fetchKeys = useCallback(async () => {
-		try {
-			const res = await fetch("/keys");
-			const data = await res.json();
-			setKeys(data.data);
-		} catch (err) {
-			console.error(err);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		fetchKeys();
-	}, [fetchKeys]);
+	const defaultHeaders = {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${token}`,
+	};
 
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -47,7 +41,7 @@ export function Keys() {
 		try {
 			const res = await fetch("/keys", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: defaultHeaders,
 				body: JSON.stringify(newKey),
 			});
 			if (res.ok) {
@@ -69,7 +63,10 @@ export function Keys() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/keys/${id}`, { method: "DELETE" });
+			const res = await fetch(`/keys/${id}`, {
+				method: "DELETE",
+				headers: defaultHeaders
+			});
 			if (res.ok) {
 				fetchKeys();
 				toast.success(t("common.success"), { id: tid });

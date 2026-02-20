@@ -1,48 +1,34 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-interface AuthContextType {
+interface AuthState {
 	isAuthenticated: boolean;
-	login: (password: string) => boolean;
+	token: string | null;
+	login: (token: string) => boolean;
 	logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [isInitialized, setIsInitialized] = useState(false);
-
-	useEffect(() => {
-		const auth = localStorage.getItem("keyaos-auth") === "true";
-		setIsAuthenticated(auth);
-		setIsInitialized(true);
-	}, []);
-
-	const login = (password: string) => {
-		if (password === "admin") {
-			localStorage.setItem("keyaos-auth", "true");
-			setIsAuthenticated(true);
-			return true;
-		}
-		return false;
-	};
-
-	const logout = () => {
-		localStorage.removeItem("keyaos-auth");
-		setIsAuthenticated(false);
-	};
-
-	if (!isInitialized) return null; // Or a global loading spinner
-
-	return (
-		<AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-			{children}
-		</AuthContext.Provider>
-	);
-}
-
-export const useAuth = () => {
-	const context = useContext(AuthContext);
-	if (!context) throw new Error("useAuth must be used within an AuthProvider");
-	return context;
-};
+export const useAuth = create<AuthState>()(
+	persist(
+		(set) => ({
+			isAuthenticated: false,
+			token: null,
+			login: (token: string) => {
+				const trimmedToken = token.trim();
+				// Currently validates any non-empty string, matching MVP zero-config flow.
+				// In a full implementation, this should ping a backend `/verify-token` endpoint.
+				if (trimmedToken.length > 0) {
+					set({ isAuthenticated: true, token: trimmedToken });
+					return true;
+				}
+				return false;
+			},
+			logout: () => {
+				set({ isAuthenticated: false, token: null });
+			},
+		}),
+		{
+			name: "keyaos-auth",
+		},
+	),
+);
