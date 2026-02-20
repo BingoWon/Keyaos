@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     api_key TEXT UNIQUE NOT NULL,          -- 平台生成的 pk-xxx
-    role TEXT DEFAULT 'user',              -- 用户角色 (user / admin)
     balance_cents INTEGER DEFAULT 0,       -- 余额 (分)
     max_price_ratio REAL DEFAULT 1.0,      -- 买方最高价格比率 (如 0.75 = 市场价75%)
     created_at INTEGER NOT NULL,
@@ -33,7 +32,7 @@ CREATE TABLE IF NOT EXISTS key_pool (
 CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
     buyer_id TEXT NOT NULL,
-    key_id TEXT,                            -- NULL = 兜底 Key
+    key_id TEXT NOT NULL,                  -- 执行请求的 Key
     provider TEXT NOT NULL,
     model TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,
@@ -44,13 +43,4 @@ CREATE TABLE IF NOT EXISTS transactions (
     created_at INTEGER NOT NULL,
     FOREIGN KEY (buyer_id) REFERENCES users(id),
     FOREIGN KEY (key_id) REFERENCES key_pool(id)
-);
-
--- 兜底 Key (平台自有)
-CREATE TABLE IF NOT EXISTS platform_keys (
-    id TEXT PRIMARY KEY,
-    provider TEXT NOT NULL,
-    api_key_encrypted TEXT NOT NULL,
-    priority INTEGER DEFAULT 0,            -- 优先级
-    is_active INTEGER DEFAULT 1
 );
