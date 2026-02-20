@@ -20,4 +20,4 @@ database_id = "YOUR_D1_DATABASE_ID_HERE"      # Users must replace this after ru
 migrations_dir = "migrations"
 
 [triggers]
-crons = ["0 */12 * * *"]
+crons = ["*/5 * * * *"]
