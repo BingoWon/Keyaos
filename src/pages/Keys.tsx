@@ -8,6 +8,9 @@ import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useAuth } from "../stores/auth";
 
+/** Providers that auto-fetch credits — no manual input needed */
+const AUTO_CREDIT_PROVIDERS = new Set(["openrouter"]);
+
 interface KeyInfo {
 	id: string;
 	provider: string;
@@ -45,6 +48,8 @@ export function Keys() {
 		Authorization: `Bearer ${token}`,
 	};
 
+	const isAutoProvider = AUTO_CREDIT_PROVIDERS.has(newKey.provider);
+
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const tid = toast.loading(t("common.loading"));
@@ -52,8 +57,11 @@ export function Keys() {
 			const body: Record<string, unknown> = {
 				provider: newKey.provider,
 				apiKey: newKey.apiKey,
-				credits: Number.parseFloat(newKey.credits) || 0,
 			};
+			// Only send credits for manual providers
+			if (!isAutoProvider) {
+				body.credits = Number.parseFloat(newKey.credits) || 0;
+			}
 
 			const res = await fetch("/api/keys", {
 				method: "POST",
@@ -198,7 +206,8 @@ export function Keys() {
 								</button>
 							</div>
 						</div>
-						{
+						{/* Only show credits input for manual providers */}
+						{!isAutoProvider && (
 							<div className="w-full sm:w-32">
 								<label
 									htmlFor="credits"
@@ -220,7 +229,7 @@ export function Keys() {
 									placeholder="10.00"
 								/>
 							</div>
-						}
+						)}
 						<div className="flex gap-2 w-full sm:w-auto">
 							<button
 								type="button"
@@ -341,6 +350,7 @@ export function Keys() {
 															className={`font-mono ${key.credits > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
 														>
 															${key.credits.toFixed(2)}
+															{/* Only manual providers can be edited */}
 															{key.creditsSource === "manual" && (
 																<button
 																	type="button"
