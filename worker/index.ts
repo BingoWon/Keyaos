@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createCoreRoutes } from "./core/gateway";
+import chatRouter from "./routes/chat";
+import keysRouter from "./routes/keys";
+import modelsRouter from "./routes/models";
+import systemRouter from "./routes/system";
+import { AuthenticationError } from "./shared/errors";
 
 export type Env = {
 	MODE: "personal" | "platform";
@@ -11,11 +15,10 @@ export type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Global CORS (important for API access if ever split from the frontend)
 app.use(
 	"*",
 	cors({
-		origin: "*", // For MVP, allow all. In production, restrict this.
+		origin: "*",
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
 	}),
@@ -24,9 +27,35 @@ app.use(
 // Health check endpoint
 app.get("/health", (c) => c.json({ status: "ok", mode: c.env.MODE }));
 
-// Mount core routes
-createCoreRoutes(app);
+// ─── Middleware: Admin Auth Guard ──────────────────────────────
+app.use("*", async (c, next) => {
+	const path = new URL(c.req.url).pathname;
 
-// The fallback for frontend assets will be handled by Vite/Cloudflare Pages
-// in production. For dev, Vite handles it.
+	// Public routes: health, system info, and standard OpenAI compat API paths
+	if (
+		path === "/health" ||
+		path.startsWith("/providers") ||
+		path.startsWith("/v1/")
+	) {
+		return next();
+	}
+
+	// Admin routes: require Bearer token matching ADMIN_TOKEN
+	const authHeader = c.req.header("Authorization");
+	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
+	const validToken = c.env.ADMIN_TOKEN || "admin";
+
+	if (!token || token !== validToken) {
+		throw new AuthenticationError("Admin access denied");
+	}
+
+	return next();
+});
+
+// ─── Mount Routers ──────────────────────────────────────────────
+app.route("/v1/chat", chatRouter);
+app.route("/v1/models", modelsRouter);
+app.route("/keys", keysRouter);
+app.route("/", systemRouter); // /providers and /pool/stats
+
 export default app;

@@ -170,6 +170,7 @@ test("Chat Completion (Streaming OpenRouter)", async () => {
 		const { done, value } = await reader.read();
 		if (done) break;
 		const chunk = decoder.decode(value);
+		console.log("TEST E2E CHUNK:", chunk);
 		result += chunk;
 	}
 

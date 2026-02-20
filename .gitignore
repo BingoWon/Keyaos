@@ -9,3 +9,4 @@ coverage/
 docs/
 references/
 *.log
+*.pid

@@ -32,7 +32,7 @@ export function Keys() {
 
 	const defaultHeaders = {
 		"Content-Type": "application/json",
-		"Authorization": `Bearer ${token}`,
+		Authorization: `Bearer ${token}`,
 	};
 
 	const handleAdd = async (e: React.FormEvent) => {
@@ -65,7 +65,7 @@ export function Keys() {
 		try {
 			const res = await fetch(`/keys/${id}`, {
 				method: "DELETE",
-				headers: defaultHeaders
+				headers: defaultHeaders,
 			});
 			if (res.ok) {
 				fetchKeys();

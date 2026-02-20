@@ -6,8 +6,8 @@
  */
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
-import { KeyPoolService } from "./key-pool";
 import type { DbKeyPool } from "./db/schema";
+import { KeyPoolService } from "./key-pool";
 import type { ProviderAdapter } from "./providers/interface";
 import { getProvider, getProviderIds } from "./providers/registry";
 
@@ -45,7 +45,10 @@ function parseModel(model: string): {
 /**
  * Dispatch a request: select the best key and provider for the given model.
  */
-export async function dispatch(db: D1Database, model: string): Promise<DispatchResult> {
+export async function dispatch(
+	db: D1Database,
+	model: string,
+): Promise<DispatchResult> {
 	if (!model) {
 		throw new BadRequestError("Model is required");
 	}

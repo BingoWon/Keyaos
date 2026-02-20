@@ -28,13 +28,16 @@ export class KeyPoolService {
 		return this.dao.deleteKey(id, ownerId);
 	}
 
-	async getAvailableKeys(provider: string, model?: string): Promise<DbKeyPool[]> {
+	async getAvailableKeys(
+		provider: string,
+		model?: string,
+	): Promise<DbKeyPool[]> {
 		const keys = await this.dao.getAvailableKeys(provider);
 
 		if (!model) return keys;
 
 		// Filter by model client-side since SQLite JSON filtering can be complex
-		return keys.filter(k => {
+		return keys.filter((k) => {
 			try {
 				const models = JSON.parse(k.supported_models) as string[];
 				return models.length === 0 || models.includes(model);
@@ -65,7 +68,7 @@ export class KeyPoolService {
 		const key = await this.dao.getKey(id);
 		if (!key) return;
 
-		// Parse current failure count (we don't persist this field in DB currently for simplicity, 
+		// Parse current failure count (we don't persist this field in DB currently for simplicity,
 		// but in a real app, we might want to track consecutive failures.
 		// For MVP, we'll just check status codes and immediately degrade/kill).
 
@@ -102,7 +105,7 @@ export class KeyPoolService {
 		return {
 			totalKeys: all.length,
 			activeProviders: providerSet.size,
-			deadKeys
+			deadKeys,
 		};
 	}
 }
