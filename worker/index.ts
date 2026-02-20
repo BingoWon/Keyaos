@@ -6,7 +6,7 @@ export type Env = {
 	MODE: "personal" | "platform";
 	ADMIN_EMAILS: string;
 	ADMIN_TOKEN: string;
-	// D1 DB bindings, KV, etc. will go here later
+	DB: D1Database;
 };
 
 const app = new Hono<{ Bindings: Env }>();

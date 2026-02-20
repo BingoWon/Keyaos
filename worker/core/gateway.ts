@@ -16,12 +16,13 @@ import type { Hono } from "hono";
 import type { Env } from "../index";
 import { ApiError, AuthenticationError, BadRequestError } from "../shared/errors";
 import { dispatch } from "./dispatcher";
-import { keyPool } from "./key-pool";
+import { KeyPoolService } from "./key-pool";
 import {
 	getAllProviders,
 	getProvider,
 	getProviderIds,
 } from "./providers/registry";
+import { KeysDao } from "./db/keys-dao"; // For direct getKey access
 
 export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 	// ─── Middleware: Admin Auth Guard ──────────────────────────────
@@ -48,6 +49,7 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 	// ─── Chat Completions (main endpoint) ──────────────────────────
 
 	app.post("/v1/chat/completions", async (c) => {
+		const keyPool = new KeyPoolService(c.env.DB);
 		let body: Record<string, unknown>;
 		try {
 			body = await c.req.json();
@@ -61,7 +63,7 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 		}
 
 		// Dispatch: select provider + key
-		const { key, provider, upstreamModel } = dispatch(model);
+		const { key, provider, upstreamModel } = await dispatch(c.env.DB, model);
 
 		// Override model in body to the upstream model name
 		const upstreamBody = { ...body, model: upstreamModel };
@@ -69,20 +71,20 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 		try {
 			// Forward request
 			const response = await provider.forwardRequest(
-				key.apiKey,
+				key.api_key_encrypted, // NOTE: this should be decrypted in Phase 3
 				c.req.raw,
 				upstreamBody,
 			);
 
 			// Report success
-			keyPool.reportSuccess(key.id);
+			await keyPool.reportSuccess(key.id);
 
 			// Transparent proxy: return upstream response as-is
 			return response;
 		} catch (err) {
 			// Report failure
 			const statusCode = err instanceof ApiError ? err.statusCode : 500;
-			keyPool.reportFailure(key.id, statusCode);
+			await keyPool.reportFailure(key.id, statusCode);
 			throw err;
 		}
 	});
@@ -90,12 +92,13 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 	// ─── Models listing ────────────────────────────────────────────
 
 	app.get("/v1/models", async (c) => {
-		// Aggregate models from all providers that have active keys
+		const keyPool = new KeyPoolService(c.env.DB);
 		const allModels: unknown[] = [];
 		const seenProviders = new Set<string>();
 
-		for (const key of keyPool.getAllKeys()) {
-			if (!key.isActive || key.health === "dead") continue;
+		const allKeys = await keyPool.getAllKeys();
+		for (const key of allKeys) {
+			if (key.is_active !== 1 || key.health_status === "dead") continue;
 			if (seenProviders.has(key.provider)) continue;
 			seenProviders.add(key.provider);
 
@@ -103,14 +106,13 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 			if (!provider) continue;
 
 			try {
-				const result = (await provider.listModels(key.apiKey)) as {
+				const result = (await provider.listModels(key.api_key_encrypted)) as {
 					data?: unknown[];
 				};
 				if (result?.data) {
 					allModels.push(...result.data);
 				}
 			} catch {
-				// Skip providers that fail
 				console.error(`Failed to list models from ${key.provider}`);
 			}
 		}
@@ -121,6 +123,7 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 	// ─── Key Management ────────────────────────────────────────────
 
 	app.post("/keys", async (c) => {
+		const keyPool = new KeyPoolService(c.env.DB);
 		let body: { provider: string; apiKey: string; models?: string[] };
 		try {
 			body = await c.req.json();
@@ -132,7 +135,6 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 			throw new BadRequestError("provider and apiKey are required");
 		}
 
-		// Validate provider exists
 		const providerIds = getProviderIds();
 		if (!providerIds.includes(body.provider)) {
 			throw new BadRequestError(
@@ -140,7 +142,6 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 			);
 		}
 
-		// Validate key with the provider
 		const provider = getProvider(body.provider)!;
 		const isValid = await provider.validateKey(body.apiKey);
 		if (!isValid) {
@@ -149,40 +150,43 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 			);
 		}
 
-		// Add to pool
-		const key = keyPool.addKey(body.provider, body.apiKey, body.models || []);
+		// Hardcoded Platform Owner ID for MVP
+		const adminOwnerId = "user_1";
+		const key = await keyPool.addKey(adminOwnerId, body.provider, body.apiKey, body.models || []);
 
 		return c.json(
 			{
 				id: key.id,
 				provider: key.provider,
-				health: key.health,
-				isActive: key.isActive,
-				createdAt: key.createdAt,
+				health: key.health_status,
+				isActive: key.is_active === 1,
+				createdAt: key.created_at,
 				message: "Key added successfully",
 			},
 			201,
 		);
 	});
 
-	app.get("/keys", (c) => {
-		const keys = keyPool.getAllKeys().map((k) => ({
+	app.get("/keys", async (c) => {
+		const keyPool = new KeyPoolService(c.env.DB);
+		const dbKeys = await keyPool.getAllKeys();
+		const keys = dbKeys.map((k) => ({
 			id: k.id,
 			provider: k.provider,
-			health: k.health,
-			isActive: k.isActive,
-			supportedModels: k.supportedModels,
-			failureCount: k.failureCount,
-			lastUsedAt: k.lastUsedAt,
-			createdAt: k.createdAt,
-			// Never expose the actual API key
+			health: k.health_status,
+			isActive: k.is_active === 1,
+			supportedModels: k.supported_models ? JSON.parse(k.supported_models) : [],
+			failureCount: 0, // Migrated to strict HTTP tracking
+			lastUsedAt: Date.now(),
+			createdAt: k.created_at,
 		}));
 		return c.json({ data: keys });
 	});
 
-	app.delete("/keys/:id", (c) => {
+	app.delete("/keys/:id", async (c) => {
+		const keyPool = new KeyPoolService(c.env.DB);
 		const id = c.req.param("id");
-		const success = keyPool.removeKey(id);
+		const success = await keyPool.removeKey(id);
 		if (!success) {
 			throw new ApiError("Key not found", 404, "not_found", "key_not_found");
 		}
@@ -191,7 +195,9 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 
 	app.get("/keys/:id/balance", async (c) => {
 		const id = c.req.param("id");
-		const key = keyPool.getKey(id);
+		const dao = new KeysDao(c.env.DB);
+		const key = await dao.getKey(id);
+
 		if (!key) {
 			throw new ApiError("Key not found", 404, "not_found", "key_not_found");
 		}
@@ -201,7 +207,7 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 			throw new ApiError("Provider not found", 500);
 		}
 
-		const balance = await provider.checkBalance(key.apiKey);
+		const balance = await provider.checkBalance(key.api_key_encrypted);
 		return c.json({
 			id: key.id,
 			provider: key.provider,
@@ -211,8 +217,9 @@ export function createCoreRoutes(app: Hono<{ Bindings: Env }>) {
 
 	// ─── Pool Stats ────────────────────────────────────────────────
 
-	app.get("/pool/stats", (c) => {
-		return c.json(keyPool.getStats());
+	app.get("/pool/stats", async (c) => {
+		const keyPool = new KeyPoolService(c.env.DB);
+		return c.json(await keyPool.getStats());
 	});
 
 	// ─── Provider Info ─────────────────────────────────────────────

@@ -6,12 +6,13 @@
  */
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
-import { keyPool, type PoolKey } from "./key-pool";
+import { KeyPoolService } from "./key-pool";
+import type { DbKeyPool } from "./db/schema";
 import type { ProviderAdapter } from "./providers/interface";
 import { getProvider, getProviderIds } from "./providers/registry";
 
 export interface DispatchResult {
-	key: PoolKey;
+	key: DbKeyPool;
 	provider: ProviderAdapter;
 	/** The model name to send to the upstream (may differ from user input) */
 	upstreamModel: string;
@@ -44,16 +45,17 @@ function parseModel(model: string): {
 /**
  * Dispatch a request: select the best key and provider for the given model.
  */
-export function dispatch(model: string): DispatchResult {
+export async function dispatch(db: D1Database, model: string): Promise<DispatchResult> {
 	if (!model) {
 		throw new BadRequestError("Model is required");
 	}
 
 	const parsed = parseModel(model);
+	const keyPool = new KeyPoolService(db);
 
 	// If provider is explicit, try that provider first
 	if (parsed.provider) {
-		const key = keyPool.selectKey(parsed.provider, parsed.model);
+		const key = await keyPool.selectKey(parsed.provider, parsed.model);
 		if (key) {
 			const provider = getProvider(parsed.provider);
 			if (provider) {
@@ -67,7 +69,7 @@ export function dispatch(model: string): DispatchResult {
 	} else {
 		// No explicit provider, try all providers
 		for (const providerId of getProviderIds()) {
-			const key = keyPool.selectKey(providerId, parsed.model);
+			const key = await keyPool.selectKey(providerId, parsed.model);
 			if (key) {
 				const provider = getProvider(providerId);
 				if (provider) {

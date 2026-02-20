@@ -8,8 +8,11 @@
 		"build": "vite build",
 		"deploy": "wrangler deploy",
 		"test": "vitest run",
+		"test:api": "node --env-file=.env --test tests/e2e/**/*.test.ts",
 		"lint": "biome check .",
-		"format": "biome format --write ."
+		"format": "biome format --write .",
+		"db:setup:local": "wrangler d1 execute keyaos-db --local --file=./migrations/0001_initial.sql",
+		"db:setup:remote": "wrangler d1 execute keyaos-db --remote --file=./migrations/0001_initial.sql"
 	},
 	"dependencies": {
 		"@headlessui/react": "^2.2.9",
@@ -30,6 +33,7 @@
 		"@cloudflare/vite-plugin": "^1.25.2",
 		"@cloudflare/workers-types": "^4.20260219.0",
 		"@tailwindcss/vite": "4",
+		"@types/node": "^25.3.0",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^5.1.4",

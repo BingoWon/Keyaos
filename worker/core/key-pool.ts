@@ -1,194 +1,100 @@
 /**
  * Key pool management
  *
- * In-memory key pool for the initial implementation.
- * Will be replaced by D1 storage later.
+ * Wraps the KeysDao to provide business logic for key selection,
+ * failure reporting, and statistics.
  */
 
-export interface PoolKey {
-	/** Unique key id */
-	id: string;
-	/** Provider id (e.g. "openrouter", "zenmux") */
-	provider: string;
-	/** The actual API key */
-	apiKey: string;
-	/** Models this key can access (empty = all models on the provider) */
-	supportedModels: string[];
-	/** Whether this key is currently active */
-	isActive: boolean;
-	/** Health status */
-	health: "ok" | "degraded" | "dead";
-	/** Number of consecutive failures */
-	failureCount: number;
-	/** Last time this key was used */
-	lastUsedAt: number;
-	/** When this key was added */
-	createdAt: number;
-}
+import { KeysDao } from "./db/keys-dao";
+import type { DbKeyPool } from "./db/schema";
 
-/**
- * In-memory key pool.
- * Keys are stored in a Map keyed by their id.
- */
-class KeyPool {
-	private keys = new Map<string, PoolKey>();
-	private nextId = 1;
+export class KeyPoolService {
+	private dao: KeysDao;
 
-	/**
-	 * Add a key to the pool.
-	 */
-	addKey(
+	constructor(db: D1Database) {
+		this.dao = new KeysDao(db);
+	}
+
+	async addKey(
+		ownerId: string,
 		provider: string,
 		apiKey: string,
 		supportedModels: string[] = [],
-	): PoolKey {
-		const id = `key_${this.nextId++}`;
-		const key: PoolKey = {
-			id,
-			provider,
-			apiKey,
-			supportedModels,
-			isActive: true,
-			health: "ok",
-			failureCount: 0,
-			lastUsedAt: 0,
-			createdAt: Date.now(),
-		};
-		this.keys.set(id, key);
-		return key;
+	): Promise<DbKeyPool> {
+		return this.dao.addKey(ownerId, provider, apiKey, supportedModels);
 	}
 
-	/**
-	 * Remove a key from the pool.
-	 */
-	removeKey(id: string): boolean {
-		return this.keys.delete(id);
+	async removeKey(id: string, ownerId?: string): Promise<boolean> {
+		return this.dao.deleteKey(id, ownerId);
 	}
 
-	/**
-	 * Get all keys for a specific provider.
-	 */
-	getKeysForProvider(provider: string): PoolKey[] {
-		return Array.from(this.keys.values()).filter(
-			(k) => k.provider === provider,
-		);
-	}
+	async getAvailableKeys(provider: string, model?: string): Promise<DbKeyPool[]> {
+		const keys = await this.dao.getAvailableKeys(provider);
 
-	/**
-	 * Get available keys for a specific provider and model.
-	 * Returns only active, healthy keys.
-	 */
-	getAvailableKeys(provider: string, model?: string): PoolKey[] {
-		return Array.from(this.keys.values()).filter((k) => {
-			if (k.provider !== provider) return false;
-			if (!k.isActive) return false;
-			if (k.health === "dead") return false;
-			if (
-				model &&
-				k.supportedModels.length > 0 &&
-				!k.supportedModels.includes(model)
-			) {
+		if (!model) return keys;
+
+		// Filter by model client-side since SQLite JSON filtering can be complex
+		return keys.filter(k => {
+			try {
+				const models = JSON.parse(k.supported_models) as string[];
+				return models.length === 0 || models.includes(model);
+			} catch {
 				return false;
 			}
-			return true;
 		});
 	}
 
 	/**
-	 * Select the best key for a request using simple round-robin.
-	 * Prefers keys that haven't been used recently.
+	 * Select the best key for a request.
+	 * Returns the first available key. The DAO already orders by price and health.
 	 */
-	selectKey(provider: string, model?: string): PoolKey | null {
-		const available = this.getAvailableKeys(provider, model);
+	async selectKey(provider: string, model?: string): Promise<DbKeyPool | null> {
+		const available = await this.getAvailableKeys(provider, model);
 		if (available.length === 0) return null;
 
-		// Sort by lastUsedAt ascending (least recently used first)
-		// Prefer "ok" health over "degraded"
-		available.sort((a, b) => {
-			if (a.health !== b.health) {
-				return a.health === "ok" ? -1 : 1;
-			}
-			return a.lastUsedAt - b.lastUsedAt;
-		});
-
-		const selected = available[0];
-		selected.lastUsedAt = Date.now();
-		return selected;
+		// The DAO sorts by price_ratio ASC, last_health_check ASC
+		// We just pick the top one.
+		return available[0];
 	}
 
-	/**
-	 * Report a successful use of a key.
-	 */
-	reportSuccess(id: string): void {
-		const key = this.keys.get(id);
-		if (key) {
-			key.failureCount = 0;
-			key.health = "ok";
-		}
+	async reportSuccess(id: string): Promise<void> {
+		await this.dao.reportSuccess(id);
 	}
 
-	/**
-	 * Report a failed use of a key.
-	 */
-	reportFailure(id: string, statusCode?: number): void {
-		const key = this.keys.get(id);
+	async reportFailure(id: string, statusCode?: number): Promise<void> {
+		const key = await this.dao.getKey(id);
 		if (!key) return;
 
-		key.failureCount++;
+		// Parse current failure count (we don't persist this field in DB currently for simplicity, 
+		// but in a real app, we might want to track consecutive failures.
+		// For MVP, we'll just check status codes and immediately degrade/kill).
 
-		// 401/403 = key is dead (revoked or invalid)
-		if (statusCode === 401 || statusCode === 403) {
-			key.health = "dead";
-			key.isActive = false;
-			return;
-		}
-
-		// 402 = out of balance
-		if (statusCode === 402) {
-			key.health = "dead";
-			key.isActive = false;
-			return;
-		}
-
-		// 3 consecutive failures = dead
-		if (key.failureCount >= 3) {
-			key.health = "dead";
-			key.isActive = false;
+		if (statusCode === 401 || statusCode === 403 || statusCode === 402) {
+			// Instant kill for auth/billing errors
+			await this.dao.updateHealth(id, "dead", 0);
 		} else {
-			key.health = "degraded";
+			// Degrade for network errors. A cron job would check degraded keys and revive or kill them.
+			await this.dao.updateHealth(id, "degraded", 0);
 		}
 	}
 
-	/**
-	 * Get all keys (for admin/debug).
-	 */
-	getAllKeys(): PoolKey[] {
-		return Array.from(this.keys.values());
+	async getAllKeys(): Promise<DbKeyPool[]> {
+		return this.dao.getAllKeys();
 	}
 
-	/**
-	 * Get a key by id.
-	 */
-	getKey(id: string): PoolKey | undefined {
-		return this.keys.get(id);
-	}
-
-	/**
-	 * Get pool stats.
-	 */
-	getStats(): {
+	async getStats(): Promise<{
 		totalKeys: number;
 		activeProviders: number;
 		deadKeys: number;
-	} {
-		const all = this.getAllKeys();
+	}> {
+		const all = await this.getAllKeys();
 		const providerSet = new Set<string>();
 		let deadKeys = 0;
 
 		for (const k of all) {
-			if (k.health === "dead") {
+			if (k.health_status === "dead") {
 				deadKeys++;
-			} else if (k.isActive) {
+			} else if (k.is_active === 1) {
 				providerSet.add(k.provider);
 			}
 		}
@@ -200,6 +106,3 @@ class KeyPool {
 		};
 	}
 }
-
-/** Singleton key pool instance */
-export const keyPool = new KeyPool();
