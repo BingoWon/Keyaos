@@ -1,4 +1,4 @@
-import { PlusIcon } from "@heroicons/react/20/solid";
+import { EyeIcon, EyeSlashIcon, PlusIcon } from "@heroicons/react/20/solid";
 import type React from "react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -8,7 +8,6 @@ import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useAuth } from "../stores/auth";
 
-/** Providers that support automatic credit detection */
 const AUTO_CREDIT_PROVIDERS = new Set(["openrouter"]);
 
 interface KeyInfo {
@@ -19,6 +18,14 @@ interface KeyInfo {
 	health: HealthStatus;
 	isActive: boolean;
 	createdAt: number;
+	/** Masked key for display (returned from backend) */
+	maskedKey?: string;
+}
+
+/** Mask an API key: show first 8 + last 4 chars */
+function maskKey(key: string): string {
+	if (key.length <= 16) return key;
+	return `${key.slice(0, 8)}${"•".repeat(8)}${key.slice(-4)}`;
 }
 
 export function Keys() {
@@ -29,6 +36,7 @@ export function Keys() {
 	const keys = data || [];
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const [newKey, setNewKey] = useState({
 		provider: "openrouter",
 		apiKey: "",
@@ -61,14 +69,15 @@ export function Keys() {
 				headers,
 				body: JSON.stringify(body),
 			});
+			const data = await res.json();
 			if (res.ok) {
 				setIsAddOpen(false);
 				setNewKey({ provider: "openrouter", apiKey: "", credits: "" });
+				setShowPassword(false);
 				fetchKeys();
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				const err = await res.json();
-				toast.error(err.error?.message || res.statusText, { id: tid });
+				toast.error(data.error?.message || res.statusText, { id: tid });
 			}
 		} catch (err) {
 			console.error(err);
@@ -86,13 +95,13 @@ export function Keys() {
 					credits: Number.parseFloat(editCredits) || 0,
 				}),
 			});
+			const data = await res.json();
 			if (res.ok) {
 				setEditingId(null);
 				fetchKeys();
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				const err = await res.json();
-				toast.error(err.error?.message || res.statusText, { id: tid });
+				toast.error(data.error?.message || res.statusText, { id: tid });
 			}
 		} catch (err) {
 			console.error(err);
@@ -173,17 +182,30 @@ export function Keys() {
 							>
 								{t("keys.key")}
 							</label>
-							<input
-								type="password"
-								id="apiKey"
-								required
-								value={newKey.apiKey}
-								onChange={(e) =>
-									setNewKey({ ...newKey, apiKey: e.target.value })
-								}
-								className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-								placeholder="sk-..."
-							/>
+							<div className="relative mt-1">
+								<input
+									type={showPassword ? "text" : "password"}
+									id="apiKey"
+									required
+									value={newKey.apiKey}
+									onChange={(e) =>
+										setNewKey({ ...newKey, apiKey: e.target.value })
+									}
+									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+									placeholder="sk-..."
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+								>
+									{showPassword ? (
+										<EyeSlashIcon className="size-5" />
+									) : (
+										<EyeIcon className="size-5" />
+									)}
+								</button>
+							</div>
 						</div>
 						{needsManualCredits && (
 							<div className="w-full sm:w-32">
@@ -211,7 +233,10 @@ export function Keys() {
 						<div className="flex gap-2 w-full sm:w-auto">
 							<button
 								type="button"
-								onClick={() => setIsAddOpen(false)}
+								onClick={() => {
+									setIsAddOpen(false);
+									setShowPassword(false);
+								}}
 								className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:ring-0 dark:hover:bg-white/20"
 							>
 								{t("common.cancel")}
@@ -244,6 +269,12 @@ export function Keys() {
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
+											{t("keys.key")}
+										</th>
+										<th
+											scope="col"
+											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+										>
 											{t("keys.credits")}
 										</th>
 										<th
@@ -251,12 +282,6 @@ export function Keys() {
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
 											{t("keys.health")}
-										</th>
-										<th
-											scope="col"
-											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
-										>
-											{t("keys.created")}
 										</th>
 										<th
 											scope="col"
@@ -290,6 +315,9 @@ export function Keys() {
 											>
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
 													{key.provider}
+												</td>
+												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
+													{maskKey(key.maskedKey || key.id)}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
 													{editingId === key.id ? (
@@ -340,9 +368,6 @@ export function Keys() {
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													<HealthBadge status={key.health} />
-												</td>
-												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-													{new Date(key.createdAt).toLocaleString()}
 												</td>
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
 													<button

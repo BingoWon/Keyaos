@@ -5,7 +5,7 @@ import chatRouter from "./routes/chat";
 import keysRouter from "./routes/keys";
 import modelsRouter from "./routes/models";
 import systemRouter from "./routes/system";
-import { AuthenticationError } from "./shared/errors";
+import { ApiError, AuthenticationError } from "./shared/errors";
 
 export type Env = {
 	DB: D1Database;
@@ -16,6 +16,18 @@ export type Env = {
 };
 
 const app = new Hono<{ Bindings: Env }>();
+
+// ─── Global error handler ─────────────────────────────────
+app.onError((err, c) => {
+	if (err instanceof ApiError) {
+		return c.json(err.toJSON(), err.statusCode as 400);
+	}
+	console.error("[UNHANDLED]", err);
+	return c.json(
+		{ error: { message: "Internal server error", type: "server_error" } },
+		500,
+	);
+});
 
 app.use(
 	"*",
@@ -30,9 +42,12 @@ app.use(
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 // ─── Auth middleware ──────────────────────────────────────
-// All routes except /health require ADMIN_TOKEN
+// API routes require ADMIN_TOKEN. Skip static assets / health.
 app.use("*", async (c, next) => {
-	if (new URL(c.req.url).pathname === "/health") return next();
+	const path = new URL(c.req.url).pathname;
+
+	// Skip auth for public endpoints
+	if (path === "/health") return next();
 
 	const authHeader = c.req.header("Authorization");
 	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();

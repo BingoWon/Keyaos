@@ -81,6 +81,12 @@ keysRouter.post("/", async (c) => {
 	);
 });
 
+/** Mask a key for display: show first prefix and last 4 chars */
+function maskApiKey(encrypted: string): string {
+	if (encrypted.length <= 16) return "••••••••";
+	return `${encrypted.slice(0, 8)}••••••••${encrypted.slice(-4)}`;
+}
+
 keysRouter.get("/", async (c) => {
 	const keysDao = new KeysDao(c.env.DB);
 	const dbKeys = await keysDao.getAllKeys();
@@ -88,11 +94,11 @@ keysRouter.get("/", async (c) => {
 		data: dbKeys.map((k) => ({
 			id: k.id,
 			provider: k.provider,
+			maskedKey: maskApiKey(k.api_key_encrypted),
 			credits: k.credits_cents / 100,
 			creditsSource: k.credits_source,
 			health: k.health_status,
 			isActive: k.is_active === 1,
-			priceRatio: k.price_ratio,
 			createdAt: k.created_at,
 		})),
 	});
