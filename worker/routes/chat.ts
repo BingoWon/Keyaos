@@ -21,7 +21,10 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const { key, provider, upstreamModel } = await dispatch(c.env.DB, model);
+	const { key, provider, upstreamModel, modelCost } = await dispatch(
+		c.env.DB,
+		model,
+	);
 
 	const upstreamBody = {
 		...body,
@@ -46,10 +49,10 @@ chatRouter.post("/completions", async (c) => {
 						keyId: key.id,
 						provider: key.provider,
 						model: upstreamModel,
+						priceRatio: key.price_ratio,
+						modelCost,
 						usage,
-					}).catch((err) =>
-						console.error("[BILLING] waitUntil Promise FAILED:", err),
-					),
+					}).catch((err) => console.error("[BILLING] waitUntil failed:", err)),
 				);
 			},
 		);

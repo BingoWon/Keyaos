@@ -10,6 +10,10 @@ export interface TokenUsage {
 	prompt_tokens: number;
 	completion_tokens: number;
 	total_tokens: number;
+	/** OpenRouter returns this */
+	cost?: number;
+	/** DeepInfra returns this */
+	estimated_cost?: number;
 }
 
 export function interceptResponse(
@@ -33,6 +37,8 @@ export function interceptResponse(
 						prompt_tokens: body.usage.prompt_tokens || 0,
 						completion_tokens: body.usage.completion_tokens || 0,
 						total_tokens: body.usage.total_tokens || 0,
+						cost: body.usage.cost,
+						estimated_cost: body.usage.estimated_cost,
 					});
 				}
 			})
@@ -45,9 +51,6 @@ export function interceptResponse(
 	return response;
 }
 
-/**
- * Parses Server-Sent Events (SSE) format out-of-band to count tokens.
- */
 function interceptSSEStream(
 	response: Response,
 	ctx: ExecutionContext,
@@ -76,33 +79,30 @@ function interceptSSEStream(
 					const frame = buffer.slice(0, frameEnd);
 					buffer = buffer.slice(frameEnd + 2);
 
-					const lines = frame.split("\n");
-					for (const line of lines) {
+					for (const line of frame.split("\n")) {
 						const trimmed = line.trim();
-						if (!trimmed.startsWith("data: ")) continue;
-						if (trimmed === "data: [DONE]") continue;
+						if (!trimmed.startsWith("data: ") || trimmed === "data: [DONE]")
+							continue;
 
 						try {
-							const jsonStr = trimmed.substring(6);
-							const data = JSON.parse(jsonStr);
-
+							const data = JSON.parse(trimmed.substring(6));
 							if (data?.usage) {
 								onUsage({
 									prompt_tokens: data.usage.prompt_tokens || 0,
 									completion_tokens: data.usage.completion_tokens || 0,
 									total_tokens: data.usage.total_tokens || 0,
+									cost: data.usage.cost,
+									estimated_cost: data.usage.estimated_cost,
 								});
 							}
-						} catch (e) {
+						} catch {
 							// Ignore partial chunk JSON errors
 						}
 					}
 				}
 			}
 		} catch (e) {
-			console.error("[STREAM MONITOR] Fatal error reading stream copy:", e);
-		} finally {
-			// reader will auto-release but explicitly close if needed
+			console.error("[STREAM MONITOR] Fatal error:", e);
 		}
 	})();
 

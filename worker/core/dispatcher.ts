@@ -1,89 +1,54 @@
 /**
- * Dispatcher — Key selection and request routing
+ * Dispatcher — Global optimal key selection and request routing
  *
- * Given a model name, determines the provider and selects the best key.
- * For now, model names follow the "provider/model" format (e.g. "openai/gpt-4o").
+ * Queries the models table to find which providers serve a model,
+ * then selects the cheapest provider+key combination by:
+ *   cost = model.input_cost × key.price_ratio
  */
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
+import { ModelsDao } from "./db/models-dao";
 import type { DbKeyPool } from "./db/schema";
 import { KeyPoolService } from "./key-pool";
 import type { ProviderAdapter } from "./providers/interface";
-import { getProvider, getProviderIds } from "./providers/registry";
+import { getProvider } from "./providers/registry";
 
 export interface DispatchResult {
 	key: DbKeyPool;
 	provider: ProviderAdapter;
-	/** The model name to send to the upstream (may differ from user input) */
 	upstreamModel: string;
+	/** Model cost info from the models table (for billing) */
+	modelCost: { inputCentsPerM: number; outputCentsPerM: number };
 }
 
-/**
- * Parse a model string to extract provider and model name.
- *
- * Supported formats:
- * - "<provider>/<model-name>" → explicit provider (e.g. "openrouter/openai/gpt-4o")
- * - "<model-name>" → try all providers
- */
-function parseModel(model: string): {
-	provider: string | null;
-	model: string;
-} {
-	const slashIndex = model.indexOf("/");
-	if (slashIndex > 0) {
-		const prefix = model.substring(0, slashIndex);
-		if (getProviderIds().includes(prefix)) {
-			return {
-				provider: prefix,
-				model: model.substring(slashIndex + 1),
-			};
-		}
-	}
-	return { provider: null, model };
-}
-
-/**
- * Dispatch a request: select the best key and provider for the given model.
- */
 export async function dispatch(
 	db: D1Database,
 	model: string,
 ): Promise<DispatchResult> {
-	if (!model) {
-		throw new BadRequestError("Model is required");
-	}
+	if (!model) throw new BadRequestError("Model is required");
 
-	const parsed = parseModel(model);
+	const modelsDao = new ModelsDao(db);
 	const keyPool = new KeyPoolService(db);
 
-	// If provider is explicit, try that provider first
-	if (parsed.provider) {
-		const key = await keyPool.selectKey(parsed.provider, parsed.model);
-		if (key) {
-			const provider = getProvider(parsed.provider);
-			if (provider) {
-				return {
-					key,
-					provider,
-					upstreamModel: parsed.model,
-				};
-			}
-		}
-	} else {
-		// No explicit provider, try all providers
-		for (const providerId of getProviderIds()) {
-			const key = await keyPool.selectKey(providerId, parsed.model);
-			if (key) {
-				const provider = getProvider(providerId);
-				if (provider) {
-					return {
-						key,
-						provider,
-						upstreamModel: parsed.model,
-					};
-				}
-			}
-		}
+	// Find all providers that serve this model, sorted by input_cost ASC
+	const offerings = await modelsDao.findByUpstreamId(model);
+
+	for (const offering of offerings) {
+		const provider = getProvider(offering.provider);
+		if (!provider) continue;
+
+		const key = await keyPool.selectKey(offering.provider, model);
+		if (!key) continue;
+
+		return {
+			key,
+			provider,
+			upstreamModel: offering.upstream_id,
+			modelCost: {
+				inputCentsPerM: offering.input_cost,
+				outputCentsPerM: offering.output_cost,
+			},
+		};
 	}
 
 	throw new NoKeyAvailableError(model);

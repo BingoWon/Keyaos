@@ -1,37 +1,33 @@
+/**
+ * Models route — serves from local D1 cache (synced by Cron)
+ */
 import { Hono } from "hono";
-import { KeyPoolService } from "../core/key-pool";
-import { getProvider } from "../core/providers/registry";
+import { ModelsDao } from "../core/db/models-dao";
 import type { Env } from "../index";
 
 const modelsRouter = new Hono<{ Bindings: Env }>();
 
 modelsRouter.get("/", async (c) => {
-	const keyPool = new KeyPoolService(c.env.DB);
-	const allModels: unknown[] = [];
-	const seenProviders = new Set<string>();
+	const dao = new ModelsDao(c.env.DB);
+	const all = await dao.getActiveModels();
 
-	const allKeys = await keyPool.getAllKeys();
-	for (const key of allKeys) {
-		if (key.is_active !== 1 || key.health_status === "dead") continue;
-		if (seenProviders.has(key.provider)) continue;
-		seenProviders.add(key.provider);
-
-		const provider = getProvider(key.provider);
-		if (!provider) continue;
-
-		try {
-			const result = (await provider.listModels(key.api_key_encrypted)) as {
-				data?: unknown[];
-			};
-			if (result?.data) {
-				allModels.push(...result.data);
-			}
-		} catch {
-			console.error(`Failed to list models from ${key.provider}`);
+	// Deduplicate by upstream_id, keeping the cheapest offering
+	const seen = new Map<string, (typeof all)[0]>();
+	for (const m of all) {
+		if (!seen.has(m.upstream_id)) {
+			seen.set(m.upstream_id, m);
 		}
 	}
 
-	return c.json({ object: "list", data: allModels });
+	const data = [...seen.values()].map((m) => ({
+		id: m.upstream_id,
+		object: "model" as const,
+		created: Math.floor(m.synced_at / 1000),
+		owned_by: m.provider,
+		...(m.display_name && { name: m.display_name }),
+	}));
+
+	return c.json({ object: "list", data });
 });
 
 export default modelsRouter;

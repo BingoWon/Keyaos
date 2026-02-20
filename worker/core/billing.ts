@@ -1,8 +1,10 @@
 /**
- * Asynchronous Billing Service
+ * Asynchronous Billing Service — Dual-mode cost calculation
  *
- * Records token usage out-of-band to D1 and deducts buyer balance.
- * Usage: c.executionCtx.waitUntil(recordTransactionTx(...))
+ * Mode 1: If upstream returns cost (OpenRouter/DeepInfra), use it directly.
+ * Mode 2: If not (ZenMux), calculate from models table pricing × tokens.
+ *
+ * Final buyer cost = upstream_cost × price_ratio + platform_fee
  */
 
 import { Config } from "./config";
@@ -15,6 +17,8 @@ export interface BillingParams {
 	keyId: string;
 	provider: string;
 	model: string;
+	priceRatio: number;
+	modelCost: { inputCentsPerM: number; outputCentsPerM: number };
 	usage: TokenUsage;
 }
 
@@ -22,19 +26,35 @@ export async function recordTransactionTx(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
-	const { buyerId, keyId, provider, model, usage } = params;
+	const { buyerId, keyId, provider, model, priceRatio, modelCost, usage } =
+		params;
 	const totalTokens =
 		usage.total_tokens || usage.prompt_tokens + usage.completion_tokens;
 
 	if (totalTokens <= 0) return;
 
-	// MVP Flat Rate: Convert total tokens to Cents (rounded up to avoid 0c transactions)
-	const costCents = Math.ceil(
-		(Math.max(totalTokens, 1) / 1_000_000) *
-			Config.USAGE_RATE_PER_MILLION_CENTS,
-	);
+	// ─── Determine upstream cost ───────────────────────────
+	// Priority: upstream-reported cost > calculated from models table
+	let upstreamCostCents: number;
 
-	// Calculate fractional platform revenue
+	const reportedCostUsd = usage.cost ?? usage.estimated_cost;
+	if (reportedCostUsd != null && reportedCostUsd > 0) {
+		// OpenRouter/DeepInfra: convert USD to cents, round up
+		upstreamCostCents = Math.ceil(reportedCostUsd * 100);
+	} else {
+		// ZenMux: calculate from models table pricing
+		const inputCost =
+			(usage.prompt_tokens / 1_000_000) * modelCost.inputCentsPerM;
+		const outputCost =
+			(usage.completion_tokens / 1_000_000) * modelCost.outputCentsPerM;
+		upstreamCostCents = Math.ceil(inputCost + outputCost);
+	}
+
+	// ─── Calculate buyer cost ──────────────────────────────
+	const costCents = Math.max(
+		Math.ceil(upstreamCostCents * priceRatio * (1 + Config.PLATFORM_FEE_RATIO)),
+		1,
+	);
 	const platformFeeCents = Math.ceil(costCents * Config.PLATFORM_FEE_RATIO);
 	const sellerIncomeCents = costCents - platformFeeCents;
 
@@ -49,6 +69,7 @@ export async function recordTransactionTx(
 			model,
 			input_tokens: usage.prompt_tokens,
 			output_tokens: usage.completion_tokens,
+			upstream_cost_cents: upstreamCostCents,
 			cost_cents: costCents,
 			seller_income_cents: sellerIncomeCents,
 			platform_fee_cents: platformFeeCents,
@@ -57,10 +78,10 @@ export async function recordTransactionTx(
 		const deducted = await usersDao.deductBalance(buyerId, costCents);
 		if (!deducted) {
 			console.warn(
-				`[BILLING] Insufficient funds or invalid user: ${buyerId}. Failed to deduct ${costCents}c.`,
+				`[BILLING] Insufficient funds for ${buyerId}: ${costCents}c`,
 			);
 		}
 	} catch (err) {
-		console.error("[BILLING] Database transaction write failed:", err);
+		console.error("[BILLING] Transaction write failed:", err);
 	}
 }

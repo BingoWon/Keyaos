@@ -15,10 +15,10 @@ export class TransactionsDao {
 		await this.db
 			.prepare(
 				`INSERT INTO transactions (
-					id, buyer_id, key_id, provider, model, 
-					input_tokens, output_tokens, cost_cents, 
-					seller_income_cents, platform_fee_cents, created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					id, buyer_id, key_id, provider, model,
+					input_tokens, output_tokens, upstream_cost_cents,
+					cost_cents, seller_income_cents, platform_fee_cents, created_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
@@ -28,6 +28,7 @@ export class TransactionsDao {
 				tx.model,
 				tx.input_tokens,
 				tx.output_tokens,
+				tx.upstream_cost_cents,
 				tx.cost_cents,
 				tx.seller_income_cents,
 				tx.platform_fee_cents,
@@ -40,7 +41,7 @@ export class TransactionsDao {
 
 	async getTransactionsForBuyer(
 		buyerId: string,
-		limit: number = 50,
+		limit = 50,
 	): Promise<DbTransaction[]> {
 		const res = await this.db
 			.prepare(

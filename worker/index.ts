@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { syncAllProviders } from "./core/sync/sync-service";
 import chatRouter from "./routes/chat";
 import keysRouter from "./routes/keys";
 import modelsRouter from "./routes/models";
@@ -31,7 +32,7 @@ app.get("/health", (c) => c.json({ status: "ok", mode: c.env.MODE }));
 app.use("*", async (c, next) => {
 	const path = new URL(c.req.url).pathname;
 
-	// Public routes: health, system info, and standard OpenAI compat API paths
+	// Public routes
 	if (
 		path === "/health" ||
 		path.startsWith("/providers") ||
@@ -40,7 +41,7 @@ app.use("*", async (c, next) => {
 		return next();
 	}
 
-	// Admin routes: require Bearer token matching ADMIN_TOKEN
+	// Admin routes: require Bearer token
 	const authHeader = c.req.header("Authorization");
 	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
 	const validToken = c.env.ADMIN_TOKEN || "admin";
@@ -56,6 +57,16 @@ app.use("*", async (c, next) => {
 app.route("/v1/chat", chatRouter);
 app.route("/v1/models", modelsRouter);
 app.route("/keys", keysRouter);
-app.route("/", systemRouter); // /providers and /pool/stats
+app.route("/", systemRouter);
 
-export default app;
+export default {
+	fetch: app.fetch,
+
+	async scheduled(
+		_event: ScheduledEvent,
+		env: Env,
+		ctx: ExecutionContext,
+	): Promise<void> {
+		ctx.waitUntil(syncAllProviders(env.DB));
+	},
+};
