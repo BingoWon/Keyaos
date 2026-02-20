@@ -16,12 +16,14 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://openrouter.ai/api/v1",
 		supportsAutoCredits: true,
 		creditsUrl: "https://openrouter.ai/api/v1/credits",
+		validationUrl: "https://openrouter.ai/api/v1/auth/key",
 	},
 	{
 		id: "zenmux",
 		name: "ZenMux",
 		baseUrl: "https://zenmux.ai/api/v1",
 		supportsAutoCredits: false,
+		validationUrl: "https://zenmux.ai/api/v1/generation?id=_validate",
 	},
 	{
 		id: "deepinfra",

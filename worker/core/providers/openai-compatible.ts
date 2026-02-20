@@ -16,8 +16,10 @@ export interface OpenAICompatibleConfig {
 	baseUrl: string;
 	/** Whether this provider supports automatic credit fetching */
 	supportsAutoCredits: boolean;
-	/** Absolute URL for credits/usage query (not relative to baseUrl) */
+	/** Absolute URL for credits/usage query */
 	creditsUrl?: string;
+	/** Absolute URL for key validation (must return 4xx for invalid keys) */
+	validationUrl?: string;
 	/** Custom headers to add to all requests */
 	extraHeaders?: Record<string, string>;
 }
@@ -36,7 +38,8 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
 	async validateKey(apiKey: string): Promise<boolean> {
 		try {
-			const res = await fetch(`${this.config.baseUrl}/models`, {
+			const url = this.config.validationUrl || `${this.config.baseUrl}/models`;
+			const res = await fetch(url, {
 				headers: {
 					Authorization: `Bearer ${apiKey}`,
 					...this.config.extraHeaders,
