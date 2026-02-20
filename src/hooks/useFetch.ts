@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../stores/auth";
 
 interface FetchOptions extends RequestInit {
@@ -8,6 +8,10 @@ interface FetchOptions extends RequestInit {
 export function useFetch<T>(url: string, options: FetchOptions = {}) {
 	const { requireAuth = true, ...fetchOptions } = options;
 	const { token, logout } = useAuth();
+
+	// Stable ref to avoid re-creating the callback when options object changes
+	const optionsRef = useRef(fetchOptions);
+	optionsRef.current = fetchOptions;
 
 	const [data, setData] = useState<T | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
@@ -19,13 +23,14 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 		setError(null);
 
 		try {
-			const headers = new Headers(fetchOptions.headers);
+			const opts = optionsRef.current;
+			const headers = new Headers(opts.headers);
 			if (requireAuth && token) {
 				headers.set("Authorization", `Bearer ${token}`);
 			}
 
 			const res = await fetch(url, {
-				...fetchOptions,
+				...opts,
 				headers,
 				signal: controller.signal,
 			});
@@ -51,7 +56,7 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 		}
 
 		return () => controller.abort();
-	}, [url, token, requireAuth, logout, fetchOptions.method]); // stringified check for complex options is better but omitted for MVP
+	}, [url, token, requireAuth, logout]);
 
 	useEffect(() => {
 		const abort = execute();

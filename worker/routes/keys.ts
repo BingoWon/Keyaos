@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { KeysDao } from "../core/db/keys-dao";
-import { getProvider, getProviderIds } from "../core/providers/registry";
+import { getAllProviders, getProvider } from "../core/providers/registry";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
 
@@ -34,15 +34,15 @@ keysRouter.post("/", async (c) => {
 		throw new BadRequestError("provider and apiKey are required");
 	}
 
-	const providerIds = getProviderIds();
-	if (!providerIds.includes(body.provider)) {
+	const provider = getProvider(body.provider);
+	if (!provider) {
+		const supported = getAllProviders()
+			.map((p) => p.info.id)
+			.join(", ");
 		throw new BadRequestError(
-			`Unknown provider: ${body.provider}. Supported: ${providerIds.join(", ")}`,
+			`Unknown provider: ${body.provider}. Supported: ${supported}`,
 		);
 	}
-
-	const provider = getProvider(body.provider);
-	if (!provider) throw new BadRequestError("Provider not found");
 
 	const isValid = await provider.validateKey(body.apiKey);
 	if (!isValid) {

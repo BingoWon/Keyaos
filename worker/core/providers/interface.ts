@@ -10,7 +10,6 @@ import type { DbModel } from "../db/schema";
 export interface ProviderInfo {
 	id: string;
 	name: string;
-	baseUrl: string;
 	/** Whether this provider supports automatic credit fetching */
 	supportsAutoCredits: boolean;
 	/** Native currency of this provider's balance/pricing */

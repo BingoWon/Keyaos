@@ -70,7 +70,6 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		this.info = {
 			id: config.id,
 			name: config.name,
-			baseUrl: config.baseUrl,
 			supportsAutoCredits: config.supportsAutoCredits,
 			currency: config.currency,
 		};

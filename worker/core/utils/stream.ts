@@ -31,7 +31,7 @@ export function interceptResponse(
 		const parseTask = response
 			.clone()
 			.json()
-			.then((body: any) => {
+			.then((body: { usage?: TokenUsage }) => {
 				if (body?.usage) {
 					onUsage({
 						prompt_tokens: body.usage.prompt_tokens || 0,

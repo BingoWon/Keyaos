@@ -211,7 +211,3 @@ export function getProvider(id: string): ProviderAdapter | undefined {
 export function getAllProviders(): ProviderAdapter[] {
 	return Array.from(adapters.values());
 }
-
-export function getProviderIds(): string[] {
-	return Array.from(adapters.keys());
-}
