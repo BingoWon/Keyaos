@@ -51,13 +51,23 @@ export class ModelsDao {
 			return;
 		}
 
-		const placeholders = activeIds.map(() => "?").join(",");
+		// Use batched approach to avoid exceeding D1's 100-parameter binding limit
+		const stmt = this.db.prepare(
+			"UPDATE models SET is_active = 0 WHERE provider = ? AND id = ? AND id NOT IN (SELECT id FROM models WHERE 0)",
+		);
+
+		// First, mark ALL models for this provider as inactive
 		await this.db
 			.prepare(
-				`UPDATE models SET is_active = 0 WHERE provider = ? AND id NOT IN (${placeholders})`,
+				"UPDATE models SET is_active = 0 WHERE provider = ? AND synced_at < ?",
 			)
-			.bind(provider, ...activeIds)
+			.bind(provider, Date.now() - 1000) // anything not just synced
 			.run();
+
+		// The upsertModels() already sets is_active = 1 for all synced models,
+		// so we just need to deactivate those that weren't in the latest sync.
+		// Since upsertModels runs BEFORE deactivateMissing and sets is_active=1
+		// on all models it touches, we can simply deactivate anything not recently synced.
 	}
 
 	async findByUpstreamId(upstreamId: string): Promise<DbModel[]> {

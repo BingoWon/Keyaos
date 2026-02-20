@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { recordTransactionTx } from "../core/billing";
+import { recordTransaction } from "../core/billing";
 import { Config } from "../core/config";
+import { KeysDao } from "../core/db/keys-dao";
 import { dispatch } from "../core/dispatcher";
-import { KeyPoolService } from "../core/key-pool";
 import { interceptResponse } from "../core/utils/stream";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
@@ -10,7 +10,6 @@ import { ApiError, BadRequestError } from "../shared/errors";
 const chatRouter = new Hono<{ Bindings: Env }>();
 
 chatRouter.post("/completions", async (c) => {
-	const keyPool = new KeyPoolService(c.env.DB);
 	let body: Record<string, unknown>;
 	try {
 		body = await c.req.json();
@@ -25,6 +24,8 @@ chatRouter.post("/completions", async (c) => {
 		c.env.DB,
 		model,
 	);
+
+	const keysDao = new KeysDao(c.env.DB);
 
 	const upstreamBody = {
 		...body,
@@ -44,7 +45,7 @@ chatRouter.post("/completions", async (c) => {
 			c.executionCtx,
 			(usage) => {
 				c.executionCtx.waitUntil(
-					recordTransactionTx(c.env.DB, {
+					recordTransaction(c.env.DB, {
 						buyerId: Config.ADMIN_MOCK_USER_ID,
 						keyId: key.id,
 						provider: key.provider,
@@ -57,11 +58,11 @@ chatRouter.post("/completions", async (c) => {
 			},
 		);
 
-		await keyPool.reportSuccess(key.id);
+		await keysDao.reportSuccess(key.id);
 		return finalResponse;
 	} catch (err) {
 		const statusCode = err instanceof ApiError ? err.statusCode : 500;
-		await keyPool.reportFailure(key.id, statusCode);
+		await keysDao.reportFailure(key.id, statusCode);
 		throw err;
 	}
 });

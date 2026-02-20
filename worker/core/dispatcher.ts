@@ -7,9 +7,9 @@
  */
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
+import { KeysDao } from "./db/keys-dao";
 import { ModelsDao } from "./db/models-dao";
 import type { DbKeyPool } from "./db/schema";
-import { KeyPoolService } from "./key-pool";
 import type { ProviderAdapter } from "./providers/interface";
 import { getProvider } from "./providers/registry";
 
@@ -17,7 +17,6 @@ export interface DispatchResult {
 	key: DbKeyPool;
 	provider: ProviderAdapter;
 	upstreamModel: string;
-	/** Model cost info from the models table (for billing) */
 	modelCost: { inputCentsPerM: number; outputCentsPerM: number };
 }
 
@@ -28,16 +27,15 @@ export async function dispatch(
 	if (!model) throw new BadRequestError("Model is required");
 
 	const modelsDao = new ModelsDao(db);
-	const keyPool = new KeyPoolService(db);
+	const keysDao = new KeysDao(db);
 
-	// Find all providers that serve this model, sorted by input_cost ASC
 	const offerings = await modelsDao.findByUpstreamId(model);
 
 	for (const offering of offerings) {
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
-		const key = await keyPool.selectKey(offering.provider);
+		const key = await keysDao.selectKey(offering.provider);
 		if (!key) continue;
 
 		return {

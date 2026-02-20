@@ -1,5 +1,8 @@
 /**
  * Keys Data Access Object
+ *
+ * Handles all key_pool operations including CRUD, selection,
+ * health tracking, and statistics.
  */
 import type { DbKeyPool } from "./schema";
 
@@ -52,18 +55,17 @@ export class KeysDao {
 		return result.success && result.meta?.rows_written === 1;
 	}
 
-	async getAvailableKeys(provider: string): Promise<DbKeyPool[]> {
-		const res = await this.db
+	/** Select the cheapest available key for a provider */
+	async selectKey(provider: string): Promise<DbKeyPool | null> {
+		return this.db
 			.prepare(
 				`SELECT * FROM key_pool
 				 WHERE provider = ? AND is_active = 1 AND health_status != 'dead'
-				 ORDER BY price_ratio ASC, last_health_check ASC
-				 LIMIT 100`,
+				 ORDER BY price_ratio ASC
+				 LIMIT 1`,
 			)
 			.bind(provider)
-			.all<DbKeyPool>();
-
-		return res.results || [];
+			.first<DbKeyPool>();
 	}
 
 	async getAllKeys(): Promise<DbKeyPool[]> {
@@ -73,21 +75,6 @@ export class KeysDao {
 		return res.results || [];
 	}
 
-	async updateHealth(
-		id: string,
-		status: "ok" | "degraded" | "dead",
-	): Promise<void> {
-		await this.db
-			.prepare(
-				`UPDATE key_pool
-				 SET health_status = ?, last_health_check = ?,
-				     is_active = CASE WHEN ? = 'dead' THEN 0 ELSE is_active END
-				 WHERE id = ?`,
-			)
-			.bind(status, Date.now(), status, id)
-			.run();
-	}
-
 	async reportSuccess(id: string): Promise<void> {
 		await this.db
 			.prepare(
@@ -95,5 +82,47 @@ export class KeysDao {
 			)
 			.bind(Date.now(), id)
 			.run();
+	}
+
+	async reportFailure(id: string, statusCode?: number): Promise<void> {
+		const status =
+			statusCode === 401 || statusCode === 402 || statusCode === 403
+				? "dead"
+				: "degraded";
+
+		await this.db
+			.prepare(
+				`UPDATE key_pool
+				 SET health_status = ?,
+				     last_health_check = ?,
+				     is_active = CASE WHEN ? = 'dead' THEN 0 ELSE is_active END
+				 WHERE id = ?`,
+			)
+			.bind(status, Date.now(), status, id)
+			.run();
+	}
+
+	async getStats(): Promise<{
+		totalKeys: number;
+		activeProviders: number;
+		deadKeys: number;
+	}> {
+		const all = await this.getAllKeys();
+		const providerSet = new Set<string>();
+		let deadKeys = 0;
+
+		for (const k of all) {
+			if (k.health_status === "dead") {
+				deadKeys++;
+			} else if (k.is_active === 1) {
+				providerSet.add(k.provider);
+			}
+		}
+
+		return {
+			totalKeys: all.length,
+			activeProviders: providerSet.size,
+			deadKeys,
+		};
 	}
 }

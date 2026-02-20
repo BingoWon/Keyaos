@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { Config } from "../core/config";
 import { KeysDao } from "../core/db/keys-dao";
-import { KeyPoolService } from "../core/key-pool";
 import { getProvider, getProviderIds } from "../core/providers/registry";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
@@ -9,7 +8,7 @@ import { ApiError, BadRequestError } from "../shared/errors";
 const keysRouter = new Hono<{ Bindings: Env }>();
 
 keysRouter.post("/", async (c) => {
-	const keyPool = new KeyPoolService(c.env.DB);
+	const keysDao = new KeysDao(c.env.DB);
 	let body: { provider: string; apiKey: string };
 	try {
 		body = await c.req.json();
@@ -38,7 +37,7 @@ keysRouter.post("/", async (c) => {
 		);
 	}
 
-	const key = await keyPool.addKey(
+	const key = await keysDao.addKey(
 		Config.ADMIN_MOCK_USER_ID,
 		body.provider,
 		body.apiKey,
@@ -58,8 +57,8 @@ keysRouter.post("/", async (c) => {
 });
 
 keysRouter.get("/", async (c) => {
-	const keyPool = new KeyPoolService(c.env.DB);
-	const dbKeys = await keyPool.getAllKeys();
+	const keysDao = new KeysDao(c.env.DB);
+	const dbKeys = await keysDao.getAllKeys();
 	const keys = dbKeys.map((k) => ({
 		id: k.id,
 		provider: k.provider,
@@ -72,9 +71,9 @@ keysRouter.get("/", async (c) => {
 });
 
 keysRouter.delete("/:id", async (c) => {
-	const keyPool = new KeyPoolService(c.env.DB);
+	const keysDao = new KeysDao(c.env.DB);
 	const id = c.req.param("id");
-	const success = await keyPool.removeKey(id);
+	const success = await keysDao.deleteKey(id);
 	if (!success) {
 		throw new ApiError("Key not found", 404, "not_found", "key_not_found");
 	}
@@ -83,8 +82,8 @@ keysRouter.delete("/:id", async (c) => {
 
 keysRouter.get("/:id/balance", async (c) => {
 	const id = c.req.param("id");
-	const dao = new KeysDao(c.env.DB);
-	const key = await dao.getKey(id);
+	const keysDao = new KeysDao(c.env.DB);
+	const key = await keysDao.getKey(id);
 
 	if (!key) {
 		throw new ApiError("Key not found", 404, "not_found", "key_not_found");

@@ -4,7 +4,9 @@
  * Mode 1: If upstream returns cost (OpenRouter/DeepInfra), use it directly.
  * Mode 2: If not (ZenMux), calculate from models table pricing × tokens.
  *
- * Final buyer cost = upstream_cost × price_ratio + platform_fee
+ * buyer_cost = upstream_cost + platform_fee
+ * seller_income = upstream_cost (what the seller's key was worth)
+ * platform_fee = upstream_cost × platform_fee_ratio
  */
 
 import { Config } from "./config";
@@ -22,7 +24,7 @@ export interface BillingParams {
 	usage: TokenUsage;
 }
 
-export async function recordTransactionTx(
+export async function recordTransaction(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
@@ -34,15 +36,12 @@ export async function recordTransactionTx(
 	if (totalTokens <= 0) return;
 
 	// ─── Determine upstream cost ───────────────────────────
-	// Priority: upstream-reported cost > calculated from models table
 	let upstreamCostCents: number;
 
 	const reportedCostUsd = usage.cost ?? usage.estimated_cost;
 	if (reportedCostUsd != null && reportedCostUsd > 0) {
-		// OpenRouter/DeepInfra: convert USD to cents, round up
 		upstreamCostCents = Math.ceil(reportedCostUsd * 100);
 	} else {
-		// ZenMux: calculate from models table pricing
 		const inputCost =
 			(usage.prompt_tokens / 1_000_000) * modelCost.inputCentsPerM;
 		const outputCost =
@@ -50,19 +49,21 @@ export async function recordTransactionTx(
 		upstreamCostCents = Math.ceil(inputCost + outputCost);
 	}
 
-	// ─── Calculate buyer cost ──────────────────────────────
-	const costCents = Math.max(
-		Math.ceil(upstreamCostCents * priceRatio * (1 + Config.PLATFORM_FEE_RATIO)),
+	// ─── Calculate costs ───────────────────────────────────
+	// Seller income = upstream cost × price_ratio (what they're willing to sell for)
+	const sellerIncomeCents = Math.max(
+		Math.ceil(upstreamCostCents * priceRatio),
 		1,
 	);
-	const platformFeeCents = Math.ceil(costCents * Config.PLATFORM_FEE_RATIO);
-	const sellerIncomeCents = costCents - platformFeeCents;
-
-	const usersDao = new UsersDao(db);
-	const txDao = new TransactionsDao(db);
+	// Platform fee = seller income × fee ratio
+	const platformFeeCents = Math.ceil(
+		sellerIncomeCents * Config.PLATFORM_FEE_RATIO,
+	);
+	// Buyer pays = seller income + platform fee
+	const costCents = sellerIncomeCents + platformFeeCents;
 
 	try {
-		await txDao.createTransaction({
+		await new TransactionsDao(db).createTransaction({
 			buyer_id: buyerId,
 			key_id: keyId,
 			provider,
@@ -75,7 +76,7 @@ export async function recordTransactionTx(
 			platform_fee_cents: platformFeeCents,
 		});
 
-		const deducted = await usersDao.deductBalance(buyerId, costCents);
+		const deducted = await new UsersDao(db).deductBalance(buyerId, costCents);
 		if (!deducted) {
 			console.warn(
 				`[BILLING] Insufficient funds for ${buyerId}: ${costCents}c`,
