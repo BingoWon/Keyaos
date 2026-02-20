@@ -12,6 +12,16 @@ function maskKey(key: string): string {
 
 const keysRouter = new Hono<{ Bindings: Env }>();
 
+/** Convert native-currency amount to USD cents */
+function toUsdCents(
+	amount: number,
+	currency: "USD" | "CNY",
+	cnyRate: number,
+): number {
+	const usd = currency === "CNY" ? amount / cnyRate : amount;
+	return Math.round(usd * 100);
+}
+
 keysRouter.post("/", async (c) => {
 	let body: { provider: string; apiKey: string; credits?: number };
 	try {
@@ -55,9 +65,14 @@ keysRouter.post("/", async (c) => {
 	if (provider.info.supportsAutoCredits) {
 		// Auto: fetch from upstream, ignore any manual input
 		creditsSource = "auto";
+		const cnyRate = parseFloat(c.env.CNY_USD_RATE || "7");
 		const credits = await provider.fetchCredits(body.apiKey);
-		if (credits?.remainingUsd != null) {
-			creditsCents = Math.round(credits.remainingUsd * 100);
+		if (credits?.remaining != null) {
+			creditsCents = toUsdCents(
+				credits.remaining,
+				provider.info.currency,
+				cnyRate,
+			);
 		}
 	} else {
 		// Manual: require user-provided credits
@@ -180,14 +195,20 @@ keysRouter.get("/:id/credits", async (c) => {
 	if (key.credits_source === "auto") {
 		const provider = getProvider(key.provider);
 		if (provider) {
+			const cnyRate = parseFloat(c.env.CNY_USD_RATE || "7");
 			const upstream = await provider.fetchCredits(key.api_key);
-			if (upstream?.remainingUsd != null) {
-				const newCents = Math.round(upstream.remainingUsd * 100);
+			if (upstream?.remaining != null) {
+				const newCents = toUsdCents(
+					upstream.remaining,
+					provider.info.currency,
+					cnyRate,
+				);
 				await keysDao.updateCredits(id, newCents, "auto");
 				result.credits = newCents / 100;
 				result.upstream = {
-					remainingUsd: upstream.remainingUsd,
-					usageUsd: upstream.usageUsd,
+					remaining: upstream.remaining,
+					usage: upstream.usage,
+					currency: provider.info.currency,
 				};
 			}
 		}

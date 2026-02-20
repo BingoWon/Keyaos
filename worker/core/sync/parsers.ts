@@ -4,7 +4,7 @@
  * Each parser normalizes a provider's raw /models JSON response
  * into a flat array suitable for ModelsDao.upsertModels().
  *
- * All prices are normalized to: integer cents per 1M tokens.
+ * All prices are normalized to: integer USD cents per 1M tokens.
  */
 import type { DbModel } from "../db/schema";
 
@@ -102,4 +102,38 @@ export function parseDeepInfra(raw: { data?: unknown[] }): ParsedModel[] {
 		});
 	}
 	return results;
+}
+
+// ─── DeepSeek ──────────────────────────────────────────────
+// /models returns no pricing info. Prices are hardcoded from
+// https://api-docs.deepseek.com/quick_start/pricing
+// All values in CNY/M tokens, converted to USD cents at build time.
+
+export function parseDeepSeek(
+	_raw: { data?: unknown[] },
+	cnyUsdRate = 7,
+): ParsedModel[] {
+	// DeepSeek pricing (CNY per 1M tokens):
+	// deepseek-chat:     input ¥1,  output ¥2
+	// deepseek-reasoner: input ¥4,  output ¥16
+	const models: {
+		id: string;
+		inputCny: number;
+		outputCny: number;
+		ctx: number;
+	}[] = [
+		{ id: "deepseek-chat", inputCny: 1, outputCny: 2, ctx: 131072 },
+		{ id: "deepseek-reasoner", inputCny: 4, outputCny: 16, ctx: 131072 },
+	];
+
+	return models.map((m) => ({
+		id: `deepseek:${m.id}`,
+		provider: "deepseek",
+		upstream_id: m.id,
+		display_name: m.id === "deepseek-chat" ? "DeepSeek V3" : "DeepSeek R1",
+		input_cost: Math.round((m.inputCny / cnyUsdRate) * 100),
+		output_cost: Math.round((m.outputCny / cnyUsdRate) * 100),
+		context_length: m.ctx,
+		is_active: 1,
+	}));
 }

@@ -7,6 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ADMIN_TOKEN = "admin"    # Change this! Used as Bearer token for all API access.
+CNY_USD_RATE = "7"       # CNY → USD exchange rate (used for DeepSeek balance conversion)
 
 # [assets]
 # directory = "./dist"

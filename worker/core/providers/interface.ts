@@ -11,14 +11,16 @@ export interface ProviderInfo {
 	baseUrl: string;
 	/** Whether this provider supports automatic credit fetching */
 	supportsAutoCredits: boolean;
+	/** Native currency of this provider's balance/pricing */
+	currency: "USD" | "CNY";
 }
 
-/** Credits info fetched from upstream provider */
+/** Credits info fetched from upstream provider (in provider's native currency) */
 export interface ProviderCredits {
-	/** Remaining credits in USD (null if unknown) */
-	remainingUsd: number | null;
-	/** Total usage in USD (null if unknown) */
-	usageUsd: number | null;
+	/** Remaining credits (null if unknown) */
+	remaining: number | null;
+	/** Total usage (null if unknown) */
+	usage: number | null;
 }
 
 export interface ProviderAdapter {

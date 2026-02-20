@@ -16,10 +16,14 @@ export interface OpenAICompatibleConfig {
 	baseUrl: string;
 	/** Whether this provider supports automatic credit fetching */
 	supportsAutoCredits: boolean;
+	/** Native currency of this provider */
+	currency: "USD" | "CNY";
 	/** Absolute URL for credits/usage query */
 	creditsUrl?: string;
-	/** Absolute URL for key validation (must return 4xx for invalid keys) */
+	/** Absolute URL for key validation (must return 401 for invalid keys) */
 	validationUrl?: string;
+	/** Custom response parser for credits endpoint */
+	parseCredits?: (json: Record<string, unknown>) => ProviderCredits | null;
 	/** Custom headers to add to all requests */
 	extraHeaders?: Record<string, string>;
 }
@@ -33,6 +37,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			name: config.name,
 			baseUrl: config.baseUrl,
 			supportsAutoCredits: config.supportsAutoCredits,
+			currency: config.currency,
 		};
 	}
 
@@ -67,15 +72,20 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
 			const json = (await res.json()) as Record<string, unknown>;
 
-			// OpenRouter: GET /api/v1/credits
-			// Returns { data: { total_credits, total_usage } }
+			// Use custom parser if provided
+			if (this.config.parseCredits) {
+				return this.config.parseCredits(json);
+			}
+
+			// Default: OpenRouter /credits format
+			// { data: { total_credits, total_usage } }
 			if (json.data && typeof json.data === "object") {
 				const d = json.data as Record<string, number | null>;
 				if (d.total_credits != null) {
 					const remaining = (d.total_credits ?? 0) - (d.total_usage ?? 0);
 					return {
-						remainingUsd: Math.max(remaining, 0),
-						usageUsd: d.total_usage ?? null,
+						remaining: Math.max(remaining, 0),
+						usage: d.total_usage ?? null,
 					};
 				}
 			}

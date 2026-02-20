@@ -10,6 +10,7 @@ import { ApiError, AuthenticationError } from "./shared/errors";
 export type Env = {
 	DB: D1Database;
 	ADMIN_TOKEN: string;
+	CNY_USD_RATE?: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -65,7 +66,8 @@ app.use("/v1/*", async (c, next) => {
 app.route("/api/keys", keysRouter);
 app.route("/api", systemRouter);
 app.post("/api/sync", async (c) => {
-	await syncAllProviders(c.env.DB);
+	const rate = parseFloat(c.env.CNY_USD_RATE || "7");
+	await syncAllProviders(c.env.DB, rate);
 	return c.json({ message: "Sync completed" });
 });
 
@@ -81,6 +83,7 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<void> {
-		ctx.waitUntil(syncAllProviders(env.DB));
+		const rate = parseFloat(env.CNY_USD_RATE || "7");
+		ctx.waitUntil(syncAllProviders(env.DB, rate));
 	},
 };
