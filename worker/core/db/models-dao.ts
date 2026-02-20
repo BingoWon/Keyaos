@@ -4,7 +4,7 @@
 import type { DbModel } from "./schema";
 
 export class ModelsDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async upsertModels(models: Omit<DbModel, "synced_at">[]): Promise<void> {
 		const now = Date.now();
@@ -51,23 +51,14 @@ export class ModelsDao {
 			return;
 		}
 
-		// Use batched approach to avoid exceeding D1's 100-parameter binding limit
-		const stmt = this.db.prepare(
-			"UPDATE models SET is_active = 0 WHERE provider = ? AND id = ? AND id NOT IN (SELECT id FROM models WHERE 0)",
-		);
-
-		// First, mark ALL models for this provider as inactive
+		// upsertModels() already sets is_active=1 and synced_at for current models.
+		// Simply deactivate anything with an old synced_at timestamp.
 		await this.db
 			.prepare(
 				"UPDATE models SET is_active = 0 WHERE provider = ? AND synced_at < ?",
 			)
-			.bind(provider, Date.now() - 1000) // anything not just synced
+			.bind(provider, Date.now() - 1000)
 			.run();
-
-		// The upsertModels() already sets is_active = 1 for all synced models,
-		// so we just need to deactivate those that weren't in the latest sync.
-		// Since upsertModels runs BEFORE deactivateMissing and sets is_active=1
-		// on all models it touches, we can simply deactivate anything not recently synced.
 	}
 
 	async findByUpstreamId(upstreamId: string): Promise<DbModel[]> {
