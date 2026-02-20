@@ -2,6 +2,7 @@
 	"common": {
 		"loading": "Loading...",
 		"error": "An error occurred",
+		"success": "Success",
 		"save": "Save",
 		"cancel": "Cancel",
 		"delete": "Delete",
@@ -12,7 +13,6 @@
 	"nav": {
 		"dashboard": "Dashboard",
 		"keys": "API Keys",
-		"billing": "Billing",
 		"settings": "Settings",
 		"logout": "Log out"
 	},
@@ -31,17 +31,18 @@
 		"title": "Overview",
 		"total_keys": "Total Keys",
 		"active_keys": "Active Keys",
-		"total_balance": "Est. Balance"
+		"total_credits": "Total Credits"
 	},
 	"keys": {
 		"title": "API Keys",
 		"add_new": "Add Key",
 		"provider": "Provider",
 		"key": "API Key",
+		"credits": "Credits",
 		"health": "Health",
-		"balance": "Balance",
 		"created": "Added",
 		"actions": "Actions",
+		"no_keys": "No keys yet",
 		"status_ok": "OK",
 		"status_degraded": "Degraded",
 		"status_dead": "Dead"

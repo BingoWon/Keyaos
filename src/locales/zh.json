@@ -2,6 +2,7 @@
 	"common": {
 		"loading": "加载中...",
 		"error": "发生错误",
+		"success": "操作成功",
 		"save": "保存",
 		"cancel": "取消",
 		"delete": "删除",
@@ -12,7 +13,6 @@
 	"nav": {
 		"dashboard": "仪表盘",
 		"keys": "API 密钥",
-		"billing": "账单",
 		"settings": "设置",
 		"logout": "退出登录"
 	},
@@ -31,17 +31,18 @@
 		"title": "概览",
 		"total_keys": "总密钥数",
 		"active_keys": "活跃密钥",
-		"total_balance": "预估总余额"
+		"total_credits": "总 Credits"
 	},
 	"keys": {
 		"title": "API 密钥",
 		"add_new": "添加密钥",
 		"provider": "供应商",
 		"key": "API 密钥",
+		"credits": "Credits",
 		"health": "健康状态",
-		"balance": "余额",
 		"created": "添加时间",
 		"actions": "操作",
+		"no_keys": "暂无密钥",
 		"status_ok": "正常",
 		"status_degraded": "降级",
 		"status_dead": "失效"

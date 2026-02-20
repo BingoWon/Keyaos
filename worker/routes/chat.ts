@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { recordTransaction } from "../core/billing";
+import { recordUsage } from "../core/billing";
 import { KeysDao } from "../core/db/keys-dao";
 import { dispatch } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
@@ -42,12 +42,10 @@ chatRouter.post("/completions", async (c) => {
 			c.executionCtx,
 			(usage) => {
 				c.executionCtx.waitUntil(
-					recordTransaction(c.env.DB, {
-						buyerId: "owner",
+					recordUsage(c.env.DB, {
 						keyId: key.id,
 						provider: key.provider,
 						model: upstreamModel,
-						priceRatio: key.price_ratio,
 						modelCost,
 						usage,
 					}).catch((err) => console.error("[BILLING] waitUntil failed:", err)),

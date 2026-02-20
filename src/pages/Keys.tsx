@@ -8,16 +8,17 @@ import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useAuth } from "../stores/auth";
 
+/** Providers that support automatic credit detection */
+const AUTO_CREDIT_PROVIDERS = new Set(["openrouter"]);
+
 interface KeyInfo {
 	id: string;
 	provider: string;
+	credits: number;
+	creditsSource: "auto" | "manual";
 	health: HealthStatus;
 	isActive: boolean;
 	createdAt: number;
-}
-
-function _classNames(...classes: string[]) {
-	return classes.filter(Boolean).join(" ");
 }
 
 export function Keys() {
@@ -28,30 +29,70 @@ export function Keys() {
 	const keys = data || [];
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
-	const [newKey, setNewKey] = useState({ provider: "openrouter", apiKey: "" });
+	const [newKey, setNewKey] = useState({
+		provider: "openrouter",
+		apiKey: "",
+		credits: "",
+	});
+	const [editingId, setEditingId] = useState<string | null>(null);
+	const [editCredits, setEditCredits] = useState("");
 
-	const defaultHeaders = {
+	const headers = {
 		"Content-Type": "application/json",
 		Authorization: `Bearer ${token}`,
 	};
+
+	const needsManualCredits = !AUTO_CREDIT_PROVIDERS.has(newKey.provider);
 
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const tid = toast.loading(t("common.loading"));
 		try {
+			const body: Record<string, unknown> = {
+				provider: newKey.provider,
+				apiKey: newKey.apiKey,
+			};
+			if (needsManualCredits) {
+				body.credits = Number.parseFloat(newKey.credits) || 0;
+			}
+
 			const res = await fetch("/keys", {
 				method: "POST",
-				headers: defaultHeaders,
-				body: JSON.stringify(newKey),
+				headers,
+				body: JSON.stringify(body),
 			});
 			if (res.ok) {
 				setIsAddOpen(false);
-				setNewKey({ provider: "openrouter", apiKey: "" });
+				setNewKey({ provider: "openrouter", apiKey: "", credits: "" });
 				fetchKeys();
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				const errorData = await res.json();
-				toast.error(errorData.error?.message || res.statusText, { id: tid });
+				const err = await res.json();
+				toast.error(err.error?.message || res.statusText, { id: tid });
+			}
+		} catch (err) {
+			console.error(err);
+			toast.error(t("common.error"), { id: tid });
+		}
+	};
+
+	const handleUpdateCredits = async (id: string) => {
+		const tid = toast.loading(t("common.loading"));
+		try {
+			const res = await fetch(`/keys/${id}/credits`, {
+				method: "PATCH",
+				headers,
+				body: JSON.stringify({
+					credits: Number.parseFloat(editCredits) || 0,
+				}),
+			});
+			if (res.ok) {
+				setEditingId(null);
+				fetchKeys();
+				toast.success(t("common.success"), { id: tid });
+			} else {
+				const err = await res.json();
+				toast.error(err.error?.message || res.statusText, { id: tid });
 			}
 		} catch (err) {
 			console.error(err);
@@ -65,7 +106,7 @@ export function Keys() {
 		try {
 			const res = await fetch(`/keys/${id}`, {
 				method: "DELETE",
-				headers: defaultHeaders,
+				headers,
 			});
 			if (res.ok) {
 				fetchKeys();
@@ -122,6 +163,7 @@ export function Keys() {
 							>
 								<option value="openrouter">OpenRouter</option>
 								<option value="zenmux">ZenMux</option>
+								<option value="deepinfra">DeepInfra</option>
 							</select>
 						</div>
 						<div className="w-full sm:flex-1">
@@ -143,6 +185,29 @@ export function Keys() {
 								placeholder="sk-..."
 							/>
 						</div>
+						{needsManualCredits && (
+							<div className="w-full sm:w-32">
+								<label
+									htmlFor="credits"
+									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+								>
+									Credits ($)
+								</label>
+								<input
+									type="number"
+									id="credits"
+									required
+									min="0"
+									step="0.01"
+									value={newKey.credits}
+									onChange={(e) =>
+										setNewKey({ ...newKey, credits: e.target.value })
+									}
+									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+									placeholder="10.00"
+								/>
+							</div>
+						)}
 						<div className="flex gap-2 w-full sm:w-auto">
 							<button
 								type="button"
@@ -173,13 +238,13 @@ export function Keys() {
 											scope="col"
 											className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-white"
 										>
-											ID
+											{t("keys.provider")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("keys.provider")}
+											{t("keys.credits")}
 										</th>
 										<th
 											scope="col"
@@ -214,19 +279,64 @@ export function Keys() {
 												colSpan={5}
 												className="py-4 text-center text-sm text-gray-500 dark:text-gray-400"
 											>
-												No keys yet
+												{t("keys.no_keys")}
 											</td>
 										</tr>
 									) : (
 										keys.map((key) => (
-											<tr key={key.id}>
+											<tr
+												key={key.id}
+												className={key.isActive ? "" : "opacity-50"}
+											>
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
-													<div className="truncate w-32" title={key.id}>
-														{key.id}
-													</div>
-												</td>
-												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-300">
 													{key.provider}
+												</td>
+												<td className="whitespace-nowrap px-3 py-4 text-sm">
+													{editingId === key.id ? (
+														<div className="flex items-center gap-2">
+															<input
+																type="number"
+																min="0"
+																step="0.01"
+																value={editCredits}
+																onChange={(e) => setEditCredits(e.target.value)}
+																className="w-20 rounded-md border-gray-300 py-1 px-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+															/>
+															<button
+																type="button"
+																onClick={() => handleUpdateCredits(key.id)}
+																className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 text-xs"
+															>
+																{t("common.save")}
+															</button>
+															<button
+																type="button"
+																onClick={() => setEditingId(null)}
+																className="text-gray-500 hover:text-gray-700 dark:text-gray-400 text-xs"
+															>
+																{t("common.cancel")}
+															</button>
+														</div>
+													) : (
+														<span
+															className={`font-mono ${key.credits > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
+														>
+															${key.credits.toFixed(2)}
+															{key.creditsSource === "manual" && (
+																<button
+																	type="button"
+																	onClick={() => {
+																		setEditingId(key.id);
+																		setEditCredits(key.credits.toString());
+																	}}
+																	className="ml-2 text-gray-400 hover:text-indigo-500 text-xs"
+																	title={t("common.edit")}
+																>
+																	✏️
+																</button>
+															)}
+														</span>
+													)}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													<HealthBadge status={key.health} />
@@ -241,7 +351,6 @@ export function Keys() {
 														className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
 													>
 														{t("common.delete")}
-														<span className="sr-only">, {key.id}</span>
 													</button>
 												</td>
 											</tr>

@@ -1,9 +1,4 @@
-import {
-	Cog6ToothIcon,
-	CreditCardIcon,
-	HomeIcon,
-	KeyIcon,
-} from "@heroicons/react/24/outline";
+import { Cog6ToothIcon, HomeIcon, KeyIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { LanguageSelector } from "./LanguageSelector";
@@ -24,7 +19,6 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/", icon: HomeIcon },
 		{ name: t("nav.keys"), href: "/keys", icon: KeyIcon },
-		{ name: t("nav.billing"), href: "/billing", icon: CreditCardIcon },
 		{ name: t("nav.settings"), href: "/settings", icon: Cog6ToothIcon },
 	];
 
