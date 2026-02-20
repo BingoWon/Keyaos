@@ -1,10 +1,10 @@
-/**
- * Keys Data Access Object
- *
- * Handles all key_pool operations including CRUD, credits,
- * health tracking, and statistics.
- */
 import type { DbKeyPool } from "./schema";
+
+/** Generate a display hint: sk-or-v1-7a0•••7bd */
+function makeKeyHint(rawKey: string): string {
+	if (rawKey.length <= 12) return "•".repeat(rawKey.length);
+	return `${rawKey.slice(0, 10)}•••${rawKey.slice(-3)}`;
+}
 
 export class KeysDao {
 	constructor(private db: D1Database) {}
@@ -12,8 +12,7 @@ export class KeysDao {
 	async addKey(params: {
 		ownerId: string;
 		provider: string;
-		encryptedKey: string;
-		priceRatio?: number;
+		apiKey: string;
 		creditsCents?: number;
 		creditsSource?: "auto" | "manual";
 	}): Promise<DbKeyPool> {
@@ -22,8 +21,8 @@ export class KeysDao {
 		await this.db
 			.prepare(
 				`INSERT INTO key_pool (
-					id, owner_id, provider, api_key_encrypted,
-					price_ratio, credits_cents, credits_source,
+					id, owner_id, provider, api_key, key_hint,
+					credits_cents, credits_source,
 					is_active, health_status, created_at
 				) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'ok', ?)`,
 			)
@@ -31,8 +30,8 @@ export class KeysDao {
 				id,
 				params.ownerId,
 				params.provider,
-				params.encryptedKey,
-				params.priceRatio ?? 0.5,
+				params.apiKey,
+				makeKeyHint(params.apiKey),
 				params.creditsCents ?? 0,
 				params.creditsSource ?? "manual",
 				Date.now(),
@@ -51,23 +50,14 @@ export class KeysDao {
 			.first<DbKeyPool>();
 	}
 
-	async deleteKey(id: string, ownerId?: string): Promise<boolean> {
-		let query = "DELETE FROM key_pool WHERE id = ?";
-		const bindings: string[] = [id];
-
-		if (ownerId) {
-			query += " AND owner_id = ?";
-			bindings.push(ownerId);
-		}
-
+	async deleteKey(id: string): Promise<boolean> {
 		const result = await this.db
-			.prepare(query)
-			.bind(...bindings)
+			.prepare("DELETE FROM key_pool WHERE id = ?")
+			.bind(id)
 			.run();
 		return result.success && result.meta?.rows_written === 1;
 	}
 
-	/** Select the cheapest available key for a provider */
 	async selectKey(provider: string): Promise<DbKeyPool | null> {
 		return this.db
 			.prepare(
@@ -87,7 +77,6 @@ export class KeysDao {
 		return res.results || [];
 	}
 
-	/** Deduct credits from a key. Deactivates if credits reach 0. */
 	async deductCredits(id: string, cents: number): Promise<void> {
 		await this.db
 			.prepare(
@@ -100,7 +89,6 @@ export class KeysDao {
 			.run();
 	}
 
-	/** Update credits (for manual adjustment or auto-refresh) */
 	async updateCredits(
 		id: string,
 		creditsCents: number,
@@ -135,7 +123,6 @@ export class KeysDao {
 			statusCode === 401 || statusCode === 402 || statusCode === 403
 				? "dead"
 				: "degraded";
-
 		await this.db
 			.prepare(
 				`UPDATE key_pool
@@ -156,15 +143,10 @@ export class KeysDao {
 		const all = await this.getAllKeys();
 		const providerSet = new Set<string>();
 		let deadKeys = 0;
-
 		for (const k of all) {
-			if (k.health_status === "dead") {
-				deadKeys++;
-			} else if (k.is_active === 1) {
-				providerSet.add(k.provider);
-			}
+			if (k.health_status === "dead") deadKeys++;
+			else if (k.is_active === 1) providerSet.add(k.provider);
 		}
-
 		return {
 			totalKeys: all.length,
 			activeProviders: providerSet.size,

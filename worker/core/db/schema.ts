@@ -1,6 +1,5 @@
 /**
  * D1 Database Schema Types
- * Matches the schema defined in migrations/
  */
 
 export interface DbUser {
@@ -17,7 +16,8 @@ export interface DbKeyPool {
 	id: string;
 	owner_id: string;
 	provider: string;
-	api_key_encrypted: string;
+	api_key: string;
+	key_hint: string;
 	price_ratio: number;
 	credits_cents: number;
 	credits_source: "auto" | "manual";

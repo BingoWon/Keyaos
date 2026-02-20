@@ -16,12 +16,13 @@ CREATE TABLE IF NOT EXISTS key_pool (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL DEFAULT 'owner',
     provider TEXT NOT NULL,                -- openrouter / zenmux / deepinfra
-    api_key_encrypted TEXT NOT NULL,       -- AES-GCM 加密存储
-    price_ratio REAL DEFAULT 0.5,          -- 折扣比率 (如 0.5 = 上游成本的50%)
+    api_key TEXT NOT NULL,                 -- 上游 API Key (D1 提供静态加密)
+    key_hint TEXT NOT NULL,                -- 脱敏显示 (如 sk-or-v1-7a0•••7bd)
+    price_ratio REAL DEFAULT 0.5,
     credits_cents INTEGER DEFAULT 0,       -- 剩余 credits (分)
-    credits_source TEXT DEFAULT 'manual',  -- 'auto' (API获取) | 'manual' (用户设置)
+    credits_source TEXT DEFAULT 'manual',  -- 'auto' | 'manual'
     is_active INTEGER DEFAULT 1,
-    health_status TEXT DEFAULT 'unknown',  -- ok / degraded / dead
+    health_status TEXT DEFAULT 'unknown',  -- ok / degraded / dead / unknown
     last_health_check INTEGER,
     created_at INTEGER NOT NULL
 );
@@ -54,9 +55,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     model TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,
     output_tokens INTEGER NOT NULL,
-    upstream_cost_cents INTEGER DEFAULT 0,  -- 上游真实成本
-    cost_cents INTEGER NOT NULL,            -- 用户实际支付
-    seller_income_cents INTEGER DEFAULT 0,  -- Key 提供者收入
-    platform_fee_cents INTEGER DEFAULT 0,   -- 平台收入
+    upstream_cost_cents INTEGER DEFAULT 0,
+    cost_cents INTEGER NOT NULL,
+    seller_income_cents INTEGER DEFAULT 0,
+    platform_fee_cents INTEGER DEFAULT 0,
     created_at INTEGER NOT NULL
 );

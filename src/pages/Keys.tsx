@@ -13,19 +13,12 @@ const AUTO_CREDIT_PROVIDERS = new Set(["openrouter"]);
 interface KeyInfo {
 	id: string;
 	provider: string;
+	keyHint: string;
 	credits: number;
 	creditsSource: "auto" | "manual";
 	health: HealthStatus;
 	isActive: boolean;
 	createdAt: number;
-	/** Masked key for display (returned from backend) */
-	maskedKey?: string;
-}
-
-/** Mask an API key: show first 8 + last 4 chars */
-function maskKey(key: string): string {
-	if (key.length <= 16) return key;
-	return `${key.slice(0, 8)}${"•".repeat(8)}${key.slice(-4)}`;
 }
 
 export function Keys() {
@@ -317,7 +310,7 @@ export function Keys() {
 													{key.provider}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
-													{maskKey(key.maskedKey || key.id)}
+													{key.keyHint}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
 													{editingId === key.id ? (

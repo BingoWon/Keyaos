@@ -9,15 +9,12 @@ import { ApiError, AuthenticationError } from "./shared/errors";
 
 export type Env = {
 	DB: D1Database;
-	/** Admin bearer token for all authenticated endpoints */
 	ADMIN_TOKEN: string;
-	/** AES-GCM secret for encrypting stored API keys */
-	ENCRYPTION_KEY: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
 
-// ─── Global error handler ─────────────────────────────────
+// Global error handler — all ApiErrors return JSON
 app.onError((err, c) => {
 	if (err instanceof ApiError) {
 		return c.json(err.toJSON(), err.statusCode as 400);
@@ -38,16 +35,11 @@ app.use(
 	}),
 );
 
-// Health check — public
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// ─── Auth middleware ──────────────────────────────────────
-// API routes require ADMIN_TOKEN. Skip static assets / health.
+// Auth middleware
 app.use("*", async (c, next) => {
-	const path = new URL(c.req.url).pathname;
-
-	// Skip auth for public endpoints
-	if (path === "/health") return next();
+	if (new URL(c.req.url).pathname === "/health") return next();
 
 	const authHeader = c.req.header("Authorization");
 	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
@@ -59,13 +51,11 @@ app.use("*", async (c, next) => {
 	return next();
 });
 
-// ─── Routes ─────────────────────────────────────────────────
 app.route("/v1/chat", chatRouter);
 app.route("/v1/models", modelsRouter);
 app.route("/keys", keysRouter);
 app.route("/", systemRouter);
 
-// Manual sync trigger
 app.post("/sync", async (c) => {
 	await syncAllProviders(c.env.DB);
 	return c.json({ message: "Sync completed" });

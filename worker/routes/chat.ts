@@ -19,8 +19,10 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const { key, provider, upstreamModel, modelCost, decryptedApiKey } =
-		await dispatch(c.env.DB, c.env.ENCRYPTION_KEY, model);
+	const { key, provider, upstreamModel, modelCost } = await dispatch(
+		c.env.DB,
+		model,
+	);
 
 	const keysDao = new KeysDao(c.env.DB);
 
@@ -32,7 +34,7 @@ chatRouter.post("/completions", async (c) => {
 
 	try {
 		const response = await provider.forwardRequest(
-			decryptedApiKey,
+			key.api_key,
 			c.req.raw,
 			upstreamBody,
 		);
