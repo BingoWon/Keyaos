@@ -4,6 +4,12 @@ import { getProvider, getProviderIds } from "../core/providers/registry";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
 
+/** Mask key for display: sk-or-v1-7a0•••7bd */
+function maskKey(key: string): string {
+	if (key.length <= 12) return "•".repeat(key.length);
+	return `${key.slice(0, 10)}•••${key.slice(-3)}`;
+}
+
 const keysRouter = new Hono<{ Bindings: Env }>();
 
 keysRouter.post("/", async (c) => {
@@ -67,7 +73,7 @@ keysRouter.post("/", async (c) => {
 		{
 			id: key.id,
 			provider: key.provider,
-			keyHint: key.key_hint,
+			keyHint: maskKey(key.api_key),
 			credits: key.credits_cents / 100,
 			creditsSource: key.credits_source,
 			health: key.health_status,
@@ -84,7 +90,7 @@ keysRouter.get("/", async (c) => {
 		data: dbKeys.map((k) => ({
 			id: k.id,
 			provider: k.provider,
-			keyHint: k.key_hint,
+			keyHint: maskKey(k.api_key),
 			credits: k.credits_cents / 100,
 			creditsSource: k.credits_source,
 			health: k.health_status,

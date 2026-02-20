@@ -16,8 +16,7 @@ CREATE TABLE IF NOT EXISTS key_pool (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL DEFAULT 'owner',
     provider TEXT NOT NULL,                -- openrouter / zenmux / deepinfra
-    api_key TEXT NOT NULL,                 -- 上游 API Key (D1 提供静态加密)
-    key_hint TEXT NOT NULL,                -- 脱敏显示 (如 sk-or-v1-7a0•••7bd)
+    api_key TEXT NOT NULL,                 -- 上游 API Key
     price_ratio REAL DEFAULT 0.5,
     credits_cents INTEGER DEFAULT 0,       -- 剩余 credits (分)
     credits_source TEXT DEFAULT 'manual',  -- 'auto' | 'manual'

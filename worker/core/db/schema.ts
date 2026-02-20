@@ -17,7 +17,6 @@ export interface DbKeyPool {
 	owner_id: string;
 	provider: string;
 	api_key: string;
-	key_hint: string;
 	price_ratio: number;
 	credits_cents: number;
 	credits_source: "auto" | "manual";

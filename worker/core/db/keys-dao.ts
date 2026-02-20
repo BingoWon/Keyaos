@@ -1,13 +1,8 @@
 import type { DbKeyPool } from "./schema";
 
-/** Generate a display hint: sk-or-v1-7a0•••7bd */
-function makeKeyHint(rawKey: string): string {
-	if (rawKey.length <= 12) return "•".repeat(rawKey.length);
-	return `${rawKey.slice(0, 10)}•••${rawKey.slice(-3)}`;
-}
 
 export class KeysDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async addKey(params: {
 		ownerId: string;
@@ -21,17 +16,16 @@ export class KeysDao {
 		await this.db
 			.prepare(
 				`INSERT INTO key_pool (
-					id, owner_id, provider, api_key, key_hint,
+					id, owner_id, provider, api_key,
 					credits_cents, credits_source,
 					is_active, health_status, created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'ok', ?)`,
+				) VALUES (?, ?, ?, ?, ?, ?, 1, 'ok', ?)`,
 			)
 			.bind(
 				id,
 				params.ownerId,
 				params.provider,
 				params.apiKey,
-				makeKeyHint(params.apiKey),
 				params.creditsCents ?? 0,
 				params.creditsSource ?? "manual",
 				Date.now(),
