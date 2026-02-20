@@ -8,10 +8,11 @@ import systemRouter from "./routes/system";
 import { AuthenticationError } from "./shared/errors";
 
 export type Env = {
-	MODE: "personal" | "platform";
-	ADMIN_EMAILS: string;
-	ADMIN_TOKEN: string;
 	DB: D1Database;
+	/** Admin bearer token for all authenticated endpoints */
+	ADMIN_TOKEN: string;
+	/** AES-GCM secret for encrypting stored API keys */
+	ENCRYPTION_KEY: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -25,39 +26,35 @@ app.use(
 	}),
 );
 
-// Health check endpoint
-app.get("/health", (c) => c.json({ status: "ok", mode: c.env.MODE }));
+// Health check — public
+app.get("/health", (c) => c.json({ status: "ok" }));
 
-// ─── Middleware: Admin Auth Guard ──────────────────────────────
+// ─── Auth middleware ──────────────────────────────────────
+// All routes except /health require ADMIN_TOKEN
 app.use("*", async (c, next) => {
-	const path = new URL(c.req.url).pathname;
+	if (new URL(c.req.url).pathname === "/health") return next();
 
-	// Public routes
-	if (
-		path === "/health" ||
-		path.startsWith("/providers") ||
-		path.startsWith("/v1/")
-	) {
-		return next();
-	}
-
-	// Admin routes: require Bearer token
 	const authHeader = c.req.header("Authorization");
 	const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
-	const validToken = c.env.ADMIN_TOKEN || "admin";
 
-	if (!token || token !== validToken) {
-		throw new AuthenticationError("Admin access denied");
+	if (!token || token !== c.env.ADMIN_TOKEN) {
+		throw new AuthenticationError("Invalid or missing token");
 	}
 
 	return next();
 });
 
-// ─── Mount Routers ──────────────────────────────────────────────
+// ─── Routes ─────────────────────────────────────────────────
 app.route("/v1/chat", chatRouter);
 app.route("/v1/models", modelsRouter);
 app.route("/keys", keysRouter);
 app.route("/", systemRouter);
+
+// Manual sync trigger
+app.post("/sync", async (c) => {
+	await syncAllProviders(c.env.DB);
+	return c.json({ message: "Sync completed" });
+});
 
 export default {
 	fetch: app.fetch,

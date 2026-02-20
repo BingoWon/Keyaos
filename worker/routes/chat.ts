@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { recordTransaction } from "../core/billing";
-import { Config } from "../core/config";
 import { KeysDao } from "../core/db/keys-dao";
 import { dispatch } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
@@ -20,10 +19,8 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const { key, provider, upstreamModel, modelCost } = await dispatch(
-		c.env.DB,
-		model,
-	);
+	const { key, provider, upstreamModel, modelCost, decryptedApiKey } =
+		await dispatch(c.env.DB, c.env.ENCRYPTION_KEY, model);
 
 	const keysDao = new KeysDao(c.env.DB);
 
@@ -35,7 +32,7 @@ chatRouter.post("/completions", async (c) => {
 
 	try {
 		const response = await provider.forwardRequest(
-			key.api_key_encrypted,
+			decryptedApiKey,
 			c.req.raw,
 			upstreamBody,
 		);
@@ -46,7 +43,7 @@ chatRouter.post("/completions", async (c) => {
 			(usage) => {
 				c.executionCtx.waitUntil(
 					recordTransaction(c.env.DB, {
-						buyerId: Config.ADMIN_MOCK_USER_ID,
+						buyerId: "owner",
 						keyId: key.id,
 						provider: key.provider,
 						model: upstreamModel,

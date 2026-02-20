@@ -1,14 +1,13 @@
 import { Hono } from "hono";
-import { Config } from "../core/config";
 import { KeysDao } from "../core/db/keys-dao";
 import { getProvider, getProviderIds } from "../core/providers/registry";
+import { decrypt, encrypt } from "../core/utils/crypto";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
 
 const keysRouter = new Hono<{ Bindings: Env }>();
 
 keysRouter.post("/", async (c) => {
-	const keysDao = new KeysDao(c.env.DB);
 	let body: { provider: string; apiKey: string };
 	try {
 		body = await c.req.json();
@@ -37,18 +36,17 @@ keysRouter.post("/", async (c) => {
 		);
 	}
 
-	const key = await keysDao.addKey(
-		Config.ADMIN_MOCK_USER_ID,
-		body.provider,
-		body.apiKey,
-	);
+	// Encrypt before storage
+	const encryptedKey = await encrypt(body.apiKey, c.env.ENCRYPTION_KEY);
+
+	const keysDao = new KeysDao(c.env.DB);
+	const key = await keysDao.addKey("owner", body.provider, encryptedKey);
 
 	return c.json(
 		{
 			id: key.id,
 			provider: key.provider,
 			health: key.health_status,
-			isActive: key.is_active === 1,
 			createdAt: key.created_at,
 			message: "Key added successfully",
 		},
@@ -59,15 +57,16 @@ keysRouter.post("/", async (c) => {
 keysRouter.get("/", async (c) => {
 	const keysDao = new KeysDao(c.env.DB);
 	const dbKeys = await keysDao.getAllKeys();
-	const keys = dbKeys.map((k) => ({
-		id: k.id,
-		provider: k.provider,
-		health: k.health_status,
-		isActive: k.is_active === 1,
-		priceRatio: k.price_ratio,
-		createdAt: k.created_at,
-	}));
-	return c.json({ data: keys });
+	return c.json({
+		data: dbKeys.map((k) => ({
+			id: k.id,
+			provider: k.provider,
+			health: k.health_status,
+			isActive: k.is_active === 1,
+			priceRatio: k.price_ratio,
+			createdAt: k.created_at,
+		})),
+	});
 });
 
 keysRouter.delete("/:id", async (c) => {
@@ -94,7 +93,9 @@ keysRouter.get("/:id/balance", async (c) => {
 		throw new ApiError("Provider not found", 500);
 	}
 
-	const balance = await provider.checkBalance(key.api_key_encrypted);
+	// Decrypt key before checking balance with upstream
+	const rawKey = await decrypt(key.api_key_encrypted, c.env.ENCRYPTION_KEY);
+	const balance = await provider.checkBalance(rawKey);
 	return c.json({ id: key.id, provider: key.provider, balance });
 });
 
