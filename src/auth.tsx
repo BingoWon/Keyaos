@@ -1,6 +1,7 @@
 import {
     createContext,
     useContext,
+    useEffect,
     useState,
     useMemo,
     type ReactNode,
@@ -11,6 +12,7 @@ import {
     UserButton,
     useAuth as useClerkAuth,
 } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 
 /** True when Clerk is configured → Platform (multi-tenant) mode */
 export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -78,14 +80,38 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// ─── Dark Mode Detection ────────────────────────────────
+
+function useDarkMode() {
+    const [isDark, setIsDark] = useState(
+        () => document.documentElement.classList.contains("dark"),
+    );
+
+    useEffect(() => {
+        const observer = new MutationObserver(() => {
+            setIsDark(document.documentElement.classList.contains("dark"));
+        });
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+        return () => observer.disconnect();
+    }, []);
+
+    return isDark;
+}
+
 // ─── AuthProvider (auto-selects by env) ─────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+    const isDark = useDarkMode();
+
     if (isPlatform) {
         return (
             <ClerkProvider
                 publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
                 afterSignOutUrl="/login"
+                appearance={{ baseTheme: isDark ? dark : undefined }}
             >
                 <ClerkAuthBridge>{children}</ClerkAuthBridge>
             </ClerkProvider>
