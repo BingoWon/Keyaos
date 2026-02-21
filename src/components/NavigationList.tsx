@@ -23,11 +23,11 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const { t } = useTranslation();
 
 	const navigation = [
-		{ name: t("nav.dashboard"), href: "/", icon: HomeIcon },
-		{ name: t("nav.market"), href: "/market", icon: CpuChipIcon },
-		{ name: t("nav.quotas"), href: "/quotas", icon: BanknotesIcon },
-		{ name: t("nav.api_keys"), href: "/api-keys", icon: KeyIcon },
-		{ name: t("nav.ledger"), href: "/ledger", icon: DocumentTextIcon },
+		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon },
+		{ name: t("nav.market"), href: "/dashboard/market", icon: CpuChipIcon },
+		{ name: t("nav.quotas"), href: "/dashboard/quotas", icon: BanknotesIcon },
+		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },
+		{ name: t("nav.ledger"), href: "/dashboard/ledger", icon: DocumentTextIcon },
 	];
 
 	return (
@@ -36,7 +36,10 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 				<li>
 					<ul className="-mx-2 space-y-1">
 						{navigation.map((item) => {
-							const current = location.pathname === item.href;
+							const current =
+								item.href === "/dashboard"
+									? location.pathname === "/dashboard"
+									: location.pathname.startsWith(item.href);
 							return (
 								<li key={item.name}>
 									<Link

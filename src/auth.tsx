@@ -111,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             <ClerkProvider
                 publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
                 afterSignOutUrl="/login"
+                signInForceRedirectUrl="/dashboard"
                 appearance={{ baseTheme: isDark ? dark : undefined }}
             >
                 <ClerkAuthBridge>{children}</ClerkAuthBridge>
@@ -166,7 +167,7 @@ function CoreLoginForm() {
 }
 
 export function LoginContent() {
-    if (isPlatform) return <SignIn routing="path" path="/login" forceRedirectUrl="/" />;
+    if (isPlatform) return <SignIn routing="path" path="/login" forceRedirectUrl="/dashboard" />;
     return <CoreLoginForm />;
 }
 

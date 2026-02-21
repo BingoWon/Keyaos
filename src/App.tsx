@@ -15,16 +15,22 @@ export default function App() {
 	return (
 		<>
 			<Routes>
+				{/* Public */}
 				<Route
 					path="/login/*"
 					element={
 						<AuthGuard fallback={<Login />}>
-							<Navigate to="/" replace />
+							<Navigate to="/dashboard" replace />
 						</AuthGuard>
 					}
 				/>
+
+				{/* Landing page placeholder — redirect to dashboard for now */}
+				<Route index element={<Navigate to="/dashboard" replace />} />
+
+				{/* Protected Dashboard */}
 				<Route
-					path="/"
+					path="/dashboard"
 					element={
 						<AuthGuard fallback={<Navigate to="/login" replace />}>
 							<SidebarLayout />
@@ -38,6 +44,7 @@ export default function App() {
 					<Route path="ledger" element={<Ledger />} />
 					<Route path="guide" element={<Guide />} />
 				</Route>
+
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 			<Toaster position="top-right" />
