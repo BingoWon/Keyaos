@@ -39,6 +39,7 @@ export class GeminiCliAdapter implements ProviderAdapter {
 	info: ProviderInfo = {
 		id: "gemini-cli",
 		name: "Gemini CLI",
+		logoUrl: "https://geminicli.com/_astro/icon.Bo4M5sF3.png",
 		supportsAutoCredits: false,
 		currency: "USD",
 		authType: "oauth",

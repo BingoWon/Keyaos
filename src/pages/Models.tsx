@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { PageLoader } from "../components/PageLoader";
+import { ProviderLogo } from "../components/ProviderLogo";
 import { useFetch } from "../hooks/useFetch";
 
 interface ModelEntry {
@@ -13,6 +14,12 @@ interface ModelEntry {
 	input_price?: number;
 	output_price?: number;
 	context_length?: number;
+}
+
+interface ProviderMeta {
+	id: string;
+	name: string;
+	logoUrl: string;
 }
 
 interface ModelGroup {
@@ -70,7 +77,13 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 	);
 }
 
-function ModelCard({ group }: { group: ModelGroup }) {
+function ModelCard({
+	group,
+	providerMap,
+}: {
+	group: ModelGroup;
+	providerMap: Map<string, ProviderMeta>;
+}) {
 	return (
 		<div className="rounded-lg ring-1 ring-gray-200 dark:ring-white/10 overflow-hidden">
 			<div className="px-4 py-3 sm:px-5 flex items-start justify-between gap-3 bg-gray-50 dark:bg-white/[0.03]">
@@ -108,7 +121,19 @@ function ModelCard({ group }: { group: ModelGroup }) {
 							}
 						>
 							<td className="py-2 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-								{p.provider}
+								<span className="inline-flex items-center gap-1.5">
+									{(() => {
+										const meta = providerMap.get(p.provider);
+										return meta ? (
+											<ProviderLogo
+												src={meta.logoUrl}
+												name={meta.name}
+												size={16}
+											/>
+										) : null;
+									})()}
+									{providerMap.get(p.provider)?.name ?? p.provider}
+								</span>
 							</td>
 							<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 								{formatPrice(p.inputPrice)}
@@ -136,7 +161,14 @@ export function Models() {
 		error,
 		refetch,
 	} = useFetch<ModelEntry[]>("/v1/models");
+	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
 	const [syncing, setSyncing] = useState(false);
+
+	const providerMap = useMemo(() => {
+		const m = new Map<string, ProviderMeta>();
+		for (const p of providersData ?? []) m.set(p.id, p);
+		return m;
+	}, [providersData]);
 
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
@@ -234,7 +266,7 @@ export function Models() {
 			) : (
 				<div className="mt-5 grid gap-3">
 					{groups.map((g) => (
-						<ModelCard key={g.id} group={g} />
+						<ModelCard key={g.id} group={g} providerMap={providerMap} />
 					))}
 				</div>
 			)}

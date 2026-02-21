@@ -15,6 +15,7 @@ systemRouter.get("/providers", (c) => {
 	const providers = getAllProviders().map((p) => ({
 		id: p.info.id,
 		name: p.info.name,
+		logoUrl: p.info.logoUrl,
 		supportsAutoCredits: p.info.supportsAutoCredits,
 		authType: p.info.authType ?? "api_key",
 	}));

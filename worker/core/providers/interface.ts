@@ -3,6 +3,7 @@ import type { DbModelPricing } from "../db/schema";
 export interface ProviderInfo {
 	id: string;
 	name: string;
+	logoUrl: string;
 	supportsAutoCredits: boolean;
 	currency: "USD" | "CNY";
 	authType?: "api_key" | "oauth";

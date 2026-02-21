@@ -8,6 +8,7 @@ import type {
 export interface OpenAICompatibleConfig {
 	id: string;
 	name: string;
+	logoUrl: string;
 	baseUrl: string;
 	supportsAutoCredits: boolean;
 	currency: "USD" | "CNY";
@@ -58,6 +59,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		this.info = {
 			id: config.id,
 			name: config.name,
+			logoUrl: config.logoUrl,
 			supportsAutoCredits: config.supportsAutoCredits,
 			currency: config.currency,
 		};

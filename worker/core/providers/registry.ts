@@ -154,6 +154,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "openrouter",
 		name: "OpenRouter",
+		logoUrl: "https://api.iconify.design/simple-icons:openrouter.svg",
 		baseUrl: "https://openrouter.ai/api/v1",
 		currency: "USD",
 		supportsAutoCredits: true,
@@ -164,6 +165,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "zenmux",
 		name: "ZenMux",
+		logoUrl: "https://zenmux.ai/favicon.ico",
 		baseUrl: "https://zenmux.ai/api/v1",
 		currency: "USD",
 		supportsAutoCredits: false,
@@ -173,6 +175,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "deepinfra",
 		name: "DeepInfra",
+		logoUrl: "https://deepinfra.com/favicon.ico",
 		baseUrl: "https://api.deepinfra.com/v1/openai",
 		currency: "USD",
 		supportsAutoCredits: false,
@@ -181,6 +184,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "deepseek",
 		name: "DeepSeek",
+		logoUrl: "https://cdn.deepseek.com/platform/favicon.png",
 		baseUrl: "https://api.deepseek.com",
 		currency: "USD",
 		supportsAutoCredits: true,
@@ -193,6 +197,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "google-ai-studio",
 		name: "Google AI Studio",
+		logoUrl: "https://api.iconify.design/simple-icons:google.svg",
 		baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
 		currency: "USD",
 		supportsAutoCredits: false,
@@ -204,6 +209,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "oaipro",
 		name: "OAIPro",
+		logoUrl: "https://api.oaipro.com/oaipro-logo-ab5e620c9f.png",
 		baseUrl: "https://api.oaipro.com/v1",
 		currency: "USD",
 		supportsAutoCredits: false,

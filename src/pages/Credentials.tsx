@@ -14,12 +14,14 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
+import { ProviderLogo } from "../components/ProviderLogo";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 
 interface ProviderInfo {
 	id: string;
 	name: string;
+	logoUrl: string;
 	supportsAutoCredits: boolean;
 	authType: "api_key" | "oauth";
 }
@@ -228,20 +230,28 @@ export function Credentials() {
 							>
 								{t("credentials.provider")}
 							</label>
-							<select
-								id="provider"
-								value={draft.provider}
-								onChange={(e) =>
-									setDraft({ ...draft, provider: e.target.value })
-								}
-								className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-							>
-								{providers.map((p) => (
-									<option key={p.id} value={p.id}>
-										{p.name}
-									</option>
-								))}
-							</select>
+							<div className="mt-1 flex items-center gap-2">
+								{selectedProvider && (
+									<ProviderLogo
+										src={selectedProvider.logoUrl}
+										name={selectedProvider.name}
+									/>
+								)}
+								<select
+									id="provider"
+									value={draft.provider}
+									onChange={(e) =>
+										setDraft({ ...draft, provider: e.target.value })
+									}
+									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+								>
+									{providers.map((p) => (
+										<option key={p.id} value={p.id}>
+											{p.name}
+										</option>
+									))}
+								</select>
+							</div>
 						</div>
 						<div className="w-full sm:flex-1">
 							<label
@@ -437,7 +447,21 @@ export function Credentials() {
 												className={cred.isEnabled ? "" : "opacity-50"}
 											>
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
-													{cred.provider}
+													<span className="inline-flex items-center gap-2">
+														{(() => {
+															const meta = providers.find(
+																(p) => p.id === cred.provider,
+															);
+															return meta ? (
+																<ProviderLogo
+																	src={meta.logoUrl}
+																	name={meta.name}
+																/>
+															) : null;
+														})()}
+														{providers.find((p) => p.id === cred.provider)
+															?.name ?? cred.provider}
+													</span>
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
 													<div className="flex items-center gap-2">
