@@ -142,28 +142,62 @@ data: [DONE]
 `stream_options: { include_usage: true }` 有效。usage 出现在 `[DONE]` 前的独立帧中。
 流式 chunk 中含非标准字段 `obfuscation`（可忽略）。
 
-## 模型更新流程
+## 模型获取策略
+
+### 核心限制
+
+OAIPro 的 `/v1/models` 端点**需要认证**（Bearer Token），且返回数据**不包含定价和 context_length**。
+这意味着：
+
+1. **无法在 Cron 定时任务中自动拉取** — 运行时没有用户的 OAIPro API Key 可用于获取模型列表
+2. **无法从 API 获取定价** — 即使拿到模型列表，也没有价格信息
+3. **模型 ID 为扁平格式** — 如 `gpt-4o-mini`，不带 `vendor/` 前缀，无法直接与其他供应商的 `openai/gpt-4o-mini` 聚合
+
+### 处理方式：脚本生成静态 JSON
+
+采用 `scripts/fetch-oaipro-models.mjs` 离线脚本生成 `worker/core/models/oaipro.json`：
 
 ```bash
-# 从 OAIPro API 重新拉取模型列表（需要 .env.local 中配置 OAIPRO_KEY）
+# 需要 .env.local 中配置 OAIPRO_KEY
 node scripts/fetch-oaipro-models.mjs
-
-# 脚本自动完成：
-# 1. 从 /v1/models 拉取全量列表
-# 2. 过滤：仅保留 OpenAI (gpt/chatgpt/o-series) + Anthropic (claude)
-# 3. 映射：扁平 ID → vendor/model 格式 (gpt-4o-mini → openai/gpt-4o-mini)
-# 4. 输出：worker/core/models/oaipro.json
 ```
+
+脚本执行流程：
+
+1. **拉取** — 用 OAIPRO_KEY 调用 `GET /v1/models` 获取全量模型列表
+2. **过滤** — 仅保留 OpenAI 系列（`gpt*`、`chatgpt*`、`o[0-9]*`）和 Anthropic 系列（`claude*`），丢弃 embedding、tts、dall-e、moderation 等非 chat 模型，也丢弃 Gemini 系列（OAIPro 实测返回 503）
+3. **ID 映射** — 扁平 ID 加 vendor 前缀：`gpt-4o-mini` → `openai/gpt-4o-mini`，`claude-sonnet-4-20250514` → `anthropic/claude-sonnet-4-20250514`
+4. **定价交叉引用** — 从 `scripts/research/openrouter_models.json` 查找匹配模型的定价、context_length 和 display name。采用模糊匹配策略处理 ID 差异：
+   - 精确匹配 `vendor/model`
+   - 去除日期后缀：`-20241022` / `-2024-10-22`
+   - Anthropic 版本号规范化：`claude-3-5-sonnet` → `claude-3.5-sonnet`
+   - 变体映射：`-thinking` → `:thinking`，`-chat-latest` → `-chat`
+5. **丢弃无价格模型** — 未在 OpenRouter 找到匹配价格的模型视为过时或不主流，直接排除（不写入 JSON）
+6. **输出** — 写入 `worker/core/models/oaipro.json`，字段统一为 `id`、`name`、`input_usd`、`output_usd`、`context_length`
+
+### 运行时适配
+
+`registry.ts` 中 OAIPro 配置：
+- `staticModels: true` — 跳过 HTTP 拉取，直接读静态 JSON
+- `stripModelPrefix: true` — 转发请求时去除 `openai/` 或 `anthropic/` 前缀，还原为 OAIPro 期望的扁平 ID
+
+### 更新时机
+
+当需要同步 OAIPro 最新模型列表时：
+1. 确保 `scripts/research/openrouter_models.json` 是最新的（运行 OpenRouter 模型拉取）
+2. 运行 `node scripts/fetch-oaipro-models.mjs`
+3. Review 生成的 JSON，commit 提交
 
 ## 已知问题与注意事项
 
-1. **无定价 API** — `/models` 不返回任何定价或 context_length，需 hardcode 价格表
-2. **无余额 API** — 无法自动查询余额，`supportsAutoCredits: false`
-3. **无 cost 字段** — 计费需基于 token 数量自行计算
-4. **模型 ID 不含 vendor 前缀** — 与现有供应商的 `vendor/model` 命名不同，聚合需处理
-5. **部分模型不可用** — gemini-2.5-flash 返回 503（"无可用渠道"），模型列表不代表全部可用
-6. **错误信息为中文** — 如 `"无效的令牌"`、`"无可用渠道"`
-7. **`obfuscation` 字段** — 流式 chunk 含此非标准字段，不影响功能
+1. **无定价 API** — `/models` 不返回定价或 context_length，价格来源于 OpenRouter 交叉引用
+2. **`/models` 需认证** — 与多数供应商不同，无法在运行时动态拉取模型列表
+3. **无余额 API** — 无法自动查询余额，`supportsAutoCredits: false`
+4. **无 cost 字段** — 计费需基于 token 数量和 shadow pricing 自行计算
+5. **模型 ID 扁平格式** — 存储使用 `vendor/model` 格式以支持聚合，请求时通过 `stripModelPrefix` 还原
+6. **部分模型不可用** — 如 Gemini 系列返回 503（"无可用渠道"），已在过滤中排除
+7. **错误信息为中文** — 如 `"无效的令牌"`、`"无可用渠道"`
+8. **`obfuscation` 字段** — 流式 chunk 含此非标准字段，不影响功能
 
 ## 验证记录
 
