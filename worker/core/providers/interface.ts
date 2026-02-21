@@ -18,12 +18,12 @@ export type ParsedModel = Omit<DbModelPricing, "refreshed_at">;
 export interface ProviderAdapter {
 	info: ProviderInfo;
 
-	validateKey(apiKey: string): Promise<boolean>;
+	validateKey(secret: string): Promise<boolean>;
 
-	fetchCredits(apiKey: string): Promise<ProviderCredits | null>;
+	fetchCredits(secret: string): Promise<ProviderCredits | null>;
 
 	forwardRequest(
-		apiKey: string,
+		secret: string,
 		body: Record<string, unknown>,
 	): Promise<Response>;
 

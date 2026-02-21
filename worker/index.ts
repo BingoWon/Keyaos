@@ -152,6 +152,7 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<void> {
+		configureProviders(env);
 		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
 		ctx.waitUntil(
 			Promise.all([

@@ -1,9 +1,11 @@
 /**
  * Provider Registry — SINGLE SOURCE OF TRUTH
  *
- * Every provider-specific detail lives here. To add a new provider,
- * add one entry to PROVIDER_CONFIGS. No other file needs changing.
+ * OpenAI-compatible providers: add one entry to PROVIDER_CONFIGS.
+ * Native-protocol providers (e.g. Gemini CLI): register separately below.
  */
+
+import { GeminiCliAdapter } from "./gemini-cli-adapter";
 import type {
 	ParsedModel,
 	ProviderAdapter,
@@ -198,8 +200,6 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 ];
 
 // ─── Registry API ───────────────────────────────────────────
-
-import { GeminiCliAdapter } from "./gemini-cli-adapter";
 
 const adapters = new Map<string, ProviderAdapter>();
 for (const config of PROVIDER_CONFIGS) {

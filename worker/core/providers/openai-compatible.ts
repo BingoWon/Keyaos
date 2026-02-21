@@ -58,12 +58,12 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		};
 	}
 
-	async validateKey(apiKey: string): Promise<boolean> {
+	async validateKey(secret: string): Promise<boolean> {
 		try {
 			const url = this.config.validationUrl || `${this.config.baseUrl}/models`;
 			const res = await fetch(url, {
 				headers: {
-					Authorization: `Bearer ${apiKey}`,
+					Authorization: `Bearer ${secret}`,
 					...this.config.extraHeaders,
 				},
 			});
@@ -73,13 +73,13 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		}
 	}
 
-	async fetchCredits(apiKey: string): Promise<ProviderCredits | null> {
+	async fetchCredits(secret: string): Promise<ProviderCredits | null> {
 		if (!this.config.creditsUrl) return null;
 
 		try {
 			const res = await fetch(this.config.creditsUrl, {
 				headers: {
-					Authorization: `Bearer ${apiKey}`,
+					Authorization: `Bearer ${secret}`,
 					...this.config.extraHeaders,
 				},
 			});
@@ -125,7 +125,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 	}
 
 	async forwardRequest(
-		apiKey: string,
+		secret: string,
 		body: Record<string, unknown>,
 	): Promise<Response> {
 		const upstreamResponse = await fetch(
@@ -134,7 +134,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${apiKey}`,
+					Authorization: `Bearer ${secret}`,
 					...this.config.extraHeaders,
 				},
 				body: JSON.stringify(body),

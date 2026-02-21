@@ -147,16 +147,6 @@ export class CredentialsDao {
 			.run();
 	}
 
-	async updateMetadata(
-		id: string,
-		metadata: Record<string, unknown>,
-	): Promise<void> {
-		await this.db
-			.prepare("UPDATE upstream_credentials SET metadata = ? WHERE id = ?")
-			.bind(JSON.stringify(metadata), id)
-			.run();
-	}
-
 	async reportSuccess(id: string): Promise<void> {
 		await this.db
 			.prepare(

@@ -27,7 +27,7 @@ interface ProviderInfo {
 interface CredentialInfo {
 	id: string;
 	provider: string;
-	authType: string;
+	authType: "api_key" | "oauth";
 	secretHint: string;
 	quota: number | null;
 	quotaSource: "auto" | "manual" | null;
@@ -51,8 +51,9 @@ export function Credentials() {
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+	const defaultProvider = providers[0]?.id ?? "openrouter";
 	const [draft, setDraft] = useState({
-		provider: "openrouter",
+		provider: defaultProvider,
 		secret: "",
 		quota: "",
 		isEnabled: true,
@@ -99,7 +100,7 @@ export function Credentials() {
 			if (res.ok) {
 				setIsAddOpen(false);
 				setDraft({
-					provider: "openrouter",
+					provider: defaultProvider,
 					secret: "",
 					quota: "",
 					isEnabled: true,
