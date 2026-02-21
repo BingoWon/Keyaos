@@ -28,8 +28,7 @@ export function SidebarLayout() {
 					.then((res) => res.json())
 					.then((data) => {
 						if (Array.isArray(data) && data.length === 0) {
-							// Proactively start fetching upstream prices
-							fetch("/api/refresh", {
+							fetch("/api/models/sync", {
 								method: "POST",
 								headers: { Authorization: `Bearer ${activeToken}` },
 							}).catch(() => {});

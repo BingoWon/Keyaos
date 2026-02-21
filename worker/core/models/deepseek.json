@@ -1,0 +1,16 @@
+[
+	{
+		"upstream_id": "deepseek-chat",
+		"display_name": "DeepSeek V3.2",
+		"input_cny": 0.28,
+		"output_cny": 0.42,
+		"context_length": 131072
+	},
+	{
+		"upstream_id": "deepseek-reasoner",
+		"display_name": "DeepSeek V3.2 (Thinking)",
+		"input_cny": 0.28,
+		"output_cny": 0.42,
+		"context_length": 131072
+	}
+]

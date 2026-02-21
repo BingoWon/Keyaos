@@ -36,18 +36,18 @@ export function Market() {
 		error,
 		refetch,
 	} = useFetch<ModelInfo[]>("/v1/models");
-	const [refreshing, setRefreshing] = useState(false);
+	const [syncing, setSyncing] = useState(false);
 
-	const handleRefresh = useCallback(
+	const handleSync = useCallback(
 		async (silent = false) => {
-			setRefreshing(true);
+			setSyncing(true);
 			let tid: string | undefined;
 			if (!silent) {
 				tid = toast.loading(t("market.syncing", "Syncing pricing..."));
 			}
 			try {
 				const token = await getToken();
-				const res = await fetch("/api/refresh", {
+				const res = await fetch("/api/models/sync", {
 					method: "POST",
 					headers: { Authorization: `Bearer ${token}` },
 				});
@@ -68,26 +68,25 @@ export function Market() {
 					});
 				}
 			} finally {
-				setRefreshing(false);
+				setSyncing(false);
 			}
 		},
 		[t, getToken, refetch],
 	);
 
-	// Auto-sync on first load if pricing data is empty
-	const hasAutoRefreshed = useRef(false);
+	const hasSynced = useRef(false);
 	useEffect(() => {
 		if (
 			!loading &&
 			!error &&
 			(!quotes || quotes.length === 0) &&
-			!hasAutoRefreshed.current &&
-			!refreshing
+			!hasSynced.current &&
+			!syncing
 		) {
-			hasAutoRefreshed.current = true;
-			handleRefresh(true); // silent refresh
+			hasSynced.current = true;
+			handleSync(true);
 		}
-	}, [quotes, loading, error, refreshing, handleRefresh]);
+	}, [quotes, loading, error, syncing, handleSync]);
 
 	if (error) {
 		return (
@@ -111,11 +110,11 @@ export function Market() {
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<button
 						type="button"
-						onClick={handleRefresh}
-						disabled={refreshing}
+						onClick={handleSync}
+						disabled={syncing}
 						className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
-						{refreshing
+						{syncing
 							? t("market.syncing", "Syncing...")
 							: t("market.sync_now", "Sync Pricing")}
 					</button>

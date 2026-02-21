@@ -5,6 +5,7 @@
  * Protocol conversion is delegated to protocols/gemini-native.ts for reuse.
  */
 
+import geminiCliModels from "../models/gemini-cli.json";
 import {
 	createGeminiToOpenAIStream,
 	toGeminiRequest,
@@ -33,51 +34,6 @@ interface CachedToken {
 	expiresAt: number;
 	projectId: string;
 }
-
-const MODELS = [
-	{
-		id: "gemini-2.5-pro",
-		name: "Gemini 2.5 Pro",
-		inputUsd: 1.25,
-		outputUsd: 10.0,
-		ctx: 1_048_576,
-	},
-	{
-		id: "gemini-2.5-flash",
-		name: "Gemini 2.5 Flash",
-		inputUsd: 0.15,
-		outputUsd: 0.6,
-		ctx: 1_048_576,
-	},
-	{
-		id: "gemini-2.5-flash-lite",
-		name: "Gemini 2.5 Flash Lite",
-		inputUsd: 0.075,
-		outputUsd: 0.3,
-		ctx: 1_048_576,
-	},
-	{
-		id: "gemini-2.0-flash",
-		name: "Gemini 2.0 Flash",
-		inputUsd: 0.1,
-		outputUsd: 0.4,
-		ctx: 1_048_576,
-	},
-	{
-		id: "gemini-3-pro-preview",
-		name: "Gemini 3 Pro Preview",
-		inputUsd: 1.25,
-		outputUsd: 10.0,
-		ctx: 1_048_576,
-	},
-	{
-		id: "gemini-3-flash-preview",
-		name: "Gemini 3 Flash Preview",
-		inputUsd: 0.15,
-		outputUsd: 0.6,
-		ctx: 1_048_576,
-	},
-];
 
 export class GeminiCliAdapter implements ProviderAdapter {
 	info: ProviderInfo = {
@@ -262,14 +218,14 @@ export class GeminiCliAdapter implements ProviderAdapter {
 	}
 
 	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
-		return MODELS.map((m) => ({
-			id: `gemini-cli:${m.id}`,
+		return geminiCliModels.map((m) => ({
+			id: `gemini-cli:${m.upstream_id}`,
 			provider: "gemini-cli",
-			upstream_id: m.id,
-			display_name: m.name,
-			input_price: dollarsToCentsPerM(m.inputUsd),
-			output_price: dollarsToCentsPerM(m.outputUsd),
-			context_length: m.ctx,
+			upstream_id: m.upstream_id,
+			display_name: m.display_name,
+			input_price: dollarsToCentsPerM(m.input_usd),
+			output_price: dollarsToCentsPerM(m.output_usd),
+			context_length: m.context_length,
 			is_active: 1,
 		}));
 	}

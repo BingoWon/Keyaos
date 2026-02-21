@@ -105,112 +105,37 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 	return results;
 }
 
-/**
- * Google AI Studio: /models returns no pricing.
- * Hardcoded from https://ai.google.dev/pricing
- * Prices in USD/M tokens. Only chat-capable Gemini models included.
- */
-function parseGoogleAIStudioModels(
-	_raw: Record<string, unknown>,
-): ParsedModel[] {
-	const models = [
-		{
-			id: "gemini-2.5-pro",
-			name: "Gemini 2.5 Pro",
-			inputUsd: 1.25,
-			outputUsd: 10.0,
-			ctx: 1_048_576,
-		},
-		{
-			id: "gemini-2.5-flash",
-			name: "Gemini 2.5 Flash",
-			inputUsd: 0.15,
-			outputUsd: 0.6,
-			ctx: 1_048_576,
-		},
-		{
-			id: "gemini-2.5-flash-lite",
-			name: "Gemini 2.5 Flash-Lite",
-			inputUsd: 0.075,
-			outputUsd: 0.3,
-			ctx: 1_048_576,
-		},
-		{
-			id: "gemini-2.0-flash",
-			name: "Gemini 2.0 Flash",
-			inputUsd: 0.1,
-			outputUsd: 0.4,
-			ctx: 1_048_576,
-		},
-		{
-			id: "gemini-2.0-flash-lite",
-			name: "Gemini 2.0 Flash-Lite",
-			inputUsd: 0.075,
-			outputUsd: 0.3,
-			ctx: 1_048_576,
-		},
-		{
-			id: "gemini-3-pro-preview",
-			name: "Gemini 3 Pro Preview",
-			inputUsd: 1.25,
-			outputUsd: 10.0,
-			ctx: 1_048_576,
-		},
-		{
-			id: "gemini-3-flash-preview",
-			name: "Gemini 3 Flash Preview",
-			inputUsd: 0.15,
-			outputUsd: 0.6,
-			ctx: 1_048_576,
-		},
-	];
+/** Google AI Studio: pricing from models/google-ai-studio.json */
+import googleAIStudioModels from "../models/google-ai-studio.json";
 
-	return models.map((m) => ({
-		id: `google-ai-studio:${m.id}`,
+function parseGoogleAIStudioModels(): ParsedModel[] {
+	return googleAIStudioModels.map((m) => ({
+		id: `google-ai-studio:${m.upstream_id}`,
 		provider: "google-ai-studio",
-		upstream_id: m.id,
-		display_name: m.name,
-		input_price: dollarsToCentsPerM(m.inputUsd),
-		output_price: dollarsToCentsPerM(m.outputUsd),
-		context_length: m.ctx,
+		upstream_id: m.upstream_id,
+		display_name: m.display_name,
+		input_price: dollarsToCentsPerM(m.input_usd),
+		output_price: dollarsToCentsPerM(m.output_usd),
+		context_length: m.context_length,
 		is_active: 1,
 	}));
 }
 
-/**
- * DeepSeek: /models has no pricing.
- * Hardcoded from https://api-docs.deepseek.com/quick_start/pricing
- * Prices in CNY/M tokens, converted at runtime.
- */
+/** DeepSeek: pricing from models/deepseek.json (CNY, converted at runtime) */
+import deepseekModels from "../models/deepseek.json";
+
 function parseDeepSeekModels(
 	_raw: Record<string, unknown>,
 	cnyUsdRate: number,
 ): ParsedModel[] {
-	const models = [
-		{
-			id: "deepseek-chat",
-			name: "DeepSeek V3",
-			inputCny: 1,
-			outputCny: 2,
-			ctx: 131072,
-		},
-		{
-			id: "deepseek-reasoner",
-			name: "DeepSeek R1",
-			inputCny: 4,
-			outputCny: 16,
-			ctx: 131072,
-		},
-	];
-
-	return models.map((m) => ({
-		id: `deepseek:${m.id}`,
+	return deepseekModels.map((m) => ({
+		id: `deepseek:${m.upstream_id}`,
 		provider: "deepseek",
-		upstream_id: m.id,
-		display_name: m.name,
-		input_price: Math.round((m.inputCny / cnyUsdRate) * 100),
-		output_price: Math.round((m.outputCny / cnyUsdRate) * 100),
-		context_length: m.ctx,
+		upstream_id: m.upstream_id,
+		display_name: m.display_name,
+		input_price: Math.round((m.input_cny / cnyUsdRate) * 100),
+		output_price: Math.round((m.output_cny / cnyUsdRate) * 100),
+		context_length: m.context_length,
 		is_active: 1,
 	}));
 }
@@ -275,7 +200,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
 		currency: "USD",
 		supportsAutoCredits: false,
-		parseModels: parseGoogleAIStudioModels,
+		parseModels: () => parseGoogleAIStudioModels(),
 	},
 ];
 

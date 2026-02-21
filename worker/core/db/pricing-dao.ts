@@ -3,7 +3,7 @@ import type { DbModelPricing } from "./schema";
 export class PricingDao {
 	constructor(private db: D1Database) {}
 
-	async upsertQuotes(
+	async upsertPricing(
 		quotes: Omit<DbModelPricing, "refreshed_at">[],
 	): Promise<void> {
 		const now = Date.now();
@@ -41,13 +41,7 @@ export class PricingDao {
 		provider: string,
 		activeIds: string[],
 	): Promise<void> {
-		if (activeIds.length === 0) {
-			await this.db
-				.prepare("UPDATE model_pricing SET is_active = 0 WHERE provider = ?")
-				.bind(provider)
-				.run();
-			return;
-		}
+		if (activeIds.length === 0) return;
 
 		const placeholders = activeIds.map(() => "?").join(",");
 		await this.db

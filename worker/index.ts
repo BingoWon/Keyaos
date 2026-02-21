@@ -2,10 +2,7 @@ import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
-import {
-	refreshAllModels,
-	refreshAutoCredits,
-} from "./core/refresh/refresh-service";
+import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
 import credentialsRouter from "./routes/credentials";
@@ -103,11 +100,11 @@ app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/market", marketRouter);
 app.route("/api", systemRouter);
-app.post("/api/refresh", async (c) => {
+app.post("/api/models/sync", async (c) => {
 	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-	await refreshAllModels(c.env.DB, rate);
-	await refreshAutoCredits(c.env.DB, rate);
-	return c.json({ message: "Refresh completed" });
+	await syncAllModels(c.env.DB, rate);
+	await syncAutoCredits(c.env.DB, rate);
+	return c.json({ message: "Sync completed" });
 });
 
 // ─── OpenAI-compatible API ──────────────────────────────
@@ -148,10 +145,7 @@ export default {
 	): Promise<void> {
 		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
 		ctx.waitUntil(
-			Promise.all([
-				refreshAllModels(env.DB, rate),
-				refreshAutoCredits(env.DB, rate),
-			]),
+			Promise.all([syncAllModels(env.DB, rate), syncAutoCredits(env.DB, rate)]),
 		);
 	},
 };
