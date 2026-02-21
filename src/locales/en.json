@@ -8,12 +8,16 @@
 		"delete": "Delete",
 		"edit": "Edit",
 		"add": "Add",
-		"confirm": "Confirm"
+		"confirm": "Confirm",
+		"actions": "Actions"
 	},
 	"nav": {
 		"dashboard": "Dashboard",
-		"keys": "API Keys",
-		"settings": "Settings",
+		"market": "Model Market",
+		"listings": "Credit Listings",
+		"api_keys": "API Keys",
+		"ledger": "Ledger",
+		"guide": "Guide",
 		"logout": "Log out"
 	},
 	"theme": {
@@ -29,22 +33,66 @@
 	},
 	"dashboard": {
 		"title": "Overview",
-		"total_keys": "Total Keys",
-		"active_keys": "Active Keys",
-		"total_credits": "Total Credits"
+		"total_listings": "Total Listings",
+		"active_listings": "Active Listings",
+		"total_credits": "Total Credit Line"
 	},
-	"keys": {
+	"api_keys": {
 		"title": "API Keys",
-		"add_new": "Add Key",
+		"subtitle": "Provide downstream client tokens to your users",
+		"add_new": "Create Key",
+		"name": "Name",
+		"token": "Token",
+		"status": "Status",
+		"created_at": "Created At",
+		"no_data": "No API Keys yet"
+	},
+	"listings": {
+		"title": "Credit Listings",
+		"subtitle": "Manage upstream provider API tokens and track pool balances",
+		"add_new": "Add Listing",
 		"provider": "Provider",
-		"key": "API Key",
-		"credits": "Credits",
+		"key": "Upstream Key",
+		"credits": "Credit Balance",
 		"health": "Health",
-		"created": "Added",
-		"actions": "Actions",
-		"no_keys": "No keys yet",
+		"added": "Added",
+		"no_data": "No credit listings yet",
 		"status_ok": "OK",
 		"status_degraded": "Degraded",
-		"status_dead": "Dead"
+		"status_dead": "Dead",
+		"is_listed": "Listing Status",
+		"is_listed_true": "Listed",
+		"is_listed_false": "Delisted",
+		"price_ratio": "Price Ratio",
+		"price_ratio_helper": "💡 Estimate: At {{ratio}}x ratio, for every $1.00 of standard upstream API consumption, your account will be credited ${{credited}}. Lower ratios drastically improve your priority dispatch ranking."
+	},
+	"market": {
+		"title": "Model Market",
+		"subtitle": "Model quotes fetched from upstream providers",
+		"model": "Model ID",
+		"provider": "Provider",
+		"name": "Display Name",
+		"input_cost": "Input Cost",
+		"output_cost": "Output Cost",
+		"context": "Context",
+		"no_market": "No market quotes fetched yet. Run refresh first.",
+		"refresh_now": "Refresh Market",
+		"refreshing": "Refreshing...",
+		"refresh_success": "Refresh completed",
+		"refresh_failed": "Refresh failed"
+	},
+	"ledger": {
+		"title": "Ledger",
+		"subtitle": "Recent API calls and their costs",
+		"time": "Time",
+		"model": "Model",
+		"provider": "Provider",
+		"tokens": "Tokens",
+		"cost": "Cost",
+		"no_data": "No ledger entries yet"
+	},
+	"guide": {
+		"title": "Quick Start",
+		"subtitle": "Connect to Keyaos using any OpenAI-compatible client"
 	}
 }

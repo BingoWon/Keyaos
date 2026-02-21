@@ -5,7 +5,7 @@
  * credit-check endpoint, and response parsing differ.
  */
 
-import type { DbModel } from "../db/schema";
+import type { DbMarketQuote } from "../db/schema";
 
 export interface ProviderInfo {
 	id: string;
@@ -24,7 +24,7 @@ export interface ProviderCredits {
 	usage: number | null;
 }
 
-export type ParsedModel = Omit<DbModel, "synced_at">;
+export type ParsedModel = Omit<DbMarketQuote, "refreshed_at">;
 
 export interface ProviderAdapter {
 	info: ProviderInfo;

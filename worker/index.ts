@@ -1,9 +1,14 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { syncAllProviders } from "./core/sync/sync-service";
+import { ApiKeysDao } from "./core/db/api-keys-dao";
+import {
+	refreshAllModels,
+	refreshAutoCredits,
+} from "./core/refresh/refresh-service";
+import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
-import keysRouter from "./routes/keys";
-import modelsRouter from "./routes/models";
+import listingsRouter from "./routes/listings";
+import marketRouter from "./routes/market";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
 
@@ -11,6 +16,7 @@ export type Env = {
 	DB: D1Database;
 	ADMIN_TOKEN: string;
 	CNY_USD_RATE?: string;
+	ASSETS?: Fetcher;
 };
 
 const app = new Hono<{ Bindings: Env }>();
@@ -39,41 +45,85 @@ app.use(
 // Public
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Auth middleware — shared for /api/* and /v1/*
-function requireAuth(c: {
-	req: { header: (name: string) => string | undefined };
-	env: Env;
-}) {
+// Auth middleware for Management API (Admin only)
+app.use("/api/*", async (c, next) => {
 	const token = c.req
 		.header("Authorization")
 		?.replace(/^Bearer\s+/i, "")
 		.trim();
 	if (!token || token !== c.env.ADMIN_TOKEN) {
-		throw new AuthenticationError("Invalid or missing token");
+		throw new AuthenticationError("Invalid or missing admin token");
 	}
-}
-
-app.use("/api/*", async (c, next) => {
-	requireAuth(c);
 	return next();
 });
+
+// Auth middleware for Downstream API (Admin OR downstream API Keys)
 app.use("/v1/*", async (c, next) => {
-	requireAuth(c);
+	const token = c.req
+		.header("Authorization")
+		?.replace(/^Bearer\s+/i, "")
+		.trim();
+	if (!token) {
+		throw new AuthenticationError("Invalid or missing token");
+	}
+
+	if (token === c.env.ADMIN_TOKEN) {
+		return next();
+	}
+
+	const dao = new ApiKeysDao(c.env.DB);
+	const key = await dao.getKey(token);
+	if (!key || key.is_active !== 1) {
+		throw new AuthenticationError("Invalid or inactive API key");
+	}
+
 	return next();
 });
 
 // Management API
-app.route("/api/keys", keysRouter);
+app.route("/api/listings", listingsRouter);
+app.route("/api/api-keys", apiKeysRouter);
+app.route("/api/market", marketRouter);
 app.route("/api", systemRouter);
-app.post("/api/sync", async (c) => {
+app.post("/api/refresh", async (c) => {
 	const rate = parseFloat(c.env.CNY_USD_RATE || "7");
-	await syncAllProviders(c.env.DB, rate);
-	return c.json({ message: "Sync completed" });
+	await refreshAllModels(c.env.DB, rate);
+	await refreshAutoCredits(c.env.DB, rate);
+	return c.json({ message: "Refresh completed" });
 });
 
 // OpenAI-compatible API
 app.route("/v1/chat", chatRouter);
-app.route("/v1/models", modelsRouter);
+app.route("/v1/models", marketRouter); // Note: keep external interface as /v1/models for openai compatibility
+
+// SPA Fallback for React Router (serves index.html for unmatched routes)
+app.notFound(async (c) => {
+	// If it's an API request that doesn't exist, return JSON 404
+	if (c.req.path.startsWith("/api/") || c.req.path.startsWith("/v1/")) {
+		return c.json(
+			{ error: { message: "Not Found", type: "invalid_request_error" } },
+			404,
+		);
+	}
+
+	// For frontend routes, attempt to fetch the original asset
+	if (c.env.ASSETS) {
+		try {
+			const res = await c.env.ASSETS.fetch(c.req.raw);
+			// If asset not found (e.g. hitting /listings directly), fallback to index.html
+			if (res.status === 404) {
+				const url = new URL(c.req.url);
+				url.pathname = "/";
+				return c.env.ASSETS.fetch(new Request(url.toString(), c.req.raw));
+			}
+			return res;
+		} catch (e) {
+			// Ignore ASSETS errors in case it's misconfigured
+		}
+	}
+
+	return c.text("Not Found", 404);
+});
 
 export default {
 	fetch: app.fetch,
@@ -84,6 +134,11 @@ export default {
 		ctx: ExecutionContext,
 	): Promise<void> {
 		const rate = parseFloat(env.CNY_USD_RATE || "7");
-		ctx.waitUntil(syncAllProviders(env.DB, rate));
+		ctx.waitUntil(
+			Promise.all([
+				refreshAllModels(env.DB, rate),
+				refreshAutoCredits(env.DB, rate),
+			]),
+		);
 	},
 };

@@ -1,26 +1,23 @@
-/**
- * Transactions Data Access Object
- */
-import type { DbTransaction } from "./schema";
+import type { DbLedgerEntry } from "./schema";
 
-export class TransactionsDao {
+export class LedgerDao {
 	constructor(private db: D1Database) {}
 
-	async createTransaction(
-		tx: Omit<DbTransaction, "id" | "created_at">,
+	async createEntry(
+		tx: Omit<DbLedgerEntry, "id" | "created_at">,
 	): Promise<string> {
 		const id = `tx_${crypto.randomUUID()}`;
 
 		await this.db
 			.prepare(
-				`INSERT INTO transactions (
-					id, key_id, provider, model,
+				`INSERT INTO ledger (
+					id, listing_id, provider, model,
 					input_tokens, output_tokens, cost_cents, created_at
 				) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
-				tx.key_id,
+				tx.listing_id,
 				tx.provider,
 				tx.model,
 				tx.input_tokens,
@@ -33,11 +30,11 @@ export class TransactionsDao {
 		return id;
 	}
 
-	async getRecentTransactions(limit = 50): Promise<DbTransaction[]> {
+	async getRecentEntries(limit = 50): Promise<DbLedgerEntry[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM transactions ORDER BY created_at DESC LIMIT ?")
+			.prepare("SELECT * FROM ledger ORDER BY created_at DESC LIMIT ?")
 			.bind(limit)
-			.all<DbTransaction>();
+			.all<DbLedgerEntry>();
 
 		return res.results || [];
 	}

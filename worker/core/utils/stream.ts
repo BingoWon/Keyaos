@@ -31,14 +31,15 @@ export function interceptResponse(
 		const parseTask = response
 			.clone()
 			.json()
-			.then((body: { usage?: TokenUsage }) => {
-				if (body?.usage) {
+			.then((body) => {
+				const parsed = body as { usage?: TokenUsage };
+				if (parsed?.usage) {
 					onUsage({
-						prompt_tokens: body.usage.prompt_tokens || 0,
-						completion_tokens: body.usage.completion_tokens || 0,
-						total_tokens: body.usage.total_tokens || 0,
-						cost: body.usage.cost,
-						estimated_cost: body.usage.estimated_cost,
+						prompt_tokens: parsed.usage.prompt_tokens || 0,
+						completion_tokens: parsed.usage.completion_tokens || 0,
+						total_tokens: parsed.usage.total_tokens || 0,
+						cost: parsed.usage.cost,
+						estimated_cost: parsed.usage.estimated_cost,
 					});
 				}
 			})

@@ -8,9 +8,10 @@ import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 
 interface Stats {
-	totalKeys: number;
+	totalListings: number;
 	activeProviders: number;
-	deadKeys: number;
+	deadListings: number;
+	totalBalanceCents: number;
 }
 
 export function Dashboard() {
@@ -27,19 +28,18 @@ export function Dashboard() {
 
 	const cards = [
 		{
-			name: t("dashboard.total_keys"),
-			stat: stats?.totalKeys ?? "-",
+			name: t("dashboard.total_listings"),
+			stat: stats?.totalListings ?? "-",
 			icon: KeyIcon,
 		},
 		{
-			name: t("dashboard.active_keys"),
-			stat: stats ? stats.totalKeys - stats.deadKeys : "-",
+			name: t("dashboard.active_listings"),
+			stat: stats ? stats.totalListings - stats.deadListings : "-",
 			icon: DocumentCheckIcon,
 		},
 		{
-			// Example placeholder for now until billing is implemented
-			name: t("dashboard.total_balance"),
-			stat: "---",
+			name: t("dashboard.total_credits"),
+			stat: stats ? `$${(stats.totalBalanceCents / 100).toFixed(2)}` : "-",
 			icon: CurrencyDollarIcon,
 		},
 	];

@@ -5,13 +5,37 @@ import {
 	TransitionChild,
 } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
+import { useAuth } from "../stores/auth";
 import { Logo } from "./Logo";
 import { NavigationList } from "./NavigationList";
 
 export function SidebarLayout() {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const { token } = useAuth();
+	const hasPrefetched = useRef(false);
+
+	useEffect(() => {
+		if (!hasPrefetched.current && token) {
+			hasPrefetched.current = true;
+			// Silently check if market quotes need initialization on first boot
+			fetch("/v1/models", {
+				headers: { Authorization: `Bearer ${token}` },
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					if (Array.isArray(data) && data.length === 0) {
+						// Proactively start fetching upstream prices
+						fetch("/api/refresh", {
+							method: "POST",
+							headers: { Authorization: `Bearer ${token}` },
+						}).catch(() => {});
+					}
+				})
+				.catch(() => {});
+		}
+	}, [token]);
 
 	return (
 		<div>

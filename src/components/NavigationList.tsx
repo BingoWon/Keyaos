@@ -1,4 +1,10 @@
-import { Cog6ToothIcon, HomeIcon, KeyIcon } from "@heroicons/react/24/outline";
+import {
+	BanknotesIcon,
+	CpuChipIcon,
+	DocumentTextIcon,
+	HomeIcon,
+	KeyIcon,
+} from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { LanguageSelector } from "./LanguageSelector";
@@ -18,8 +24,10 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/", icon: HomeIcon },
-		{ name: t("nav.keys"), href: "/keys", icon: KeyIcon },
-		{ name: t("nav.settings"), href: "/settings", icon: Cog6ToothIcon },
+		{ name: t("nav.market"), href: "/market", icon: CpuChipIcon },
+		{ name: t("nav.listings"), href: "/listings", icon: BanknotesIcon },
+		{ name: t("nav.api_keys"), href: "/api-keys", icon: KeyIcon },
+		{ name: t("nav.ledger"), href: "/ledger", icon: DocumentTextIcon },
 	];
 
 	return (

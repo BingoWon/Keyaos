@@ -1,4 +1,12 @@
-import { EyeIcon, EyeSlashIcon, PlusIcon } from "@heroicons/react/20/solid";
+import {
+	CheckIcon,
+	ClipboardDocumentIcon,
+	EyeIcon,
+	EyeSlashIcon,
+	PencilSquareIcon,
+	PlusIcon,
+	XMarkIcon,
+} from "@heroicons/react/20/solid";
 import type React from "react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -6,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
+import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { useAuth } from "../stores/auth";
 
 interface ProviderInfo {
@@ -14,40 +23,48 @@ interface ProviderInfo {
 	supportsAutoCredits: boolean;
 }
 
-interface KeyInfo {
+interface ListingInfo {
 	id: string;
 	provider: string;
 	keyHint: string;
 	credits: number;
 	creditsSource: "auto" | "manual";
 	health: HealthStatus;
-	isActive: boolean;
+	isEnabled: boolean;
+	priceMultiplier: number;
 	addedAt: number;
 }
 
-export function Keys() {
+export function Listings() {
 	const { t } = useTranslation();
 	const { token } = useAuth();
+	const formatDateTime = useFormatDateTime();
 
 	const {
 		data,
 		loading,
-		refetch: fetchKeys,
-	} = useFetch<KeyInfo[]>("/api/keys");
-	const keys = data || [];
+		refetch: fetchListings,
+	} = useFetch<ListingInfo[]>("/api/listings");
+	const listings = data || [];
 
 	const { data: providersData } = useFetch<ProviderInfo[]>("/api/providers");
 	const providers = providersData || [];
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	const [newKey, setNewKey] = useState({
+	const [newListing, setNewListing] = useState({
 		provider: "openrouter",
 		apiKey: "",
 		credits: "",
+		isEnabled: true,
+		priceMultiplier: "1.0",
 	});
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editCredits, setEditCredits] = useState("");
+	const [editingSettingsId, setEditingSettingsId] = useState<string | null>(
+		null,
+	);
+	const [editPriceMultiplier, setEditPriceMultiplier] = useState("");
 
 	const headers = {
 		"Content-Type": "application/json",
@@ -55,7 +72,7 @@ export function Keys() {
 	};
 
 	const isAutoProvider =
-		providers.find((p) => p.id === newKey.provider)?.supportsAutoCredits ??
+		providers.find((p) => p.id === newListing.provider)?.supportsAutoCredits ??
 		false;
 
 	const handleAdd = async (e: React.FormEvent) => {
@@ -63,15 +80,17 @@ export function Keys() {
 		const tid = toast.loading(t("common.loading"));
 		try {
 			const body: Record<string, unknown> = {
-				provider: newKey.provider,
-				apiKey: newKey.apiKey,
+				provider: newListing.provider,
+				apiKey: newListing.apiKey,
+				isEnabled: newListing.isEnabled ? 1 : 0,
+				priceMultiplier: Number.parseFloat(newListing.priceMultiplier) || 1.0,
 			};
-			// Only send credits for manual providers
+
 			if (!isAutoProvider) {
-				body.credits = Number.parseFloat(newKey.credits) || 0;
+				body.credits = Number.parseFloat(newListing.credits) || 0;
 			}
 
-			const res = await fetch("/api/keys", {
+			const res = await fetch("/api/listings", {
 				method: "POST",
 				headers,
 				body: JSON.stringify(body),
@@ -79,9 +98,15 @@ export function Keys() {
 			const data = await res.json();
 			if (res.ok) {
 				setIsAddOpen(false);
-				setNewKey({ provider: "openrouter", apiKey: "", credits: "" });
+				setNewListing({
+					provider: "openrouter",
+					apiKey: "",
+					credits: "",
+					isEnabled: true,
+					priceMultiplier: "1.0",
+				});
 				setShowPassword(false);
-				fetchKeys();
+				fetchListings();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(data.error?.message || res.statusText, { id: tid });
@@ -95,7 +120,7 @@ export function Keys() {
 	const handleUpdateCredits = async (id: string) => {
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/keys/${id}/credits`, {
+			const res = await fetch(`/api/listings/${id}/credits`, {
 				method: "PATCH",
 				headers,
 				body: JSON.stringify({
@@ -105,7 +130,32 @@ export function Keys() {
 			const data = await res.json();
 			if (res.ok) {
 				setEditingId(null);
-				fetchKeys();
+				fetchListings();
+				toast.success(t("common.success"), { id: tid });
+			} else {
+				toast.error(data.error?.message || res.statusText, { id: tid });
+			}
+		} catch (err) {
+			console.error(err);
+			toast.error(t("common.error"), { id: tid });
+		}
+	};
+
+	const handleUpdateSettings = async (
+		id: string,
+		isEnabled: boolean,
+		priceMultiplier: number,
+	) => {
+		const tid = toast.loading(t("common.loading"));
+		try {
+			const res = await fetch(`/api/listings/${id}/settings`, {
+				method: "PATCH",
+				headers,
+				body: JSON.stringify({ isEnabled: isEnabled ? 1 : 0, priceMultiplier }),
+			});
+			const data = await res.json();
+			if (res.ok) {
+				fetchListings();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(data.error?.message || res.statusText, { id: tid });
@@ -120,12 +170,12 @@ export function Keys() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/keys/${id}`, {
+			const res = await fetch(`/api/listings/${id}`, {
 				method: "DELETE",
 				headers,
 			});
 			if (res.ok) {
-				fetchKeys();
+				fetchListings();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(t("common.error"), { id: tid });
@@ -141,8 +191,11 @@ export function Keys() {
 			<div className="sm:flex sm:items-center">
 				<div className="sm:flex-auto">
 					<h1 className="text-base font-semibold text-gray-900 dark:text-white">
-						{t("keys.title")}
+						{t("listings.title")}
 					</h1>
+					<p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+						{t("listings.subtitle")}
+					</p>
 				</div>
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<button
@@ -151,7 +204,7 @@ export function Keys() {
 						className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
-						{t("keys.add_new")}
+						{t("listings.add_new")}
 					</button>
 				</div>
 			</div>
@@ -167,13 +220,13 @@ export function Keys() {
 								htmlFor="provider"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("keys.provider")}
+								{t("listings.provider")}
 							</label>
 							<select
 								id="provider"
-								value={newKey.provider}
+								value={newListing.provider}
 								onChange={(e) =>
-									setNewKey({ ...newKey, provider: e.target.value })
+									setNewListing({ ...newListing, provider: e.target.value })
 								}
 								className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 							>
@@ -189,16 +242,16 @@ export function Keys() {
 								htmlFor="apiKey"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("keys.key")}
+								{t("listings.key")}
 							</label>
 							<div className="relative mt-1">
 								<input
 									type={showPassword ? "text" : "password"}
 									id="apiKey"
 									required
-									value={newKey.apiKey}
+									value={newListing.apiKey}
 									onChange={(e) =>
-										setNewKey({ ...newKey, apiKey: e.target.value })
+										setNewListing({ ...newListing, apiKey: e.target.value })
 									}
 									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="sk-..."
@@ -216,7 +269,6 @@ export function Keys() {
 								</button>
 							</div>
 						</div>
-						{/* Only show credits input for manual providers */}
 						{!isAutoProvider && (
 							<div className="w-full sm:w-32">
 								<label
@@ -231,15 +283,49 @@ export function Keys() {
 									required
 									min="0"
 									step="0.01"
-									value={newKey.credits}
+									value={newListing.credits}
 									onChange={(e) =>
-										setNewKey({ ...newKey, credits: e.target.value })
+										setNewListing({ ...newListing, credits: e.target.value })
 									}
 									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="10.00"
 								/>
 							</div>
 						)}
+						<div className="w-full sm:w-80">
+							<label
+								htmlFor="priceMultiplier"
+								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+							>
+								{t("listings.price_ratio")}
+							</label>
+							<input
+								type="number"
+								id="priceMultiplier"
+								min="0.1"
+								step="0.01"
+								required
+								value={newListing.priceMultiplier}
+								onChange={(e) =>
+									setNewListing({
+										...newListing,
+										priceMultiplier: e.target.value,
+									})
+								}
+								className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+								placeholder="1.0"
+							/>
+							{newListing.priceMultiplier && (
+								<p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+									{t("listings.price_ratio_helper", {
+										ratio: newListing.priceMultiplier,
+										credited: (
+											1.0 * (Number.parseFloat(newListing.priceMultiplier) || 0)
+										).toFixed(2),
+									})}
+								</p>
+							)}
+						</div>
 						<div className="flex gap-2 w-full sm:w-auto">
 							<button
 								type="button"
@@ -271,72 +357,97 @@ export function Keys() {
 									<tr>
 										<th
 											scope="col"
-											className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-white"
+											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("keys.provider")}
+											{t("listings.provider")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("keys.key")}
+											{t("listings.key")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("keys.credits")}
+											{t("listings.credits")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("keys.health")}
+											{t("listings.price_ratio")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("keys.added")}
+											{t("listings.health")}
+										</th>
+										<th
+											scope="col"
+											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+										>
+											{t("listings.added")}
+										</th>
+										<th
+											scope="col"
+											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+										>
+											{t("listings.is_listed")}
 										</th>
 										<th
 											scope="col"
 											className="relative py-3.5 pl-3 pr-4 sm:pr-6"
 										>
-											<span className="sr-only">{t("keys.actions")}</span>
+											<span className="sr-only">{t("common.actions")}</span>
 										</th>
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-gray-200 bg-white dark:divide-white/10 dark:bg-gray-900">
 									{loading ? (
 										<tr>
-											<td colSpan={6} className="py-10">
+											<td colSpan={8} className="py-10">
 												<PageLoader />
 											</td>
 										</tr>
-									) : keys.length === 0 ? (
+									) : listings.length === 0 ? (
 										<tr>
 											<td
-												colSpan={6}
+												colSpan={8}
 												className="py-4 text-center text-sm text-gray-500 dark:text-gray-400"
 											>
-												{t("keys.no_keys")}
+												{t("listings.no_data")}
 											</td>
 										</tr>
 									) : (
-										keys.map((key) => (
+										listings.map((listing) => (
 											<tr
-												key={key.id}
-												className={key.isActive ? "" : "opacity-50"}
+												key={listing.id}
+												className={listing.isEnabled ? "" : "opacity-50"}
 											>
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
-													{key.provider}
+													{listing.provider}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
-													{key.keyHint}
+													<div className="flex items-center gap-2">
+														{listing.keyHint}
+														<button
+															type="button"
+															onClick={() => {
+																navigator.clipboard.writeText(listing.keyHint);
+																toast.success("Copied to clipboard");
+															}}
+															className="text-gray-400 hover:text-indigo-500"
+															title="Copy upstream key hint"
+														>
+															<ClipboardDocumentIcon className="size-4" />
+														</button>
+													</div>
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
-													{editingId === key.id ? (
+													{editingId === listing.id ? (
 														<div className="flex items-center gap-2">
 															<input
 																type="number"
@@ -348,51 +459,134 @@ export function Keys() {
 															/>
 															<button
 																type="button"
-																onClick={() => handleUpdateCredits(key.id)}
-																className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 text-xs"
+																onClick={() => handleUpdateCredits(listing.id)}
+																className="text-green-600 hover:text-green-900 dark:text-green-400"
+																title={t("common.save")}
 															>
-																{t("common.save")}
+																<CheckIcon className="size-5" />
 															</button>
 															<button
 																type="button"
 																onClick={() => setEditingId(null)}
-																className="text-gray-500 hover:text-gray-700 dark:text-gray-400 text-xs"
+																className="text-red-500 hover:text-red-700 dark:text-red-400"
+																title={t("common.cancel")}
 															>
-																{t("common.cancel")}
+																<XMarkIcon className="size-5" />
 															</button>
 														</div>
 													) : (
 														<span
-															className={`font-mono ${key.credits > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
+															className={`font-mono flex items-center ${listing.credits > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
 														>
-															${key.credits.toFixed(2)}
-															{/* Only manual providers can be edited */}
-															{key.creditsSource === "manual" && (
+															${listing.credits.toFixed(2)}
+															{listing.creditsSource === "manual" && (
 																<button
 																	type="button"
 																	onClick={() => {
-																		setEditingId(key.id);
-																		setEditCredits(key.credits.toString());
+																		setEditingId(listing.id);
+																		setEditCredits(listing.credits.toString());
 																	}}
-																	className="ml-2 text-gray-400 hover:text-indigo-500 text-xs"
+																	className="ml-2 text-gray-400 hover:text-indigo-500"
 																	title={t("common.edit")}
 																>
-																	✏️
+																	<PencilSquareIcon className="size-4" />
 																</button>
 															)}
 														</span>
 													)}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-													<HealthBadge status={key.health} />
+													{editingSettingsId === listing.id ? (
+														<div className="flex items-center gap-2">
+															<input
+																type="number"
+																min="0.1"
+																step="0.01"
+																value={editPriceMultiplier}
+																onChange={(e) =>
+																	setEditPriceMultiplier(e.target.value)
+																}
+																className="w-16 rounded-md border-gray-300 py-1 px-1 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+															/>
+															<button
+																type="button"
+																onClick={() => {
+																	handleUpdateSettings(
+																		listing.id,
+																		listing.isEnabled,
+																		Number.parseFloat(editPriceMultiplier),
+																	);
+																	setEditingSettingsId(null);
+																}}
+																className="text-green-600 hover:text-green-900 dark:text-green-400"
+																title={t("common.save")}
+															>
+																<CheckIcon className="size-5" />
+															</button>
+															<button
+																type="button"
+																onClick={() => setEditingSettingsId(null)}
+																className="text-red-500 hover:text-red-700 dark:text-red-400"
+																title={t("common.cancel")}
+															>
+																<XMarkIcon className="size-5" />
+															</button>
+														</div>
+													) : (
+														<div className="flex items-center font-mono text-gray-900 dark:text-white">
+															{listing.priceMultiplier}x
+															<button
+																type="button"
+																onClick={() => {
+																	setEditingSettingsId(listing.id);
+																	setEditPriceMultiplier(
+																		listing.priceMultiplier.toString(),
+																	);
+																}}
+																className="ml-2 text-gray-400 hover:text-indigo-500"
+																title={t("common.edit")}
+															>
+																<PencilSquareIcon className="size-4" />
+															</button>
+														</div>
+													)}
+												</td>
+												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+													<HealthBadge status={listing.health} />
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-													{new Date(key.addedAt).toLocaleDateString()}
+													{formatDateTime(listing.addedAt)}
+												</td>
+												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+													<label className="inline-flex items-center cursor-pointer">
+														<input
+															type="checkbox"
+															className="sr-only peer"
+															checked={listing.isEnabled}
+															onChange={(e) =>
+																handleUpdateSettings(
+																	listing.id,
+																	e.target.checked,
+																	listing.priceMultiplier,
+																)
+															}
+														/>
+														<div className="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+														<span
+															className={`ml-2 text-xs font-medium ${listing.isEnabled ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"}`}
+														>
+															{t(
+																listing.isEnabled
+																	? "listings.is_listed_true"
+																	: "listings.is_listed_false",
+															)}
+														</span>
+													</label>
 												</td>
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
 													<button
 														type="button"
-														onClick={() => handleDelete(key.id)}
+														onClick={() => handleDelete(listing.id)}
 														className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
 													>
 														{t("common.delete")}

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { recordUsage } from "../core/billing";
-import { KeysDao } from "../core/db/keys-dao";
+import { ListingsDao } from "../core/db/listings-dao";
 import { dispatch } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
 import type { Env } from "../index";
@@ -19,12 +19,12 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const { key, provider, upstreamModel, modelCost } = await dispatch(
+	const { listing, provider, upstreamModel, modelCost } = await dispatch(
 		c.env.DB,
 		model,
 	);
 
-	const keysDao = new KeysDao(c.env.DB);
+	const listingsDao = new ListingsDao(c.env.DB);
 
 	const upstreamBody = {
 		...body,
@@ -34,7 +34,7 @@ chatRouter.post("/completions", async (c) => {
 
 	try {
 		const response = await provider.forwardRequest(
-			key.api_key,
+			listing.api_key,
 			c.req.raw,
 			upstreamBody,
 		);
@@ -45,8 +45,8 @@ chatRouter.post("/completions", async (c) => {
 			(usage) => {
 				c.executionCtx.waitUntil(
 					recordUsage(c.env.DB, {
-						keyId: key.id,
-						provider: key.provider,
+						listingId: listing.id,
+						provider: listing.provider,
 						model: upstreamModel,
 						modelCost,
 						usage,
@@ -55,11 +55,11 @@ chatRouter.post("/completions", async (c) => {
 			},
 		);
 
-		await keysDao.reportSuccess(key.id);
+		await listingsDao.reportSuccess(listing.id);
 		return finalResponse;
 	} catch (err) {
 		const statusCode = err instanceof ApiError ? err.statusCode : 500;
-		await keysDao.reportFailure(key.id, statusCode);
+		await listingsDao.reportFailure(listing.id, statusCode);
 		throw err;
 	}
 });

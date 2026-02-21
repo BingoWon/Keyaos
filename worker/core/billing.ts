@@ -2,12 +2,12 @@
  * Billing — Core mode: usage tracking + key credit deduction
  */
 
-import { KeysDao } from "./db/keys-dao";
-import { TransactionsDao } from "./db/transactions-dao";
+import { LedgerDao } from "./db/ledger-dao";
+import { ListingsDao } from "./db/listings-dao";
 import type { TokenUsage } from "./utils/stream";
 
 export interface BillingParams {
-	keyId: string;
+	listingId: string;
 	provider: string;
 	model: string;
 	modelCost: { inputCentsPerM: number; outputCentsPerM: number };
@@ -18,7 +18,7 @@ export async function recordUsage(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
-	const { keyId, provider, model, modelCost, usage } = params;
+	const { listingId, provider, model, modelCost, usage } = params;
 	const totalTokens =
 		usage.total_tokens || usage.prompt_tokens + usage.completion_tokens;
 
@@ -39,8 +39,8 @@ export async function recordUsage(
 	}
 
 	try {
-		await new TransactionsDao(db).createTransaction({
-			key_id: keyId,
+		await new LedgerDao(db).createEntry({
+			listing_id: listingId,
 			provider,
 			model,
 			input_tokens: usage.prompt_tokens,
@@ -48,8 +48,8 @@ export async function recordUsage(
 			cost_cents: costCents,
 		});
 
-		await new KeysDao(db).deductCredits(keyId, costCents);
+		await new ListingsDao(db).deductCredits(listingId, costCents);
 	} catch (err) {
-		console.error("[BILLING] Transaction write failed:", err);
+		console.error("[BILLING] Ledger write failed:", err);
 	}
 }
