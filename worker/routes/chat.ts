@@ -25,15 +25,10 @@ chatRouter.post("/completions", async (c) => {
 
 	let lastError: unknown;
 
-	for (const {
-		credential,
-		provider,
-		upstreamModel,
-		modelPrice,
-	} of candidates) {
+	for (const { credential, provider, modelId, modelPrice } of candidates) {
 		const upstreamBody = {
 			...body,
-			model: upstreamModel,
+			model: modelId,
 			stream_options: body.stream ? { include_usage: true } : undefined,
 		};
 
@@ -58,7 +53,7 @@ chatRouter.post("/completions", async (c) => {
 							ownerId: owner_id,
 							credentialId: credential.id,
 							provider: credential.provider,
-							model: upstreamModel,
+							model: modelId,
 							modelPrice,
 							usage,
 						}).catch((err) =>

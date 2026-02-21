@@ -219,10 +219,10 @@ export class GeminiCliAdapter implements ProviderAdapter {
 
 	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
 		return geminiCliModels.map((m) => ({
-			id: `gemini-cli:${m.upstream_id}`,
+			id: `gemini-cli:${m.id}`,
 			provider: "gemini-cli",
-			upstream_id: m.upstream_id,
-			display_name: m.display_name,
+			model_id: m.id,
+			name: m.name,
 			input_price: dollarsToCentsPerM(m.input_usd),
 			output_price: dollarsToCentsPerM(m.output_usd),
 			context_length: m.context_length,

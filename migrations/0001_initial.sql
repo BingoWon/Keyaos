@@ -35,10 +35,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_secret
 
 -- 3. 模型定价目录 (各供应商模型实时价格，Cron 自动刷新)
 CREATE TABLE IF NOT EXISTS model_pricing (
-    id TEXT PRIMARY KEY,                    -- "provider:upstream_id"
+    id TEXT PRIMARY KEY,                    -- "provider:model_id"
     provider TEXT NOT NULL,
-    upstream_id TEXT NOT NULL,
-    display_name TEXT,
+    model_id TEXT NOT NULL,
+    name TEXT,
     input_price REAL NOT NULL DEFAULT 0.0,  -- credits / 1M tokens
     output_price REAL NOT NULL DEFAULT 0.0, -- credits / 1M tokens
     context_length INTEGER,
@@ -46,11 +46,11 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     refreshed_at INTEGER NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_upstream
-    ON model_pricing(provider, upstream_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_model
+    ON model_pricing(provider, model_id);
 
 CREATE INDEX IF NOT EXISTS idx_model_pricing_routing
-    ON model_pricing(upstream_id, is_active, input_price);
+    ON model_pricing(model_id, is_active, input_price);
 
 -- 4. 交易流水
 CREATE TABLE IF NOT EXISTS ledger (

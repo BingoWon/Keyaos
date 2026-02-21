@@ -25,8 +25,8 @@ export interface DbCredential {
 export interface DbModelPricing {
 	id: string;
 	provider: string;
-	upstream_id: string;
-	display_name: string | null;
+	model_id: string;
+	name: string | null;
 	input_price: number;
 	output_price: number;
 	context_length: number | null;

@@ -42,8 +42,8 @@ function defaultParseModels(
 		.map((m) => ({
 			id: `${providerId}:${m.id}`,
 			provider: providerId,
-			upstream_id: m.id as string,
-			display_name: (m.name as string) || null,
+			model_id: m.id as string,
+			name: (m.name as string) || null,
 			input_price: 0,
 			output_price: 0,
 			context_length: (m.context_length as number) || null,

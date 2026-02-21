@@ -15,7 +15,7 @@ import { getProvider } from "./providers/registry";
 export interface DispatchResult {
 	credential: DbCredential;
 	provider: ProviderAdapter;
-	upstreamModel: string;
+	modelId: string;
 	modelPrice: { inputPricePerM: number; outputPricePerM: number };
 }
 
@@ -35,7 +35,7 @@ export async function dispatchAll(
 	const pricingDao = new PricingDao(db);
 	const credDao = new CredentialsDao(db);
 
-	const offerings = await pricingDao.findByUpstreamId(model);
+	const offerings = await pricingDao.findByModelId(model);
 	const candidates: DispatchResult[] = [];
 
 	for (const offering of offerings) {
@@ -51,7 +51,7 @@ export async function dispatchAll(
 			candidates.push({
 				credential,
 				provider,
-				upstreamModel: offering.upstream_id,
+				modelId: offering.model_id,
 				modelPrice: {
 					inputPricePerM: offering.input_price * credential.price_multiplier,
 					outputPricePerM: offering.output_price * credential.price_multiplier,

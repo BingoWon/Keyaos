@@ -10,11 +10,11 @@ modelsRouter.get("/", async (c) => {
 	const all = await dao.getActivePricing();
 
 	const data = all.map((m) => ({
-		id: m.upstream_id,
+		id: m.model_id,
 		object: "model" as const,
 		created: Math.floor(m.refreshed_at / 1000),
 		owned_by: m.provider,
-		...(m.display_name && { name: m.display_name }),
+		...(m.name && { name: m.name }),
 		input_price: m.input_price,
 		output_price: m.output_price,
 		context_length: m.context_length,

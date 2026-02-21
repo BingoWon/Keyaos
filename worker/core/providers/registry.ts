@@ -39,8 +39,8 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 		results.push({
 			id: `openrouter:${id}`,
 			provider: "openrouter",
-			upstream_id: id,
-			display_name: (m.name as string) || null,
+			model_id: id,
+			name: (m.name as string) || null,
 			input_price: dollarsToCentsPerM(inputUsdPerM),
 			output_price: dollarsToCentsPerM(outputUsdPerM),
 			context_length: (m.context_length as number) || null,
@@ -68,8 +68,8 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 		results.push({
 			id: `zenmux:${id}`,
 			provider: "zenmux",
-			upstream_id: id,
-			display_name: (m.display_name as string) || null,
+			model_id: id,
+			name: (m.display_name as string) || null,
 			input_price: dollarsToCentsPerM(promptArr[0].value),
 			output_price: dollarsToCentsPerM(compArr[0].value),
 			context_length: (m.context_length as number) || null,
@@ -96,8 +96,8 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 		results.push({
 			id: `deepinfra:${id}`,
 			provider: "deepinfra",
-			upstream_id: id,
-			display_name: null,
+			model_id: id,
+			name: null,
 			input_price: dollarsToCentsPerM(pricing.input_tokens),
 			output_price: dollarsToCentsPerM(pricing.output_tokens),
 			context_length: (metadata?.context_length as number) || null,
@@ -114,10 +114,10 @@ function parseStaticUsdModels(
 	models: typeof googleAIStudioModels,
 ): ParsedModel[] {
 	return models.map((m) => ({
-		id: `${provider}:${m.upstream_id}`,
+		id: `${provider}:${m.id}`,
 		provider,
-		upstream_id: m.upstream_id,
-		display_name: m.display_name,
+		model_id: m.id,
+		name: m.name,
 		input_price: dollarsToCentsPerM(m.input_usd),
 		output_price: dollarsToCentsPerM(m.output_usd),
 		context_length: m.context_length,

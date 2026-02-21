@@ -1,14 +1,14 @@
 [
 	{
-		"upstream_id": "deepseek/deepseek-chat",
-		"display_name": "DeepSeek V3.2",
+		"id": "deepseek/deepseek-chat",
+		"name": "DeepSeek V3.2",
 		"input_usd": 0.28,
 		"output_usd": 0.42,
 		"context_length": 131072
 	},
 	{
-		"upstream_id": "deepseek/deepseek-reasoner",
-		"display_name": "DeepSeek V3.2 (Thinking)",
+		"id": "deepseek/deepseek-reasoner",
+		"name": "DeepSeek V3.2 (Thinking)",
 		"input_usd": 0.28,
 		"output_usd": 0.42,
 		"context_length": 131072
