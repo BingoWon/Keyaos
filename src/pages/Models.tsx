@@ -6,6 +6,7 @@ import { CopyButton } from "../components/CopyButton";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { useFetch } from "../hooks/useFetch";
+import type { ProviderMeta } from "../types/provider";
 
 interface ModelEntry {
 	id: string;
@@ -14,12 +15,6 @@ interface ModelEntry {
 	input_price?: number;
 	output_price?: number;
 	context_length?: number;
-}
-
-interface ProviderMeta {
-	id: string;
-	name: string;
-	logoUrl: string;
 }
 
 interface ModelGroup {
@@ -121,19 +116,21 @@ function ModelCard({
 							}
 						>
 							<td className="py-2 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-								<span className="inline-flex items-center gap-1.5">
-									{(() => {
-										const meta = providerMap.get(p.provider);
-										return meta ? (
-											<ProviderLogo
-												src={meta.logoUrl}
-												name={meta.name}
-												size={16}
-											/>
-										) : null;
-									})()}
-									{providerMap.get(p.provider)?.name ?? p.provider}
-								</span>
+								{(() => {
+									const meta = providerMap.get(p.provider);
+									return (
+										<span className="inline-flex items-center gap-1.5">
+											{meta && (
+												<ProviderLogo
+													src={meta.logoUrl}
+													name={meta.name}
+													size={16}
+												/>
+											)}
+											{meta?.name ?? p.provider}
+										</span>
+									);
+								})()}
 							</td>
 							<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 								{formatPrice(p.inputPrice)}
@@ -244,7 +241,7 @@ export function Models() {
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<button
 						type="button"
-						onClick={handleSync}
+						onClick={() => handleSync()}
 						disabled={syncing}
 						className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
