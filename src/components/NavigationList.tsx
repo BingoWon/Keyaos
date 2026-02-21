@@ -24,7 +24,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon },
-		{ name: t("nav.market"), href: "/dashboard/market", icon: CpuChipIcon },
+		{ name: t("nav.models"), href: "/dashboard/models", icon: CpuChipIcon },
 		{
 			name: t("nav.credentials"),
 			href: "/dashboard/credentials",

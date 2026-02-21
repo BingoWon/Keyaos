@@ -2,9 +2,9 @@ import { Hono } from "hono";
 import { PricingDao } from "../core/db/pricing-dao";
 import type { AppEnv } from "../shared/types";
 
-const marketRouter = new Hono<Pick<AppEnv, "Bindings">>();
+const modelsRouter = new Hono<Pick<AppEnv, "Bindings">>();
 
-marketRouter.get("/", async (c) => {
+modelsRouter.get("/", async (c) => {
 	const dao = new PricingDao(c.env.DB);
 	const all = await dao.getActivePricing();
 
@@ -29,4 +29,4 @@ marketRouter.get("/", async (c) => {
 	return c.json({ object: "list", data });
 });
 
-export default marketRouter;
+export default modelsRouter;

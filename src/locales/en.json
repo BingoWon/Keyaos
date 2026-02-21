@@ -13,7 +13,7 @@
 	},
 	"nav": {
 		"dashboard": "Dashboard",
-		"market": "Model Market",
+		"models": "Models",
 		"credentials": "Credentials",
 		"api_keys": "API Keys",
 		"ledger": "Ledger",
@@ -67,8 +67,8 @@
 		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of standard upstream API cost, requests will deduct {{credited}} Platform Credits.",
 		"no_quota": "N/A"
 	},
-	"market": {
-		"title": "Model Market",
+	"models": {
+		"title": "Models",
 		"subtitle": "Model pricing synced from upstream providers",
 		"model": "Model ID",
 		"provider": "Provider",
@@ -77,9 +77,9 @@
 		"output_price": "Output Price",
 		"context": "Context",
 		"no_data": "No pricing data yet. Run sync first.",
-		"sync_now": "Sync Pricing",
+		"sync_now": "Sync Now",
 		"syncing": "Syncing...",
-		"sync_success": "Pricing synced",
+		"sync_success": "Sync completed",
 		"sync_failed": "Sync failed"
 	},
 	"ledger": {

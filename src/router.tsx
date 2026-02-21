@@ -7,7 +7,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Guide } from "./pages/Guide";
 import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
-import { Market } from "./pages/Market";
+import { Models } from "./pages/Models";
 import { NotFound } from "./pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -34,7 +34,7 @@ export const router = createBrowserRouter([
 		),
 		children: [
 			{ index: true, element: <Dashboard /> },
-			{ path: "market", element: <Market /> },
+			{ path: "models", element: <Models /> },
 			{ path: "api-keys", element: <ApiKeys /> },
 			{ path: "credentials", element: <Credentials /> },
 			{ path: "ledger", element: <Ledger /> },

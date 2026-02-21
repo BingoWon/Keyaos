@@ -21,7 +21,7 @@ export function SidebarLayout() {
 			hasPrefetched.current = true;
 			getToken().then((activeToken) => {
 				if (!activeToken) return;
-				// Silently check if market quotes need initialization on first boot
+				// Silently check if model pricing needs initialization on first boot
 				fetch("/v1/models", {
 					headers: { Authorization: `Bearer ${activeToken}` },
 				})

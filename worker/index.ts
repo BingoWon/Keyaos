@@ -6,7 +6,7 @@ import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
 import credentialsRouter from "./routes/credentials";
-import marketRouter from "./routes/market";
+import modelsRouter from "./routes/models";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import type { AppEnv, Env } from "./shared/types";
@@ -98,7 +98,7 @@ app.use("/v1/*", async (c, next) => {
 // ─── Management API ─────────────────────────────────────
 app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
-app.route("/api/market", marketRouter);
+app.route("/api/models", modelsRouter);
 app.route("/api", systemRouter);
 app.post("/api/models/sync", async (c) => {
 	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
@@ -109,7 +109,7 @@ app.post("/api/models/sync", async (c) => {
 
 // ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);
-app.route("/v1/models", marketRouter);
+app.route("/v1/models", modelsRouter);
 
 // ─── SPA Fallback ───────────────────────────────────────
 app.notFound(async (c) => {
