@@ -22,6 +22,8 @@ export interface OpenAICompatibleConfig {
 	) => ParsedModel[];
 	/** When true, parseModels uses static JSON data — skip the upstream /models HTTP fetch. */
 	staticModels?: boolean;
+	/** Strip `vendor/` prefix from model name before forwarding (for native APIs). */
+	stripModelPrefix?: boolean;
 	extraHeaders?: Record<string, string>;
 }
 
@@ -133,6 +135,11 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		secret: string,
 		body: Record<string, unknown>,
 	): Promise<Response> {
+		const fwdBody =
+			this.config.stripModelPrefix && typeof body.model === "string"
+				? { ...body, model: body.model.replace(/^[^/]+\//, "") }
+				: body;
+
 		const upstreamResponse = await fetch(
 			`${this.config.baseUrl}/chat/completions`,
 			{
@@ -142,7 +149,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 					Authorization: `Bearer ${secret}`,
 					...this.config.extraHeaders,
 				},
-				body: JSON.stringify(body),
+				body: JSON.stringify(fwdBody),
 			},
 		);
 

@@ -178,6 +178,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		creditsUrl: "https://api.deepseek.com/user/balance",
 		parseCredits: parseDeepSeekCredits,
 		staticModels: true,
+		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("deepseek", deepseekModels),
 	},
 	{
@@ -187,6 +188,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		currency: "USD",
 		supportsAutoCredits: false,
 		staticModels: true,
+		stripModelPrefix: true,
 		parseModels: () =>
 			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
 	},

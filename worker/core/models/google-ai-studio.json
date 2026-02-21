@@ -1,48 +1,48 @@
 [
 	{
-		"upstream_id": "gemini-2.5-pro",
+		"upstream_id": "google/gemini-2.5-pro",
 		"display_name": "Gemini 2.5 Pro",
 		"input_usd": 1.25,
 		"output_usd": 10.0,
 		"context_length": 1048576
 	},
 	{
-		"upstream_id": "gemini-2.5-flash",
+		"upstream_id": "google/gemini-2.5-flash",
 		"display_name": "Gemini 2.5 Flash",
 		"input_usd": 0.15,
 		"output_usd": 0.6,
 		"context_length": 1048576
 	},
 	{
-		"upstream_id": "gemini-2.5-flash-lite",
+		"upstream_id": "google/gemini-2.5-flash-lite",
 		"display_name": "Gemini 2.5 Flash Lite",
 		"input_usd": 0.075,
 		"output_usd": 0.3,
 		"context_length": 1048576
 	},
 	{
-		"upstream_id": "gemini-2.0-flash",
+		"upstream_id": "google/gemini-2.0-flash",
 		"display_name": "Gemini 2.0 Flash",
 		"input_usd": 0.1,
 		"output_usd": 0.4,
 		"context_length": 1048576
 	},
 	{
-		"upstream_id": "gemini-2.0-flash-lite",
+		"upstream_id": "google/gemini-2.0-flash-lite",
 		"display_name": "Gemini 2.0 Flash Lite",
 		"input_usd": 0.075,
 		"output_usd": 0.3,
 		"context_length": 1048576
 	},
 	{
-		"upstream_id": "gemini-3-pro-preview",
+		"upstream_id": "google/gemini-3-pro-preview",
 		"display_name": "Gemini 3 Pro Preview",
 		"input_usd": 1.25,
 		"output_usd": 10.0,
 		"context_length": 1048576
 	},
 	{
-		"upstream_id": "gemini-3-flash-preview",
+		"upstream_id": "google/gemini-3-flash-preview",
 		"display_name": "Gemini 3 Flash Preview",
 		"input_usd": 0.15,
 		"output_usd": 0.6,

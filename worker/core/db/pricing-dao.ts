@@ -43,30 +43,17 @@ export class PricingDao {
 	): Promise<void> {
 		if (activeIds.length === 0) return;
 
-		const CHUNK = 900;
-		if (activeIds.length <= CHUNK) {
-			const ph = activeIds.map(() => "?").join(",");
-			await this.db
-				.prepare(
-					`UPDATE model_pricing SET is_active = 0
-					 WHERE provider = ? AND id NOT IN (${ph})`,
-				)
-				.bind(provider, ...activeIds)
-				.run();
-			return;
-		}
-
-		const idSet = new Set(activeIds);
-		const all = await this.db
+		const activeSet = new Set(activeIds);
+		const existing = await this.db
 			.prepare(
 				"SELECT id FROM model_pricing WHERE provider = ? AND is_active = 1",
 			)
 			.bind(provider)
 			.all<{ id: string }>();
 
-		const toDeactivate = (all.results || [])
+		const toDeactivate = (existing.results || [])
 			.map((r) => r.id)
-			.filter((id) => !idSet.has(id));
+			.filter((id) => !activeSet.has(id));
 		if (toDeactivate.length === 0) return;
 
 		const stmt = this.db.prepare(
