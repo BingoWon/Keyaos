@@ -15,7 +15,7 @@ import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import { useAuth } from "../stores/auth";
+import { useAuth } from "@clerk/clerk-react";
 
 interface ProviderInfo {
 	id: string;
@@ -37,7 +37,7 @@ interface ListingInfo {
 
 export function Quotas() {
 	const { t } = useTranslation();
-	const { token } = useAuth();
+	const { getToken } = useAuth();
 	const formatDateTime = useFormatDateTime();
 
 	const {
@@ -66,10 +66,10 @@ export function Quotas() {
 	);
 	const [editPriceMultiplier, setEditPriceMultiplier] = useState("");
 
-	const headers = {
+	const getHeaders = async () => ({
 		"Content-Type": "application/json",
-		Authorization: `Bearer ${token}`,
-	};
+		Authorization: `Bearer ${await getToken()}`,
+	});
 
 	const isAutoProvider =
 		providers.find((p) => p.id === newListing.provider)?.supportsAutoCredits ??
@@ -92,7 +92,7 @@ export function Quotas() {
 
 			const res = await fetch("/api/quotas", {
 				method: "POST",
-				headers,
+				headers: await getHeaders(),
 				body: JSON.stringify(body),
 			});
 			const data = await res.json();
@@ -172,7 +172,7 @@ export function Quotas() {
 		try {
 			const res = await fetch(`/api/quotas/${id}`, {
 				method: "DELETE",
-				headers,
+				headers: await getHeaders(),
 			});
 			if (res.ok) {
 				fetchListings();

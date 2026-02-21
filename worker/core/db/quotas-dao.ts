@@ -4,6 +4,7 @@ export class QuotasDao {
 	constructor(private db: D1Database) { }
 
 	async addListing(params: {
+		owner_id: string;
 		provider: string;
 		apiKey: string;
 		quota?: number;
@@ -16,14 +17,15 @@ export class QuotasDao {
 		await this.db
 			.prepare(
 				`INSERT INTO quota_listings (
-					id, provider, api_key,
+					id, owner_id, provider, api_key,
 					quota, quota_source,
 					is_enabled, price_multiplier,
 					health_status, added_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, 'ok', ?)`,
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ok', ?)`,
 			)
 			.bind(
 				id,
+				params.owner_id,
 				params.provider,
 				params.apiKey,
 				params.quota ?? 0.0,
@@ -34,15 +36,15 @@ export class QuotasDao {
 			)
 			.run();
 
-		const listing = await this.getListing(id);
+		const listing = await this.getListing(id, params.owner_id);
 		if (!listing) throw new Error("Failed to retrieve newly added listing");
 		return listing;
 	}
 
-	async getListing(id: string): Promise<DbQuotaListing | null> {
+	async getListing(id: string, owner_id: string): Promise<DbQuotaListing | null> {
 		return this.db
-			.prepare("SELECT * FROM quota_listings WHERE id = ?")
-			.bind(id)
+			.prepare("SELECT * FROM quota_listings WHERE id = ? AND owner_id = ?")
+			.bind(id, owner_id)
 			.first<DbQuotaListing>();
 	}
 
@@ -53,28 +55,35 @@ export class QuotasDao {
 			.first<DbQuotaListing>();
 	}
 
-	async deleteListing(id: string): Promise<boolean> {
+	async deleteListing(id: string, owner_id: string): Promise<boolean> {
 		const result = await this.db
-			.prepare("DELETE FROM quota_listings WHERE id = ?")
-			.bind(id)
+			.prepare("DELETE FROM quota_listings WHERE id = ? AND owner_id = ?")
+			.bind(id, owner_id)
 			.run();
 		return result.success && result.meta?.rows_written === 1;
 	}
 
-	/** Select the best available listing — prefer listings with more quota */
-	async selectListing(provider: string): Promise<DbQuotaListing | null> {
+	async selectListing(provider: string, owner_id: string): Promise<DbQuotaListing | null> {
 		return this.db
 			.prepare(
 				`SELECT * FROM quota_listings
-				 WHERE provider = ? AND is_enabled = 1 AND health_status != 'dead'
+				 WHERE provider = ? AND owner_id = ? AND is_enabled = 1 AND health_status != 'dead'
 				 ORDER BY quota DESC
 				 LIMIT 1`,
 			)
-			.bind(provider)
+			.bind(provider, owner_id)
 			.first<DbQuotaListing>();
 	}
 
-	async getAllListings(): Promise<DbQuotaListing[]> {
+	async getAllListings(owner_id: string): Promise<DbQuotaListing[]> {
+		const res = await this.db
+			.prepare("SELECT * FROM quota_listings WHERE owner_id = ?")
+			.bind(owner_id)
+			.all<DbQuotaListing>();
+		return res.results || [];
+	}
+
+	async getGlobalListings(): Promise<DbQuotaListing[]> {
 		const res = await this.db
 			.prepare("SELECT * FROM quota_listings")
 			.all<DbQuotaListing>();
@@ -149,13 +158,13 @@ export class QuotasDao {
 			.run();
 	}
 
-	async getStats(): Promise<{
+	async getStats(owner_id: string): Promise<{
 		totalListings: number;
 		activeProviders: number;
 		deadListings: number;
 		totalQuota: number;
 	}> {
-		const all = await this.getAllListings();
+		const all = await this.getAllListings(owner_id);
 		const providerSet = new Set<string>();
 		let deadListings = 0;
 		let totalQuota = 0;

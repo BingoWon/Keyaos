@@ -1,17 +1,17 @@
 import type { DbApiKey } from "./schema";
 
 export class ApiKeysDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
-	async createKey(name: string): Promise<DbApiKey> {
+	async createKey(name: string, owner_id: string): Promise<DbApiKey> {
 		const id = `sk-keyaos-${crypto.randomUUID().replace(/-/g, "")}`;
 
 		await this.db
 			.prepare(
-				`INSERT INTO api_keys (id, name, is_active, created_at)
-				 VALUES (?, ?, 1, ?)`,
+				`INSERT INTO api_keys (id, owner_id, name, is_active, created_at)
+				 VALUES (?, ?, ?, 1, ?)`,
 			)
-			.bind(id, name, Date.now())
+			.bind(id, owner_id, name, Date.now())
 			.run();
 
 		const key = await this.getKey(id);
@@ -26,17 +26,18 @@ export class ApiKeysDao {
 			.first<DbApiKey>();
 	}
 
-	async listKeys(): Promise<DbApiKey[]> {
+	async listKeys(owner_id: string): Promise<DbApiKey[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM api_keys ORDER BY created_at DESC")
+			.prepare("SELECT * FROM api_keys WHERE owner_id = ? ORDER BY created_at DESC")
+			.bind(owner_id)
 			.all<DbApiKey>();
 		return res.results || [];
 	}
 
-	async deleteKey(id: string): Promise<boolean> {
+	async deleteKey(id: string, owner_id: string): Promise<boolean> {
 		const result = await this.db
-			.prepare("DELETE FROM api_keys WHERE id = ?")
-			.bind(id)
+			.prepare("DELETE FROM api_keys WHERE id = ? AND owner_id = ?")
+			.bind(id, owner_id)
 			.run();
 		return result.success && result.meta?.rows_written === 1;
 	}

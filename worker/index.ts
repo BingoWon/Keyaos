@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import {
 	refreshAllModels,
@@ -14,12 +15,16 @@ import { ApiError, AuthenticationError } from "./shared/errors";
 
 export type Env = {
 	DB: D1Database;
-	ADMIN_TOKEN: string;
+	CLERK_PUBLISHABLE_KEY: string;
+	CLERK_SECRET_KEY: string;
 	CNY_USD_RATE?: string;
 	ASSETS?: Fetcher;
 };
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{
+	Bindings: Env;
+	Variables: { owner_id: string };
+}>();
 
 // Global error handler
 app.onError((err, c) => {
@@ -46,19 +51,17 @@ app.use(
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 // Auth middleware for Management API (Admin only)
-app.use("/api/*", async (c, next) => {
-	const token = c.req
-		.header("Authorization")
-		?.replace(/^Bearer\s+/i, "")
-		.trim();
-	if (!token || token !== c.env.ADMIN_TOKEN) {
-		throw new AuthenticationError("Invalid or missing admin token");
+app.use("/api/*", clerkMiddleware(), async (c, next) => {
+	const auth = getAuth(c);
+	if (!auth?.userId) {
+		throw new AuthenticationError("Unauthorized: Missing or invalid Clerk authentication");
 	}
+	c.set("owner_id", auth.userId);
 	return next();
 });
 
-// Auth middleware for Downstream API (Admin OR downstream API Keys)
-app.use("/v1/*", async (c, next) => {
+// Auth middleware for Downstream API (Dashboard UI OR downstream API Keys)
+app.use("/v1/*", clerkMiddleware(), async (c, next) => {
 	const token = c.req
 		.header("Authorization")
 		?.replace(/^Bearer\s+/i, "")
@@ -67,16 +70,21 @@ app.use("/v1/*", async (c, next) => {
 		throw new AuthenticationError("Invalid or missing token");
 	}
 
-	if (token === c.env.ADMIN_TOKEN) {
+	// 1. Check if it's a valid Clerk UI JWT Session
+	const auth = getAuth(c);
+	if (auth?.userId) {
+		c.set("owner_id", auth.userId);
 		return next();
 	}
 
+	// 2. Fallback to Database API Key validation (for scripts/downstream apps)
 	const dao = new ApiKeysDao(c.env.DB);
 	const key = await dao.getKey(token);
 	if (!key || key.is_active !== 1) {
 		throw new AuthenticationError("Invalid or inactive API key");
 	}
 
+	c.set("owner_id", key.owner_id);
 	return next();
 });
 

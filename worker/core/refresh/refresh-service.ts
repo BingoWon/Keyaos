@@ -45,7 +45,7 @@ export async function refreshAutoCredits(
 	cnyUsdRate = 7,
 ): Promise<void> {
 	const dao = new QuotasDao(db);
-	const all = await dao.getAllListings();
+	const all = await dao.getGlobalListings();
 	const autos = all.filter((k) => k.quota_source === "auto");
 
 	for (const listing of autos) {

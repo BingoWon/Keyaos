@@ -7,6 +7,7 @@ import { QuotasDao } from "./db/quotas-dao";
 import type { TokenUsage } from "./utils/stream";
 
 export interface BillingParams {
+	ownerId: string;
 	listingId: string;
 	provider: string;
 	model: string;
@@ -18,7 +19,7 @@ export async function recordUsage(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
-	const { listingId, provider, model, modelPrice, usage } = params;
+	const { ownerId, listingId, provider, model, modelPrice, usage } = params;
 	const totalTokens =
 		usage.total_tokens || usage.prompt_tokens + usage.completion_tokens;
 
@@ -42,6 +43,7 @@ export async function recordUsage(
 
 	try {
 		await new LedgerDao(db).createEntry({
+			owner_id: ownerId,
 			listing_id: listingId,
 			provider,
 			model,

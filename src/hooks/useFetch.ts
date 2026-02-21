@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "../stores/auth";
+import { useAuth } from "@clerk/clerk-react";
 
 interface FetchOptions extends RequestInit {
 	requireAuth?: boolean;
@@ -7,7 +7,7 @@ interface FetchOptions extends RequestInit {
 
 export function useFetch<T>(url: string, options: FetchOptions = {}) {
 	const { requireAuth = true, ...fetchOptions } = options;
-	const { token, logout } = useAuth();
+	const { getToken, signOut } = useAuth();
 
 	// Stable ref to avoid re-creating the callback when options object changes
 	const optionsRef = useRef(fetchOptions);
@@ -25,8 +25,11 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 		try {
 			const opts = optionsRef.current;
 			const headers = new Headers(opts.headers);
-			if (requireAuth && token) {
-				headers.set("Authorization", `Bearer ${token}`);
+			if (requireAuth) {
+				const activeToken = await getToken();
+				if (activeToken) {
+					headers.set("Authorization", `Bearer ${activeToken}`);
+				}
 			}
 
 			const res = await fetch(url, {
@@ -36,7 +39,7 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 			});
 
 			if (res.status === 401) {
-				logout();
+				signOut();
 				throw new Error("Unauthorized");
 			}
 
@@ -56,7 +59,7 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 		}
 
 		return () => controller.abort();
-	}, [url, token, requireAuth, logout]);
+	}, [url, getToken, requireAuth, signOut]);
 
 	useEffect(() => {
 		const abort = execute();

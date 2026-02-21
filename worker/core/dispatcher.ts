@@ -19,6 +19,7 @@ export interface DispatchResult {
 export async function dispatch(
 	db: D1Database,
 	model: string,
+	owner_id: string,
 ): Promise<DispatchResult> {
 	if (!model) throw new BadRequestError("Model is required");
 
@@ -31,7 +32,7 @@ export async function dispatch(
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
-		const listing = await quotasDao.selectListing(offering.provider);
+		const listing = await quotasDao.selectListing(offering.provider, owner_id);
 		if (!listing) continue;
 
 		return {

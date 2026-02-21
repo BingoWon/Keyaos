@@ -9,14 +9,19 @@ import { Quotas } from "./pages/Quotas";
 import { Login } from "./pages/Login";
 import { Market } from "./pages/Market";
 import { NotFound } from "./pages/NotFound";
-import { useAuth } from "./stores/auth";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-	const { isAuthenticated } = useAuth();
-	if (!isAuthenticated) {
-		return <Navigate to="/login" replace />;
-	}
-	return <>{children}</>;
+	return (
+		<>
+			<SignedIn>
+				{children}
+			</SignedIn>
+			<SignedOut>
+				<RedirectToSignIn />
+			</SignedOut>
+		</>
+	);
 };
 
 export default function App() {

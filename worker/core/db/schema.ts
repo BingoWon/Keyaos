@@ -1,5 +1,6 @@
 export interface DbApiKey {
 	id: string; // "sk-keyaos-xxxxx"
+	owner_id: string; // Required Clerk User ID
 	name: string;
 	is_active: number;
 	created_at: number;
@@ -7,6 +8,7 @@ export interface DbApiKey {
 
 export interface DbQuotaListing {
 	id: string; // "openrouter:sk-or-xxxx"
+	owner_id: string; // Required Clerk User ID
 	provider: string; // openrouter, deepinfra, zenmux
 	api_key: string;
 	quota: number;
@@ -32,6 +34,7 @@ export interface DbMarketQuote {
 
 export interface DbLedgerEntry {
 	id: string; // uuid
+	owner_id: string; // Required Clerk User ID
 	listing_id: string; // Maps to DbQuotaListing.id
 	provider: string;
 	model: string;

@@ -7,35 +7,38 @@ import {
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
-import { useAuth } from "../stores/auth";
+import { useAuth, UserButton } from "@clerk/clerk-react";
 import { Logo } from "./Logo";
 import { NavigationList } from "./NavigationList";
 
 export function SidebarLayout() {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const { token } = useAuth();
+	const { getToken } = useAuth();
 	const hasPrefetched = useRef(false);
 
 	useEffect(() => {
-		if (!hasPrefetched.current && token) {
+		if (!hasPrefetched.current) {
 			hasPrefetched.current = true;
-			// Silently check if market quotes need initialization on first boot
-			fetch("/v1/models", {
-				headers: { Authorization: `Bearer ${token}` },
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					if (Array.isArray(data) && data.length === 0) {
-						// Proactively start fetching upstream prices
-						fetch("/api/refresh", {
-							method: "POST",
-							headers: { Authorization: `Bearer ${token}` },
-						}).catch(() => {});
-					}
+			getToken().then((activeToken) => {
+				if (!activeToken) return;
+				// Silently check if market quotes need initialization on first boot
+				fetch("/v1/models", {
+					headers: { Authorization: `Bearer ${activeToken}` },
 				})
-				.catch(() => {});
+					.then((res) => res.json())
+					.then((data) => {
+						if (Array.isArray(data) && data.length === 0) {
+							// Proactively start fetching upstream prices
+							fetch("/api/refresh", {
+								method: "POST",
+								headers: { Authorization: `Bearer ${activeToken}` },
+							}).catch(() => { });
+						}
+					})
+					.catch(() => { });
+			});
 		}
-	}, [token]);
+	}, [getToken]);
 
 	return (
 		<div>
@@ -70,8 +73,9 @@ export function SidebarLayout() {
 
 						{/* Mobile Sidebar */}
 						<div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10">
-							<div className="flex h-16 shrink-0 items-center">
+							<div className="flex h-16 shrink-0 items-center justify-between">
 								<Logo />
+								<UserButton />
 							</div>
 							<NavigationList onNavigate={() => setSidebarOpen(false)} />
 						</div>
@@ -80,10 +84,11 @@ export function SidebarLayout() {
 			</Dialog>
 
 			{/* Static sidebar for desktop */}
-			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col dark:bg-gray-900">
+			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col dark:bg-bg-gray-900">
 				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 dark:border-white/10 dark:bg-black/10">
-					<div className="flex h-16 shrink-0 items-center">
+					<div className="flex h-16 shrink-0 items-center justify-between">
 						<Logo />
+						<UserButton />
 					</div>
 					<NavigationList />
 				</div>

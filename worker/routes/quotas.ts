@@ -10,7 +10,7 @@ function maskKey(key: string): string {
 	return `${key.slice(0, 10)}•••${key.slice(-3)}`;
 }
 
-const quotasRouter = new Hono<{ Bindings: Env }>();
+const quotasRouter = new Hono<{ Bindings: Env; Variables: { owner_id: string } }>();
 
 /** Convert native-currency amount to universal Quota ratio matching USD value */
 function toQuota(
@@ -90,6 +90,7 @@ quotasRouter.post("/", async (c) => {
 	}
 
 	const listing = await quotasDao.addListing({
+		owner_id: c.get("owner_id"),
 		provider: body.provider,
 		apiKey: body.apiKey,
 		quota,
@@ -114,7 +115,8 @@ quotasRouter.post("/", async (c) => {
 
 quotasRouter.get("/", async (c) => {
 	const quotasDao = new QuotasDao(c.env.DB);
-	const all = await quotasDao.getAllListings();
+	const owner_id = c.get("owner_id");
+	const all = await quotasDao.getAllListings(owner_id);
 	return c.json({
 		data: all.map((l) => ({
 			id: l.id,
@@ -133,7 +135,8 @@ quotasRouter.get("/", async (c) => {
 quotasRouter.patch("/:id/quota", async (c) => {
 	const id = c.req.param("id");
 	const quotasDao = new QuotasDao(c.env.DB);
-	const listing = await quotasDao.getListing(id);
+	const owner_id = c.get("owner_id");
+	const listing = await quotasDao.getListing(id, owner_id);
 
 	if (!listing) {
 		throw new ApiError(
@@ -184,7 +187,8 @@ quotasRouter.patch("/:id/quota", async (c) => {
 
 quotasRouter.delete("/:id", async (c) => {
 	const quotasDao = new QuotasDao(c.env.DB);
-	const success = await quotasDao.deleteListing(c.req.param("id"));
+	const owner_id = c.get("owner_id");
+	const success = await quotasDao.deleteListing(c.req.param("id"), owner_id);
 	if (!success) {
 		throw new ApiError(
 			"Quota listing not found",
@@ -206,7 +210,8 @@ quotasRouter.patch("/:id/settings", async (c) => {
 	}
 
 	const quotasDao = new QuotasDao(c.env.DB);
-	const listing = await quotasDao.getListing(id);
+	const owner_id = c.get("owner_id");
+	const listing = await quotasDao.getListing(id, owner_id);
 	if (!listing) {
 		throw new ApiError(
 			"Quota listing not found",
@@ -232,7 +237,8 @@ quotasRouter.patch("/:id/settings", async (c) => {
 quotasRouter.get("/:id/quota", async (c) => {
 	const id = c.req.param("id");
 	const quotasDao = new QuotasDao(c.env.DB);
-	const listing = await quotasDao.getListing(id);
+	const owner_id = c.get("owner_id");
+	const listing = await quotasDao.getListing(id, owner_id);
 
 	if (!listing) {
 		throw new ApiError(

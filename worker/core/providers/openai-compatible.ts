@@ -56,8 +56,8 @@ function defaultParseModels(
 			provider: providerId,
 			upstream_id: m.id as string,
 			display_name: (m.name as string) || null,
-			input_cost: 0,
-			output_cost: 0,
+			input_price: 0,
+			output_price: 0,
 			context_length: (m.context_length as number) || null,
 			is_active: 1,
 		}));

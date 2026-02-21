@@ -15,8 +15,11 @@
 		"db:setup:remote": "wrangler d1 execute keyaos-db --remote --file=./migrations/0001_initial.sql"
 	},
 	"dependencies": {
+		"@clerk/backend": "^2.32.0",
+		"@clerk/clerk-react": "^5.61.1",
 		"@headlessui/react": "^2.2.9",
 		"@heroicons/react": "^2.2.0",
+		"@hono/clerk-auth": "^3.1.0",
 		"@hono/zod-openapi": "^1.2.2",
 		"hono": "^4.12.0",
 		"i18next": "^25.8.11",

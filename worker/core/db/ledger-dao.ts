@@ -11,12 +11,13 @@ export class LedgerDao {
 		await this.db
 			.prepare(
 				`INSERT INTO ledger (
-					id, listing_id, provider, model,
+					id, owner_id, listing_id, provider, model,
 					input_tokens, output_tokens, credits_used, created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
+				tx.owner_id,
 				tx.listing_id,
 				tx.provider,
 				tx.model,
@@ -30,10 +31,10 @@ export class LedgerDao {
 		return id;
 	}
 
-	async getRecentEntries(limit = 50): Promise<DbLedgerEntry[]> {
+	async getRecentEntries(owner_id: string, limit = 50): Promise<DbLedgerEntry[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM ledger ORDER BY created_at DESC LIMIT ?")
-			.bind(limit)
+			.prepare("SELECT * FROM ledger WHERE owner_id = ? ORDER BY created_at DESC LIMIT ?")
+			.bind(owner_id, limit)
 			.all<DbLedgerEntry>();
 
 		return res.results || [];

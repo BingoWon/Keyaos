@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
-import { useAuth } from "../stores/auth";
+import { useAuth } from "@clerk/clerk-react";
 
 interface ModelInfo {
 	id: string;
@@ -29,7 +29,7 @@ function formatContext(len?: number) {
 
 export function Market() {
 	const { t } = useTranslation();
-	const { token } = useAuth();
+	const { getToken } = useAuth();
 	const {
 		data: quotes,
 		loading,
@@ -46,6 +46,7 @@ export function Market() {
 				tid = toast.loading(t("market.refreshing", "Refreshing market..."));
 			}
 			try {
+				const token = await getToken();
 				const res = await fetch("/api/refresh", {
 					method: "POST",
 					headers: { Authorization: `Bearer ${token}` },
@@ -70,7 +71,7 @@ export function Market() {
 				setRefreshing(false);
 			}
 		},
-		[t, token, refetch],
+		[t, getToken, refetch],
 	);
 
 	// Auto-refresh on first load if market quotes are empty

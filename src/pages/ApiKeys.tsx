@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import { useAuth } from "../stores/auth";
+import { useAuth } from "@clerk/clerk-react";
+import toast from "react-hot-toast";
 
 interface ApiKeyInfo {
 	id: string; // sk-keyaos-...
@@ -16,7 +17,7 @@ interface ApiKeyInfo {
 
 export function ApiKeys() {
 	const { t } = useTranslation();
-	const { token } = useAuth();
+	const { getToken } = useAuth();
 	const formatDateTime = useFormatDateTime();
 
 	const {
@@ -28,18 +29,17 @@ export function ApiKeys() {
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [newName, setNewName] = useState("");
 
-	const headers = {
-		"Content-Type": "application/json",
-		Authorization: `Bearer ${token}`,
-	};
-
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const tid = toast.loading(t("common.loading"));
 		try {
+			const token = await getToken();
 			const res = await fetch("/api/api-keys", {
 				method: "POST",
-				headers,
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
 				body: JSON.stringify({ name: newName }),
 			});
 			const result = await res.json();
@@ -61,9 +61,13 @@ export function ApiKeys() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
+			const token = await getToken();
 			const res = await fetch(`/api/api-keys/${id}`, {
 				method: "DELETE",
-				headers,
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
 			});
 			if (res.ok) {
 				fetchApiKeys();

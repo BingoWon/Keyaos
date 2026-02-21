@@ -19,9 +19,12 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
+	const owner_id = c.get("owner_id" as never) as string;
+
 	const { listing, provider, upstreamModel, modelPrice } = await dispatch(
 		c.env.DB,
 		model,
+		owner_id,
 	);
 
 	const quotasDao = new QuotasDao(c.env.DB);
@@ -45,6 +48,7 @@ chatRouter.post("/completions", async (c) => {
 			(usage) => {
 				c.executionCtx.waitUntil(
 					recordUsage(c.env.DB, {
+						ownerId: owner_id,
 						listingId: listing.id,
 						provider: listing.provider,
 						model: upstreamModel,

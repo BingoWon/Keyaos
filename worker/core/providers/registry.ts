@@ -37,8 +37,8 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			provider: "openrouter",
 			upstream_id: id,
 			display_name: (m.name as string) || null,
-			input_cost: dollarsToCentsPerM(inputUsdPerM),
-			output_cost: dollarsToCentsPerM(outputUsdPerM),
+			input_price: dollarsToCentsPerM(inputUsdPerM),
+			output_price: dollarsToCentsPerM(outputUsdPerM),
 			context_length: (m.context_length as number) || null,
 			is_active: 1,
 		});
@@ -66,8 +66,8 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			provider: "zenmux",
 			upstream_id: id,
 			display_name: (m.display_name as string) || null,
-			input_cost: dollarsToCentsPerM(promptArr[0].value),
-			output_cost: dollarsToCentsPerM(compArr[0].value),
+			input_price: dollarsToCentsPerM(promptArr[0].value),
+			output_price: dollarsToCentsPerM(compArr[0].value),
 			context_length: (m.context_length as number) || null,
 			is_active: 1,
 		});
@@ -94,8 +94,8 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			provider: "deepinfra",
 			upstream_id: id,
 			display_name: null,
-			input_cost: dollarsToCentsPerM(pricing.input_tokens),
-			output_cost: dollarsToCentsPerM(pricing.output_tokens),
+			input_price: dollarsToCentsPerM(pricing.input_tokens),
+			output_price: dollarsToCentsPerM(pricing.output_tokens),
 			context_length: (metadata?.context_length as number) || null,
 			is_active: 1,
 		});
@@ -134,8 +134,8 @@ function parseDeepSeekModels(
 		provider: "deepseek",
 		upstream_id: m.id,
 		display_name: m.name,
-		input_cost: Math.round((m.inputCny / cnyUsdRate) * 100),
-		output_cost: Math.round((m.outputCny / cnyUsdRate) * 100),
+		input_price: Math.round((m.inputCny / cnyUsdRate) * 100),
+		output_price: Math.round((m.outputCny / cnyUsdRate) * 100),
 		context_length: m.ctx,
 		is_active: 1,
 	}));
