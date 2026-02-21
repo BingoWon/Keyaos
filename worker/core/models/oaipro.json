@@ -1,19 +1,5 @@
 [
 	{
-		"id": "anthropic/claude-2.0",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "anthropic/claude-2.1",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
 		"id": "anthropic/claude-3-5-haiku-20241022",
 		"name": "Anthropic: Claude 3.5 Haiku",
 		"input_usd": 0.8,
@@ -54,20 +40,6 @@
 		"input_usd": 0.25,
 		"output_usd": 1.25,
 		"context_length": 200000
-	},
-	{
-		"id": "anthropic/claude-3-opus-20240229",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "anthropic/claude-3-sonnet-20240229",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
 	},
 	{
 		"id": "anthropic/claude-haiku-4-5-20251001",
@@ -119,32 +91,11 @@
 		"context_length": 1000000
 	},
 	{
-		"id": "openai/chatgpt-4o-latest",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
 		"id": "openai/gpt-3.5-turbo",
 		"name": "OpenAI: GPT-3.5 Turbo",
 		"input_usd": 0.5,
 		"output_usd": 1.5,
 		"context_length": 16385
-	},
-	{
-		"id": "openai/gpt-3.5-turbo-0125",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "openai/gpt-3.5-turbo-1106",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
 	},
 	{
 		"id": "openai/gpt-3.5-turbo-16k",
@@ -161,32 +112,11 @@
 		"context_length": 4095
 	},
 	{
-		"id": "openai/gpt-3.5-turbo-instruct-0914",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
 		"id": "openai/gpt-4",
 		"name": "OpenAI: GPT-4",
 		"input_usd": 30,
 		"output_usd": 60,
 		"context_length": 8191
-	},
-	{
-		"id": "openai/gpt-4-0125-preview",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "openai/gpt-4-0613",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
 	},
 	{
 		"id": "openai/gpt-4-1106-preview",
@@ -257,20 +187,6 @@
 		"input_usd": 0.1,
 		"output_usd": 0.4,
 		"context_length": 1047576
-	},
-	{
-		"id": "openai/gpt-4.5-preview",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "openai/gpt-4.5-preview-2025-02-27",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
 	},
 	{
 		"id": "openai/gpt-4o",
@@ -418,34 +334,6 @@
 		"input_usd": 15,
 		"output_usd": 60,
 		"context_length": 200000
-	},
-	{
-		"id": "openai/o1-mini",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "openai/o1-mini-2024-09-12",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "openai/o1-preview",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
-	},
-	{
-		"id": "openai/o1-preview-2024-09-12",
-		"name": null,
-		"input_usd": 0,
-		"output_usd": 0,
-		"context_length": null
 	},
 	{
 		"id": "openai/o3",
