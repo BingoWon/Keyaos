@@ -6,7 +6,7 @@ import { interceptResponse } from "../core/utils/stream";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
 
-const chatRouter = new Hono<{ Bindings: Env }>();
+const chatRouter = new Hono<{ Bindings: Env; Variables: { owner_id: string } }>();
 
 chatRouter.post("/completions", async (c) => {
 	let body: Record<string, unknown>;
@@ -19,7 +19,7 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const owner_id = c.get("owner_id" as never) as string;
+	const owner_id = c.get("owner_id");
 
 	const { listing, provider, upstreamModel, modelPrice } = await dispatch(
 		c.env.DB,

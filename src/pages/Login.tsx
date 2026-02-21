@@ -1,7 +1,7 @@
-import { SignIn } from "@clerk/clerk-react";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { Logo } from "../components/Logo";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { LoginContent } from "../auth";
 
 export function Login() {
 	return (
@@ -16,7 +16,7 @@ export function Login() {
 			</div>
 
 			<div className="sm:mx-auto sm:w-full sm:max-w-sm flex justify-center">
-				<SignIn routing="path" path="/login" />
+				<LoginContent />
 			</div>
 		</div>
 	);

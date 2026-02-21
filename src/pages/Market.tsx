@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../auth";
 
 interface ModelInfo {
 	id: string;

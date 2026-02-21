@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../auth";
 import toast from "react-hot-toast";
 
 interface ApiKeyInfo {

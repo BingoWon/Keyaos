@@ -7,7 +7,7 @@ import {
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
-import { useAuth, UserButton } from "@clerk/clerk-react";
+import { useAuth, UserMenu } from "../auth";
 import { Logo } from "./Logo";
 import { NavigationList } from "./NavigationList";
 
@@ -75,7 +75,7 @@ export function SidebarLayout() {
 						<div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10">
 							<div className="flex h-16 shrink-0 items-center justify-between">
 								<Logo />
-								<UserButton />
+								<UserMenu />
 							</div>
 							<NavigationList onNavigate={() => setSidebarOpen(false)} />
 						</div>
@@ -88,7 +88,7 @@ export function SidebarLayout() {
 				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 dark:border-white/10 dark:bg-black/10">
 					<div className="flex h-16 shrink-0 items-center justify-between">
 						<Logo />
-						<UserButton />
+						<UserMenu />
 					</div>
 					<NavigationList />
 				</div>

@@ -15,7 +15,7 @@ import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../auth";
 
 interface ProviderInfo {
 	id: string;

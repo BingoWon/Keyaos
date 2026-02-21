@@ -4,22 +4,17 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./styles/globals.css";
 import "./locales/i18n";
-import { ClerkProvider } from "@clerk/clerk-react";
-
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-if (!PUBLISHABLE_KEY) {
-	throw new Error("Missing Clerk Publishable Key");
-}
+import { AuthProvider } from "./auth";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Failed to find the root element");
 
 createRoot(rootElement).render(
 	<StrictMode>
-		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+		<AuthProvider>
 			<BrowserRouter>
 				<App />
 			</BrowserRouter>
-		</ClerkProvider>
+		</AuthProvider>
 	</StrictMode>,
 );

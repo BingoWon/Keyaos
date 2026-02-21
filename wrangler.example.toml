@@ -6,8 +6,10 @@ compatibility_date = "2025-12-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-ADMIN_TOKEN = "admin"    # Change this! Used as Bearer token for all API access.
+ADMIN_TOKEN = "admin"    # Core auth: change this! Used as Bearer token for dashboard + API.
 CNY_USD_RATE = "7"       # CNY → USD exchange rate (used for DeepSeek balance conversion)
+# Platform mode (optional): set CLERK_PUBLISHABLE_KEY here and CLERK_SECRET_KEY in .dev.vars / Cloudflare Secrets
+# CLERK_PUBLISHABLE_KEY = "pk_test_xxxxx"
 
 [assets]
 directory = "./dist"

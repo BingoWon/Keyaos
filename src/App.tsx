@@ -9,20 +9,7 @@ import { Quotas } from "./pages/Quotas";
 import { Login } from "./pages/Login";
 import { Market } from "./pages/Market";
 import { NotFound } from "./pages/NotFound";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-	return (
-		<>
-			<SignedIn>
-				{children}
-			</SignedIn>
-			<SignedOut>
-				<RedirectToSignIn />
-			</SignedOut>
-		</>
-	);
-};
+import { AuthGuard } from "./auth";
 
 export default function App() {
 	return (
@@ -32,9 +19,9 @@ export default function App() {
 				<Route
 					path="/"
 					element={
-						<ProtectedRoute>
+						<AuthGuard fallback={<Navigate to="/login" replace />}>
 							<SidebarLayout />
-						</ProtectedRoute>
+						</AuthGuard>
 					}
 				>
 					<Route index element={<Dashboard />} />

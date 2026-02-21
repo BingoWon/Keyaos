@@ -13,10 +13,14 @@ import marketRouter from "./routes/market";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
 
+/** In Core (self-hosted) mode, all resources belong to this single tenant */
+export const CORE_OWNER = "self";
+
 export type Env = {
 	DB: D1Database;
-	CLERK_PUBLISHABLE_KEY: string;
-	CLERK_SECRET_KEY: string;
+	ADMIN_TOKEN: string;
+	CLERK_PUBLISHABLE_KEY?: string;
+	CLERK_SECRET_KEY?: string;
 	CNY_USD_RATE?: string;
 	ASSETS?: Fetcher;
 };
@@ -26,7 +30,7 @@ const app = new Hono<{
 	Variables: { owner_id: string };
 }>();
 
-// Global error handler
+// ─── Global error handler ───────────────────────────────
 app.onError((err, c) => {
 	if (err instanceof ApiError) {
 		return c.json(err.toJSON(), err.statusCode as 400);
@@ -50,45 +54,71 @@ app.use(
 // Public
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Auth middleware for Management API (Admin only)
-app.use("/api/*", clerkMiddleware(), async (c, next) => {
-	const auth = getAuth(c);
-	if (!auth?.userId) {
-		throw new AuthenticationError("Unauthorized: Missing or invalid Clerk authentication");
+// ─── Auth: Management API (/api/*) ─────────────────────
+app.use("/api/*", async (c, next) => {
+	// Platform mode: Clerk JWT
+	if (c.env.CLERK_SECRET_KEY) {
+		await clerkMiddleware()(c, async () => { });
+		const auth = getAuth(c);
+		if (auth?.userId) {
+			c.set("owner_id", auth.userId);
+			return next();
+		}
+		throw new AuthenticationError("Invalid or missing Clerk session");
 	}
-	c.set("owner_id", auth.userId);
-	return next();
-});
 
-// Auth middleware for Downstream API (Dashboard UI OR downstream API Keys)
-app.use("/v1/*", clerkMiddleware(), async (c, next) => {
+	// Core mode: ADMIN_TOKEN
 	const token = c.req
 		.header("Authorization")
 		?.replace(/^Bearer\s+/i, "")
 		.trim();
-	if (!token) {
-		throw new AuthenticationError("Invalid or missing token");
+	if (!token || token !== c.env.ADMIN_TOKEN) {
+		throw new AuthenticationError("Invalid or missing admin token");
 	}
-
-	// 1. Check if it's a valid Clerk UI JWT Session
-	const auth = getAuth(c);
-	if (auth?.userId) {
-		c.set("owner_id", auth.userId);
-		return next();
-	}
-
-	// 2. Fallback to Database API Key validation (for scripts/downstream apps)
-	const dao = new ApiKeysDao(c.env.DB);
-	const key = await dao.getKey(token);
-	if (!key || key.is_active !== 1) {
-		throw new AuthenticationError("Invalid or inactive API key");
-	}
-
-	c.set("owner_id", key.owner_id);
+	c.set("owner_id", CORE_OWNER);
 	return next();
 });
 
-// Management API
+// ─── Auth: Downstream API (/v1/*) ──────────────────────
+app.use("/v1/*", async (c, next) => {
+	const token = c.req
+		.header("Authorization")
+		?.replace(/^Bearer\s+/i, "")
+		.trim();
+	if (!token) throw new AuthenticationError("Missing authorization token");
+
+	// 1. API key (works in both modes)
+	const dao = new ApiKeysDao(c.env.DB);
+	const key = await dao.getKey(token);
+	if (key?.is_active === 1) {
+		c.set("owner_id", key.owner_id);
+		return next();
+	}
+
+	// 2. Platform: Clerk JWT
+	if (c.env.CLERK_SECRET_KEY) {
+		try {
+			await clerkMiddleware()(c, async () => { });
+			const auth = getAuth(c);
+			if (auth?.userId) {
+				c.set("owner_id", auth.userId);
+				return next();
+			}
+		} catch {
+			// Not a valid Clerk JWT — fall through
+		}
+	}
+
+	// 3. Core: ADMIN_TOKEN
+	if (token === c.env.ADMIN_TOKEN) {
+		c.set("owner_id", CORE_OWNER);
+		return next();
+	}
+
+	throw new AuthenticationError("Invalid or inactive authentication");
+});
+
+// ─── Management API ─────────────────────────────────────
 app.route("/api/quotas", quotasRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/market", marketRouter);
@@ -100,36 +130,31 @@ app.post("/api/refresh", async (c) => {
 	return c.json({ message: "Refresh completed" });
 });
 
-// OpenAI-compatible API
+// ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);
-app.route("/v1/models", marketRouter); // Note: keep external interface as /v1/models for openai compatibility
+app.route("/v1/models", marketRouter);
 
-// SPA Fallback for React Router (serves index.html for unmatched routes)
+// ─── SPA Fallback ───────────────────────────────────────
 app.notFound(async (c) => {
-	// If it's an API request that doesn't exist, return JSON 404
 	if (c.req.path.startsWith("/api/") || c.req.path.startsWith("/v1/")) {
 		return c.json(
 			{ error: { message: "Not Found", type: "invalid_request_error" } },
 			404,
 		);
 	}
-
-	// For frontend routes, attempt to fetch the original asset
 	if (c.env.ASSETS) {
 		try {
 			const res = await c.env.ASSETS.fetch(c.req.raw);
-			// If asset not found (e.g. hitting /listings directly), fallback to index.html
 			if (res.status === 404) {
 				const url = new URL(c.req.url);
 				url.pathname = "/";
 				return c.env.ASSETS.fetch(new Request(url.toString(), c.req.raw));
 			}
 			return res;
-		} catch (e) {
-			// Ignore ASSETS errors in case it's misconfigured
+		} catch {
+			// Ignore ASSETS errors
 		}
 	}
-
 	return c.text("Not Found", 404);
 });
 

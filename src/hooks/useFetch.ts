@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../auth";
 
 interface FetchOptions extends RequestInit {
 	requireAuth?: boolean;
