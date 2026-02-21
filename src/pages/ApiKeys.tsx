@@ -1,12 +1,12 @@
 import { PlusIcon } from "@heroicons/react/20/solid";
 import type React from "react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import { useAuth } from "../auth";
-import toast from "react-hot-toast";
 
 interface ApiKeyInfo {
 	id: string; // sk-keyaos-...

@@ -1,6 +1,6 @@
+import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import {
 	refreshAllModels,
@@ -8,29 +8,16 @@ import {
 } from "./core/refresh/refresh-service";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
-import quotasRouter from "./routes/quotas";
 import marketRouter from "./routes/market";
+import quotasRouter from "./routes/quotas";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
+import type { AppEnv, Env } from "./shared/types";
 
-/** In Core (self-hosted) mode, all resources belong to this single tenant */
-export const CORE_OWNER = "self";
+const CORE_OWNER = "self";
 
-export type Env = {
-	DB: D1Database;
-	ADMIN_TOKEN: string;
-	CLERK_PUBLISHABLE_KEY?: string;
-	CLERK_SECRET_KEY?: string;
-	CNY_USD_RATE?: string;
-	ASSETS?: Fetcher;
-};
+const app = new Hono<AppEnv>();
 
-const app = new Hono<{
-	Bindings: Env;
-	Variables: { owner_id: string };
-}>();
-
-// ─── Global error handler ───────────────────────────────
 app.onError((err, c) => {
 	if (err instanceof ApiError) {
 		return c.json(err.toJSON(), err.statusCode as 400);
@@ -51,14 +38,12 @@ app.use(
 	}),
 );
 
-// Public
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 // ─── Auth: Management API (/api/*) ─────────────────────
 app.use("/api/*", async (c, next) => {
-	// Platform mode: Clerk JWT
 	if (c.env.CLERK_SECRET_KEY) {
-		await clerkMiddleware()(c, async () => { });
+		await clerkMiddleware()(c, async () => {});
 		const auth = getAuth(c);
 		if (auth?.userId) {
 			c.set("owner_id", auth.userId);
@@ -67,7 +52,6 @@ app.use("/api/*", async (c, next) => {
 		throw new AuthenticationError("Invalid or missing Clerk session");
 	}
 
-	// Core mode: ADMIN_TOKEN
 	const token = c.req
 		.header("Authorization")
 		?.replace(/^Bearer\s+/i, "")
@@ -87,18 +71,15 @@ app.use("/v1/*", async (c, next) => {
 		.trim();
 	if (!token) throw new AuthenticationError("Missing authorization token");
 
-	// 1. API key (works in both modes)
-	const dao = new ApiKeysDao(c.env.DB);
-	const key = await dao.getKey(token);
+	const key = await new ApiKeysDao(c.env.DB).getKey(token);
 	if (key?.is_active === 1) {
 		c.set("owner_id", key.owner_id);
 		return next();
 	}
 
-	// 2. Platform: Clerk JWT
 	if (c.env.CLERK_SECRET_KEY) {
 		try {
-			await clerkMiddleware()(c, async () => { });
+			await clerkMiddleware()(c, async () => {});
 			const auth = getAuth(c);
 			if (auth?.userId) {
 				c.set("owner_id", auth.userId);
@@ -109,7 +90,6 @@ app.use("/v1/*", async (c, next) => {
 		}
 	}
 
-	// 3. Core: ADMIN_TOKEN
 	if (token === c.env.ADMIN_TOKEN) {
 		c.set("owner_id", CORE_OWNER);
 		return next();
@@ -124,7 +104,7 @@ app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/market", marketRouter);
 app.route("/api", systemRouter);
 app.post("/api/refresh", async (c) => {
-	const rate = parseFloat(c.env.CNY_USD_RATE || "7");
+	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
 	await refreshAllModels(c.env.DB, rate);
 	await refreshAutoCredits(c.env.DB, rate);
 	return c.json({ message: "Refresh completed" });
@@ -166,7 +146,7 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<void> {
-		const rate = parseFloat(env.CNY_USD_RATE || "7");
+		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
 		ctx.waitUntil(
 			Promise.all([
 				refreshAllModels(env.DB, rate),

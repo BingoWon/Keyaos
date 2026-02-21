@@ -1,7 +1,7 @@
+import { LoginContent } from "../auth";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { Logo } from "../components/Logo";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { LoginContent } from "../auth";
 
 export function Login() {
 	return (

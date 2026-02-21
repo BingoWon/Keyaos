@@ -1,7 +1,7 @@
 import type { DbApiKey } from "./schema";
 
 export class ApiKeysDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async createKey(name: string, owner_id: string): Promise<DbApiKey> {
 		const id = `sk-keyaos-${crypto.randomUUID().replace(/-/g, "")}`;
@@ -28,7 +28,9 @@ export class ApiKeysDao {
 
 	async listKeys(owner_id: string): Promise<DbApiKey[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM api_keys WHERE owner_id = ? ORDER BY created_at DESC")
+			.prepare(
+				"SELECT * FROM api_keys WHERE owner_id = ? ORDER BY created_at DESC",
+			)
 			.bind(owner_id)
 			.all<DbApiKey>();
 		return res.results || [];

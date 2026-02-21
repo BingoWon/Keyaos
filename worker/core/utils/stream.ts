@@ -1,30 +1,33 @@
 /**
  * Stream & JSON Interception Utilities
  *
- * Provides zero-latency interception of downstream API responses.
- * By teeing the response body, we monitor the chunks entirely out-of-band
- * without blocking the hot path delivery back to the client.
+ * Zero-latency interception of upstream responses via body.tee().
+ * The monitor stream runs out-of-band without blocking client delivery.
  */
 
 export interface TokenUsage {
 	prompt_tokens: number;
 	completion_tokens: number;
 	total_tokens: number;
-	/** OpenRouter returns this */
 	cost?: number;
-	/** DeepInfra returns this */
 	estimated_cost?: number;
+}
+
+export interface InterceptCallbacks {
+	onUsage: (usage: TokenUsage) => void;
+	onStreamDone?: () => void;
+	onStreamError?: (error: unknown) => void;
 }
 
 export function interceptResponse(
 	response: Response,
 	ctx: ExecutionContext,
-	onUsage: (usage: TokenUsage) => void,
+	callbacks: InterceptCallbacks,
 ): Response {
 	const contentType = response.headers.get("content-type") || "";
 
 	if (contentType.includes("text/event-stream")) {
-		return interceptSSEStream(response, ctx, onUsage);
+		return interceptSSEStream(response, ctx, callbacks);
 	}
 
 	if (contentType.includes("application/json")) {
@@ -34,7 +37,7 @@ export function interceptResponse(
 			.then((body) => {
 				const parsed = body as { usage?: TokenUsage };
 				if (parsed?.usage) {
-					onUsage({
+					callbacks.onUsage({
 						prompt_tokens: parsed.usage.prompt_tokens || 0,
 						completion_tokens: parsed.usage.completion_tokens || 0,
 						total_tokens: parsed.usage.total_tokens || 0,
@@ -42,20 +45,22 @@ export function interceptResponse(
 						estimated_cost: parsed.usage.estimated_cost,
 					});
 				}
+				callbacks.onStreamDone?.();
 			})
-			.catch(() => {});
+			.catch((err) => callbacks.onStreamError?.(err));
 
 		ctx.waitUntil(parseTask);
 		return response;
 	}
 
+	callbacks.onStreamDone?.();
 	return response;
 }
 
 function interceptSSEStream(
 	response: Response,
 	ctx: ExecutionContext,
-	onUsage: (usage: TokenUsage) => void,
+	callbacks: InterceptCallbacks,
 ): Response {
 	if (!response.body) return response;
 
@@ -88,7 +93,7 @@ function interceptSSEStream(
 						try {
 							const data = JSON.parse(trimmed.substring(6));
 							if (data?.usage) {
-								onUsage({
+								callbacks.onUsage({
 									prompt_tokens: data.usage.prompt_tokens || 0,
 									completion_tokens: data.usage.completion_tokens || 0,
 									total_tokens: data.usage.total_tokens || 0,
@@ -97,13 +102,15 @@ function interceptSSEStream(
 								});
 							}
 						} catch {
-							// Ignore partial chunk JSON errors
+							// Partial chunk — ignore
 						}
 					}
 				}
 			}
+			callbacks.onStreamDone?.();
 		} catch (e) {
 			console.error("[STREAM MONITOR] Fatal error:", e);
+			callbacks.onStreamError?.(e);
 		}
 	})();
 

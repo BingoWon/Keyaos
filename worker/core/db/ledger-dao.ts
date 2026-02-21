@@ -1,7 +1,7 @@
 import type { DbLedgerEntry } from "./schema";
 
 export class LedgerDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async createEntry(
 		tx: Omit<DbLedgerEntry, "id" | "created_at">,
@@ -31,9 +31,14 @@ export class LedgerDao {
 		return id;
 	}
 
-	async getRecentEntries(owner_id: string, limit = 50): Promise<DbLedgerEntry[]> {
+	async getRecentEntries(
+		owner_id: string,
+		limit = 50,
+	): Promise<DbLedgerEntry[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM ledger WHERE owner_id = ? ORDER BY created_at DESC LIMIT ?")
+			.prepare(
+				"SELECT * FROM ledger WHERE owner_id = ? ORDER BY created_at DESC LIMIT ?",
+			)
 			.bind(owner_id, limit)
 			.all<DbLedgerEntry>();
 

@@ -1,9 +1,3 @@
-/**
- * OpenAI-compatible provider adapter
- *
- * Shared by all providers. Each instance differs only in config.
- * Config is the SINGLE SOURCE OF TRUTH for all provider-specific behavior.
- */
 import type {
 	ParsedModel,
 	ProviderAdapter,
@@ -15,34 +9,23 @@ export interface OpenAICompatibleConfig {
 	id: string;
 	name: string;
 	baseUrl: string;
-	/** Whether this provider supports automatic credit fetching */
 	supportsAutoCredits: boolean;
-	/** Native currency */
 	currency: "USD" | "CNY";
-	/** URL for credits/usage query (absolute) */
 	creditsUrl?: string;
-	/** URL for key validation (must return 401 for invalid keys) */
 	validationUrl?: string;
-	/** URL for models list (defaults to baseUrl + /models) */
 	modelsUrl?: string;
-	/** Custom credits response parser */
 	parseCredits?: (json: Record<string, unknown>) => ProviderCredits | null;
-	/** Custom models response parser (raw JSON → ParsedModel[]) */
 	parseModels?: (
 		raw: Record<string, unknown>,
 		cnyUsdRate: number,
 	) => ParsedModel[];
-	/** Custom headers for all requests */
 	extraHeaders?: Record<string, string>;
 }
 
 /** USD dollars → integer cents per 1M tokens */
-const dollarsToCentsPerM = (usd: number): number => Math.round(usd * 100);
+export const dollarsToCentsPerM = (usd: number): number =>
+	Math.round(usd * 100);
 
-/**
- * Default models parser — handles OpenAI-standard /models response.
- * Providers with non-standard pricing formats override via parseModels config.
- */
 function defaultParseModels(
 	raw: Record<string, unknown>,
 	providerId: string,
@@ -108,7 +91,6 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 				return this.config.parseCredits(json);
 			}
 
-			// Default: OpenRouter /credits format { data: { total_credits, total_usage } }
 			if (json.data && typeof json.data === "object") {
 				const d = json.data as Record<string, number | null>;
 				if (d.total_credits != null) {
@@ -144,7 +126,6 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 
 	async forwardRequest(
 		apiKey: string,
-		_request: Request,
 		body: Record<string, unknown>,
 	): Promise<Response> {
 		const upstreamResponse = await fetch(
@@ -179,7 +160,3 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		});
 	}
 }
-
-// ─── Reusable parser helpers (used in registry.ts parseModels configs) ──
-
-export { dollarsToCentsPerM };

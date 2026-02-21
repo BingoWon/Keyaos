@@ -7,7 +7,7 @@ import {
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
-import { useAuth, UserMenu } from "../auth";
+import { UserMenu, useAuth } from "../auth";
 import { Logo } from "./Logo";
 import { NavigationList } from "./NavigationList";
 
@@ -32,10 +32,10 @@ export function SidebarLayout() {
 							fetch("/api/refresh", {
 								method: "POST",
 								headers: { Authorization: `Bearer ${activeToken}` },
-							}).catch(() => { });
+							}).catch(() => {});
 						}
 					})
-					.catch(() => { });
+					.catch(() => {});
 			});
 		}
 	}, [getToken]);

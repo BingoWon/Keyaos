@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
-import { useAuth } from "../auth";
 
 interface ModelInfo {
 	id: string;

@@ -1,7 +1,7 @@
 import type { DbMarketQuote } from "./schema";
 
 export class MarketDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async upsertQuotes(
 		quotes: Omit<DbMarketQuote, "refreshed_at">[],
@@ -37,6 +37,7 @@ export class MarketDao {
 		}
 	}
 
+	/** Mark quotes not in activeIds as inactive (precise ID-based comparison) */
 	async deactivateMissing(
 		provider: string,
 		activeIds: string[],
@@ -49,11 +50,13 @@ export class MarketDao {
 			return;
 		}
 
+		const placeholders = activeIds.map(() => "?").join(",");
 		await this.db
 			.prepare(
-				"UPDATE market_quotes SET is_active = 0 WHERE provider = ? AND refreshed_at < ?",
+				`UPDATE market_quotes SET is_active = 0
+				 WHERE provider = ? AND id NOT IN (${placeholders})`,
 			)
-			.bind(provider, Date.now() - 1000)
+			.bind(provider, ...activeIds)
 			.run();
 	}
 

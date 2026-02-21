@@ -1,12 +1,12 @@
 import { Hono } from "hono";
 import { recordUsage } from "../core/billing";
 import { QuotasDao } from "../core/db/quotas-dao";
-import { dispatch } from "../core/dispatcher";
+import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
-import type { Env } from "../index";
-import { ApiError, BadRequestError } from "../shared/errors";
+import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
+import type { AppEnv } from "../shared/types";
 
-const chatRouter = new Hono<{ Bindings: Env; Variables: { owner_id: string } }>();
+const chatRouter = new Hono<AppEnv>();
 
 chatRouter.post("/completions", async (c) => {
 	let body: Record<string, unknown>;
@@ -20,52 +20,64 @@ chatRouter.post("/completions", async (c) => {
 	if (!model) throw new BadRequestError("model is required");
 
 	const owner_id = c.get("owner_id");
-
-	const { listing, provider, upstreamModel, modelPrice } = await dispatch(
-		c.env.DB,
-		model,
-		owner_id,
-	);
-
+	const candidates = await dispatchAll(c.env.DB, model, owner_id);
 	const quotasDao = new QuotasDao(c.env.DB);
 
-	const upstreamBody = {
-		...body,
-		model: upstreamModel,
-		stream_options: body.stream ? { include_usage: true } : undefined,
-	};
+	let lastError: unknown;
 
-	try {
-		const response = await provider.forwardRequest(
-			listing.api_key,
-			c.req.raw,
-			upstreamBody,
-		);
+	for (const { listing, provider, upstreamModel, modelPrice } of candidates) {
+		const upstreamBody = {
+			...body,
+			model: upstreamModel,
+			stream_options: body.stream ? { include_usage: true } : undefined,
+		};
 
-		const finalResponse = interceptResponse(
-			response,
-			c.executionCtx,
-			(usage) => {
-				c.executionCtx.waitUntil(
-					recordUsage(c.env.DB, {
-						ownerId: owner_id,
-						listingId: listing.id,
-						provider: listing.provider,
-						model: upstreamModel,
-						modelPrice,
-						usage,
-					}).catch((err) => console.error("[BILLING] waitUntil failed:", err)),
+		try {
+			const response = await provider.forwardRequest(
+				listing.api_key,
+				upstreamBody,
+			);
+
+			if (!response.ok) {
+				await quotasDao.reportFailure(listing.id, response.status);
+				lastError = new Error(
+					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
-			},
-		);
+				continue;
+			}
 
-		await quotasDao.reportSuccess(listing.id);
-		return finalResponse;
-	} catch (err) {
-		const statusCode = err instanceof ApiError ? err.statusCode : 500;
-		await quotasDao.reportFailure(listing.id, statusCode);
-		throw err;
+			const finalResponse = interceptResponse(response, c.executionCtx, {
+				onUsage: (usage) => {
+					c.executionCtx.waitUntil(
+						recordUsage(c.env.DB, {
+							ownerId: owner_id,
+							listingId: listing.id,
+							provider: listing.provider,
+							model: upstreamModel,
+							modelPrice,
+							usage,
+						}).catch((err) =>
+							console.error("[BILLING] waitUntil failed:", err),
+						),
+					);
+				},
+				onStreamDone: () => {
+					c.executionCtx.waitUntil(quotasDao.reportSuccess(listing.id));
+				},
+				onStreamError: () => {
+					c.executionCtx.waitUntil(quotasDao.reportFailure(listing.id));
+				},
+			});
+
+			return finalResponse;
+		} catch (err) {
+			await quotasDao.reportFailure(listing.id);
+			lastError = err;
+		}
 	}
+
+	if (lastError) console.error("[CHAT] All candidates exhausted:", lastError);
+	throw new NoKeyAvailableError(model);
 });
 
 export default chatRouter;

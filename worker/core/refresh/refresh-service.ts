@@ -1,12 +1,11 @@
 /**
- * Model Discovery Service + Auto Credits Refresh
+ * Model Discovery + Auto Credits Refresh
  *
- * Iterates all registered providers, calls fetchModels(), and
- * upserts into the models table. Also refreshes credits for auto-credit keys.
- * Called by the scheduled handler.
+ * Parallelizes provider fetches via Promise.allSettled for faster refresh cycles.
  */
-import { QuotasDao } from "../db/quotas-dao";
+
 import { MarketDao } from "../db/market-dao";
+import { QuotasDao } from "../db/quotas-dao";
 import { getAllProviders, getProvider } from "../providers/registry";
 
 export async function refreshAllModels(
@@ -15,13 +14,12 @@ export async function refreshAllModels(
 ): Promise<void> {
 	const dao = new MarketDao(db);
 
-	for (const provider of getAllProviders()) {
-		try {
+	const results = await Promise.allSettled(
+		getAllProviders().map(async (provider) => {
 			const models = await provider.fetchModels(cnyUsdRate);
-
 			if (models.length === 0) {
 				console.warn(`[REFRESH] ${provider.info.id}: 0 models, skipping`);
-				continue;
+				return;
 			}
 
 			await dao.upsertQuotes(models);
@@ -29,42 +27,48 @@ export async function refreshAllModels(
 				provider.info.id,
 				models.map((m) => m.id),
 			);
-
 			console.log(
 				`[REFRESH] ${provider.info.id}: refreshed ${models.length} models`,
 			);
-		} catch (err) {
-			console.error(`[REFRESH] ${provider.info.id}: failed`, err);
+		}),
+	);
+
+	for (const r of results) {
+		if (r.status === "rejected") {
+			console.error("[REFRESH] provider failed:", r.reason);
 		}
 	}
 }
 
-/** Refresh credits for all listings with credits_source='auto' */
 export async function refreshAutoCredits(
 	db: D1Database,
 	cnyUsdRate = 7,
 ): Promise<void> {
 	const dao = new QuotasDao(db);
-	const all = await dao.getGlobalListings();
-	const autos = all.filter((k) => k.quota_source === "auto");
+	const autos = (await dao.getGlobalListings()).filter(
+		(k) => k.quota_source === "auto",
+	);
 
-	for (const listing of autos) {
-		try {
+	const results = await Promise.allSettled(
+		autos.map(async (listing) => {
 			const provider = getProvider(listing.provider);
-			if (!provider) continue;
+			if (!provider) return;
 
 			const credits = await provider.fetchCredits(listing.api_key);
-			if (credits?.remaining == null) continue;
+			if (credits?.remaining == null) return;
 
 			const usd =
 				provider.info.currency === "CNY"
 					? credits.remaining / cnyUsdRate
 					: credits.remaining;
-			const newQuota = usd;
 
-			await dao.updateQuota(listing.id, newQuota, "auto");
-		} catch (err) {
-			console.error(`[QUOTA] ${listing.id}: refresh failed`, err);
+			await dao.updateQuota(listing.id, usd, "auto");
+		}),
+	);
+
+	for (const r of results) {
+		if (r.status === "rejected") {
+			console.error("[QUOTA] refresh failed:", r.reason);
 		}
 	}
 }

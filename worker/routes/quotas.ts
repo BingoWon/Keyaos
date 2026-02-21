@@ -1,45 +1,50 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { QuotasDao } from "../core/db/quotas-dao";
 import { getAllProviders, getProvider } from "../core/providers/registry";
-import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
+import type { AppEnv } from "../shared/types";
+import { parse } from "../shared/validate";
 
-/** Mask key for display: sk-or-v1-7a0•••7bd */
 function maskKey(key: string): string {
 	if (key.length <= 12) return "•".repeat(key.length);
 	return `${key.slice(0, 10)}•••${key.slice(-3)}`;
 }
 
-const quotasRouter = new Hono<{ Bindings: Env; Variables: { owner_id: string } }>();
-
-/** Convert native-currency amount to universal Quota ratio matching USD value */
 function toQuota(
 	amount: number,
 	currency: "USD" | "CNY",
 	cnyRate: number,
 ): number {
-	const usd = currency === "CNY" ? amount / cnyRate : amount;
-	// Store as a REAL value in DB, no need to multiply by 100
-	return usd;
+	return currency === "CNY" ? amount / cnyRate : amount;
 }
 
-quotasRouter.post("/", async (c) => {
-	let body: {
-		provider: string;
-		apiKey: string;
-		quota?: number;
-		isEnabled?: number;
-		priceMultiplier?: number;
-	};
-	try {
-		body = await c.req.json();
-	} catch {
-		throw new BadRequestError("Invalid JSON body");
-	}
+const AddQuotaBody = z.object({
+	provider: z.string().min(1, "provider is required"),
+	apiKey: z.string().min(1, "apiKey is required"),
+	quota: z.number().positive().optional(),
+	isEnabled: z.number().int().min(0).max(1).optional(),
+	priceMultiplier: z.number().positive().optional(),
+});
 
-	if (!body.provider || !body.apiKey) {
-		throw new BadRequestError("provider and apiKey are required");
-	}
+const UpdateQuotaBody = z.object({
+	quota: z.number().min(0, "quota must be a non-negative number"),
+});
+
+const UpdateSettingsBody = z.object({
+	isEnabled: z.number().int().min(0).max(1).optional(),
+	priceMultiplier: z.number().positive().optional(),
+});
+
+const quotasRouter = new Hono<AppEnv>();
+
+quotasRouter.post("/", async (c) => {
+	const body = parse(
+		AddQuotaBody,
+		await c.req.json().catch(() => {
+			throw new BadRequestError("Invalid JSON body");
+		}),
+	);
 
 	const provider = getProvider(body.provider);
 	if (!provider) {
@@ -58,27 +63,21 @@ quotasRouter.post("/", async (c) => {
 		);
 	}
 
-	// Check for duplicate API key
 	const quotasDao = new QuotasDao(c.env.DB);
 	const existing = await quotasDao.findByApiKey(body.apiKey);
 	if (existing) {
 		throw new BadRequestError("This API key has already been added.");
 	}
 
-	// ─── Determine quota ─────────────────────────────────
 	let quota = 0;
 	let quotaSource: "auto" | "manual" = "manual";
 
 	if (provider.info.supportsAutoCredits) {
 		quotaSource = "auto";
-		const cnyRate = parseFloat(c.env.CNY_USD_RATE || "7");
+		const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
 		const upstream = await provider.fetchCredits(body.apiKey);
 		if (upstream?.remaining != null) {
-			quota = toQuota(
-				upstream.remaining,
-				provider.info.currency,
-				cnyRate,
-			);
+			quota = toQuota(upstream.remaining, provider.info.currency, cnyRate);
 		}
 	} else {
 		if (body.quota == null || body.quota <= 0) {
@@ -115,8 +114,7 @@ quotasRouter.post("/", async (c) => {
 
 quotasRouter.get("/", async (c) => {
 	const quotasDao = new QuotasDao(c.env.DB);
-	const owner_id = c.get("owner_id");
-	const all = await quotasDao.getAllListings(owner_id);
+	const all = await quotasDao.getAllListings(c.get("owner_id"));
 	return c.json({
 		data: all.map((l) => ({
 			id: l.id,
@@ -153,16 +151,12 @@ quotasRouter.patch("/:id/quota", async (c) => {
 		);
 	}
 
-	let body: { quota: number };
-	try {
-		body = await c.req.json();
-	} catch {
-		throw new BadRequestError("Invalid JSON body");
-	}
-
-	if (body.quota == null || body.quota < 0) {
-		throw new BadRequestError("quota must be a non-negative number");
-	}
+	const body = parse(
+		UpdateQuotaBody,
+		await c.req.json().catch(() => {
+			throw new BadRequestError("Invalid JSON body");
+		}),
+	);
 
 	await quotasDao.updateQuota(id, body.quota, "manual");
 
@@ -171,24 +165,18 @@ quotasRouter.patch("/:id/quota", async (c) => {
 		listing.is_enabled === 0 &&
 		listing.health_status !== "dead"
 	) {
-		await c.env.DB.prepare(
-			"UPDATE quota_listings SET is_enabled = 1 WHERE id = ?",
-		)
-			.bind(id)
-			.run();
+		await quotasDao.updateSettings(id, 1, listing.price_multiplier);
 	}
 
-	return c.json({
-		id,
-		quota: body.quota,
-		message: "Quota updated",
-	});
+	return c.json({ id, quota: body.quota, message: "Quota updated" });
 });
 
 quotasRouter.delete("/:id", async (c) => {
 	const quotasDao = new QuotasDao(c.env.DB);
-	const owner_id = c.get("owner_id");
-	const success = await quotasDao.deleteListing(c.req.param("id"), owner_id);
+	const success = await quotasDao.deleteListing(
+		c.req.param("id"),
+		c.get("owner_id"),
+	);
 	if (!success) {
 		throw new ApiError(
 			"Quota listing not found",
@@ -202,16 +190,15 @@ quotasRouter.delete("/:id", async (c) => {
 
 quotasRouter.patch("/:id/settings", async (c) => {
 	const id = c.req.param("id");
-	let body: { isEnabled?: number; priceMultiplier?: number };
-	try {
-		body = await c.req.json();
-	} catch {
-		throw new BadRequestError("Invalid JSON body");
-	}
+	const body = parse(
+		UpdateSettingsBody,
+		await c.req.json().catch(() => {
+			throw new BadRequestError("Invalid JSON body");
+		}),
+	);
 
 	const quotasDao = new QuotasDao(c.env.DB);
-	const owner_id = c.get("owner_id");
-	const listing = await quotasDao.getListing(id, owner_id);
+	const listing = await quotasDao.getListing(id, c.get("owner_id"));
 	if (!listing) {
 		throw new ApiError(
 			"Quota listing not found",
@@ -224,7 +211,7 @@ quotasRouter.patch("/:id/settings", async (c) => {
 	const isEnabled = body.isEnabled ?? listing.is_enabled;
 	const priceMultiplier = body.priceMultiplier ?? listing.price_multiplier;
 
-	await quotasDao.updateListingSettings(id, isEnabled, priceMultiplier);
+	await quotasDao.updateSettings(id, isEnabled, priceMultiplier);
 
 	return c.json({
 		message: "Settings updated",
@@ -237,8 +224,7 @@ quotasRouter.patch("/:id/settings", async (c) => {
 quotasRouter.get("/:id/quota", async (c) => {
 	const id = c.req.param("id");
 	const quotasDao = new QuotasDao(c.env.DB);
-	const owner_id = c.get("owner_id");
-	const listing = await quotasDao.getListing(id, owner_id);
+	const listing = await quotasDao.getListing(id, c.get("owner_id"));
 
 	if (!listing) {
 		throw new ApiError(
@@ -259,7 +245,7 @@ quotasRouter.get("/:id/quota", async (c) => {
 	if (listing.quota_source === "auto") {
 		const provider = getProvider(listing.provider);
 		if (provider) {
-			const cnyRate = parseFloat(c.env.CNY_USD_RATE || "7");
+			const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
 			const upstream = await provider.fetchCredits(listing.api_key);
 			if (upstream?.remaining != null) {
 				const newQuota = toQuota(

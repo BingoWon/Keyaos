@@ -28,8 +28,8 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 		const pricing = m.pricing as Record<string, string> | undefined;
 		if (!id || !pricing?.prompt || !pricing?.completion) continue;
 
-		const inputUsdPerM = parseFloat(pricing.prompt) * 1_000_000;
-		const outputUsdPerM = parseFloat(pricing.completion) * 1_000_000;
+		const inputUsdPerM = Number.parseFloat(pricing.prompt) * 1_000_000;
+		const outputUsdPerM = Number.parseFloat(pricing.completion) * 1_000_000;
 		if (Number.isNaN(inputUsdPerM) || Number.isNaN(outputUsdPerM)) continue;
 
 		results.push({
@@ -149,7 +149,7 @@ function parseDeepSeekCredits(
 		| { currency: string; total_balance: string }[]
 		| undefined;
 	if (!infos?.[0]) return null;
-	const balance = parseFloat(infos[0].total_balance);
+	const balance = Number.parseFloat(infos[0].total_balance);
 	if (Number.isNaN(balance)) return null;
 	return { remaining: balance, usage: null };
 }

@@ -1,18 +1,18 @@
 import {
-    createContext,
-    useContext,
-    useEffect,
-    useState,
-    useMemo,
-    type ReactNode,
-} from "react";
-import {
-    ClerkProvider,
-    SignIn,
-    UserButton,
-    useAuth as useClerkAuth,
+	ClerkProvider,
+	SignIn,
+	UserButton,
+	useAuth as useClerkAuth,
 } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 
 /** True when Clerk is configured → Platform (multi-tenant) mode */
 export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -20,171 +20,174 @@ export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 // ─── Unified Auth Context ───────────────────────────────
 
 interface AuthContextType {
-    getToken: () => Promise<string | null>;
-    isSignedIn: boolean;
-    signOut: () => void;
-    /** Core mode only: sign in with admin token */
-    signIn?: (token: string) => void;
+	getToken: () => Promise<string | null>;
+	isSignedIn: boolean;
+	signOut: () => void;
+	/** Core mode only: sign in with admin token */
+	signIn?: (token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function useAuth(): AuthContextType {
-    const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
-    return ctx;
+	const ctx = useContext(AuthContext);
+	if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
+	return ctx;
 }
 
 // ─── Core Auth (ADMIN_TOKEN, single tenant) ─────────────
 
 function CoreAuthProvider({ children }: { children: ReactNode }) {
-    const [token, setToken] = useState<string | null>(() =>
-        localStorage.getItem("admin_token"),
-    );
+	const [token, setToken] = useState<string | null>(() =>
+		localStorage.getItem("admin_token"),
+	);
 
-    const value = useMemo<AuthContextType>(
-        () => ({
-            getToken: async () => token,
-            isSignedIn: !!token,
-            signOut: () => {
-                localStorage.removeItem("admin_token");
-                setToken(null);
-            },
-            signIn: (t: string) => {
-                localStorage.setItem("admin_token", t);
-                setToken(t);
-            },
-        }),
-        [token],
-    );
+	const value = useMemo<AuthContextType>(
+		() => ({
+			getToken: async () => token,
+			isSignedIn: !!token,
+			signOut: () => {
+				localStorage.removeItem("admin_token");
+				setToken(null);
+			},
+			signIn: (t: string) => {
+				localStorage.setItem("admin_token", t);
+				setToken(t);
+			},
+		}),
+		[token],
+	);
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // ─── Platform Auth Bridge (Clerk → AuthContext) ─────────
 
 function ClerkAuthBridge({ children }: { children: ReactNode }) {
-    const clerk = useClerkAuth();
+	const clerk = useClerkAuth();
 
-    const value = useMemo<AuthContextType>(
-        () => ({
-            getToken: () => clerk.getToken(),
-            isSignedIn: clerk.isSignedIn ?? false,
-            signOut: () => {
-                clerk.signOut();
-            },
-        }),
-        [clerk.getToken, clerk.isSignedIn, clerk.signOut],
-    );
+	const value = useMemo<AuthContextType>(
+		() => ({
+			getToken: () => clerk.getToken(),
+			isSignedIn: clerk.isSignedIn ?? false,
+			signOut: () => {
+				clerk.signOut();
+			},
+		}),
+		[clerk.getToken, clerk.isSignedIn, clerk.signOut],
+	);
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // ─── Dark Mode Detection ────────────────────────────────
 
 function useDarkMode() {
-    const [isDark, setIsDark] = useState(
-        () => document.documentElement.classList.contains("dark"),
-    );
+	const [isDark, setIsDark] = useState(() =>
+		document.documentElement.classList.contains("dark"),
+	);
 
-    useEffect(() => {
-        const observer = new MutationObserver(() => {
-            setIsDark(document.documentElement.classList.contains("dark"));
-        });
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ["class"],
-        });
-        return () => observer.disconnect();
-    }, []);
+	useEffect(() => {
+		const observer = new MutationObserver(() => {
+			setIsDark(document.documentElement.classList.contains("dark"));
+		});
+		observer.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["class"],
+		});
+		return () => observer.disconnect();
+	}, []);
 
-    return isDark;
+	return isDark;
 }
 
 // ─── AuthProvider (auto-selects by env) ─────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const isDark = useDarkMode();
+	const isDark = useDarkMode();
 
-    if (isPlatform) {
-        return (
-            <ClerkProvider
-                publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-                afterSignOutUrl="/login"
-                signInForceRedirectUrl="/dashboard"
-                appearance={{ baseTheme: isDark ? dark : undefined }}
-            >
-                <ClerkAuthBridge>{children}</ClerkAuthBridge>
-            </ClerkProvider>
-        );
-    }
-    return <CoreAuthProvider>{children}</CoreAuthProvider>;
+	if (isPlatform) {
+		return (
+			<ClerkProvider
+				publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+				afterSignOutUrl="/login"
+				signInForceRedirectUrl="/dashboard"
+				appearance={{ baseTheme: isDark ? dark : undefined }}
+			>
+				<ClerkAuthBridge>{children}</ClerkAuthBridge>
+			</ClerkProvider>
+		);
+	}
+	return <CoreAuthProvider>{children}</CoreAuthProvider>;
 }
 
 // ─── AuthGuard ──────────────────────────────────────────
 
 export function AuthGuard({
-    children,
-    fallback,
+	children,
+	fallback,
 }: {
-    children: ReactNode;
-    fallback: ReactNode;
+	children: ReactNode;
+	fallback: ReactNode;
 }) {
-    const { isSignedIn } = useAuth();
-    return <>{isSignedIn ? children : fallback}</>;
+	const { isSignedIn } = useAuth();
+	return <>{isSignedIn ? children : fallback}</>;
 }
 
 // ─── LoginPage ──────────────────────────────────────────
 
 function CoreLoginForm() {
-    const { signIn } = useAuth();
-    const [token, setToken] = useState("");
+	const { signIn } = useAuth();
+	const [token, setToken] = useState("");
 
-    return (
-        <form
-            onSubmit={(e) => {
-                e.preventDefault();
-                if (token.trim()) signIn?.(token.trim());
-            }}
-            className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col gap-4"
-        >
-            <input
-                type="password"
-                placeholder="Admin Token"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                autoFocus
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-            />
-            <button
-                type="submit"
-                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-            >
-                Sign In
-            </button>
-        </form>
-    );
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				if (token.trim()) signIn?.(token.trim());
+			}}
+			className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col gap-4"
+		>
+			<input
+				type="password"
+				placeholder="Admin Token"
+				value={token}
+				onChange={(e) => setToken(e.target.value)}
+				className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+			/>
+			<button
+				type="submit"
+				className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+			>
+				Sign In
+			</button>
+		</form>
+	);
 }
 
 export function LoginContent() {
-    if (isPlatform) return <SignIn routing="path" path="/login" forceRedirectUrl="/dashboard" />;
-    return <CoreLoginForm />;
+	if (isPlatform)
+		return (
+			<SignIn routing="path" path="/login" forceRedirectUrl="/dashboard" />
+		);
+	return <CoreLoginForm />;
 }
 
 // ─── UserMenu (sidebar) ────────────────────────────────
 
 function CoreUserMenu() {
-    const { signOut } = useAuth();
-    return (
-        <button
-            onClick={signOut}
-            className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-            Sign Out
-        </button>
-    );
+	const { signOut } = useAuth();
+	return (
+		<button
+			type="button"
+			onClick={signOut}
+			className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+		>
+			Sign Out
+		</button>
+	);
 }
 
 export function UserMenu() {
-    return isPlatform ? <UserButton /> : <CoreUserMenu />;
+	return isPlatform ? <UserButton /> : <CoreUserMenu />;
 }

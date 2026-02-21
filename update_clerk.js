@@ -1,29 +1,61 @@
-const fs = require('fs');
+const fs = require("node:fs");
 
 // 1. Quotas.tsx
-let quotas = fs.readFileSync('src/pages/Quotas.tsx', 'utf8');
-quotas = quotas.replace('import { useAuth } from "../stores/auth";', 'import { useAuth } from "@clerk/clerk-react";');
-quotas = quotas.replace('const { token } = useAuth();', 'const { getToken } = useAuth();');
-quotas = quotas.replace(/const headers = \{[\s\S]*?\};/, `const getHeaders = async () => ({\n\t\t"Content-Type": "application/json",\n\t\tAuthorization: \`Bearer \${await getToken()}\`,\n\t});`);
-quotas = quotas.replace(/headers,/g, 'headers: await getHeaders(),');
+let quotas = fs.readFileSync("src/pages/Quotas.tsx", "utf8");
+quotas = quotas.replace(
+	'import { useAuth } from "../stores/auth";',
+	'import { useAuth } from "@clerk/clerk-react";',
+);
+quotas = quotas.replace(
+	"const { token } = useAuth();",
+	"const { getToken } = useAuth();",
+);
+quotas = quotas.replace(
+	/const headers = \{[\s\S]*?\};/,
+	`const getHeaders = async () => ({\n\t\t"Content-Type": "application/json",\n\t\tAuthorization: \`Bearer \${await getToken()}\`,\n\t});`,
+);
+quotas = quotas.replace(/headers,/g, "headers: await getHeaders(),");
 // Fix the fetch payload headers if any were inline. Wait, we replaced `headers,` which works for `fetch(url, { method: "POST", headers, body... })`.
-fs.writeFileSync('src/pages/Quotas.tsx', quotas);
+fs.writeFileSync("src/pages/Quotas.tsx", quotas);
 
 // 2. SidebarLayout.tsx
-let sidebar = fs.readFileSync('src/components/SidebarLayout.tsx', 'utf8');
-sidebar = sidebar.replace('import { useAuth } from "../stores/auth";', 'import { useAuth, UserButton } from "@clerk/clerk-react";');
-sidebar = sidebar.replace('const { token } = useAuth();', 'const { getToken } = useAuth();');
-sidebar = sidebar.replace(/if \(!hasPrefetched\.current && token\) \{[\s\S]*?hasPrefetched\.current = true;/, `if (!hasPrefetched.current) {\n\t\t\thasPrefetched.current = true;\n\t\t\tgetToken().then((token) => {\n\t\t\t\tif (!token) return;`);
-sidebar = sidebar.replace(/\.catch\(\(\) => \{\}\);\n\t\t\}/, `.catch(() => {});\n\t\t\t});\n\t\t}`);
+let sidebar = fs.readFileSync("src/components/SidebarLayout.tsx", "utf8");
+sidebar = sidebar.replace(
+	'import { useAuth } from "../stores/auth";',
+	'import { useAuth, UserButton } from "@clerk/clerk-react";',
+);
+sidebar = sidebar.replace(
+	"const { token } = useAuth();",
+	"const { getToken } = useAuth();",
+);
+sidebar = sidebar.replace(
+	/if \(!hasPrefetched\.current && token\) \{[\s\S]*?hasPrefetched\.current = true;/,
+	`if (!hasPrefetched.current) {\n\t\t\thasPrefetched.current = true;\n\t\t\tgetToken().then((token) => {\n\t\t\t\tif (!token) return;`,
+);
+sidebar = sidebar.replace(
+	/\.catch\(\(\) => \{\}\);\n\t\t\}/,
+	`.catch(() => {});\n\t\t\t});\n\t\t}`,
+);
 // Add UserButton
-sidebar = sidebar.replace(/<div className="flex h-16 shrink-0 items-center">\n\t\t\t\t\t\t\t\t<Logo \/>\n\t\t\t\t\t\t\t<\/div>/, `<div className="flex h-16 shrink-0 items-center justify-between w-full">\n\t\t\t\t\t\t\t\t<Logo />\n\t\t\t\t\t\t\t\t<UserButton />\n\t\t\t\t\t\t\t</div>`);
-sidebar = sidebar.replace(/<div className="flex h-16 shrink-0 items-center">\n\t\t\t\t\t\t<Logo \/>\n\t\t\t\t\t<\/div>/, `<div className="flex h-16 shrink-0 items-center justify-between w-full">\n\t\t\t\t\t\t<Logo />\n\t\t\t\t\t\t<UserButton />\n\t\t\t\t\t</div>`);
-fs.writeFileSync('src/components/SidebarLayout.tsx', sidebar);
+sidebar = sidebar.replace(
+	/<div className="flex h-16 shrink-0 items-center">\n\t\t\t\t\t\t\t\t<Logo \/>\n\t\t\t\t\t\t\t<\/div>/,
+	`<div className="flex h-16 shrink-0 items-center justify-between w-full">\n\t\t\t\t\t\t\t\t<Logo />\n\t\t\t\t\t\t\t\t<UserButton />\n\t\t\t\t\t\t\t</div>`,
+);
+sidebar = sidebar.replace(
+	/<div className="flex h-16 shrink-0 items-center">\n\t\t\t\t\t\t<Logo \/>\n\t\t\t\t\t<\/div>/,
+	`<div className="flex h-16 shrink-0 items-center justify-between w-full">\n\t\t\t\t\t\t<Logo />\n\t\t\t\t\t\t<UserButton />\n\t\t\t\t\t</div>`,
+);
+fs.writeFileSync("src/components/SidebarLayout.tsx", sidebar);
 
 // 3. App.tsx
-let app = fs.readFileSync('src/App.tsx', 'utf8');
-app = app.replace('import { useAuth } from "./stores/auth";', 'import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";');
-app = app.replace(/const ProtectedRoute = \(\{ children \}: \{ children: React\.ReactNode \}\) => \{[\s\S]*?return <>\S+children\S+<\/>;\n\};/, `const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+let app = fs.readFileSync("src/App.tsx", "utf8");
+app = app.replace(
+	'import { useAuth } from "./stores/auth";',
+	'import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";',
+);
+app = app.replace(
+	/const ProtectedRoute = \(\{ children \}: \{ children: React\.ReactNode \}\) => \{[\s\S]*?return <>\S+children\S+<\/>;\n\};/,
+	`const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<>
 			<SignedIn>
@@ -34,11 +66,12 @@ app = app.replace(/const ProtectedRoute = \(\{ children \}: \{ children: React\.
 			</SignedOut>
 		</>
 	);
-};`);
-fs.writeFileSync('src/App.tsx', app);
+};`,
+);
+fs.writeFileSync("src/App.tsx", app);
 
 // 4. main.tsx
-let main = fs.readFileSync('src/main.tsx', 'utf8');
+let main = fs.readFileSync("src/main.tsx", "utf8");
 main = `import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -65,10 +98,10 @@ createRoot(rootElement).render(
 	</StrictMode>,
 );
 `;
-fs.writeFileSync('src/main.tsx', main);
+fs.writeFileSync("src/main.tsx", main);
 
 // 5. Login.tsx
-let login = fs.readFileSync('src/pages/Login.tsx', 'utf8');
+let login = fs.readFileSync("src/pages/Login.tsx", "utf8");
 login = `import { SignIn } from "@clerk/clerk-react";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { ThemeToggle } from "../components/ThemeToggle";
@@ -91,6 +124,6 @@ export function Login() {
 	);
 }
 `;
-fs.writeFileSync('src/pages/Login.tsx', login);
+fs.writeFileSync("src/pages/Login.tsx", login);
 
 console.log("Rewrite complete.");

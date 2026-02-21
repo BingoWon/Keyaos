@@ -27,7 +27,11 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		{ name: t("nav.market"), href: "/dashboard/market", icon: CpuChipIcon },
 		{ name: t("nav.quotas"), href: "/dashboard/quotas", icon: BanknotesIcon },
 		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },
-		{ name: t("nav.ledger"), href: "/dashboard/ledger", icon: DocumentTextIcon },
+		{
+			name: t("nav.ledger"),
+			href: "/dashboard/ledger",
+			icon: DocumentTextIcon,
+		},
 	];
 
 	return (

@@ -1,7 +1,7 @@
 import type { DbQuotaListing } from "./schema";
 
 export class QuotasDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async addListing(params: {
 		owner_id: string;
@@ -41,7 +41,10 @@ export class QuotasDao {
 		return listing;
 	}
 
-	async getListing(id: string, owner_id: string): Promise<DbQuotaListing | null> {
+	async getListing(
+		id: string,
+		owner_id: string,
+	): Promise<DbQuotaListing | null> {
 		return this.db
 			.prepare("SELECT * FROM quota_listings WHERE id = ? AND owner_id = ?")
 			.bind(id, owner_id)
@@ -63,16 +66,20 @@ export class QuotasDao {
 		return result.success && result.meta?.rows_written === 1;
 	}
 
-	async selectListing(provider: string, owner_id: string): Promise<DbQuotaListing | null> {
-		return this.db
+	/** Returns ALL eligible listings for a provider, sorted by cheapest first then highest quota */
+	async selectListings(
+		provider: string,
+		owner_id: string,
+	): Promise<DbQuotaListing[]> {
+		const res = await this.db
 			.prepare(
 				`SELECT * FROM quota_listings
 				 WHERE provider = ? AND owner_id = ? AND is_enabled = 1 AND health_status != 'dead'
-				 ORDER BY quota DESC
-				 LIMIT 1`,
+				 ORDER BY price_multiplier ASC, quota DESC`,
 			)
 			.bind(provider, owner_id)
-			.first<DbQuotaListing>();
+			.all<DbQuotaListing>();
+		return res.results || [];
 	}
 
 	async getAllListings(owner_id: string): Promise<DbQuotaListing[]> {
@@ -121,7 +128,8 @@ export class QuotasDao {
 				.run();
 		}
 	}
-	async updateListingSettings(
+
+	async updateSettings(
 		id: string,
 		isEnabled: number,
 		priceMultiplier: number,
@@ -133,6 +141,7 @@ export class QuotasDao {
 			.bind(isEnabled, priceMultiplier, id)
 			.run();
 	}
+
 	async reportSuccess(id: string): Promise<void> {
 		await this.db
 			.prepare(
@@ -149,10 +158,7 @@ export class QuotasDao {
 				: "degraded";
 		await this.db
 			.prepare(
-				`UPDATE quota_listings
-				 SET health_status = ?,
-				     last_health_check = ?
-				 WHERE id = ?`,
+				"UPDATE quota_listings SET health_status = ?, last_health_check = ? WHERE id = ?",
 			)
 			.bind(status, Date.now(), id)
 			.run();
