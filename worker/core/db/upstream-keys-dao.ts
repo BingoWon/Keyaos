@@ -1,9 +1,9 @@
-import type { DbQuotaListing } from "./schema";
+import type { DbUpstreamKey } from "./schema";
 
-export class QuotasDao {
+export class UpstreamKeysDao {
 	constructor(private db: D1Database) {}
 
-	async addListing(params: {
+	async add(params: {
 		owner_id: string;
 		provider: string;
 		apiKey: string;
@@ -11,12 +11,12 @@ export class QuotasDao {
 		quotaSource?: "auto" | "manual";
 		isEnabled?: number;
 		priceMultiplier?: number;
-	}): Promise<DbQuotaListing> {
-		const id = `listing_${crypto.randomUUID()}`;
+	}): Promise<DbUpstreamKey> {
+		const id = `uk_${crypto.randomUUID()}`;
 
 		await this.db
 			.prepare(
-				`INSERT INTO quota_listings (
+				`INSERT INTO upstream_keys (
 					id, owner_id, provider, api_key,
 					quota, quota_source,
 					is_enabled, price_multiplier,
@@ -36,71 +36,68 @@ export class QuotasDao {
 			)
 			.run();
 
-		const listing = await this.getListing(id, params.owner_id);
-		if (!listing) throw new Error("Failed to retrieve newly added listing");
-		return listing;
+		const key = await this.get(id, params.owner_id);
+		if (!key) throw new Error("Failed to retrieve newly added upstream key");
+		return key;
 	}
 
-	async getListing(
-		id: string,
-		owner_id: string,
-	): Promise<DbQuotaListing | null> {
+	async get(id: string, owner_id: string): Promise<DbUpstreamKey | null> {
 		return this.db
-			.prepare("SELECT * FROM quota_listings WHERE id = ? AND owner_id = ?")
+			.prepare("SELECT * FROM upstream_keys WHERE id = ? AND owner_id = ?")
 			.bind(id, owner_id)
-			.first<DbQuotaListing>();
+			.first<DbUpstreamKey>();
 	}
 
-	async findByApiKey(apiKey: string): Promise<DbQuotaListing | null> {
+	async findByApiKey(apiKey: string): Promise<DbUpstreamKey | null> {
 		return this.db
-			.prepare("SELECT * FROM quota_listings WHERE api_key = ?")
+			.prepare("SELECT * FROM upstream_keys WHERE api_key = ?")
 			.bind(apiKey)
-			.first<DbQuotaListing>();
+			.first<DbUpstreamKey>();
 	}
 
-	async deleteListing(id: string, owner_id: string): Promise<boolean> {
+	async remove(id: string, owner_id: string): Promise<boolean> {
 		const result = await this.db
-			.prepare("DELETE FROM quota_listings WHERE id = ? AND owner_id = ?")
+			.prepare("DELETE FROM upstream_keys WHERE id = ? AND owner_id = ?")
 			.bind(id, owner_id)
 			.run();
 		return result.success && result.meta?.rows_written === 1;
 	}
 
-	/** Returns ALL eligible listings for a provider, sorted by cheapest first then highest quota */
-	async selectListings(
+	/** Returns all eligible upstream keys for a provider, sorted by cheapest multiplier then highest quota */
+	async selectAvailable(
 		provider: string,
 		owner_id: string,
-	): Promise<DbQuotaListing[]> {
+	): Promise<DbUpstreamKey[]> {
 		const res = await this.db
 			.prepare(
-				`SELECT * FROM quota_listings
+				`SELECT * FROM upstream_keys
 				 WHERE provider = ? AND owner_id = ? AND is_enabled = 1 AND health_status != 'dead'
 				 ORDER BY price_multiplier ASC, quota DESC`,
 			)
 			.bind(provider, owner_id)
-			.all<DbQuotaListing>();
+			.all<DbUpstreamKey>();
 		return res.results || [];
 	}
 
-	async getAllListings(owner_id: string): Promise<DbQuotaListing[]> {
+	async getAll(owner_id: string): Promise<DbUpstreamKey[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM quota_listings WHERE owner_id = ?")
+			.prepare("SELECT * FROM upstream_keys WHERE owner_id = ?")
 			.bind(owner_id)
-			.all<DbQuotaListing>();
+			.all<DbUpstreamKey>();
 		return res.results || [];
 	}
 
-	async getGlobalListings(): Promise<DbQuotaListing[]> {
+	async getGlobal(): Promise<DbUpstreamKey[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM quota_listings")
-			.all<DbQuotaListing>();
+			.prepare("SELECT * FROM upstream_keys")
+			.all<DbUpstreamKey>();
 		return res.results || [];
 	}
 
 	async deductQuota(id: string, amount: number): Promise<void> {
 		await this.db
 			.prepare(
-				`UPDATE quota_listings
+				`UPDATE upstream_keys
 				 SET quota = MAX(quota - ?, 0),
 				     health_status = CASE WHEN quota - ? <= 0 THEN 'dead' ELSE health_status END
 				 WHERE id = ?`,
@@ -117,13 +114,13 @@ export class QuotasDao {
 		if (source) {
 			await this.db
 				.prepare(
-					"UPDATE quota_listings SET quota = ?, quota_source = ? WHERE id = ?",
+					"UPDATE upstream_keys SET quota = ?, quota_source = ? WHERE id = ?",
 				)
 				.bind(quota, source, id)
 				.run();
 		} else {
 			await this.db
-				.prepare("UPDATE quota_listings SET quota = ? WHERE id = ?")
+				.prepare("UPDATE upstream_keys SET quota = ? WHERE id = ?")
 				.bind(quota, id)
 				.run();
 		}
@@ -136,7 +133,7 @@ export class QuotasDao {
 	): Promise<void> {
 		await this.db
 			.prepare(
-				"UPDATE quota_listings SET is_enabled = ?, price_multiplier = ? WHERE id = ?",
+				"UPDATE upstream_keys SET is_enabled = ?, price_multiplier = ? WHERE id = ?",
 			)
 			.bind(isEnabled, priceMultiplier, id)
 			.run();
@@ -145,7 +142,7 @@ export class QuotasDao {
 	async reportSuccess(id: string): Promise<void> {
 		await this.db
 			.prepare(
-				"UPDATE quota_listings SET health_status = 'ok', last_health_check = ? WHERE id = ?",
+				"UPDATE upstream_keys SET health_status = 'ok', last_health_check = ? WHERE id = ?",
 			)
 			.bind(Date.now(), id)
 			.run();
@@ -158,31 +155,31 @@ export class QuotasDao {
 				: "degraded";
 		await this.db
 			.prepare(
-				"UPDATE quota_listings SET health_status = ?, last_health_check = ? WHERE id = ?",
+				"UPDATE upstream_keys SET health_status = ?, last_health_check = ? WHERE id = ?",
 			)
 			.bind(status, Date.now(), id)
 			.run();
 	}
 
 	async getStats(owner_id: string): Promise<{
-		totalListings: number;
+		total: number;
 		activeProviders: number;
-		deadListings: number;
+		dead: number;
 		totalQuota: number;
 	}> {
-		const all = await this.getAllListings(owner_id);
+		const all = await this.getAll(owner_id);
 		const providerSet = new Set<string>();
-		let deadListings = 0;
+		let dead = 0;
 		let totalQuota = 0;
-		for (const l of all) {
-			totalQuota += l.quota;
-			if (l.health_status === "dead") deadListings++;
-			else if (l.is_enabled === 1) providerSet.add(l.provider);
+		for (const k of all) {
+			totalQuota += k.quota;
+			if (k.health_status === "dead") dead++;
+			else if (k.is_enabled === 1) providerSet.add(k.provider);
 		}
 		return {
-			totalListings: all.length,
+			total: all.length,
 			activeProviders: providerSet.size,
-			deadListings,
+			dead,
 			totalQuota,
 		};
 	}

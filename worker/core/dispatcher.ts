@@ -7,13 +7,13 @@
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
 import { PricingDao } from "./db/pricing-dao";
-import { QuotasDao } from "./db/quotas-dao";
-import type { DbQuotaListing } from "./db/schema";
+import type { DbUpstreamKey } from "./db/schema";
+import { UpstreamKeysDao } from "./db/upstream-keys-dao";
 import type { ProviderAdapter } from "./providers/interface";
 import { getProvider } from "./providers/registry";
 
 export interface DispatchResult {
-	listing: DbQuotaListing;
+	upstreamKey: DbUpstreamKey;
 	provider: ProviderAdapter;
 	upstreamModel: string;
 	modelPrice: { inputPricePerM: number; outputPricePerM: number };
@@ -22,7 +22,7 @@ export interface DispatchResult {
 /**
  * Returns all viable provider+key candidates for a model, sorted by effective cost.
  * Offerings are sorted by input_price ASC from DB; within each offering,
- * listings are sorted by price_multiplier ASC then quota DESC.
+ * upstream keys are sorted by price_multiplier ASC then quota DESC.
  * Final candidates are globally sorted by true effective cost.
  */
 export async function dispatchAll(
@@ -33,7 +33,7 @@ export async function dispatchAll(
 	if (!model) throw new BadRequestError("Model is required");
 
 	const pricingDao = new PricingDao(db);
-	const quotasDao = new QuotasDao(db);
+	const keysDao = new UpstreamKeysDao(db);
 
 	const offerings = await pricingDao.findByUpstreamId(model);
 	const candidates: DispatchResult[] = [];
@@ -42,19 +42,19 @@ export async function dispatchAll(
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
-		const listings = await quotasDao.selectListings(
+		const upstreamKeys = await keysDao.selectAvailable(
 			offering.provider,
 			owner_id,
 		);
 
-		for (const listing of listings) {
+		for (const upstreamKey of upstreamKeys) {
 			candidates.push({
-				listing,
+				upstreamKey,
 				provider,
 				upstreamModel: offering.upstream_id,
 				modelPrice: {
-					inputPricePerM: offering.input_price * listing.price_multiplier,
-					outputPricePerM: offering.output_price * listing.price_multiplier,
+					inputPricePerM: offering.input_price * upstreamKey.price_multiplier,
+					outputPricePerM: offering.output_price * upstreamKey.price_multiplier,
 				},
 			});
 		}

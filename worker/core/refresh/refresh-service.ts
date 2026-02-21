@@ -5,7 +5,7 @@
  */
 
 import { PricingDao } from "../db/pricing-dao";
-import { QuotasDao } from "../db/quotas-dao";
+import { UpstreamKeysDao } from "../db/upstream-keys-dao";
 import { getAllProviders, getProvider } from "../providers/registry";
 
 export async function refreshAllModels(
@@ -44,17 +44,17 @@ export async function refreshAutoCredits(
 	db: D1Database,
 	cnyUsdRate = 7,
 ): Promise<void> {
-	const dao = new QuotasDao(db);
-	const autos = (await dao.getGlobalListings()).filter(
+	const dao = new UpstreamKeysDao(db);
+	const autos = (await dao.getGlobal()).filter(
 		(k) => k.quota_source === "auto",
 	);
 
 	const results = await Promise.allSettled(
-		autos.map(async (listing) => {
-			const provider = getProvider(listing.provider);
+		autos.map(async (upstreamKey) => {
+			const provider = getProvider(upstreamKey.provider);
 			if (!provider) return;
 
-			const credits = await provider.fetchCredits(listing.api_key);
+			const credits = await provider.fetchCredits(upstreamKey.api_key);
 			if (credits?.remaining == null) return;
 
 			const usd =
@@ -62,7 +62,7 @@ export async function refreshAutoCredits(
 					? credits.remaining / cnyUsdRate
 					: credits.remaining;
 
-			await dao.updateQuota(listing.id, usd, "auto");
+			await dao.updateQuota(upstreamKey.id, usd, "auto");
 		}),
 	);
 

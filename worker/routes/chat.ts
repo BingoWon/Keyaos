@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { recordUsage } from "../core/billing";
-import { QuotasDao } from "../core/db/quotas-dao";
+import { UpstreamKeysDao } from "../core/db/upstream-keys-dao";
 import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
@@ -21,11 +21,16 @@ chatRouter.post("/completions", async (c) => {
 
 	const owner_id = c.get("owner_id");
 	const candidates = await dispatchAll(c.env.DB, model, owner_id);
-	const quotasDao = new QuotasDao(c.env.DB);
+	const keysDao = new UpstreamKeysDao(c.env.DB);
 
 	let lastError: unknown;
 
-	for (const { listing, provider, upstreamModel, modelPrice } of candidates) {
+	for (const {
+		upstreamKey,
+		provider,
+		upstreamModel,
+		modelPrice,
+	} of candidates) {
 		const upstreamBody = {
 			...body,
 			model: upstreamModel,
@@ -34,12 +39,12 @@ chatRouter.post("/completions", async (c) => {
 
 		try {
 			const response = await provider.forwardRequest(
-				listing.api_key,
+				upstreamKey.api_key,
 				upstreamBody,
 			);
 
 			if (!response.ok) {
-				await quotasDao.reportFailure(listing.id, response.status);
+				await keysDao.reportFailure(upstreamKey.id, response.status);
 				lastError = new Error(
 					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
@@ -51,8 +56,8 @@ chatRouter.post("/completions", async (c) => {
 					c.executionCtx.waitUntil(
 						recordUsage(c.env.DB, {
 							ownerId: owner_id,
-							listingId: listing.id,
-							provider: listing.provider,
+							upstreamKeyId: upstreamKey.id,
+							provider: upstreamKey.provider,
 							model: upstreamModel,
 							modelPrice,
 							usage,
@@ -62,16 +67,16 @@ chatRouter.post("/completions", async (c) => {
 					);
 				},
 				onStreamDone: () => {
-					c.executionCtx.waitUntil(quotasDao.reportSuccess(listing.id));
+					c.executionCtx.waitUntil(keysDao.reportSuccess(upstreamKey.id));
 				},
 				onStreamError: () => {
-					c.executionCtx.waitUntil(quotasDao.reportFailure(listing.id));
+					c.executionCtx.waitUntil(keysDao.reportFailure(upstreamKey.id));
 				},
 			});
 
 			return finalResponse;
 		} catch (err) {
-			await quotasDao.reportFailure(listing.id);
+			await keysDao.reportFailure(upstreamKey.id);
 			lastError = err;
 		}
 	}

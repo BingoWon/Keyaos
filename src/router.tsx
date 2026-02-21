@@ -8,7 +8,7 @@ import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
 import { Market } from "./pages/Market";
 import { NotFound } from "./pages/NotFound";
-import { Quotas } from "./pages/Quotas";
+import { UpstreamKeys } from "./pages/UpstreamKeys";
 
 export const router = createBrowserRouter([
 	// Public
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
 			{ index: true, element: <Dashboard /> },
 			{ path: "market", element: <Market /> },
 			{ path: "api-keys", element: <ApiKeys /> },
-			{ path: "quotas", element: <Quotas /> },
+			{ path: "upstream-keys", element: <UpstreamKeys /> },
 			{ path: "ledger", element: <Ledger /> },
 			{ path: "guide", element: <Guide /> },
 		],

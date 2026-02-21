@@ -20,7 +20,7 @@ export function HealthBadge({ status }: HealthBadgeProps) {
 		<span
 			className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${HEALTH_VARIANTS[status]}`}
 		>
-			{t(`listings.status_${status}`)}
+			{t(`upstream_keys.status_${status}`)}
 		</span>
 	);
 }

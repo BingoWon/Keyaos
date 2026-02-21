@@ -9,8 +9,8 @@ import {
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
 import marketRouter from "./routes/market";
-import quotasRouter from "./routes/quotas";
 import systemRouter from "./routes/system";
+import upstreamKeysRouter from "./routes/upstream-keys";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import type { AppEnv, Env } from "./shared/types";
 
@@ -99,7 +99,7 @@ app.use("/v1/*", async (c, next) => {
 });
 
 // ─── Management API ─────────────────────────────────────
-app.route("/api/quotas", quotasRouter);
+app.route("/api/upstream-keys", upstreamKeysRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/market", marketRouter);
 app.route("/api", systemRouter);

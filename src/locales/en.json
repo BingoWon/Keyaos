@@ -14,7 +14,7 @@
 	"nav": {
 		"dashboard": "Dashboard",
 		"market": "Model Market",
-		"quotas": "Quota Listings",
+		"upstream_keys": "Upstream Keys",
 		"api_keys": "API Keys",
 		"ledger": "Ledger",
 		"guide": "Guide",
@@ -33,36 +33,36 @@
 	},
 	"dashboard": {
 		"title": "Overview",
-		"total_listings": "Total Listings",
-		"active_listings": "Active Listings",
-		"total_quota": "Total Supply Quota"
+		"total_keys": "Total Keys",
+		"active_keys": "Active Keys",
+		"total_quota": "Total Quota"
 	},
 	"api_keys": {
 		"title": "API Keys",
-		"subtitle": "Provide downstream client tokens to your users",
+		"subtitle": "Downstream client tokens for your users",
 		"add_new": "Create Key",
 		"name": "Name",
 		"token": "Token",
 		"status": "Status",
 		"created_at": "Created At",
-		"no_data": "No API Keys yet"
+		"no_data": "No API keys yet"
 	},
-	"quotas": {
-		"title": "Quota Listings",
-		"subtitle": "Manage upstream provider capabilities and track supply quotas",
-		"add_new": "Add Quota",
+	"upstream_keys": {
+		"title": "Upstream Keys",
+		"subtitle": "Manage your upstream API keys and track their remaining quotas",
+		"add_new": "Add Key",
 		"provider": "Provider",
-		"key": "Upstream Key",
-		"quota": "Quota Capacity",
+		"api_key": "API Key",
+		"quota": "Remaining Quota",
 		"health": "Health",
 		"added": "Added",
-		"no_data": "No quota listings yet",
+		"no_data": "No upstream keys yet",
 		"status_ok": "OK",
 		"status_degraded": "Degraded",
 		"status_dead": "Dead",
-		"is_listed": "Listing Status",
-		"is_listed_true": "Listed",
-		"is_listed_false": "Delisted",
+		"enabled": "Enabled",
+		"enabled_true": "Enabled",
+		"enabled_false": "Disabled",
 		"price_multiplier": "Price Multiplier",
 		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of standard upstream API cost, requests will deduct {{credited}} Platform Credits."
 	},
@@ -88,7 +88,7 @@
 		"model": "Model",
 		"provider": "Provider",
 		"tokens": "Tokens",
-		"credits_used": "Credits Spend",
+		"credits_used": "Credits Spent",
 		"no_data": "No ledger entries yet"
 	},
 	"guide": {

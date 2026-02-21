@@ -1,9 +1,9 @@
 import {
-	BanknotesIcon,
 	CpuChipIcon,
 	DocumentTextIcon,
 	HomeIcon,
 	KeyIcon,
+	ServerStackIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
@@ -25,7 +25,11 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon },
 		{ name: t("nav.market"), href: "/dashboard/market", icon: CpuChipIcon },
-		{ name: t("nav.quotas"), href: "/dashboard/quotas", icon: BanknotesIcon },
+		{
+			name: t("nav.upstream_keys"),
+			href: "/dashboard/upstream-keys",
+			icon: ServerStackIcon,
+		},
 		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },
 		{
 			name: t("nav.ledger"),

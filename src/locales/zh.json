@@ -14,7 +14,7 @@
 	"nav": {
 		"dashboard": "仪表盘",
 		"market": "模型市场",
-		"quotas": "上游配额",
+		"upstream_keys": "上游 Key",
 		"api_keys": "API 密钥",
 		"ledger": "交易记录",
 		"guide": "快速开始",
@@ -33,9 +33,9 @@
 	},
 	"dashboard": {
 		"title": "概览",
-		"total_listings": "列表总数",
-		"active_listings": "活跃列表",
-		"total_quota": "上游总配额"
+		"total_keys": "Key 总数",
+		"active_keys": "活跃 Key",
+		"total_quota": "总配额"
 	},
 	"api_keys": {
 		"title": "API 密钥",
@@ -47,22 +47,22 @@
 		"created_at": "创建时间",
 		"no_data": "尚无 API 密钥"
 	},
-	"quotas": {
-		"title": "上游配额",
-		"subtitle": "管理上游供应商配额与健康状态",
-		"add_new": "添加配额",
+	"upstream_keys": {
+		"title": "上游 Key",
+		"subtitle": "管理上游 API Key 及其剩余配额",
+		"add_new": "添加 Key",
 		"provider": "供应商",
-		"key": "上游 Key",
+		"api_key": "API Key",
 		"quota": "剩余配额",
 		"health": "健康状态",
 		"added": "添加时间",
-		"no_data": "暂无上游配额",
+		"no_data": "暂无上游 Key",
 		"status_ok": "正常",
 		"status_degraded": "降级",
 		"status_dead": "失效",
-		"is_listed": "挂单状态",
-		"is_listed_true": "已挂单",
-		"is_listed_false": "已摘牌",
+		"enabled": "启用状态",
+		"enabled_true": "已启用",
+		"enabled_false": "已禁用",
 		"price_multiplier": "定价乘数",
 		"price_multiplier_helper": "当前乘数为 {{ratio}}x。每消耗等值 1.00 USD 的标准上游请求时，将从用户余额中扣除 {{credited}} 平台额度 (Credits)。"
 	},
@@ -72,8 +72,8 @@
 		"model": "模型 ID",
 		"provider": "供应商",
 		"name": "显示名称",
-		"input_price": "输入定价 (Input Price)",
-		"output_price": "输出定价 (Output Price)",
+		"input_price": "输入定价",
+		"output_price": "输出定价",
 		"context": "上下文长度",
 		"no_data": "暂无定价数据，请先运行同步。",
 		"sync_now": "同步定价",
@@ -88,7 +88,7 @@
 		"model": "模型",
 		"provider": "供应商",
 		"tokens": "Token 数",
-		"credits_used": "扣除额度 (Credits Spend)",
+		"credits_used": "扣除额度",
 		"no_data": "暂无交易记录"
 	},
 	"guide": {

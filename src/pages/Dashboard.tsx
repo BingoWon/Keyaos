@@ -8,10 +8,9 @@ import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 
 interface Stats {
-	totalListings: number;
+	total: number;
 	activeProviders: number;
-	deadListings: number;
-	deadListings: number;
+	dead: number;
 	totalQuota: number;
 }
 
@@ -29,13 +28,13 @@ export function Dashboard() {
 
 	const cards = [
 		{
-			name: t("dashboard.total_listings"),
-			stat: stats?.totalListings ?? "-",
+			name: t("dashboard.total_keys"),
+			stat: stats?.total ?? "-",
 			icon: KeyIcon,
 		},
 		{
-			name: t("dashboard.active_listings"),
-			stat: stats ? stats.totalListings - stats.deadListings : "-",
+			name: t("dashboard.active_keys"),
+			stat: stats ? stats.total - stats.dead : "-",
 			icon: DocumentCheckIcon,
 		},
 		{

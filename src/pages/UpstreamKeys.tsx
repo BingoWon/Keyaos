@@ -23,7 +23,7 @@ interface ProviderInfo {
 	supportsAutoCredits: boolean;
 }
 
-interface ListingInfo {
+interface UpstreamKeyInfo {
 	id: string;
 	provider: string;
 	keyHint: string;
@@ -35,24 +35,21 @@ interface ListingInfo {
 	addedAt: number;
 }
 
-export function Quotas() {
+export function UpstreamKeys() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
 	const formatDateTime = useFormatDateTime();
 
-	const {
-		data,
-		loading,
-		refetch: fetchListings,
-	} = useFetch<ListingInfo[]>("/api/quotas");
-	const listings = data || [];
+	const { data, loading, refetch } =
+		useFetch<UpstreamKeyInfo[]>("/api/upstream-keys");
+	const keys = data || [];
 
 	const { data: providersData } = useFetch<ProviderInfo[]>("/api/providers");
 	const providers = providersData || [];
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	const [newListing, setNewListing] = useState({
+	const [draft, setDraft] = useState({
 		provider: "openrouter",
 		apiKey: "",
 		quota: "",
@@ -72,7 +69,7 @@ export function Quotas() {
 	});
 
 	const isAutoProvider =
-		providers.find((p) => p.id === newListing.provider)?.supportsAutoCredits ??
+		providers.find((p) => p.id === draft.provider)?.supportsAutoCredits ??
 		false;
 
 	const handleAdd = async (e: React.FormEvent) => {
@@ -80,17 +77,17 @@ export function Quotas() {
 		const tid = toast.loading(t("common.loading"));
 		try {
 			const body: Record<string, unknown> = {
-				provider: newListing.provider,
-				apiKey: newListing.apiKey,
-				isEnabled: newListing.isEnabled ? 1 : 0,
-				priceMultiplier: Number.parseFloat(newListing.priceMultiplier) || 1.0,
+				provider: draft.provider,
+				apiKey: draft.apiKey,
+				isEnabled: draft.isEnabled ? 1 : 0,
+				priceMultiplier: Number.parseFloat(draft.priceMultiplier) || 1.0,
 			};
 
 			if (!isAutoProvider) {
-				body.quota = Number.parseFloat(newListing.quota) || 0;
+				body.quota = Number.parseFloat(draft.quota) || 0;
 			}
 
-			const res = await fetch("/api/quotas", {
+			const res = await fetch("/api/upstream-keys", {
 				method: "POST",
 				headers: await getHeaders(),
 				body: JSON.stringify(body),
@@ -98,7 +95,7 @@ export function Quotas() {
 			const data = await res.json();
 			if (res.ok) {
 				setIsAddOpen(false);
-				setNewListing({
+				setDraft({
 					provider: "openrouter",
 					apiKey: "",
 					quota: "",
@@ -106,7 +103,7 @@ export function Quotas() {
 					priceMultiplier: "1.0",
 				});
 				setShowPassword(false);
-				fetchListings();
+				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(data.error?.message || res.statusText, { id: tid });
@@ -120,9 +117,9 @@ export function Quotas() {
 	const handleUpdateQuota = async (id: string) => {
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/quotas/${id}/quota`, {
+			const res = await fetch(`/api/upstream-keys/${id}/quota`, {
 				method: "PATCH",
-				headers,
+				headers: await getHeaders(),
 				body: JSON.stringify({
 					quota: Number.parseFloat(editQuota) || 0,
 				}),
@@ -130,7 +127,7 @@ export function Quotas() {
 			const data = await res.json();
 			if (res.ok) {
 				setEditingId(null);
-				fetchListings();
+				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(data.error?.message || res.statusText, { id: tid });
@@ -148,14 +145,14 @@ export function Quotas() {
 	) => {
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/quotas/${id}/settings`, {
+			const res = await fetch(`/api/upstream-keys/${id}/settings`, {
 				method: "PATCH",
-				headers,
+				headers: await getHeaders(),
 				body: JSON.stringify({ isEnabled: isEnabled ? 1 : 0, priceMultiplier }),
 			});
 			const data = await res.json();
 			if (res.ok) {
-				fetchListings();
+				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(data.error?.message || res.statusText, { id: tid });
@@ -170,12 +167,12 @@ export function Quotas() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/quotas/${id}`, {
+			const res = await fetch(`/api/upstream-keys/${id}`, {
 				method: "DELETE",
 				headers: await getHeaders(),
 			});
 			if (res.ok) {
-				fetchListings();
+				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(t("common.error"), { id: tid });
@@ -191,10 +188,10 @@ export function Quotas() {
 			<div className="sm:flex sm:items-center">
 				<div className="sm:flex-auto">
 					<h1 className="text-base font-semibold text-gray-900 dark:text-white">
-						{t("quotas.title")}
+						{t("upstream_keys.title")}
 					</h1>
 					<p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-						{t("quotas.subtitle")}
+						{t("upstream_keys.subtitle")}
 					</p>
 				</div>
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -204,7 +201,7 @@ export function Quotas() {
 						className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
-						{t("quotas.add_new")}
+						{t("upstream_keys.add_new")}
 					</button>
 				</div>
 			</div>
@@ -220,13 +217,13 @@ export function Quotas() {
 								htmlFor="provider"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("quotas.provider")}
+								{t("upstream_keys.provider")}
 							</label>
 							<select
 								id="provider"
-								value={newListing.provider}
+								value={draft.provider}
 								onChange={(e) =>
-									setNewListing({ ...newListing, provider: e.target.value })
+									setDraft({ ...draft, provider: e.target.value })
 								}
 								className="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 							>
@@ -242,16 +239,16 @@ export function Quotas() {
 								htmlFor="apiKey"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("quotas.key")}
+								{t("upstream_keys.api_key")}
 							</label>
 							<div className="relative mt-1">
 								<input
 									type={showPassword ? "text" : "password"}
 									id="apiKey"
 									required
-									value={newListing.apiKey}
+									value={draft.apiKey}
 									onChange={(e) =>
-										setNewListing({ ...newListing, apiKey: e.target.value })
+										setDraft({ ...draft, apiKey: e.target.value })
 									}
 									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="sk-..."
@@ -275,7 +272,7 @@ export function Quotas() {
 									htmlFor="quota"
 									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 								>
-									Quota
+									{t("upstream_keys.quota")}
 								</label>
 								<input
 									type="number"
@@ -283,9 +280,9 @@ export function Quotas() {
 									required
 									min="0"
 									step="0.01"
-									value={newListing.quota}
+									value={draft.quota}
 									onChange={(e) =>
-										setNewListing({ ...newListing, quota: e.target.value })
+										setDraft({ ...draft, quota: e.target.value })
 									}
 									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="10.00"
@@ -297,7 +294,7 @@ export function Quotas() {
 								htmlFor="priceMultiplier"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("quotas.price_multiplier")}
+								{t("upstream_keys.price_multiplier")}
 							</label>
 							<input
 								type="number"
@@ -305,22 +302,22 @@ export function Quotas() {
 								min="0.1"
 								step="0.01"
 								required
-								value={newListing.priceMultiplier}
+								value={draft.priceMultiplier}
 								onChange={(e) =>
-									setNewListing({
-										...newListing,
+									setDraft({
+										...draft,
 										priceMultiplier: e.target.value,
 									})
 								}
 								className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 								placeholder="1.0"
 							/>
-							{newListing.priceMultiplier && (
+							{draft.priceMultiplier && (
 								<p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-									{t("quotas.price_multiplier_helper", {
-										ratio: newListing.priceMultiplier,
+									{t("upstream_keys.price_multiplier_helper", {
+										ratio: draft.priceMultiplier,
 										credited: (
-											1.0 * (Number.parseFloat(newListing.priceMultiplier) || 0)
+											1.0 * (Number.parseFloat(draft.priceMultiplier) || 0)
 										).toFixed(2),
 									})}
 								</p>
@@ -359,43 +356,43 @@ export function Quotas() {
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.provider")}
+											{t("upstream_keys.provider")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.key")}
+											{t("upstream_keys.api_key")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.quota")}
+											{t("upstream_keys.quota")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.price_multiplier")}
+											{t("upstream_keys.price_multiplier")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.health")}
+											{t("upstream_keys.health")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.added")}
+											{t("upstream_keys.added")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.is_listed")}
+											{t("upstream_keys.enabled")}
 										</th>
 										<th
 											scope="col"
@@ -412,42 +409,42 @@ export function Quotas() {
 												<PageLoader />
 											</td>
 										</tr>
-									) : listings.length === 0 ? (
+									) : keys.length === 0 ? (
 										<tr>
 											<td
 												colSpan={8}
 												className="py-4 text-center text-sm text-gray-500 dark:text-gray-400"
 											>
-												{t("quotas.no_data")}
+												{t("upstream_keys.no_data")}
 											</td>
 										</tr>
 									) : (
-										listings.map((listing) => (
+										keys.map((key) => (
 											<tr
-												key={listing.id}
-												className={listing.isEnabled ? "" : "opacity-50"}
+												key={key.id}
+												className={key.isEnabled ? "" : "opacity-50"}
 											>
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
-													{listing.provider}
+													{key.provider}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
 													<div className="flex items-center gap-2">
-														{listing.keyHint}
+														{key.keyHint}
 														<button
 															type="button"
 															onClick={() => {
-																navigator.clipboard.writeText(listing.keyHint);
+																navigator.clipboard.writeText(key.keyHint);
 																toast.success("Copied to clipboard");
 															}}
 															className="text-gray-400 hover:text-indigo-500"
-															title="Copy upstream key hint"
+															title="Copy key hint"
 														>
 															<ClipboardDocumentIcon className="size-4" />
 														</button>
 													</div>
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
-													{editingId === listing.id ? (
+													{editingId === key.id ? (
 														<div className="flex items-center gap-2">
 															<input
 																type="number"
@@ -459,7 +456,7 @@ export function Quotas() {
 															/>
 															<button
 																type="button"
-																onClick={() => handleUpdateQuota(listing.id)}
+																onClick={() => handleUpdateQuota(key.id)}
 																className="text-green-600 hover:text-green-900 dark:text-green-400"
 																title={t("common.save")}
 															>
@@ -476,15 +473,15 @@ export function Quotas() {
 														</div>
 													) : (
 														<span
-															className={`font-mono flex items-center ${listing.quota > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
+															className={`font-mono flex items-center ${key.quota > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
 														>
-															{listing.quota.toFixed(2)}
-															{listing.quotaSource === "manual" && (
+															{key.quota.toFixed(2)}
+															{key.quotaSource === "manual" && (
 																<button
 																	type="button"
 																	onClick={() => {
-																		setEditingId(listing.id);
-																		setEditQuota(listing.quota.toString());
+																		setEditingId(key.id);
+																		setEditQuota(key.quota.toString());
 																	}}
 																	className="ml-2 text-gray-400 hover:text-indigo-500"
 																	title={t("common.edit")}
@@ -496,7 +493,7 @@ export function Quotas() {
 													)}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-													{editingSettingsId === listing.id ? (
+													{editingSettingsId === key.id ? (
 														<div className="flex items-center gap-2">
 															<input
 																type="number"
@@ -512,8 +509,8 @@ export function Quotas() {
 																type="button"
 																onClick={() => {
 																	handleUpdateSettings(
-																		listing.id,
-																		listing.isEnabled,
+																		key.id,
+																		key.isEnabled,
 																		Number.parseFloat(editPriceMultiplier),
 																	);
 																	setEditingSettingsId(null);
@@ -534,13 +531,13 @@ export function Quotas() {
 														</div>
 													) : (
 														<div className="flex items-center font-mono text-gray-900 dark:text-white">
-															{listing.priceMultiplier}x
+															{key.priceMultiplier}x
 															<button
 																type="button"
 																onClick={() => {
-																	setEditingSettingsId(listing.id);
+																	setEditingSettingsId(key.id);
 																	setEditPriceMultiplier(
-																		listing.priceMultiplier.toString(),
+																		key.priceMultiplier.toString(),
 																	);
 																}}
 																className="ml-2 text-gray-400 hover:text-indigo-500"
@@ -552,33 +549,33 @@ export function Quotas() {
 													)}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-													<HealthBadge status={listing.health} />
+													<HealthBadge status={key.health} />
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-													{formatDateTime(listing.addedAt)}
+													{formatDateTime(key.addedAt)}
 												</td>
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													<label className="inline-flex items-center cursor-pointer">
 														<input
 															type="checkbox"
 															className="sr-only peer"
-															checked={listing.isEnabled}
+															checked={key.isEnabled}
 															onChange={(e) =>
 																handleUpdateSettings(
-																	listing.id,
+																	key.id,
 																	e.target.checked,
-																	listing.priceMultiplier,
+																	key.priceMultiplier,
 																)
 															}
 														/>
 														<div className="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
 														<span
-															className={`ml-2 text-xs font-medium ${listing.isEnabled ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"}`}
+															className={`ml-2 text-xs font-medium ${key.isEnabled ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"}`}
 														>
 															{t(
-																listing.isEnabled
-																	? "quotas.is_listed_true"
-																	: "quotas.is_listed_false",
+																key.isEnabled
+																	? "upstream_keys.enabled_true"
+																	: "upstream_keys.enabled_false",
 															)}
 														</span>
 													</label>
@@ -586,7 +583,7 @@ export function Quotas() {
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
 													<button
 														type="button"
-														onClick={() => handleDelete(listing.id)}
+														onClick={() => handleDelete(key.id)}
 														className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
 													>
 														{t("common.delete")}

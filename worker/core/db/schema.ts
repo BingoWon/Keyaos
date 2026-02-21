@@ -6,7 +6,7 @@ export interface DbApiKey {
 	created_at: number;
 }
 
-export interface DbQuotaListing {
+export interface DbUpstreamKey {
 	id: string;
 	owner_id: string;
 	provider: string;
@@ -35,7 +35,7 @@ export interface DbModelPricing {
 export interface DbLedgerEntry {
 	id: string;
 	owner_id: string;
-	listing_id: string;
+	upstream_key_id: string;
 	provider: string;
 	model: string;
 	input_tokens: number;

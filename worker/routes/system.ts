@@ -1,14 +1,14 @@
 import { Hono } from "hono";
 import { LedgerDao } from "../core/db/ledger-dao";
-import { QuotasDao } from "../core/db/quotas-dao";
+import { UpstreamKeysDao } from "../core/db/upstream-keys-dao";
 import { getAllProviders } from "../core/providers/registry";
 import type { AppEnv } from "../shared/types";
 
 const systemRouter = new Hono<AppEnv>();
 
 systemRouter.get("/pool/stats", async (c) => {
-	const quotasDao = new QuotasDao(c.env.DB);
-	return c.json(await quotasDao.getStats(c.get("owner_id")));
+	const dao = new UpstreamKeysDao(c.env.DB);
+	return c.json(await dao.getStats(c.get("owner_id")));
 });
 
 systemRouter.get("/providers", (c) => {
@@ -27,7 +27,7 @@ systemRouter.get("/ledger", async (c) => {
 	return c.json({
 		data: ledger.map((tx) => ({
 			id: tx.id,
-			listingId: tx.listing_id,
+			upstreamKeyId: tx.upstream_key_id,
 			provider: tx.provider,
 			model: tx.model,
 			inputTokens: tx.input_tokens,
