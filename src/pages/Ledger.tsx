@@ -5,7 +5,7 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 
 interface LedgerEntry {
 	id: string;
-	upstreamKeyId: string;
+	credentialId: string;
 	provider: string;
 	model: string;
 	inputTokens: number;

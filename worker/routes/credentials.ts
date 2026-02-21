@@ -1,14 +1,14 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { UpstreamKeysDao } from "../core/db/upstream-keys-dao";
+import { CredentialsDao } from "../core/db/credentials-dao";
 import { getAllProviders, getProvider } from "../core/providers/registry";
 import { ApiError, BadRequestError } from "../shared/errors";
 import type { AppEnv } from "../shared/types";
 import { parse } from "../shared/validate";
 
-function maskKey(key: string): string {
-	if (key.length <= 12) return "•".repeat(key.length);
-	return `${key.slice(0, 10)}•••${key.slice(-3)}`;
+function maskSecret(secret: string): string {
+	if (secret.length <= 12) return "•".repeat(secret.length);
+	return `${secret.slice(0, 10)}•••${secret.slice(-3)}`;
 }
 
 function toQuota(
@@ -19,9 +19,9 @@ function toQuota(
 	return currency === "CNY" ? amount / cnyRate : amount;
 }
 
-const AddKeyBody = z.object({
+const AddCredentialBody = z.object({
 	provider: z.string().min(1, "provider is required"),
-	apiKey: z.string().min(1, "apiKey is required"),
+	secret: z.string().min(1, "secret is required"),
 	quota: z.number().positive().optional(),
 	isEnabled: z.number().int().min(0).max(1).optional(),
 	priceMultiplier: z.number().positive().optional(),
@@ -36,11 +36,11 @@ const UpdateSettingsBody = z.object({
 	priceMultiplier: z.number().positive().optional(),
 });
 
-const upstreamKeysRouter = new Hono<AppEnv>();
+const credentialsRouter = new Hono<AppEnv>();
 
-upstreamKeysRouter.post("/", async (c) => {
+credentialsRouter.post("/", async (c) => {
 	const body = parse(
-		AddKeyBody,
+		AddCredentialBody,
 		await c.req.json().catch(() => {
 			throw new BadRequestError("Invalid JSON body");
 		}),
@@ -56,42 +56,46 @@ upstreamKeysRouter.post("/", async (c) => {
 		);
 	}
 
-	const isValid = await provider.validateKey(body.apiKey);
+	const isValid = await provider.validateKey(body.secret);
 	if (!isValid) {
 		throw new BadRequestError(
-			`Invalid API key for ${body.provider}. The key was rejected by the provider.`,
+			`Invalid credential for ${body.provider}. The secret was rejected by the provider.`,
 		);
 	}
 
-	const dao = new UpstreamKeysDao(c.env.DB);
-	const existing = await dao.findByApiKey(body.apiKey);
+	const dao = new CredentialsDao(c.env.DB);
+	const existing = await dao.findBySecret(body.secret);
 	if (existing) {
-		throw new BadRequestError("This API key has already been added.");
+		throw new BadRequestError("This credential has already been added.");
 	}
 
-	let quota = 0;
-	let quotaSource: "auto" | "manual" = "manual";
+	const authType = provider.info.authType ?? "api_key";
+	let quota: number | null = null;
+	let quotaSource: "auto" | "manual" | null = null;
 
 	if (provider.info.supportsAutoCredits) {
 		quotaSource = "auto";
 		const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-		const upstream = await provider.fetchCredits(body.apiKey);
+		const upstream = await provider.fetchCredits(body.secret);
 		if (upstream?.remaining != null) {
 			quota = toQuota(upstream.remaining, provider.info.currency, cnyRate);
 		}
-	} else {
-		if (body.quota == null || body.quota <= 0) {
-			throw new BadRequestError(
-				`${body.provider} does not support automatic detection. Please provide a "quota" value.`,
-			);
-		}
+	} else if (authType === "oauth") {
+		// Subscription-based provider — no quota concept
+	} else if (body.quota != null && body.quota > 0) {
 		quota = body.quota;
+		quotaSource = "manual";
+	} else {
+		throw new BadRequestError(
+			`${body.provider} does not support automatic quota detection. Please provide a "quota" value.`,
+		);
 	}
 
-	const upstreamKey = await dao.add({
+	const credential = await dao.add({
 		owner_id: c.get("owner_id"),
 		provider: body.provider,
-		apiKey: body.apiKey,
+		authType,
+		secret: body.secret,
 		quota,
 		quotaSource,
 		isEnabled: body.isEnabled,
@@ -100,52 +104,53 @@ upstreamKeysRouter.post("/", async (c) => {
 
 	return c.json(
 		{
-			id: upstreamKey.id,
-			provider: upstreamKey.provider,
-			keyHint: maskKey(upstreamKey.api_key),
-			quota: upstreamKey.quota,
-			quotaSource: upstreamKey.quota_source,
-			health: upstreamKey.health_status,
-			message: "Upstream key added",
+			id: credential.id,
+			provider: credential.provider,
+			secretHint: maskSecret(credential.secret),
+			quota: credential.quota,
+			quotaSource: credential.quota_source,
+			health: credential.health_status,
+			message: "Credential added",
 		},
 		201,
 	);
 });
 
-upstreamKeysRouter.get("/", async (c) => {
-	const dao = new UpstreamKeysDao(c.env.DB);
+credentialsRouter.get("/", async (c) => {
+	const dao = new CredentialsDao(c.env.DB);
 	const all = await dao.getAll(c.get("owner_id"));
 	return c.json({
-		data: all.map((k) => ({
-			id: k.id,
-			provider: k.provider,
-			keyHint: maskKey(k.api_key),
-			quota: k.quota,
-			quotaSource: k.quota_source,
-			health: k.health_status,
-			isEnabled: k.is_enabled === 1,
-			priceMultiplier: k.price_multiplier,
-			addedAt: k.added_at,
+		data: all.map((cred) => ({
+			id: cred.id,
+			provider: cred.provider,
+			authType: cred.auth_type,
+			secretHint: maskSecret(cred.secret),
+			quota: cred.quota,
+			quotaSource: cred.quota_source,
+			health: cred.health_status,
+			isEnabled: cred.is_enabled === 1,
+			priceMultiplier: cred.price_multiplier,
+			addedAt: cred.added_at,
 		})),
 	});
 });
 
-upstreamKeysRouter.patch("/:id/quota", async (c) => {
+credentialsRouter.patch("/:id/quota", async (c) => {
 	const id = c.req.param("id");
-	const dao = new UpstreamKeysDao(c.env.DB);
+	const dao = new CredentialsDao(c.env.DB);
 	const owner_id = c.get("owner_id");
-	const upstreamKey = await dao.get(id, owner_id);
+	const credential = await dao.get(id, owner_id);
 
-	if (!upstreamKey) {
+	if (!credential) {
 		throw new ApiError(
-			"Upstream key not found",
+			"Credential not found",
 			404,
 			"not_found",
-			"upstream_key_not_found",
+			"credential_not_found",
 		);
 	}
 
-	if (upstreamKey.quota_source === "auto") {
+	if (credential.quota_source === "auto") {
 		throw new BadRequestError(
 			"Cannot manually set quota for auto-detected providers. System fetches them automatically.",
 		);
@@ -162,30 +167,30 @@ upstreamKeysRouter.patch("/:id/quota", async (c) => {
 
 	if (
 		body.quota > 0 &&
-		upstreamKey.is_enabled === 0 &&
-		upstreamKey.health_status !== "dead"
+		credential.is_enabled === 0 &&
+		credential.health_status !== "dead"
 	) {
-		await dao.updateSettings(id, 1, upstreamKey.price_multiplier);
+		await dao.updateSettings(id, 1, credential.price_multiplier);
 	}
 
 	return c.json({ id, quota: body.quota, message: "Quota updated" });
 });
 
-upstreamKeysRouter.delete("/:id", async (c) => {
-	const dao = new UpstreamKeysDao(c.env.DB);
+credentialsRouter.delete("/:id", async (c) => {
+	const dao = new CredentialsDao(c.env.DB);
 	const success = await dao.remove(c.req.param("id"), c.get("owner_id"));
 	if (!success) {
 		throw new ApiError(
-			"Upstream key not found",
+			"Credential not found",
 			404,
 			"not_found",
-			"upstream_key_not_found",
+			"credential_not_found",
 		);
 	}
-	return c.json({ message: "Upstream key removed", id: c.req.param("id") });
+	return c.json({ message: "Credential removed", id: c.req.param("id") });
 });
 
-upstreamKeysRouter.patch("/:id/settings", async (c) => {
+credentialsRouter.patch("/:id/settings", async (c) => {
 	const id = c.req.param("id");
 	const body = parse(
 		UpdateSettingsBody,
@@ -194,19 +199,19 @@ upstreamKeysRouter.patch("/:id/settings", async (c) => {
 		}),
 	);
 
-	const dao = new UpstreamKeysDao(c.env.DB);
-	const upstreamKey = await dao.get(id, c.get("owner_id"));
-	if (!upstreamKey) {
+	const dao = new CredentialsDao(c.env.DB);
+	const credential = await dao.get(id, c.get("owner_id"));
+	if (!credential) {
 		throw new ApiError(
-			"Upstream key not found",
+			"Credential not found",
 			404,
 			"not_found",
-			"upstream_key_not_found",
+			"credential_not_found",
 		);
 	}
 
-	const isEnabled = body.isEnabled ?? upstreamKey.is_enabled;
-	const priceMultiplier = body.priceMultiplier ?? upstreamKey.price_multiplier;
+	const isEnabled = body.isEnabled ?? credential.is_enabled;
+	const priceMultiplier = body.priceMultiplier ?? credential.price_multiplier;
 
 	await dao.updateSettings(id, isEnabled, priceMultiplier);
 
@@ -218,32 +223,32 @@ upstreamKeysRouter.patch("/:id/settings", async (c) => {
 	});
 });
 
-upstreamKeysRouter.get("/:id/quota", async (c) => {
+credentialsRouter.get("/:id/quota", async (c) => {
 	const id = c.req.param("id");
-	const dao = new UpstreamKeysDao(c.env.DB);
-	const upstreamKey = await dao.get(id, c.get("owner_id"));
+	const dao = new CredentialsDao(c.env.DB);
+	const credential = await dao.get(id, c.get("owner_id"));
 
-	if (!upstreamKey) {
+	if (!credential) {
 		throw new ApiError(
-			"Upstream key not found",
+			"Credential not found",
 			404,
 			"not_found",
-			"upstream_key_not_found",
+			"credential_not_found",
 		);
 	}
 
 	const result: Record<string, unknown> = {
-		id: upstreamKey.id,
-		provider: upstreamKey.provider,
-		quota: upstreamKey.quota,
-		quotaSource: upstreamKey.quota_source,
+		id: credential.id,
+		provider: credential.provider,
+		quota: credential.quota,
+		quotaSource: credential.quota_source,
 	};
 
-	if (upstreamKey.quota_source === "auto") {
-		const provider = getProvider(upstreamKey.provider);
+	if (credential.quota_source === "auto") {
+		const provider = getProvider(credential.provider);
 		if (provider) {
 			const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-			const upstream = await provider.fetchCredits(upstreamKey.api_key);
+			const upstream = await provider.fetchCredits(credential.secret);
 			if (upstream?.remaining != null) {
 				const newQuota = toQuota(
 					upstream.remaining,
@@ -264,4 +269,4 @@ upstreamKeysRouter.get("/:id/quota", async (c) => {
 	return c.json(result);
 });
 
-export default upstreamKeysRouter;
+export default credentialsRouter;

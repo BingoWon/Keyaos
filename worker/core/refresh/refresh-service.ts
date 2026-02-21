@@ -4,8 +4,8 @@
  * Parallelizes provider fetches via Promise.allSettled for faster refresh cycles.
  */
 
+import { CredentialsDao } from "../db/credentials-dao";
 import { PricingDao } from "../db/pricing-dao";
-import { UpstreamKeysDao } from "../db/upstream-keys-dao";
 import { getAllProviders, getProvider } from "../providers/registry";
 
 export async function refreshAllModels(
@@ -44,17 +44,17 @@ export async function refreshAutoCredits(
 	db: D1Database,
 	cnyUsdRate = 7,
 ): Promise<void> {
-	const dao = new UpstreamKeysDao(db);
+	const dao = new CredentialsDao(db);
 	const autos = (await dao.getGlobal()).filter(
-		(k) => k.quota_source === "auto",
+		(c) => c.quota_source === "auto",
 	);
 
 	const results = await Promise.allSettled(
-		autos.map(async (upstreamKey) => {
-			const provider = getProvider(upstreamKey.provider);
+		autos.map(async (credential) => {
+			const provider = getProvider(credential.provider);
 			if (!provider) return;
 
-			const credits = await provider.fetchCredits(upstreamKey.api_key);
+			const credits = await provider.fetchCredits(credential.secret);
 			if (credits?.remaining == null) return;
 
 			const usd =
@@ -62,7 +62,7 @@ export async function refreshAutoCredits(
 					? credits.remaining / cnyUsdRate
 					: credits.remaining;
 
-			await dao.updateQuota(upstreamKey.id, usd, "auto");
+			await dao.updateQuota(credential.id, usd, "auto");
 		}),
 	);
 

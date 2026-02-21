@@ -10,9 +10,9 @@ const DEEPINFRA_KEY =
 
 const ADMIN_TOKEN = "admin";
 
-let orKeyId: string;
-let zenmuxKeyId: string;
-let deepinfraKeyId: string;
+let orCredId: string;
+let zenmuxCredId: string;
+let deepinfraCredId: string;
 
 test("Health check", async () => {
 	const res = await fetch(`${API_BASE}/health`);
@@ -21,23 +21,23 @@ test("Health check", async () => {
 	assert.strictEqual(data.status, "ok");
 });
 
-test("Add OpenRouter key", async () => {
-	const res = await fetch(`${API_BASE}/api/upstream-keys`, {
+test("Add OpenRouter credential", async () => {
+	const res = await fetch(`${API_BASE}/api/credentials`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${ADMIN_TOKEN}`,
 		},
-		body: JSON.stringify({ provider: "openrouter", apiKey: OR_KEY }),
+		body: JSON.stringify({ provider: "openrouter", secret: OR_KEY }),
 	});
 	const data = await res.json();
 	console.log("Add OR:", data);
 	assert.strictEqual(res.status, 201);
-	orKeyId = data.id;
+	orCredId = data.id;
 });
 
-test("Add ZenMux key", async () => {
-	const res = await fetch(`${API_BASE}/api/upstream-keys`, {
+test("Add ZenMux credential", async () => {
+	const res = await fetch(`${API_BASE}/api/credentials`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -45,18 +45,18 @@ test("Add ZenMux key", async () => {
 		},
 		body: JSON.stringify({
 			provider: "zenmux",
-			apiKey: ZENMUX_KEY,
+			secret: ZENMUX_KEY,
 			quota: 10,
 		}),
 	});
 	const data = await res.json();
 	console.log("Add ZenMux:", data);
 	assert.strictEqual(res.status, 201);
-	zenmuxKeyId = data.id;
+	zenmuxCredId = data.id;
 });
 
-test("Add DeepInfra key", async () => {
-	const res = await fetch(`${API_BASE}/api/upstream-keys`, {
+test("Add DeepInfra credential", async () => {
+	const res = await fetch(`${API_BASE}/api/credentials`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -64,18 +64,18 @@ test("Add DeepInfra key", async () => {
 		},
 		body: JSON.stringify({
 			provider: "deepinfra",
-			apiKey: DEEPINFRA_KEY,
+			secret: DEEPINFRA_KEY,
 			quota: 10,
 		}),
 	});
 	const data = await res.json();
 	console.log("Add DeepInfra:", data);
 	assert.strictEqual(res.status, 201);
-	deepinfraKeyId = data.id;
+	deepinfraCredId = data.id;
 });
 
-test("Get all upstream keys", async () => {
-	const res = await fetch(`${API_BASE}/api/upstream-keys`, {
+test("Get all credentials", async () => {
+	const res = await fetch(`${API_BASE}/api/credentials`, {
 		headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
 	});
 	const data = await res.json();
@@ -85,7 +85,7 @@ test("Get all upstream keys", async () => {
 
 test("Check OpenRouter quota (auto)", async () => {
 	const res = await fetch(
-		`${API_BASE}/api/upstream-keys/${orKeyId}/quota`,
+		`${API_BASE}/api/credentials/${orCredId}/quota`,
 		{ headers: { Authorization: `Bearer ${ADMIN_TOKEN}` } },
 	);
 	const data = await res.json();

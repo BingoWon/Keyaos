@@ -1,13 +1,13 @@
 import { Hono } from "hono";
+import { CredentialsDao } from "../core/db/credentials-dao";
 import { LedgerDao } from "../core/db/ledger-dao";
-import { UpstreamKeysDao } from "../core/db/upstream-keys-dao";
 import { getAllProviders } from "../core/providers/registry";
 import type { AppEnv } from "../shared/types";
 
 const systemRouter = new Hono<AppEnv>();
 
 systemRouter.get("/pool/stats", async (c) => {
-	const dao = new UpstreamKeysDao(c.env.DB);
+	const dao = new CredentialsDao(c.env.DB);
 	return c.json(await dao.getStats(c.get("owner_id")));
 });
 
@@ -16,6 +16,7 @@ systemRouter.get("/providers", (c) => {
 		id: p.info.id,
 		name: p.info.name,
 		supportsAutoCredits: p.info.supportsAutoCredits,
+		authType: p.info.authType ?? "api_key",
 	}));
 	return c.json({ data: providers });
 });
@@ -27,7 +28,7 @@ systemRouter.get("/ledger", async (c) => {
 	return c.json({
 		data: ledger.map((tx) => ({
 			id: tx.id,
-			upstreamKeyId: tx.upstream_key_id,
+			credentialId: tx.credential_id,
 			provider: tx.provider,
 			model: tx.model,
 			inputTokens: tx.input_tokens,

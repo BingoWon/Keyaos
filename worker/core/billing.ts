@@ -1,14 +1,14 @@
 /**
- * Billing — usage tracking + upstream key credit deduction
+ * Billing — usage tracking + upstream credential credit deduction
  */
 
+import { CredentialsDao } from "./db/credentials-dao";
 import { LedgerDao } from "./db/ledger-dao";
-import { UpstreamKeysDao } from "./db/upstream-keys-dao";
 import type { TokenUsage } from "./utils/stream";
 
 export interface BillingParams {
 	ownerId: string;
-	upstreamKeyId: string;
+	credentialId: string;
 	provider: string;
 	model: string;
 	modelPrice: { inputPricePerM: number; outputPricePerM: number };
@@ -19,7 +19,7 @@ export async function recordUsage(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
-	const { ownerId, upstreamKeyId, provider, model, modelPrice, usage } = params;
+	const { ownerId, credentialId, provider, model, modelPrice, usage } = params;
 	const totalTokens =
 		usage.total_tokens || usage.prompt_tokens + usage.completion_tokens;
 
@@ -41,7 +41,7 @@ export async function recordUsage(
 	try {
 		await new LedgerDao(db).createEntry({
 			owner_id: ownerId,
-			upstream_key_id: upstreamKeyId,
+			credential_id: credentialId,
 			provider,
 			model,
 			input_tokens: usage.prompt_tokens,
@@ -49,7 +49,7 @@ export async function recordUsage(
 			credits_used: creditsToDeduct,
 		});
 
-		await new UpstreamKeysDao(db).deductQuota(upstreamKeyId, creditsToDeduct);
+		await new CredentialsDao(db).deductQuota(credentialId, creditsToDeduct);
 	} catch (err) {
 		console.error("[BILLING] Ledger write failed:", err);
 	}

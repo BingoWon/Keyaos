@@ -28,12 +28,12 @@ export function Dashboard() {
 
 	const cards = [
 		{
-			name: t("dashboard.total_keys"),
+			name: t("dashboard.total_credentials"),
 			stat: stats?.total ?? "-",
 			icon: KeyIcon,
 		},
 		{
-			name: t("dashboard.active_keys"),
+			name: t("dashboard.active_credentials"),
 			stat: stats ? stats.total - stats.dead : "-",
 			icon: DocumentCheckIcon,
 		},

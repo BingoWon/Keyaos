@@ -41,9 +41,9 @@ curl -s https://<base>/v1/models \
 - 是否有独立的 pricing API？
 - 还是只能从官方文档 hardcode？
 
-#### B. Key 验证 — 检测 API Key 是否有效
+#### B. 凭证验证 — 检测 API Key 是否有效
 
-> 用户添加上游 Key 时，平台需要即时验证其有效性。
+> 用户添加上游凭证时，平台需要即时验证其有效性。
 
 常见策略（按优先级）：
 
@@ -54,19 +54,19 @@ curl -s https://<base>/v1/models \
 | 轻量级查询 | 余额查询等只读 API | DeepSeek `/user/balance` |
 
 ```bash
-# 测试有效 Key
+# 测试有效凭证
 curl -s -o /dev/null -w "%{http_code}" \
   https://<base>/v1/models -H "Authorization: Bearer $VALID_KEY"
 # 应返回 200
 
-# 测试无效 Key
+# 测试无效凭证
 curl -s -o /dev/null -w "%{http_code}" \
   https://<base>/v1/models -H "Authorization: Bearer invalid-key-xxx"
 # 应返回 401 或 403
 ```
 
 关注点：
-- 无效 Key 返回的 HTTP 状态码是什么？（401? 403? 其他?）
+- 无效凭证返回的 HTTP 状态码是什么？（401? 403? 其他?）
 - 是否有 rate limit 问题（频繁验证是否会被封？）
 
 #### C. 余额查询 — 查询剩余额度
@@ -133,7 +133,7 @@ Base URL: _______________
 货币: USD / CNY
 模型列表 API: GET /v1/models → 包含定价? ___
 定价格式: _______________
-Key 验证方式: _______________
+凭证验证方式: _______________
 余额查询 API: _______________ (无则填 N/A)
 supportsAutoCredits: true / false
 费用返回: usage.cost / usage.estimated_cost / 无 (需自行计算)
@@ -224,7 +224,7 @@ function parseNewProviderCredits(
 | `currency` | ✅ | `"USD"` 或 `"CNY"` |
 | `supportsAutoCredits` | ✅ | 是否支持自动余额查询 |
 | `creditsUrl` | 条件 | 余额查询 URL（`supportsAutoCredits=true` 时必填） |
-| `validationUrl` | 可选 | Key 验证 URL（默认 `baseUrl + /models`） |
+| `validationUrl` | 可选 | 凭证验证 URL（默认 `baseUrl + /models`） |
 | `modelsUrl` | 可选 | 模型列表 URL（默认 `baseUrl + /models`） |
 | `parseModels` | 可选 | 自定义模型解析（默认提取 id + name，价格为 0） |
 | `parseCredits` | 可选 | 自定义余额解析 |
@@ -249,25 +249,25 @@ curl http://localhost:8787/v1/models | jq '.data[] | select(.owned_by == "newpro
 - [ ] `context_length` 是否正确
 - [ ] model ID 是否与上游一致
 
-### 3.2 Key 添加验证
+### 3.2 凭证添加验证
 
 ```bash
-# 用有效 Key 测试
-curl -X POST http://localhost:8787/api/upstream-keys \
+# 用有效凭证测试
+curl -X POST http://localhost:8787/api/credentials \
   -H "Authorization: Bearer admin" \
   -H "Content-Type: application/json" \
-  -d '{"provider": "newprovider", "apiKey": "sk-valid-xxx"}'
+  -d '{"provider": "newprovider", "secret": "sk-valid-xxx"}'
 
-# 用无效 Key 测试（应该报错）
-curl -X POST http://localhost:8787/api/upstream-keys \
+# 用无效凭证测试（应该报错）
+curl -X POST http://localhost:8787/api/credentials \
   -H "Authorization: Bearer admin" \
   -H "Content-Type: application/json" \
-  -d '{"provider": "newprovider", "apiKey": "invalid-key"}'
+  -d '{"provider": "newprovider", "secret": "invalid-key"}'
 ```
 
 验证要点：
-- [ ] 有效 Key → 201，返回 key info
-- [ ] 无效 Key → 400，错误消息清晰
+- [ ] 有效凭证 → 201，返回 secretHint
+- [ ] 无效凭证 → 400，错误消息清晰（如 credential_not_found）
 - [ ] 如果 `supportsAutoCredits=true`，`quotaSource` 应为 `"auto"`，`quota` 应 > 0
 - [ ] 如果 `supportsAutoCredits=false`，不提供 quota 时应报错
 
@@ -303,19 +303,19 @@ curl -X POST http://localhost:8787/v1/chat/completions \
 - [ ] 流式：SSE 帧正常输出，以 `[DONE]` 结尾
 - [ ] 日志中 `[BILLING]` 无错误
 - [ ] `ledger` 中出现新记录（`credits_used > 0`）
-- [ ] 对应 Key 的 `quota` 有扣减
+- [ ] 对应凭证的 `quota` 有扣减
 
 ### 3.4 健康状态验证
 
 ```bash
-# 查看 Key 状态
-curl http://localhost:8787/api/upstream-keys \
+# 查看凭证状态
+curl http://localhost:8787/api/credentials \
   -H "Authorization: Bearer admin" | jq '.data[] | {id, provider, health, quota}'
 ```
 
 验证要点：
 - [ ] 成功请求后 `health` 为 `"ok"`
-- [ ] Key 失效后（如余额耗尽）`health` 变为 `"dead"`
+- [ ] 凭证失效后（如余额耗尽）`health` 变为 `"dead"`
 - [ ] 上游临时错误后 `health` 变为 `"degraded"`
 
 ### 3.5 余额自动刷新验证（仅 autoCredits 供应商）
@@ -326,7 +326,7 @@ curl -X POST http://localhost:8787/api/refresh \
   -H "Authorization: Bearer admin"
 
 # 检查 quota 是否更新
-curl http://localhost:8787/api/upstream-keys \
+curl http://localhost:8787/api/credentials \
   -H "Authorization: Bearer admin" | jq '.data[] | select(.provider == "newprovider") | {quota, quotaSource}'
 ```
 
@@ -359,9 +359,9 @@ curl http://localhost:8787/api/ledger?limit=5 \
 ### GET /models 响应片段
 （粘贴 1-2 个 model 对象的完整 JSON，展示定价字段结构）
 
-### Key 验证
-- 有效 Key: HTTP <status>
-- 无效 Key: HTTP <status>，响应体: ...
+### 凭证验证
+- 有效凭证: HTTP <status>
+- 无效凭证: HTTP <status>，响应体: ...
 
 ### 余额查询响应（如有）
 （完整 JSON 响应）
@@ -385,7 +385,7 @@ curl http://localhost:8787/api/ledger?limit=5 \
 - 验证日期: YYYY-MM-DD
 - 验证人: ...
 - 定价同步: ✅ / ❌
-- Key 添加: ✅ / ❌
+- 凭证添加: ✅ / ❌
 - 非流式 Chat: ✅ / ❌
 - 流式 Chat: ✅ / ❌
 - 计费入账: ✅ / ❌
@@ -407,7 +407,7 @@ Base URL: https://openrouter.ai/api/v1
 兼容性: OpenAI Compatible ✅
 货币: USD
 模型列表: GET /v1/models → 包含定价 ✅ (pricing.prompt / pricing.completion, USD/token 字符串)
-Key 验证: GET /api/v1/auth/key (专用端点)
+凭证验证: GET /api/v1/auth/key (专用端点)
 余额查询: GET /api/v1/credits → { data: { total_credits, total_usage } }
 supportsAutoCredits: true
 费用返回: usage.cost (真实 USD)
@@ -421,7 +421,7 @@ Base URL: https://zenmux.ai/api/v1
 兼容性: OpenAI Compatible ✅
 货币: USD
 模型列表: GET /v1/models → 包含定价 ✅ (pricings.prompt[].value / pricings.completion[].value, USD/M tokens)
-Key 验证: GET /api/v1/generation?id=_validate (专用端点)
+凭证验证: GET /api/v1/generation?id=_validate (专用端点)
 余额查询: 无
 supportsAutoCredits: false
 费用返回: 无 (需自行计算)
@@ -435,7 +435,7 @@ Base URL: https://api.deepinfra.com/v1/openai
 兼容性: OpenAI Compatible ✅
 货币: USD
 模型列表: GET /v1/openai/models → 包含定价 ✅ (metadata.pricing.input_tokens / output_tokens, USD/M tokens)
-Key 验证: GET /v1/openai/models (通用 fallback)
+凭证验证: GET /v1/openai/models (通用 fallback)
 余额查询: 无
 supportsAutoCredits: false
 费用返回: usage.estimated_cost (估算 USD)
@@ -449,7 +449,7 @@ Base URL: https://api.deepseek.com
 兼容性: OpenAI Compatible ✅
 货币: CNY
 模型列表: GET /models → 不包含定价 ❌ (需 hardcode，参考官方 Pricing 页面)
-Key 验证: GET /models (通用 fallback)
+凭证验证: GET /models (通用 fallback)
 余额查询: GET /user/balance → { balance_infos: [{ currency, total_balance }] }
 supportsAutoCredits: true
 费用返回: 无 (需自行计算)

@@ -26,8 +26,8 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon },
 		{ name: t("nav.market"), href: "/dashboard/market", icon: CpuChipIcon },
 		{
-			name: t("nav.upstream_keys"),
-			href: "/dashboard/upstream-keys",
+			name: t("nav.credentials"),
+			href: "/dashboard/credentials",
 			icon: ServerStackIcon,
 		},
 		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },

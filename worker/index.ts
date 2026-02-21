@@ -2,15 +2,16 @@ import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
+import { configureProviders } from "./core/providers/registry";
 import {
 	refreshAllModels,
 	refreshAutoCredits,
 } from "./core/refresh/refresh-service";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
+import credentialsRouter from "./routes/credentials";
 import marketRouter from "./routes/market";
 import systemRouter from "./routes/system";
-import upstreamKeysRouter from "./routes/upstream-keys";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import type { AppEnv, Env } from "./shared/types";
 
@@ -27,6 +28,11 @@ app.onError((err, c) => {
 		{ error: { message: "Internal server error", type: "server_error" } },
 		500,
 	);
+});
+
+app.use("*", (c, next) => {
+	configureProviders(c.env);
+	return next();
 });
 
 app.use(
@@ -99,7 +105,7 @@ app.use("/v1/*", async (c, next) => {
 });
 
 // ─── Management API ─────────────────────────────────────
-app.route("/api/upstream-keys", upstreamKeysRouter);
+app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/market", marketRouter);
 app.route("/api", systemRouter);

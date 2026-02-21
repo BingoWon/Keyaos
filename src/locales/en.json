@@ -14,7 +14,7 @@
 	"nav": {
 		"dashboard": "Dashboard",
 		"market": "Model Market",
-		"upstream_keys": "Upstream Keys",
+		"credentials": "Credentials",
 		"api_keys": "API Keys",
 		"ledger": "Ledger",
 		"guide": "Guide",
@@ -33,8 +33,8 @@
 	},
 	"dashboard": {
 		"title": "Overview",
-		"total_keys": "Total Keys",
-		"active_keys": "Active Keys",
+		"total_credentials": "Total Credentials",
+		"active_credentials": "Active Credentials",
 		"total_quota": "Total Quota"
 	},
 	"api_keys": {
@@ -47,16 +47,16 @@
 		"created_at": "Created At",
 		"no_data": "No API keys yet"
 	},
-	"upstream_keys": {
-		"title": "Upstream Keys",
-		"subtitle": "Manage your upstream API keys and track their remaining quotas",
-		"add_new": "Add Key",
+	"credentials": {
+		"title": "Upstream Credentials",
+		"subtitle": "Manage upstream provider credentials and track their remaining quotas",
+		"add_new": "Add Credential",
 		"provider": "Provider",
-		"api_key": "API Key",
+		"secret": "Secret",
 		"quota": "Remaining Quota",
 		"health": "Health",
 		"added": "Added",
-		"no_data": "No upstream keys yet",
+		"no_data": "No credentials yet",
 		"status_ok": "OK",
 		"status_degraded": "Degraded",
 		"status_dead": "Dead",
@@ -64,7 +64,8 @@
 		"enabled_true": "Enabled",
 		"enabled_false": "Disabled",
 		"price_multiplier": "Price Multiplier",
-		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of standard upstream API cost, requests will deduct {{credited}} Platform Credits."
+		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of standard upstream API cost, requests will deduct {{credited}} Platform Credits.",
+		"no_quota": "N/A"
 	},
 	"market": {
 		"title": "Model Market",

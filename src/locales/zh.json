@@ -14,7 +14,7 @@
 	"nav": {
 		"dashboard": "仪表盘",
 		"market": "模型市场",
-		"upstream_keys": "上游 Key",
+		"credentials": "上游凭证",
 		"api_keys": "API 密钥",
 		"ledger": "交易记录",
 		"guide": "快速开始",
@@ -33,8 +33,8 @@
 	},
 	"dashboard": {
 		"title": "概览",
-		"total_keys": "Key 总数",
-		"active_keys": "活跃 Key",
+		"total_credentials": "凭证总数",
+		"active_credentials": "活跃凭证",
 		"total_quota": "总配额"
 	},
 	"api_keys": {
@@ -47,16 +47,16 @@
 		"created_at": "创建时间",
 		"no_data": "尚无 API 密钥"
 	},
-	"upstream_keys": {
-		"title": "上游 Key",
-		"subtitle": "管理上游 API Key 及其剩余配额",
-		"add_new": "添加 Key",
+	"credentials": {
+		"title": "上游凭证",
+		"subtitle": "管理上游供应商凭证及其剩余配额",
+		"add_new": "添加凭证",
 		"provider": "供应商",
-		"api_key": "API Key",
+		"secret": "密钥",
 		"quota": "剩余配额",
 		"health": "健康状态",
 		"added": "添加时间",
-		"no_data": "暂无上游 Key",
+		"no_data": "暂无上游凭证",
 		"status_ok": "正常",
 		"status_degraded": "降级",
 		"status_dead": "失效",
@@ -64,7 +64,8 @@
 		"enabled_true": "已启用",
 		"enabled_false": "已禁用",
 		"price_multiplier": "定价乘数",
-		"price_multiplier_helper": "当前乘数为 {{ratio}}x。每消耗等值 1.00 USD 的标准上游请求时，将从用户余额中扣除 {{credited}} 平台额度 (Credits)。"
+		"price_multiplier_helper": "当前乘数为 {{ratio}}x。每消耗等值 1.00 USD 的标准上游请求时，将从用户余额中扣除 {{credited}} 平台额度 (Credits)。",
+		"no_quota": "无"
 	},
 	"market": {
 		"title": "模型市场",

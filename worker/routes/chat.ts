@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { recordUsage } from "../core/billing";
-import { UpstreamKeysDao } from "../core/db/upstream-keys-dao";
+import { CredentialsDao } from "../core/db/credentials-dao";
 import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
@@ -21,12 +21,12 @@ chatRouter.post("/completions", async (c) => {
 
 	const owner_id = c.get("owner_id");
 	const candidates = await dispatchAll(c.env.DB, model, owner_id);
-	const keysDao = new UpstreamKeysDao(c.env.DB);
+	const credDao = new CredentialsDao(c.env.DB);
 
 	let lastError: unknown;
 
 	for (const {
-		upstreamKey,
+		credential,
 		provider,
 		upstreamModel,
 		modelPrice,
@@ -39,12 +39,12 @@ chatRouter.post("/completions", async (c) => {
 
 		try {
 			const response = await provider.forwardRequest(
-				upstreamKey.api_key,
+				credential.secret,
 				upstreamBody,
 			);
 
 			if (!response.ok) {
-				await keysDao.reportFailure(upstreamKey.id, response.status);
+				await credDao.reportFailure(credential.id, response.status);
 				lastError = new Error(
 					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
@@ -56,8 +56,8 @@ chatRouter.post("/completions", async (c) => {
 					c.executionCtx.waitUntil(
 						recordUsage(c.env.DB, {
 							ownerId: owner_id,
-							upstreamKeyId: upstreamKey.id,
-							provider: upstreamKey.provider,
+							credentialId: credential.id,
+							provider: credential.provider,
 							model: upstreamModel,
 							modelPrice,
 							usage,
@@ -67,16 +67,16 @@ chatRouter.post("/completions", async (c) => {
 					);
 				},
 				onStreamDone: () => {
-					c.executionCtx.waitUntil(keysDao.reportSuccess(upstreamKey.id));
+					c.executionCtx.waitUntil(credDao.reportSuccess(credential.id));
 				},
 				onStreamError: () => {
-					c.executionCtx.waitUntil(keysDao.reportFailure(upstreamKey.id));
+					c.executionCtx.waitUntil(credDao.reportFailure(credential.id));
 				},
 			});
 
 			return finalResponse;
 		} catch (err) {
-			await keysDao.reportFailure(upstreamKey.id);
+			await credDao.reportFailure(credential.id);
 			lastError = err;
 		}
 	}

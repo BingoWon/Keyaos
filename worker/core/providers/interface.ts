@@ -5,6 +5,7 @@ export interface ProviderInfo {
 	name: string;
 	supportsAutoCredits: boolean;
 	currency: "USD" | "CNY";
+	authType?: "api_key" | "oauth";
 }
 
 export interface ProviderCredits {

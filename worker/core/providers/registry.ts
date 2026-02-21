@@ -199,9 +199,22 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 
 // ─── Registry API ───────────────────────────────────────────
 
+import { GeminiCliAdapter } from "./gemini-cli-adapter";
+
 const adapters = new Map<string, ProviderAdapter>();
 for (const config of PROVIDER_CONFIGS) {
 	adapters.set(config.id, new OpenAICompatibleAdapter(config));
+}
+
+const geminiCliAdapter = new GeminiCliAdapter();
+adapters.set("gemini-cli", geminiCliAdapter);
+
+/** Call once per request to inject env-dependent config into adapters. */
+export function configureProviders(env: {
+	GEMINI_OAUTH_CLIENT_ID?: string;
+	GEMINI_OAUTH_CLIENT_SECRET?: string;
+}) {
+	geminiCliAdapter.configure(env);
 }
 
 export function getProvider(id: string): ProviderAdapter | undefined {

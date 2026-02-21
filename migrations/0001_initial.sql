@@ -11,25 +11,27 @@ CREATE TABLE IF NOT EXISTS api_keys (
 
 CREATE INDEX IF NOT EXISTS idx_api_keys_owner ON api_keys(owner_id);
 
--- 2. 上游 Key (用户托管的上游供应商凭证及余额)
-CREATE TABLE IF NOT EXISTS upstream_keys (
+-- 2. 上游凭证 (用户托管的上游供应商凭证及配额)
+CREATE TABLE IF NOT EXISTS upstream_credentials (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
-    provider TEXT NOT NULL,                -- openrouter / zenmux / deepinfra
-    api_key TEXT NOT NULL,                 -- 上游 API Key
-    quota REAL DEFAULT 0.0,                -- 上游剩余额度
-    quota_source TEXT DEFAULT 'manual',    -- 'auto' | 'manual'
-    is_enabled INTEGER DEFAULT 1,          -- 1 = enabled, 0 = disabled
+    provider TEXT NOT NULL,                     -- openrouter / gemini-cli / ...
+    auth_type TEXT NOT NULL DEFAULT 'api_key',  -- 'api_key' | 'oauth'
+    secret TEXT NOT NULL,                       -- API Key 或 refresh_token
+    quota REAL,                                 -- NULL = 无余额概念 (订阅制)
+    quota_source TEXT,                          -- 'auto' | 'manual' | NULL
+    is_enabled INTEGER DEFAULT 1,
     price_multiplier REAL NOT NULL DEFAULT 1.0,
-    health_status TEXT DEFAULT 'unknown',  -- ok / degraded / dead / unknown
+    health_status TEXT DEFAULT 'unknown',       -- ok / degraded / dead / unknown
     last_health_check INTEGER,
+    metadata TEXT,                              -- JSON: 供应商特有数据
     added_at INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_upstream_keys_owner ON upstream_keys(owner_id);
+CREATE INDEX IF NOT EXISTS idx_credentials_owner ON upstream_credentials(owner_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_upstream_keys_api_key
-    ON upstream_keys(api_key);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_secret
+    ON upstream_credentials(secret);
 
 -- 3. 模型定价目录 (各供应商模型实时价格，Cron 自动刷新)
 CREATE TABLE IF NOT EXISTS model_pricing (
@@ -54,7 +56,7 @@ CREATE INDEX IF NOT EXISTS idx_model_pricing_routing
 CREATE TABLE IF NOT EXISTS ledger (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
-    upstream_key_id TEXT NOT NULL,          -- 消耗的上游 Key ID
+    credential_id TEXT NOT NULL,            -- 消耗的上游凭证 ID
     provider TEXT NOT NULL,
     model TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,

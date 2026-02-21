@@ -11,14 +11,14 @@ export class LedgerDao {
 		await this.db
 			.prepare(
 				`INSERT INTO ledger (
-					id, owner_id, upstream_key_id, provider, model,
+					id, owner_id, credential_id, provider, model,
 					input_tokens, output_tokens, credits_used, created_at
 				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
 				tx.owner_id,
-				tx.upstream_key_id,
+				tx.credential_id,
 				tx.provider,
 				tx.model,
 				tx.input_tokens,

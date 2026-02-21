@@ -2,13 +2,13 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthGuard } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
+import { Credentials } from "./pages/Credentials";
 import { Dashboard } from "./pages/Dashboard";
 import { Guide } from "./pages/Guide";
 import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
 import { Market } from "./pages/Market";
 import { NotFound } from "./pages/NotFound";
-import { UpstreamKeys } from "./pages/UpstreamKeys";
 
 export const router = createBrowserRouter([
 	// Public
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
 			{ index: true, element: <Dashboard /> },
 			{ path: "market", element: <Market /> },
 			{ path: "api-keys", element: <ApiKeys /> },
-			{ path: "upstream-keys", element: <UpstreamKeys /> },
+			{ path: "credentials", element: <Credentials /> },
 			{ path: "ledger", element: <Ledger /> },
 			{ path: "guide", element: <Guide /> },
 		],
