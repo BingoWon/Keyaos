@@ -227,9 +227,7 @@ Gemini CLI 等 OAuth 供应商依赖 Google 的 "installed app" OAuth 模型，�
 
 **有定价 API 的供应商**（OpenRouter、ZenMux、DeepInfra）：Cron 自动从上游 `/models` 端点拉取最新数据写入 D1，JSON 层不涉及。
 
-**有模型 API 但无定价的供应商**（OAIPro）：Cron 自动拉取模型列表，`parseModels` 中进行 ID 映射和过滤，价格记录为 0。
-
-**无 API 的供应商**（DeepSeek、Gemini CLI、Google AI Studio）：模型和定价维护在 `models/*.json`，由 `registry.ts` 的 `parseModels` 在同步时读取并写入 D1。更新流程：修改 JSON → commit → Cron 或手动 `/api/models/sync` 写入 D1。
+**无定价 API 的供应商**（DeepSeek、Gemini CLI、Google AI Studio、OAIPro）：模型维护在 `models/*.json`，由 `registry.ts` 的 `parseModels` 在同步时读取并写入 D1。更新流程：运行生成脚本（如 `scripts/fetch-oaipro-models.mjs`）或手动修改 JSON → commit → Cron 或手动 `/api/models/sync` 写入 D1。
 
 ### 安全的差集停用
 

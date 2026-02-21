@@ -511,6 +511,6 @@ Base URL: https://api.oaipro.com/v1
 supportsAutoCredits: false
 费用返回: 无 (需自行计算)
 流式 usage: 支持 stream_options ✅
-特殊事项: API 聚合分发平台，模型 ID 为扁平格式 (gpt-4o-mini)，parseModels 中映射为 openai/gpt-4o-mini 以对齐聚合; 仅保留 OpenAI + Anthropic 系列
+特殊事项: API 聚合分发平台; /models 需认证, 通过 scripts/fetch-oaipro-models.mjs 脚本生成静态 JSON; 模型 ID 扁平格式, 脚本自动映射为 vendor/model 以对齐聚合; 仅保留 OpenAI + Anthropic 系列
 详细档案: docs/providers/oaipro.md
 ```

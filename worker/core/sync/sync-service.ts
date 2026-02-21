@@ -14,20 +14,10 @@ export async function syncAllModels(
 	cnyUsdRate = 7,
 ): Promise<void> {
 	const dao = new PricingDao(db);
-	const credDao = new CredentialsDao(db);
-
-	const allCreds = await credDao.getGlobal();
-	const secretByProvider = new Map<string, string>();
-	for (const c of allCreds) {
-		if (c.is_enabled && !secretByProvider.has(c.provider)) {
-			secretByProvider.set(c.provider, c.secret);
-		}
-	}
 
 	const results = await Promise.allSettled(
 		getAllProviders().map(async (provider) => {
-			const secret = secretByProvider.get(provider.info.id);
-			const models = await provider.fetchModels(cnyUsdRate, secret);
+			const models = await provider.fetchModels(cnyUsdRate);
 			if (models.length === 0) {
 				console.warn(`[SYNC] ${provider.info.id}: 0 models, skipping`);
 				return;

@@ -112,19 +112,14 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		}
 	}
 
-	async fetchModels(cnyUsdRate = 7, secret?: string): Promise<ParsedModel[]> {
+	async fetchModels(cnyUsdRate = 7): Promise<ParsedModel[]> {
 		if (this.config.staticModels && this.config.parseModels) {
 			return this.config.parseModels({}, cnyUsdRate);
 		}
 
 		const url = this.config.modelsUrl || `${this.config.baseUrl}/models`;
 		try {
-			const headers: Record<string, string> = {
-				...this.config.extraHeaders,
-			};
-			if (secret) headers.Authorization = `Bearer ${secret}`;
-
-			const res = await fetch(url, { headers });
+			const res = await fetch(url);
 			if (!res.ok) return [];
 			const raw = (await res.json()) as Record<string, unknown>;
 			if (this.config.parseModels) {

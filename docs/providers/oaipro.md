@@ -22,7 +22,8 @@ supportsAutoCredits: false
 OAIPro 是 API 聚合分发平台（类似 Keyaos 本身），代理多家上游的模型。支持 OpenAI 和 Anthropic 系列，不支持 Google Gemini。
 
 模型 ID 使用**扁平格式**（如 `gpt-4o-mini`、`claude-sonnet-4-20250514`），不带 `vendor/` 前缀。
-这与 OpenRouter/DeepInfra 的 `vendor/model` 命名规范不同，**无法直接与其他供应商的同模型聚合**。
+模型列表通过 `scripts/fetch-oaipro-models.mjs` 脚本生成静态 JSON（`worker/core/models/oaipro.json`），
+脚本自动完成 vendor 前缀映射和非 chat 模型过滤。
 
 ## 可用模型（共 87 个）
 
@@ -141,11 +142,18 @@ data: [DONE]
 `stream_options: { include_usage: true }` 有效。usage 出现在 `[DONE]` 前的独立帧中。
 流式 chunk 中含非标准字段 `obfuscation`（可忽略）。
 
-## 模型 ID 格式问题
+## 模型更新流程
 
-OAIPro 模型 ID 为扁平格式（`gpt-4o-mini`），而 OpenRouter/DeepInfra 等使用 `vendor/model` 格式（`openai/gpt-4o-mini`）。
+```bash
+# 从 OAIPro API 重新拉取模型列表（需要 .env.local 中配置 OAIPRO_KEY）
+node scripts/fetch-oaipro-models.mjs
 
-这意味着同一模型在不同供应商的 `model_id` 不同，前端聚合需要额外的 ID 映射逻辑。
+# 脚本自动完成：
+# 1. 从 /v1/models 拉取全量列表
+# 2. 过滤：仅保留 OpenAI (gpt/chatgpt/o-series) + Anthropic (claude)
+# 3. 映射：扁平 ID → vendor/model 格式 (gpt-4o-mini → openai/gpt-4o-mini)
+# 4. 输出：worker/core/models/oaipro.json
+```
 
 ## 已知问题与注意事项
 

@@ -7,6 +7,7 @@
 
 import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
+import oaiproModels from "../models/oaipro.json";
 import { GeminiCliAdapter } from "./gemini-cli-adapter";
 import type {
 	ParsedModel,
@@ -107,41 +108,19 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 	return results;
 }
 
-/** OAIPro: reseller with flat IDs, no pricing — map to canonical vendor/model format */
-function parseOAIProModels(raw: Record<string, unknown>): ParsedModel[] {
-	const data = raw.data as Record<string, unknown>[] | undefined;
-	if (!data) return [];
-	const results: ParsedModel[] = [];
-
-	for (const m of data) {
-		const id = m.id as string;
-		if (!id) continue;
-
-		let vendor: string | null = null;
-		if (/^(gpt|chatgpt|o\d)/.test(id)) vendor = "openai";
-		else if (id.startsWith("claude")) vendor = "anthropic";
-		if (!vendor) continue;
-
-		const canonicalId = `${vendor}/${id}`;
-		results.push({
-			id: `oaipro:${canonicalId}`,
-			provider: "oaipro",
-			model_id: canonicalId,
-			name: null,
-			input_price: 0,
-			output_price: 0,
-			context_length: null,
-			is_active: 1,
-		});
-	}
-	return results;
-}
-
 // ─── Static parsers (read from models/*.json, no HTTP) ──────
+
+interface StaticModelEntry {
+	id: string;
+	name: string | null;
+	input_usd: number;
+	output_usd: number;
+	context_length: number | null;
+}
 
 function parseStaticUsdModels(
 	provider: string,
-	models: typeof googleAIStudioModels,
+	models: StaticModelEntry[],
 ): ParsedModel[] {
 	return models.map((m) => ({
 		id: `${provider}:${m.id}`,
@@ -228,8 +207,9 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://api.oaipro.com/v1",
 		currency: "USD",
 		supportsAutoCredits: false,
+		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: parseOAIProModels,
+		parseModels: () => parseStaticUsdModels("oaipro", oaiproModels),
 	},
 ];
 
