@@ -5,6 +5,8 @@
  * Native-protocol providers (e.g. Gemini CLI): register separately below.
  */
 
+import deepseekModels from "../models/deepseek.json";
+import googleAIStudioModels from "../models/google-ai-studio.json";
 import { GeminiCliAdapter } from "./gemini-cli-adapter";
 import type {
 	ParsedModel,
@@ -17,7 +19,7 @@ import {
 	type OpenAICompatibleConfig,
 } from "./openai-compatible";
 
-// ─── Custom parsers ─────────────────────────────────────────
+// ─── Dynamic parsers (parse upstream API response) ──────────
 
 /** OpenRouter: pricing.prompt/completion are USD per token (strings) */
 function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
@@ -105,36 +107,19 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 	return results;
 }
 
-/** Google AI Studio: pricing from models/google-ai-studio.json */
-import googleAIStudioModels from "../models/google-ai-studio.json";
+// ─── Static parsers (read from models/*.json, no HTTP) ──────
 
-function parseGoogleAIStudioModels(): ParsedModel[] {
-	return googleAIStudioModels.map((m) => ({
-		id: `google-ai-studio:${m.upstream_id}`,
-		provider: "google-ai-studio",
+function parseStaticUsdModels(
+	provider: string,
+	models: typeof googleAIStudioModels,
+): ParsedModel[] {
+	return models.map((m) => ({
+		id: `${provider}:${m.upstream_id}`,
+		provider,
 		upstream_id: m.upstream_id,
 		display_name: m.display_name,
 		input_price: dollarsToCentsPerM(m.input_usd),
 		output_price: dollarsToCentsPerM(m.output_usd),
-		context_length: m.context_length,
-		is_active: 1,
-	}));
-}
-
-/** DeepSeek: pricing from models/deepseek.json (CNY, converted at runtime) */
-import deepseekModels from "../models/deepseek.json";
-
-function parseDeepSeekModels(
-	_raw: Record<string, unknown>,
-	cnyUsdRate: number,
-): ParsedModel[] {
-	return deepseekModels.map((m) => ({
-		id: `deepseek:${m.upstream_id}`,
-		provider: "deepseek",
-		upstream_id: m.upstream_id,
-		display_name: m.display_name,
-		input_price: Math.round((m.input_cny / cnyUsdRate) * 100),
-		output_price: Math.round((m.output_cny / cnyUsdRate) * 100),
 		context_length: m.context_length,
 		is_active: 1,
 	}));
@@ -188,11 +173,12 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		id: "deepseek",
 		name: "DeepSeek",
 		baseUrl: "https://api.deepseek.com",
-		currency: "CNY",
+		currency: "USD",
 		supportsAutoCredits: true,
 		creditsUrl: "https://api.deepseek.com/user/balance",
 		parseCredits: parseDeepSeekCredits,
-		parseModels: parseDeepSeekModels,
+		staticModels: true,
+		parseModels: () => parseStaticUsdModels("deepseek", deepseekModels),
 	},
 	{
 		id: "google-ai-studio",
@@ -200,7 +186,9 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
 		currency: "USD",
 		supportsAutoCredits: false,
-		parseModels: () => parseGoogleAIStudioModels(),
+		staticModels: true,
+		parseModels: () =>
+			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
 	},
 ];
 

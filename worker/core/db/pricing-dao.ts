@@ -4,7 +4,7 @@ export class PricingDao {
 	constructor(private db: D1Database) {}
 
 	async upsertPricing(
-		quotes: Omit<DbModelPricing, "refreshed_at">[],
+		models: Omit<DbModelPricing, "refreshed_at">[],
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
@@ -19,15 +19,15 @@ export class PricingDao {
 			   refreshed_at = excluded.refreshed_at`,
 		);
 
-		const batch = quotes.map((q) =>
+		const batch = models.map((m) =>
 			stmt.bind(
-				q.id,
-				q.provider,
-				q.upstream_id,
-				q.display_name,
-				q.input_price,
-				q.output_price,
-				q.context_length,
+				m.id,
+				m.provider,
+				m.upstream_id,
+				m.display_name,
+				m.input_price,
+				m.output_price,
+				m.context_length,
 				now,
 			),
 		);

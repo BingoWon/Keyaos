@@ -100,12 +100,6 @@ app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/models", modelsRouter);
 app.route("/api", systemRouter);
-app.post("/api/models/sync", async (c) => {
-	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-	await syncAllModels(c.env.DB, rate);
-	await syncAutoCredits(c.env.DB, rate);
-	return c.json({ message: "Sync completed" });
-});
 
 // ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);

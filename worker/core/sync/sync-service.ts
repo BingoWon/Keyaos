@@ -67,7 +67,7 @@ export async function syncAutoCredits(
 
 	for (const r of results) {
 		if (r.status === "rejected") {
-			console.error("[SYNC] credential refresh failed:", r.reason);
+			console.error("[SYNC] credential sync failed:", r.reason);
 		}
 	}
 }

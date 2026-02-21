@@ -15,10 +15,13 @@ export interface OpenAICompatibleConfig {
 	validationUrl?: string;
 	modelsUrl?: string;
 	parseCredits?: (json: Record<string, unknown>) => ProviderCredits | null;
+	/** Dynamic: parse upstream API response. Static: return hardcoded models (raw is ignored). */
 	parseModels?: (
 		raw: Record<string, unknown>,
 		cnyUsdRate: number,
 	) => ParsedModel[];
+	/** When true, parseModels uses static JSON data — skip the upstream /models HTTP fetch. */
+	staticModels?: boolean;
 	extraHeaders?: Record<string, string>;
 }
 
@@ -108,13 +111,15 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 	}
 
 	async fetchModels(cnyUsdRate = 7): Promise<ParsedModel[]> {
-		const url = this.config.modelsUrl || `${this.config.baseUrl}/models`;
+		if (this.config.staticModels && this.config.parseModels) {
+			return this.config.parseModels({}, cnyUsdRate);
+		}
 
+		const url = this.config.modelsUrl || `${this.config.baseUrl}/models`;
 		try {
 			const res = await fetch(url);
 			if (!res.ok) return [];
 			const raw = (await res.json()) as Record<string, unknown>;
-
 			if (this.config.parseModels) {
 				return this.config.parseModels(raw, cnyUsdRate);
 			}
