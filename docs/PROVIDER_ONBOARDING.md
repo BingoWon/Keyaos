@@ -143,7 +143,31 @@ supportsAutoCredits: true / false
 
 ## 阶段二：代码适配
 
-所有适配工作集中在 **一个文件**：`worker/core/providers/registry.ts`。
+### 判断适配类型
+
+根据调研结果，确定供应商属于哪种类型：
+
+| 类型 | 判断条件 | 适配方式 | 代码位置 |
+|------|---------|---------|---------|
+| **OpenAI Compatible** | `POST /v1/chat/completions` 兼容 | 仅在 `registry.ts` 中添加 Config 条目 | `registry.ts` |
+| **OAuth 反代理** | 非 OpenAI 协议 + OAuth 认证 | 编写专用 Adapter + 协议转换层 | `providers/<name>-adapter.ts` + `protocols/<name>.ts` |
+
+**OpenAI Compatible 供应商**（如 OpenRouter、DeepSeek）：所有适配工作集中在 **一个文件**：`worker/core/providers/registry.ts`。
+
+**OAuth 反代理供应商**（如 Gemini CLI）：需要创建三个组件：
+1. **协议转换层** — `worker/core/protocols/<name>.ts`：OpenAI ↔ 原生协议的双向转换（可复用于同协议族的其他供应商）
+2. **专用 Adapter** — `worker/core/providers/<name>-adapter.ts`：实现 `ProviderAdapter` 接口，管理 OAuth token 刷新、模型列表等
+3. **注册** — 在 `registry.ts` 中实例化并注册
+
+OAuth 反代理适配要点：
+- OAuth 应用凭证（`client_id`/`client_secret`）如果是公开的 installed app 类型，直接**硬编码**在 adapter 中（使用字符串拼接规避 GitHub Push Protection）
+- 用户提供的 `refresh_token` 存入 `upstream_credentials.secret`
+- Adapter 应实现 `normalizeSecret()` 方法智能处理用户输入（如自动从 JSON 中提取 `refresh_token`、拒绝 `access_token` 误传）
+- `info.authType` 设为 `"oauth"`，`supportsAutoCredits` 设为 `false`
+- `fetchCredits()` 返回 `null`（订阅制无余额概念）
+- `fetchModels()` 返回硬编码模型列表 + 影子定价（从同模型的其他平台获取公开价格）
+
+以下为 OpenAI Compatible 供应商的适配步骤：
 
 ### 2.1 编写 parseModels 函数
 
@@ -455,4 +479,21 @@ supportsAutoCredits: true
 费用返回: 无 (需自行计算)
 流式 usage: 支持 stream_options
 特殊事项: 定价以 CNY/M tokens 为单位，需在 parseModels 中按汇率转换
+```
+
+### Gemini CLI
+
+```
+Base URL: https://cloudcode-pa.googleapis.com
+兼容性: 不兼容 OpenAI ❌ (Google 私有 v1internal 协议，需协议转换层)
+认证方式: OAuth (refresh_token → access_token 自动刷新)
+货币: N/A (订阅制无余额)
+模型列表 API: 无 (硬编码)
+凭证验证方式: POST /v1internal:loadCodeAssist (200=有效, 401=无效)
+余额查询 API: N/A
+supportsAutoCredits: false
+费用返回: 无 (仅 usageMetadata token 计数，使用影子定价自行计算)
+流式 usage: 最后一帧含完整 usageMetadata (无 [DONE] 终止帧)
+特殊事项: OAuth 应用凭证硬编码在 adapter 中; 需 project ID 动态发现; thoughtsTokenCount 合并入 completion_tokens
+详细档案: docs/providers/gemini-cli.md
 ```

@@ -2,7 +2,6 @@ import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
-import { configureProviders } from "./core/providers/registry";
 import {
 	refreshAllModels,
 	refreshAutoCredits,
@@ -28,11 +27,6 @@ app.onError((err, c) => {
 		{ error: { message: "Internal server error", type: "server_error" } },
 		500,
 	);
-});
-
-app.use("*", (c, next) => {
-	configureProviders(c.env);
-	return next();
 });
 
 app.use(
@@ -152,7 +146,6 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<void> {
-		configureProviders(env);
 		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
 		ctx.waitUntil(
 			Promise.all([

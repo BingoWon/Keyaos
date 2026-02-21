@@ -206,16 +206,7 @@ for (const config of PROVIDER_CONFIGS) {
 	adapters.set(config.id, new OpenAICompatibleAdapter(config));
 }
 
-const geminiCliAdapter = new GeminiCliAdapter();
-adapters.set("gemini-cli", geminiCliAdapter);
-
-/** Call once per request to inject env-dependent config into adapters. */
-export function configureProviders(env: {
-	GEMINI_OAUTH_CLIENT_ID?: string;
-	GEMINI_OAUTH_CLIENT_SECRET?: string;
-}) {
-	geminiCliAdapter.configure(env);
-}
+adapters.set("gemini-cli", new GeminiCliAdapter());
 
 export function getProvider(id: string): ProviderAdapter | undefined {
 	return adapters.get(id);
