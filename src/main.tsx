@@ -1,20 +1,20 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import App from "./App";
+import { RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "./auth";
+import { router } from "./router";
 import "./styles/globals.css";
 import "./locales/i18n";
-import { AuthProvider } from "./auth";
 
-const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("Failed to find the root element");
+const root = document.getElementById("root");
+if (!root) throw new Error("Failed to find the root element");
 
-createRoot(rootElement).render(
+createRoot(root).render(
 	<StrictMode>
 		<AuthProvider>
-			<BrowserRouter>
-				<App />
-			</BrowserRouter>
+			<RouterProvider router={router} />
+			<Toaster position="top-right" />
 		</AuthProvider>
 	</StrictMode>,
 );
