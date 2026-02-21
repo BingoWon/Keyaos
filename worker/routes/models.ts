@@ -9,14 +9,7 @@ modelsRouter.get("/", async (c) => {
 	const dao = new PricingDao(c.env.DB);
 	const all = await dao.getActivePricing();
 
-	const seen = new Map<string, (typeof all)[0]>();
-	for (const m of all) {
-		if (!seen.has(m.upstream_id)) {
-			seen.set(m.upstream_id, m);
-		}
-	}
-
-	const data = [...seen.values()].map((m) => ({
+	const data = all.map((m) => ({
 		id: m.upstream_id,
 		object: "model" as const,
 		created: Math.floor(m.refreshed_at / 1000),
