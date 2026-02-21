@@ -187,8 +187,8 @@ function parseNewProviderModels(raw: Record<string, unknown>): ParsedModel[] {
     results.push({
       id: `newprovider:${id}`,
       provider: "newprovider",
-      upstream_id: id,
-      display_name: (m.name as string) || null,
+      model_id: id,
+      name: (m.name as string) || null,
       input_price: dollarsToCentsPerM(/* ... */),
       output_price: dollarsToCentsPerM(/* ... */),
       context_length: (m.context_length as number) || null,
@@ -200,7 +200,7 @@ function parseNewProviderModels(raw: Record<string, unknown>): ParsedModel[] {
 ```
 
 注意事项：
-- `id` 格式固定为 `provider:upstream_id`
+- `id` 格式固定为 `provider:model_id`
 - 价格必须统一为 **USD cents / 1M tokens**（使用 `dollarsToCentsPerM` 辅助函数）
 - 如果供应商用 CNY 定价，需在 `parseModels` 中接收 `cnyUsdRate` 参数进行转换
 - 如果 `/models` 不返回定价，需要 hardcode 价格表（参考 `parseDeepSeekModels`）
@@ -496,4 +496,21 @@ supportsAutoCredits: false
 流式 usage: 最后一帧含完整 usageMetadata (无 [DONE] 终止帧)
 特殊事项: OAuth 应用凭证硬编码在 adapter 中; 需 project ID 动态发现; thoughtsTokenCount 合并入 completion_tokens
 详细档案: docs/providers/gemini-cli.md
+```
+
+### OAIPro
+
+```
+Base URL: https://api.oaipro.com/v1
+兼容性: OpenAI Compatible ✅
+货币: USD
+模型列表: GET /v1/models → 不包含定价 ❌ 不包含 context_length ❌
+定价格式: N/A (无定价 API，价格记录为 0)
+凭证验证方式: GET /v1/models (200=有效, 401=无效)
+余额查询 API: N/A
+supportsAutoCredits: false
+费用返回: 无 (需自行计算)
+流式 usage: 支持 stream_options ✅
+特殊事项: API 聚合分发平台，模型 ID 为扁平格式 (gpt-4o-mini)，parseModels 中映射为 openai/gpt-4o-mini 以对齐聚合; 仅保留 OpenAI + Anthropic 系列
+详细档案: docs/providers/oaipro.md
 ```

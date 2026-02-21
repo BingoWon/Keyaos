@@ -107,6 +107,36 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 	return results;
 }
 
+/** OAIPro: reseller with flat IDs, no pricing — map to canonical vendor/model format */
+function parseOAIProModels(raw: Record<string, unknown>): ParsedModel[] {
+	const data = raw.data as Record<string, unknown>[] | undefined;
+	if (!data) return [];
+	const results: ParsedModel[] = [];
+
+	for (const m of data) {
+		const id = m.id as string;
+		if (!id) continue;
+
+		let vendor: string | null = null;
+		if (/^(gpt|chatgpt|o\d)/.test(id)) vendor = "openai";
+		else if (id.startsWith("claude")) vendor = "anthropic";
+		if (!vendor) continue;
+
+		const canonicalId = `${vendor}/${id}`;
+		results.push({
+			id: `oaipro:${canonicalId}`,
+			provider: "oaipro",
+			model_id: canonicalId,
+			name: null,
+			input_price: 0,
+			output_price: 0,
+			context_length: null,
+			is_active: 1,
+		});
+	}
+	return results;
+}
+
 // ─── Static parsers (read from models/*.json, no HTTP) ──────
 
 function parseStaticUsdModels(
@@ -191,6 +221,15 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		stripModelPrefix: true,
 		parseModels: () =>
 			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
+	},
+	{
+		id: "oaipro",
+		name: "OAIPro",
+		baseUrl: "https://api.oaipro.com/v1",
+		currency: "USD",
+		supportsAutoCredits: false,
+		stripModelPrefix: true,
+		parseModels: parseOAIProModels,
 	},
 ];
 
