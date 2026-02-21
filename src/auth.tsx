@@ -166,7 +166,7 @@ function CoreLoginForm() {
 }
 
 export function LoginContent() {
-    if (isPlatform) return <SignIn routing="path" path="/login" />;
+    if (isPlatform) return <SignIn routing="path" path="/login" forceRedirectUrl="/" />;
     return <CoreLoginForm />;
 }
 
