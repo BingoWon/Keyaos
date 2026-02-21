@@ -18,6 +18,9 @@ export type ParsedModel = Omit<DbModelPricing, "refreshed_at">;
 export interface ProviderAdapter {
 	info: ProviderInfo;
 
+	/** Normalize raw user input into the canonical secret for storage. Throws on invalid input. */
+	normalizeSecret?(raw: string): string;
+
 	validateKey(secret: string): Promise<boolean>;
 
 	fetchCredits(secret: string): Promise<ProviderCredits | null>;

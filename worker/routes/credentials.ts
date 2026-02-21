@@ -56,7 +56,18 @@ credentialsRouter.post("/", async (c) => {
 		);
 	}
 
-	const isValid = await provider.validateKey(body.secret);
+	let secret: string;
+	try {
+		secret = provider.normalizeSecret
+			? provider.normalizeSecret(body.secret)
+			: body.secret;
+	} catch (err) {
+		throw new BadRequestError(
+			err instanceof Error ? err.message : "Invalid secret format",
+		);
+	}
+
+	const isValid = await provider.validateKey(secret);
 	if (!isValid) {
 		throw new BadRequestError(
 			`Invalid credential for ${body.provider}. The secret was rejected by the provider.`,
@@ -64,7 +75,7 @@ credentialsRouter.post("/", async (c) => {
 	}
 
 	const dao = new CredentialsDao(c.env.DB);
-	const existing = await dao.findBySecret(body.secret);
+	const existing = await dao.findBySecret(secret);
 	if (existing) {
 		throw new BadRequestError("This credential has already been added.");
 	}
@@ -76,7 +87,7 @@ credentialsRouter.post("/", async (c) => {
 	if (provider.info.supportsAutoCredits) {
 		quotaSource = "auto";
 		const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-		const upstream = await provider.fetchCredits(body.secret);
+		const upstream = await provider.fetchCredits(secret);
 		if (upstream?.remaining != null) {
 			quota = toQuota(upstream.remaining, provider.info.currency, cnyRate);
 		}
@@ -95,7 +106,7 @@ credentialsRouter.post("/", async (c) => {
 		owner_id: c.get("owner_id"),
 		provider: body.provider,
 		authType,
-		secret: body.secret,
+		secret,
 		quota,
 		quotaSource,
 		isEnabled: body.isEnabled,

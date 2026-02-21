@@ -161,6 +161,36 @@ export class GeminiCliAdapter implements ProviderAdapter {
 
 	// ─── ProviderAdapter interface ──────────────────────
 
+	normalizeSecret(raw: string): string {
+		const trimmed = raw.trim();
+
+		if (trimmed.startsWith("{")) {
+			let parsed: Record<string, unknown>;
+			try {
+				parsed = JSON.parse(trimmed);
+			} catch {
+				throw new Error(
+					"Invalid JSON. Paste the full content of ~/.gemini/oauth_creds.json or just the refresh_token value.",
+				);
+			}
+			const rt = parsed.refresh_token as string | undefined;
+			if (!rt) {
+				throw new Error(
+					'JSON does not contain a "refresh_token" field. Check the file content.',
+				);
+			}
+			return rt;
+		}
+
+		if (trimmed.startsWith("ya29.")) {
+			throw new Error(
+				'This is an access_token (expires in ~1 hour). Please provide the refresh_token instead — it starts with "1//" and can be found in ~/.gemini/oauth_creds.json.',
+			);
+		}
+
+		return trimmed;
+	}
+
 	async validateKey(secret: string): Promise<boolean> {
 		try {
 			const { accessToken } = await this.refresh(secret);

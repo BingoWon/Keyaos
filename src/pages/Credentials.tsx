@@ -260,7 +260,11 @@ export function Credentials() {
 										setDraft({ ...draft, secret: e.target.value })
 									}
 									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-									placeholder={isOAuthProvider ? "refresh_token" : "sk-..."}
+									placeholder={
+										isOAuthProvider
+											? "refresh_token or paste oauth_creds.json"
+											: "sk-..."
+									}
 								/>
 								<button
 									type="button"
