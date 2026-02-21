@@ -30,5 +30,5 @@ export interface ProviderAdapter {
 		body: Record<string, unknown>,
 	): Promise<Response>;
 
-	fetchModels(cnyUsdRate?: number): Promise<ParsedModel[]>;
+	fetchModels(cnyUsdRate?: number, secret?: string): Promise<ParsedModel[]>;
 }
