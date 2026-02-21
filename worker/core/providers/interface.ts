@@ -1,4 +1,4 @@
-import type { DbMarketQuote } from "../db/schema";
+import type { DbModelPricing } from "../db/schema";
 
 export interface ProviderInfo {
 	id: string;
@@ -12,7 +12,7 @@ export interface ProviderCredits {
 	usage: number | null;
 }
 
-export type ParsedModel = Omit<DbMarketQuote, "refreshed_at">;
+export type ParsedModel = Omit<DbModelPricing, "refreshed_at">;
 
 export interface ProviderAdapter {
 	info: ProviderInfo;

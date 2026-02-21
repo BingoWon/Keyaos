@@ -1,12 +1,12 @@
 import { Hono } from "hono";
-import { MarketDao } from "../core/db/market-dao";
+import { PricingDao } from "../core/db/pricing-dao";
 import type { AppEnv } from "../shared/types";
 
 const marketRouter = new Hono<Pick<AppEnv, "Bindings">>();
 
 marketRouter.get("/", async (c) => {
-	const dao = new MarketDao(c.env.DB);
-	const all = await dao.getActiveQuotes();
+	const dao = new PricingDao(c.env.DB);
+	const all = await dao.getActivePricing();
 
 	const seen = new Map<string, (typeof all)[0]>();
 	for (const m of all) {

@@ -6,7 +6,7 @@
  */
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
-import { MarketDao } from "./db/market-dao";
+import { PricingDao } from "./db/pricing-dao";
 import { QuotasDao } from "./db/quotas-dao";
 import type { DbQuotaListing } from "./db/schema";
 import type { ProviderAdapter } from "./providers/interface";
@@ -21,8 +21,9 @@ export interface DispatchResult {
 
 /**
  * Returns all viable provider+key candidates for a model, sorted by effective cost.
- * Offerings are already sorted by input_price ASC from DB; within each offering,
+ * Offerings are sorted by input_price ASC from DB; within each offering,
  * listings are sorted by price_multiplier ASC then quota DESC.
+ * Final candidates are globally sorted by true effective cost.
  */
 export async function dispatchAll(
 	db: D1Database,
@@ -31,10 +32,10 @@ export async function dispatchAll(
 ): Promise<DispatchResult[]> {
 	if (!model) throw new BadRequestError("Model is required");
 
-	const marketDao = new MarketDao(db);
+	const pricingDao = new PricingDao(db);
 	const quotasDao = new QuotasDao(db);
 
-	const offerings = await marketDao.findByUpstreamId(model);
+	const offerings = await pricingDao.findByUpstreamId(model);
 	const candidates: DispatchResult[] = [];
 
 	for (const offering of offerings) {

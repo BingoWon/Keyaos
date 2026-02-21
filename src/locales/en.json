@@ -63,23 +63,23 @@
 		"is_listed": "Listing Status",
 		"is_listed_true": "Listed",
 		"is_listed_false": "Delisted",
-		"price_ratio": "Price Ratio",
-		"price_ratio_helper": "💡 Estimate: At {{ratio}}x ratio, for every $1.00 of standard upstream API consumption, generating requests will deduct {{credited}} Platform Credits."
+		"price_multiplier": "Price Multiplier",
+		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of standard upstream API cost, requests will deduct {{credited}} Platform Credits."
 	},
 	"market": {
 		"title": "Model Market",
-		"subtitle": "Model quotes fetched from upstream providers",
+		"subtitle": "Model pricing synced from upstream providers",
 		"model": "Model ID",
 		"provider": "Provider",
 		"name": "Display Name",
 		"input_price": "Input Price",
 		"output_price": "Output Price",
 		"context": "Context",
-		"no_market": "No market quotes fetched yet. Run refresh first.",
-		"refresh_now": "Refresh Market",
-		"refreshing": "Refreshing...",
-		"refresh_success": "Refresh completed",
-		"refresh_failed": "Refresh failed"
+		"no_data": "No pricing data yet. Run sync first.",
+		"sync_now": "Sync Pricing",
+		"syncing": "Syncing...",
+		"sync_success": "Pricing synced",
+		"sync_failed": "Sync failed"
 	},
 	"ledger": {
 		"title": "Ledger",

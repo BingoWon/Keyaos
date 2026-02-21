@@ -4,7 +4,7 @@
  * Parallelizes provider fetches via Promise.allSettled for faster refresh cycles.
  */
 
-import { MarketDao } from "../db/market-dao";
+import { PricingDao } from "../db/pricing-dao";
 import { QuotasDao } from "../db/quotas-dao";
 import { getAllProviders, getProvider } from "../providers/registry";
 
@@ -12,7 +12,7 @@ export async function refreshAllModels(
 	db: D1Database,
 	cnyUsdRate = 7,
 ): Promise<void> {
-	const dao = new MarketDao(db);
+	const dao = new PricingDao(db);
 
 	const results = await Promise.allSettled(
 		getAllProviders().map(async (provider) => {

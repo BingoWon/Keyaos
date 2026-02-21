@@ -1,14 +1,14 @@
-import type { DbMarketQuote } from "./schema";
+import type { DbModelPricing } from "./schema";
 
-export class MarketDao {
+export class PricingDao {
 	constructor(private db: D1Database) {}
 
 	async upsertQuotes(
-		quotes: Omit<DbMarketQuote, "refreshed_at">[],
+		quotes: Omit<DbModelPricing, "refreshed_at">[],
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO market_quotes (id, provider, upstream_id, display_name, input_price, output_price, context_length, is_active, refreshed_at)
+			`INSERT INTO model_pricing (id, provider, upstream_id, display_name, input_price, output_price, context_length, is_active, refreshed_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   display_name = excluded.display_name,
@@ -37,14 +37,13 @@ export class MarketDao {
 		}
 	}
 
-	/** Mark quotes not in activeIds as inactive (precise ID-based comparison) */
 	async deactivateMissing(
 		provider: string,
 		activeIds: string[],
 	): Promise<void> {
 		if (activeIds.length === 0) {
 			await this.db
-				.prepare("UPDATE market_quotes SET is_active = 0 WHERE provider = ?")
+				.prepare("UPDATE model_pricing SET is_active = 0 WHERE provider = ?")
 				.bind(provider)
 				.run();
 			return;
@@ -53,29 +52,29 @@ export class MarketDao {
 		const placeholders = activeIds.map(() => "?").join(",");
 		await this.db
 			.prepare(
-				`UPDATE market_quotes SET is_active = 0
+				`UPDATE model_pricing SET is_active = 0
 				 WHERE provider = ? AND id NOT IN (${placeholders})`,
 			)
 			.bind(provider, ...activeIds)
 			.run();
 	}
 
-	async findByUpstreamId(upstreamId: string): Promise<DbMarketQuote[]> {
+	async findByUpstreamId(upstreamId: string): Promise<DbModelPricing[]> {
 		const res = await this.db
 			.prepare(
-				"SELECT * FROM market_quotes WHERE upstream_id = ? AND is_active = 1 ORDER BY input_price ASC",
+				"SELECT * FROM model_pricing WHERE upstream_id = ? AND is_active = 1 ORDER BY input_price ASC",
 			)
 			.bind(upstreamId)
-			.all<DbMarketQuote>();
+			.all<DbModelPricing>();
 		return res.results || [];
 	}
 
-	async getActiveQuotes(): Promise<DbMarketQuote[]> {
+	async getActivePricing(): Promise<DbModelPricing[]> {
 		const res = await this.db
 			.prepare(
-				"SELECT * FROM market_quotes WHERE is_active = 1 ORDER BY upstream_id, input_price ASC",
+				"SELECT * FROM model_pricing WHERE is_active = 1 ORDER BY upstream_id, input_price ASC",
 			)
-			.all<DbMarketQuote>();
+			.all<DbModelPricing>();
 		return res.results || [];
 	}
 }

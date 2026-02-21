@@ -43,7 +43,7 @@ export function Market() {
 			setRefreshing(true);
 			let tid: string | undefined;
 			if (!silent) {
-				tid = toast.loading(t("market.refreshing", "Refreshing market..."));
+				tid = toast.loading(t("market.syncing", "Syncing pricing..."));
 			}
 			try {
 				const token = await getToken();
@@ -53,7 +53,7 @@ export function Market() {
 				});
 				if (res.ok) {
 					if (!silent) {
-						toast.success(t("market.refresh_success", "Refresh completed"), {
+						toast.success(t("market.sync_success", "Pricing synced"), {
 							id: tid,
 						});
 					}
@@ -63,7 +63,7 @@ export function Market() {
 				}
 			} catch (_err) {
 				if (!silent) {
-					toast.error(t("market.refresh_failed", "Refresh failed"), {
+					toast.error(t("market.sync_failed", "Sync failed"), {
 						id: tid,
 					});
 				}
@@ -74,7 +74,7 @@ export function Market() {
 		[t, getToken, refetch],
 	);
 
-	// Auto-refresh on first load if market quotes are empty
+	// Auto-sync on first load if pricing data is empty
 	const hasAutoRefreshed = useRef(false);
 	useEffect(() => {
 		if (
@@ -116,8 +116,8 @@ export function Market() {
 						className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
 						{refreshing
-							? t("market.refreshing", "Refreshing...")
-							: t("market.refresh_now", "Refresh Market")}
+							? t("market.syncing", "Syncing...")
+							: t("market.sync_now", "Sync Pricing")}
 					</button>
 				</div>
 			</div>
@@ -128,7 +128,7 @@ export function Market() {
 				</div>
 			) : !quotes?.length ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-					{t("market.no_market")}
+					{t("market.no_data")}
 				</p>
 			) : (
 				<div className="mt-5 overflow-hidden shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">

@@ -31,8 +31,8 @@ CREATE INDEX IF NOT EXISTS idx_quota_listings_owner ON quota_listings(owner_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_quota_listings_api_key
     ON quota_listings(api_key);
 
--- 3. 市场大盘报价 (各大厂模型实时价格，Cron 自动刷新)
-CREATE TABLE IF NOT EXISTS market_quotes (
+-- 3. 模型定价目录 (各供应商模型实时价格，Cron 自动刷新)
+CREATE TABLE IF NOT EXISTS model_pricing (
     id TEXT PRIMARY KEY,                    -- "provider:upstream_id"
     provider TEXT NOT NULL,
     upstream_id TEXT NOT NULL,
@@ -44,11 +44,11 @@ CREATE TABLE IF NOT EXISTS market_quotes (
     refreshed_at INTEGER NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_market_quotes_provider_upstream
-    ON market_quotes(provider, upstream_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_upstream
+    ON model_pricing(provider, upstream_id);
 
-CREATE INDEX IF NOT EXISTS idx_market_quotes_routing
-    ON market_quotes(upstream_id, is_active, input_price);
+CREATE INDEX IF NOT EXISTS idx_model_pricing_routing
+    ON model_pricing(upstream_id, is_active, input_price);
 
 -- 4. 交易流水账本
 CREATE TABLE IF NOT EXISTS ledger (

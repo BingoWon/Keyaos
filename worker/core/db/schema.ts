@@ -1,29 +1,29 @@
 export interface DbApiKey {
-	id: string; // "sk-keyaos-xxxxx"
-	owner_id: string; // Required Clerk User ID
+	id: string;
+	owner_id: string;
 	name: string;
 	is_active: number;
 	created_at: number;
 }
 
 export interface DbQuotaListing {
-	id: string; // "openrouter:sk-or-xxxx"
-	owner_id: string; // Required Clerk User ID
-	provider: string; // openrouter, deepinfra, zenmux
+	id: string;
+	owner_id: string;
+	provider: string;
 	api_key: string;
 	quota: number;
-	quota_source: string; // 'auto' or 'manual'
+	quota_source: string;
 	is_enabled: number;
 	price_multiplier: number;
-	health_status: string; // 'ok' | 'degraded' | 'dead' | 'unknown'
+	health_status: string;
 	last_health_check: number | null;
 	added_at: number;
 }
 
-export interface DbMarketQuote {
-	id: string; // "provider:upstream_id", e.g. "openrouter:anthropic/claude-3-opus"
+export interface DbModelPricing {
+	id: string;
 	provider: string;
-	upstream_id: string; // "anthropic/claude-3-opus"
+	upstream_id: string;
 	display_name: string | null;
 	input_price: number;
 	output_price: number;
@@ -33,9 +33,9 @@ export interface DbMarketQuote {
 }
 
 export interface DbLedgerEntry {
-	id: string; // uuid
-	owner_id: string; // Required Clerk User ID
-	listing_id: string; // Maps to DbQuotaListing.id
+	id: string;
+	owner_id: string;
+	listing_id: string;
 	provider: string;
 	model: string;
 	input_tokens: number;

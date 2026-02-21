@@ -297,7 +297,7 @@ export function Quotas() {
 								htmlFor="priceMultiplier"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("quotas.price_ratio")}
+								{t("quotas.price_multiplier")}
 							</label>
 							<input
 								type="number"
@@ -317,7 +317,7 @@ export function Quotas() {
 							/>
 							{newListing.priceMultiplier && (
 								<p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-									{t("quotas.price_ratio_helper", {
+									{t("quotas.price_multiplier_helper", {
 										ratio: newListing.priceMultiplier,
 										credited: (
 											1.0 * (Number.parseFloat(newListing.priceMultiplier) || 0)
@@ -377,7 +377,7 @@ export function Quotas() {
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("quotas.price_ratio")}
+											{t("quotas.price_multiplier")}
 										</th>
 										<th
 											scope="col"
