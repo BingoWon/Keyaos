@@ -106,6 +106,78 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 }
 
 /**
+ * Google AI Studio: /models returns no pricing.
+ * Hardcoded from https://ai.google.dev/pricing
+ * Prices in USD/M tokens. Only chat-capable Gemini models included.
+ */
+function parseGoogleAIStudioModels(
+	_raw: Record<string, unknown>,
+): ParsedModel[] {
+	const models = [
+		{
+			id: "gemini-2.5-pro",
+			name: "Gemini 2.5 Pro",
+			inputUsd: 1.25,
+			outputUsd: 10.0,
+			ctx: 1_048_576,
+		},
+		{
+			id: "gemini-2.5-flash",
+			name: "Gemini 2.5 Flash",
+			inputUsd: 0.15,
+			outputUsd: 0.6,
+			ctx: 1_048_576,
+		},
+		{
+			id: "gemini-2.5-flash-lite",
+			name: "Gemini 2.5 Flash-Lite",
+			inputUsd: 0.075,
+			outputUsd: 0.3,
+			ctx: 1_048_576,
+		},
+		{
+			id: "gemini-2.0-flash",
+			name: "Gemini 2.0 Flash",
+			inputUsd: 0.1,
+			outputUsd: 0.4,
+			ctx: 1_048_576,
+		},
+		{
+			id: "gemini-2.0-flash-lite",
+			name: "Gemini 2.0 Flash-Lite",
+			inputUsd: 0.075,
+			outputUsd: 0.3,
+			ctx: 1_048_576,
+		},
+		{
+			id: "gemini-3-pro-preview",
+			name: "Gemini 3 Pro Preview",
+			inputUsd: 1.25,
+			outputUsd: 10.0,
+			ctx: 1_048_576,
+		},
+		{
+			id: "gemini-3-flash-preview",
+			name: "Gemini 3 Flash Preview",
+			inputUsd: 0.15,
+			outputUsd: 0.6,
+			ctx: 1_048_576,
+		},
+	];
+
+	return models.map((m) => ({
+		id: `google-ai-studio:${m.id}`,
+		provider: "google-ai-studio",
+		upstream_id: m.id,
+		display_name: m.name,
+		input_price: dollarsToCentsPerM(m.inputUsd),
+		output_price: dollarsToCentsPerM(m.outputUsd),
+		context_length: m.ctx,
+		is_active: 1,
+	}));
+}
+
+/**
  * DeepSeek: /models has no pricing.
  * Hardcoded from https://api-docs.deepseek.com/quick_start/pricing
  * Prices in CNY/M tokens, converted at runtime.
@@ -196,6 +268,14 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		creditsUrl: "https://api.deepseek.com/user/balance",
 		parseCredits: parseDeepSeekCredits,
 		parseModels: parseDeepSeekModels,
+	},
+	{
+		id: "google-ai-studio",
+		name: "Google AI Studio",
+		baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+		currency: "USD",
+		supportsAutoCredits: false,
+		parseModels: parseGoogleAIStudioModels,
 	},
 ];
 

@@ -67,7 +67,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 					...this.config.extraHeaders,
 				},
 			});
-			return res.status !== 401;
+			return res.ok;
 		} catch {
 			return false;
 		}
