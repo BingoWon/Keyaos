@@ -60,7 +60,7 @@ export class MarketDao {
 	async findByUpstreamId(upstreamId: string): Promise<DbMarketQuote[]> {
 		const res = await this.db
 			.prepare(
-				"SELECT * FROM market_quotes WHERE upstream_id = ? AND is_active = 1 ORDER BY input_cost ASC",
+				"SELECT * FROM market_quotes WHERE upstream_id = ? AND is_active = 1 ORDER BY input_price ASC",
 			)
 			.bind(upstreamId)
 			.all<DbMarketQuote>();
@@ -70,7 +70,7 @@ export class MarketDao {
 	async getActiveQuotes(): Promise<DbMarketQuote[]> {
 		const res = await this.db
 			.prepare(
-				"SELECT * FROM market_quotes WHERE is_active = 1 ORDER BY upstream_id, input_cost ASC",
+				"SELECT * FROM market_quotes WHERE is_active = 1 ORDER BY upstream_id, input_price ASC",
 			)
 			.all<DbMarketQuote>();
 		return res.results || [];
