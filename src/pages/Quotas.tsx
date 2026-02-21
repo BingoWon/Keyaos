@@ -27,15 +27,15 @@ interface ListingInfo {
 	id: string;
 	provider: string;
 	keyHint: string;
-	credits: number;
-	creditsSource: "auto" | "manual";
+	quota: number;
+	quotaSource: "auto" | "manual";
 	health: HealthStatus;
 	isEnabled: boolean;
 	priceMultiplier: number;
 	addedAt: number;
 }
 
-export function Listings() {
+export function Quotas() {
 	const { t } = useTranslation();
 	const { token } = useAuth();
 	const formatDateTime = useFormatDateTime();
@@ -44,7 +44,7 @@ export function Listings() {
 		data,
 		loading,
 		refetch: fetchListings,
-	} = useFetch<ListingInfo[]>("/api/listings");
+	} = useFetch<ListingInfo[]>("/api/quotas");
 	const listings = data || [];
 
 	const { data: providersData } = useFetch<ProviderInfo[]>("/api/providers");
@@ -55,12 +55,12 @@ export function Listings() {
 	const [newListing, setNewListing] = useState({
 		provider: "openrouter",
 		apiKey: "",
-		credits: "",
+		quota: "",
 		isEnabled: true,
 		priceMultiplier: "1.0",
 	});
 	const [editingId, setEditingId] = useState<string | null>(null);
-	const [editCredits, setEditCredits] = useState("");
+	const [editQuota, setEditQuota] = useState("");
 	const [editingSettingsId, setEditingSettingsId] = useState<string | null>(
 		null,
 	);
@@ -87,10 +87,10 @@ export function Listings() {
 			};
 
 			if (!isAutoProvider) {
-				body.credits = Number.parseFloat(newListing.credits) || 0;
+				body.quota = Number.parseFloat(newListing.quota) || 0;
 			}
 
-			const res = await fetch("/api/listings", {
+			const res = await fetch("/api/quotas", {
 				method: "POST",
 				headers,
 				body: JSON.stringify(body),
@@ -101,7 +101,7 @@ export function Listings() {
 				setNewListing({
 					provider: "openrouter",
 					apiKey: "",
-					credits: "",
+					quota: "",
 					isEnabled: true,
 					priceMultiplier: "1.0",
 				});
@@ -117,14 +117,14 @@ export function Listings() {
 		}
 	};
 
-	const handleUpdateCredits = async (id: string) => {
+	const handleUpdateQuota = async (id: string) => {
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/listings/${id}/credits`, {
+			const res = await fetch(`/api/quotas/${id}/quota`, {
 				method: "PATCH",
 				headers,
 				body: JSON.stringify({
-					credits: Number.parseFloat(editCredits) || 0,
+					quota: Number.parseFloat(editQuota) || 0,
 				}),
 			});
 			const data = await res.json();
@@ -148,7 +148,7 @@ export function Listings() {
 	) => {
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/listings/${id}/settings`, {
+			const res = await fetch(`/api/quotas/${id}/settings`, {
 				method: "PATCH",
 				headers,
 				body: JSON.stringify({ isEnabled: isEnabled ? 1 : 0, priceMultiplier }),
@@ -170,7 +170,7 @@ export function Listings() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const res = await fetch(`/api/listings/${id}`, {
+			const res = await fetch(`/api/quotas/${id}`, {
 				method: "DELETE",
 				headers,
 			});
@@ -191,10 +191,10 @@ export function Listings() {
 			<div className="sm:flex sm:items-center">
 				<div className="sm:flex-auto">
 					<h1 className="text-base font-semibold text-gray-900 dark:text-white">
-						{t("listings.title")}
+						{t("quotas.title")}
 					</h1>
 					<p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-						{t("listings.subtitle")}
+						{t("quotas.subtitle")}
 					</p>
 				</div>
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -204,7 +204,7 @@ export function Listings() {
 						className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
-						{t("listings.add_new")}
+						{t("quotas.add_new")}
 					</button>
 				</div>
 			</div>
@@ -220,7 +220,7 @@ export function Listings() {
 								htmlFor="provider"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("listings.provider")}
+								{t("quotas.provider")}
 							</label>
 							<select
 								id="provider"
@@ -242,7 +242,7 @@ export function Listings() {
 								htmlFor="apiKey"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("listings.key")}
+								{t("quotas.key")}
 							</label>
 							<div className="relative mt-1">
 								<input
@@ -272,20 +272,20 @@ export function Listings() {
 						{!isAutoProvider && (
 							<div className="w-full sm:w-32">
 								<label
-									htmlFor="credits"
+									htmlFor="quota"
 									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 								>
-									Credits ($)
+									Quota
 								</label>
 								<input
 									type="number"
-									id="credits"
+									id="quota"
 									required
 									min="0"
 									step="0.01"
-									value={newListing.credits}
+									value={newListing.quota}
 									onChange={(e) =>
-										setNewListing({ ...newListing, credits: e.target.value })
+										setNewListing({ ...newListing, quota: e.target.value })
 									}
 									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="10.00"
@@ -297,7 +297,7 @@ export function Listings() {
 								htmlFor="priceMultiplier"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("listings.price_ratio")}
+								{t("quotas.price_ratio")}
 							</label>
 							<input
 								type="number"
@@ -317,7 +317,7 @@ export function Listings() {
 							/>
 							{newListing.priceMultiplier && (
 								<p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-									{t("listings.price_ratio_helper", {
+									{t("quotas.price_ratio_helper", {
 										ratio: newListing.priceMultiplier,
 										credited: (
 											1.0 * (Number.parseFloat(newListing.priceMultiplier) || 0)
@@ -359,43 +359,43 @@ export function Listings() {
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.provider")}
+											{t("quotas.provider")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.key")}
+											{t("quotas.key")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.credits")}
+											{t("quotas.quota")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.price_ratio")}
+											{t("quotas.price_ratio")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.health")}
+											{t("quotas.health")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.added")}
+											{t("quotas.added")}
 										</th>
 										<th
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
-											{t("listings.is_listed")}
+											{t("quotas.is_listed")}
 										</th>
 										<th
 											scope="col"
@@ -418,7 +418,7 @@ export function Listings() {
 												colSpan={8}
 												className="py-4 text-center text-sm text-gray-500 dark:text-gray-400"
 											>
-												{t("listings.no_data")}
+												{t("quotas.no_data")}
 											</td>
 										</tr>
 									) : (
@@ -453,13 +453,13 @@ export function Listings() {
 																type="number"
 																min="0"
 																step="0.01"
-																value={editCredits}
-																onChange={(e) => setEditCredits(e.target.value)}
+																value={editQuota}
+																onChange={(e) => setEditQuota(e.target.value)}
 																className="w-20 rounded-md border-gray-300 py-1 px-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 															/>
 															<button
 																type="button"
-																onClick={() => handleUpdateCredits(listing.id)}
+																onClick={() => handleUpdateQuota(listing.id)}
 																className="text-green-600 hover:text-green-900 dark:text-green-400"
 																title={t("common.save")}
 															>
@@ -476,15 +476,15 @@ export function Listings() {
 														</div>
 													) : (
 														<span
-															className={`font-mono flex items-center ${listing.credits > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
+															className={`font-mono flex items-center ${listing.quota > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
 														>
-															${listing.credits.toFixed(2)}
-															{listing.creditsSource === "manual" && (
+															{listing.quota.toFixed(2)}
+															{listing.quotaSource === "manual" && (
 																<button
 																	type="button"
 																	onClick={() => {
 																		setEditingId(listing.id);
-																		setEditCredits(listing.credits.toString());
+																		setEditQuota(listing.quota.toString());
 																	}}
 																	className="ml-2 text-gray-400 hover:text-indigo-500"
 																	title={t("common.edit")}
@@ -577,8 +577,8 @@ export function Listings() {
 														>
 															{t(
 																listing.isEnabled
-																	? "listings.is_listed_true"
-																	: "listings.is_listed_false",
+																	? "quotas.is_listed_true"
+																	: "quotas.is_listed_false",
 															)}
 														</span>
 													</label>

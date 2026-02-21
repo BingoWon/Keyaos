@@ -14,7 +14,7 @@
 	"nav": {
 		"dashboard": "Dashboard",
 		"market": "Model Market",
-		"listings": "Credit Listings",
+		"quotas": "Quota Listings",
 		"api_keys": "API Keys",
 		"ledger": "Ledger",
 		"guide": "Guide",
@@ -35,7 +35,7 @@
 		"title": "Overview",
 		"total_listings": "Total Listings",
 		"active_listings": "Active Listings",
-		"total_credits": "Total Credit Line"
+		"total_quota": "Total Supply Quota"
 	},
 	"api_keys": {
 		"title": "API Keys",
@@ -47,16 +47,16 @@
 		"created_at": "Created At",
 		"no_data": "No API Keys yet"
 	},
-	"listings": {
-		"title": "Credit Listings",
-		"subtitle": "Manage upstream provider API tokens and track pool balances",
-		"add_new": "Add Listing",
+	"quotas": {
+		"title": "Quota Listings",
+		"subtitle": "Manage upstream provider capabilities and track supply quotas",
+		"add_new": "Add Quota",
 		"provider": "Provider",
 		"key": "Upstream Key",
-		"credits": "Credit Balance",
+		"quota": "Quota Capacity",
 		"health": "Health",
 		"added": "Added",
-		"no_data": "No credit listings yet",
+		"no_data": "No quota listings yet",
 		"status_ok": "OK",
 		"status_degraded": "Degraded",
 		"status_dead": "Dead",
@@ -64,7 +64,7 @@
 		"is_listed_true": "Listed",
 		"is_listed_false": "Delisted",
 		"price_ratio": "Price Ratio",
-		"price_ratio_helper": "💡 Estimate: At {{ratio}}x ratio, for every $1.00 of standard upstream API consumption, your account will be credited ${{credited}}. Lower ratios drastically improve your priority dispatch ranking."
+		"price_ratio_helper": "💡 Estimate: At {{ratio}}x ratio, for every $1.00 of standard upstream API consumption, generating requests will deduct {{credited}} Platform Credits."
 	},
 	"market": {
 		"title": "Model Market",
@@ -72,8 +72,8 @@
 		"model": "Model ID",
 		"provider": "Provider",
 		"name": "Display Name",
-		"input_cost": "Input Cost",
-		"output_cost": "Output Cost",
+		"input_price": "Input Price",
+		"output_price": "Output Price",
 		"context": "Context",
 		"no_market": "No market quotes fetched yet. Run refresh first.",
 		"refresh_now": "Refresh Market",
@@ -88,7 +88,7 @@
 		"model": "Model",
 		"provider": "Provider",
 		"tokens": "Tokens",
-		"cost": "Cost",
+		"credits_used": "Credits Spend",
 		"no_data": "No ledger entries yet"
 	},
 	"guide": {

@@ -3,17 +3,17 @@
  */
 
 import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
-import { ListingsDao } from "./db/listings-dao";
+import { QuotasDao } from "./db/quotas-dao";
 import { MarketDao } from "./db/market-dao";
-import type { DbCreditListing } from "./db/schema";
+import type { DbQuotaListing } from "./db/schema";
 import type { ProviderAdapter } from "./providers/interface";
 import { getProvider } from "./providers/registry";
 
 export interface DispatchResult {
-	listing: DbCreditListing;
+	listing: DbQuotaListing;
 	provider: ProviderAdapter;
 	upstreamModel: string;
-	modelCost: { inputCentsPerM: number; outputCentsPerM: number };
+	modelPrice: { inputPricePerM: number; outputPricePerM: number };
 }
 
 export async function dispatch(
@@ -23,7 +23,7 @@ export async function dispatch(
 	if (!model) throw new BadRequestError("Model is required");
 
 	const marketDao = new MarketDao(db);
-	const listingsDao = new ListingsDao(db);
+	const quotasDao = new QuotasDao(db);
 
 	const offerings = await marketDao.findByUpstreamId(model);
 
@@ -31,16 +31,16 @@ export async function dispatch(
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
-		const listing = await listingsDao.selectListing(offering.provider);
+		const listing = await quotasDao.selectListing(offering.provider);
 		if (!listing) continue;
 
 		return {
 			listing,
 			provider,
 			upstreamModel: offering.upstream_id,
-			modelCost: {
-				inputCentsPerM: offering.input_cost * listing.price_multiplier,
-				outputCentsPerM: offering.output_cost * listing.price_multiplier,
+			modelPrice: {
+				inputPricePerM: offering.input_price * listing.price_multiplier,
+				outputPricePerM: offering.output_price * listing.price_multiplier,
 			},
 		};
 	}

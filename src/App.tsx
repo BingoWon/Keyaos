@@ -5,7 +5,7 @@ import { ApiKeys } from "./pages/ApiKeys";
 import { Dashboard } from "./pages/Dashboard";
 import { Guide } from "./pages/Guide";
 import { Ledger } from "./pages/Ledger";
-import { Listings } from "./pages/Listings";
+import { Quotas } from "./pages/Quotas";
 import { Login } from "./pages/Login";
 import { Market } from "./pages/Market";
 import { NotFound } from "./pages/NotFound";
@@ -35,7 +35,7 @@ export default function App() {
 					<Route index element={<Dashboard />} />
 					<Route path="market" element={<Market />} />
 					<Route path="api-keys" element={<ApiKeys />} />
-					<Route path="listings" element={<Listings />} />
+					<Route path="quotas" element={<Quotas />} />
 					<Route path="ledger" element={<Ledger />} />
 					<Route path="guide" element={<Guide />} />
 				</Route>

@@ -5,7 +5,7 @@
  * upserts into the models table. Also refreshes credits for auto-credit keys.
  * Called by the scheduled handler.
  */
-import { ListingsDao } from "../db/listings-dao";
+import { QuotasDao } from "../db/quotas-dao";
 import { MarketDao } from "../db/market-dao";
 import { getAllProviders, getProvider } from "../providers/registry";
 
@@ -44,9 +44,9 @@ export async function refreshAutoCredits(
 	db: D1Database,
 	cnyUsdRate = 7,
 ): Promise<void> {
-	const dao = new ListingsDao(db);
+	const dao = new QuotasDao(db);
 	const all = await dao.getAllListings();
-	const autos = all.filter((k) => k.credits_source === "auto");
+	const autos = all.filter((k) => k.quota_source === "auto");
 
 	for (const listing of autos) {
 		try {
@@ -60,11 +60,11 @@ export async function refreshAutoCredits(
 				provider.info.currency === "CNY"
 					? credits.remaining / cnyUsdRate
 					: credits.remaining;
-			const newCents = Math.round(usd * 100);
+			const newQuota = usd;
 
-			await dao.updateCredits(listing.id, newCents, "auto");
+			await dao.updateQuota(listing.id, newQuota, "auto");
 		} catch (err) {
-			console.error(`[CREDITS] ${listing.id}: refresh failed`, err);
+			console.error(`[QUOTA] ${listing.id}: refresh failed`, err);
 		}
 	}
 }

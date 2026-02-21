@@ -11,15 +11,15 @@ interface ModelInfo {
 	created: number;
 	owned_by: string;
 	name?: string;
-	input_cost?: number;
-	output_cost?: number;
+	input_price?: number;
+	output_price?: number;
 	context_length?: number;
 }
 
-function formatCost(cents?: number) {
-	if (cents == null) return "-";
-	if (cents === 0) return "Free";
-	return `$${(cents / 100).toFixed(4).replace(/\.?0+$/, "")}/1M`;
+function formatPrice(price?: number) {
+	if (price == null) return "-";
+	if (price === 0) return "Free";
+	return `${price.toFixed(4).replace(/\.?0+$/, "")}/1M`;
 }
 
 function formatContext(len?: number) {
@@ -144,10 +144,10 @@ export function Market() {
 									{t("market.name")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
-									{t("market.input_cost")}
+									{t("market.input_price")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
-									{t("market.output_cost")}
+									{t("market.output_price")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
 									{t("market.context")}
@@ -167,10 +167,10 @@ export function Market() {
 										{m.name || "-"}
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-right font-mono">
-										{formatCost(m.input_cost)}
+										{formatPrice(m.input_price)}
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-right font-mono">
-										{formatCost(m.output_cost)}
+										{formatPrice(m.output_price)}
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 text-right font-mono">
 										{formatContext(m.context_length)}

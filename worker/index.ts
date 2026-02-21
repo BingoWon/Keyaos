@@ -7,7 +7,7 @@ import {
 } from "./core/refresh/refresh-service";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
-import listingsRouter from "./routes/listings";
+import quotasRouter from "./routes/quotas";
 import marketRouter from "./routes/market";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
@@ -81,7 +81,7 @@ app.use("/v1/*", async (c, next) => {
 });
 
 // Management API
-app.route("/api/listings", listingsRouter);
+app.route("/api/quotas", quotasRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/market", marketRouter);
 app.route("/api", systemRouter);

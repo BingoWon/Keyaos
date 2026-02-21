@@ -1,19 +1,19 @@
 import type { DbMarketQuote } from "./schema";
 
 export class MarketDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async upsertQuotes(
 		quotes: Omit<DbMarketQuote, "refreshed_at">[],
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO market_quotes (id, provider, upstream_id, display_name, input_cost, output_cost, context_length, is_active, refreshed_at)
+			`INSERT INTO market_quotes (id, provider, upstream_id, display_name, input_price, output_price, context_length, is_active, refreshed_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   display_name = excluded.display_name,
-			   input_cost = excluded.input_cost,
-			   output_cost = excluded.output_cost,
+			   input_price = excluded.input_price,
+			   output_price = excluded.output_price,
 			   context_length = excluded.context_length,
 			   is_active = 1,
 			   refreshed_at = excluded.refreshed_at`,
@@ -25,8 +25,8 @@ export class MarketDao {
 				q.provider,
 				q.upstream_id,
 				q.display_name,
-				q.input_cost,
-				q.output_cost,
+				q.input_price,
+				q.output_price,
 				q.context_length,
 				now,
 			),

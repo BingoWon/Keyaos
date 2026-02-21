@@ -25,7 +25,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/", icon: HomeIcon },
 		{ name: t("nav.market"), href: "/market", icon: CpuChipIcon },
-		{ name: t("nav.listings"), href: "/listings", icon: BanknotesIcon },
+		{ name: t("nav.quotas"), href: "/quotas", icon: BanknotesIcon },
 		{ name: t("nav.api_keys"), href: "/api-keys", icon: KeyIcon },
 		{ name: t("nav.ledger"), href: "/ledger", icon: DocumentTextIcon },
 	];

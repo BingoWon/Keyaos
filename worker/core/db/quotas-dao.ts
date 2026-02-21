@@ -1,23 +1,23 @@
-import type { DbCreditListing } from "./schema";
+import type { DbQuotaListing } from "./schema";
 
-export class ListingsDao {
-	constructor(private db: D1Database) {}
+export class QuotasDao {
+	constructor(private db: D1Database) { }
 
 	async addListing(params: {
 		provider: string;
 		apiKey: string;
-		creditsCents?: number;
-		creditsSource?: "auto" | "manual";
+		quota?: number;
+		quotaSource?: "auto" | "manual";
 		isEnabled?: number;
 		priceMultiplier?: number;
-	}): Promise<DbCreditListing> {
+	}): Promise<DbQuotaListing> {
 		const id = `listing_${crypto.randomUUID()}`;
 
 		await this.db
 			.prepare(
-				`INSERT INTO credit_listings (
+				`INSERT INTO quota_listings (
 					id, provider, api_key,
-					credits_cents, credits_source,
+					quota, quota_source,
 					is_enabled, price_multiplier,
 					health_status, added_at
 				) VALUES (?, ?, ?, ?, ?, ?, ?, 'ok', ?)`,
@@ -26,8 +26,8 @@ export class ListingsDao {
 				id,
 				params.provider,
 				params.apiKey,
-				params.creditsCents ?? 0,
-				params.creditsSource ?? "manual",
+				params.quota ?? 0.0,
+				params.quotaSource ?? "manual",
 				params.isEnabled ?? 1,
 				params.priceMultiplier ?? 1.0,
 				Date.now(),
@@ -39,76 +39,76 @@ export class ListingsDao {
 		return listing;
 	}
 
-	async getListing(id: string): Promise<DbCreditListing | null> {
+	async getListing(id: string): Promise<DbQuotaListing | null> {
 		return this.db
-			.prepare("SELECT * FROM credit_listings WHERE id = ?")
+			.prepare("SELECT * FROM quota_listings WHERE id = ?")
 			.bind(id)
-			.first<DbCreditListing>();
+			.first<DbQuotaListing>();
 	}
 
-	async findByApiKey(apiKey: string): Promise<DbCreditListing | null> {
+	async findByApiKey(apiKey: string): Promise<DbQuotaListing | null> {
 		return this.db
-			.prepare("SELECT * FROM credit_listings WHERE api_key = ?")
+			.prepare("SELECT * FROM quota_listings WHERE api_key = ?")
 			.bind(apiKey)
-			.first<DbCreditListing>();
+			.first<DbQuotaListing>();
 	}
 
 	async deleteListing(id: string): Promise<boolean> {
 		const result = await this.db
-			.prepare("DELETE FROM credit_listings WHERE id = ?")
+			.prepare("DELETE FROM quota_listings WHERE id = ?")
 			.bind(id)
 			.run();
 		return result.success && result.meta?.rows_written === 1;
 	}
 
-	/** Select the best available listing — prefer listings with more credits */
-	async selectListing(provider: string): Promise<DbCreditListing | null> {
+	/** Select the best available listing — prefer listings with more quota */
+	async selectListing(provider: string): Promise<DbQuotaListing | null> {
 		return this.db
 			.prepare(
-				`SELECT * FROM credit_listings
+				`SELECT * FROM quota_listings
 				 WHERE provider = ? AND is_enabled = 1 AND health_status != 'dead'
-				 ORDER BY credits_cents DESC
+				 ORDER BY quota DESC
 				 LIMIT 1`,
 			)
 			.bind(provider)
-			.first<DbCreditListing>();
+			.first<DbQuotaListing>();
 	}
 
-	async getAllListings(): Promise<DbCreditListing[]> {
+	async getAllListings(): Promise<DbQuotaListing[]> {
 		const res = await this.db
-			.prepare("SELECT * FROM credit_listings")
-			.all<DbCreditListing>();
+			.prepare("SELECT * FROM quota_listings")
+			.all<DbQuotaListing>();
 		return res.results || [];
 	}
 
-	async deductCredits(id: string, cents: number): Promise<void> {
+	async deductQuota(id: string, amount: number): Promise<void> {
 		await this.db
 			.prepare(
-				`UPDATE credit_listings
-				 SET credits_cents = MAX(credits_cents - ?, 0),
-				     health_status = CASE WHEN credits_cents - ? <= 0 THEN 'dead' ELSE health_status END
+				`UPDATE quota_listings
+				 SET quota = MAX(quota - ?, 0),
+				     health_status = CASE WHEN quota - ? <= 0 THEN 'dead' ELSE health_status END
 				 WHERE id = ?`,
 			)
-			.bind(cents, cents, id)
+			.bind(amount, amount, id)
 			.run();
 	}
 
-	async updateCredits(
+	async updateQuota(
 		id: string,
-		creditsCents: number,
+		quota: number,
 		source?: "auto" | "manual",
 	): Promise<void> {
 		if (source) {
 			await this.db
 				.prepare(
-					"UPDATE credit_listings SET credits_cents = ?, credits_source = ? WHERE id = ?",
+					"UPDATE quota_listings SET quota = ?, quota_source = ? WHERE id = ?",
 				)
-				.bind(creditsCents, source, id)
+				.bind(quota, source, id)
 				.run();
 		} else {
 			await this.db
-				.prepare("UPDATE credit_listings SET credits_cents = ? WHERE id = ?")
-				.bind(creditsCents, id)
+				.prepare("UPDATE quota_listings SET quota = ? WHERE id = ?")
+				.bind(quota, id)
 				.run();
 		}
 	}
@@ -119,7 +119,7 @@ export class ListingsDao {
 	): Promise<void> {
 		await this.db
 			.prepare(
-				"UPDATE credit_listings SET is_enabled = ?, price_multiplier = ? WHERE id = ?",
+				"UPDATE quota_listings SET is_enabled = ?, price_multiplier = ? WHERE id = ?",
 			)
 			.bind(isEnabled, priceMultiplier, id)
 			.run();
@@ -127,7 +127,7 @@ export class ListingsDao {
 	async reportSuccess(id: string): Promise<void> {
 		await this.db
 			.prepare(
-				"UPDATE credit_listings SET health_status = 'ok', last_health_check = ? WHERE id = ?",
+				"UPDATE quota_listings SET health_status = 'ok', last_health_check = ? WHERE id = ?",
 			)
 			.bind(Date.now(), id)
 			.run();
@@ -140,7 +140,7 @@ export class ListingsDao {
 				: "degraded";
 		await this.db
 			.prepare(
-				`UPDATE credit_listings
+				`UPDATE quota_listings
 				 SET health_status = ?,
 				     last_health_check = ?
 				 WHERE id = ?`,
@@ -153,14 +153,14 @@ export class ListingsDao {
 		totalListings: number;
 		activeProviders: number;
 		deadListings: number;
-		totalBalanceCents: number;
+		totalQuota: number;
 	}> {
 		const all = await this.getAllListings();
 		const providerSet = new Set<string>();
 		let deadListings = 0;
-		let totalBalanceCents = 0;
+		let totalQuota = 0;
 		for (const l of all) {
-			totalBalanceCents += l.credits_cents;
+			totalQuota += l.quota;
 			if (l.health_status === "dead") deadListings++;
 			else if (l.is_enabled === 1) providerSet.add(l.provider);
 		}
@@ -168,7 +168,7 @@ export class ListingsDao {
 			totalListings: all.length,
 			activeProviders: providerSet.size,
 			deadListings,
-			totalBalanceCents,
+			totalQuota,
 		};
 	}
 }

@@ -26,8 +26,8 @@ marketRouter.get("/", async (c) => {
 		owned_by: m.provider,
 		...(m.display_name && { name: m.display_name }),
 		// Custom UI fields
-		input_cost: m.input_cost,
-		output_cost: m.output_cost,
+		input_price: m.input_price,
+		output_price: m.output_price,
 		context_length: m.context_length,
 	}));
 

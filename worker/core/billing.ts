@@ -3,14 +3,14 @@
  */
 
 import { LedgerDao } from "./db/ledger-dao";
-import { ListingsDao } from "./db/listings-dao";
+import { QuotasDao } from "./db/quotas-dao";
 import type { TokenUsage } from "./utils/stream";
 
 export interface BillingParams {
 	listingId: string;
 	provider: string;
 	model: string;
-	modelCost: { inputCentsPerM: number; outputCentsPerM: number };
+	modelPrice: { inputPricePerM: number; outputPricePerM: number };
 	usage: TokenUsage;
 }
 
@@ -18,24 +18,26 @@ export async function recordUsage(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
-	const { listingId, provider, model, modelCost, usage } = params;
+	const { listingId, provider, model, modelPrice, usage } = params;
 	const totalTokens =
 		usage.total_tokens || usage.prompt_tokens + usage.completion_tokens;
 
 	if (totalTokens <= 0) return;
 
-	// Determine cost in cents
-	let costCents: number;
+	// Determine quota / credits to deduct
+	let creditsToDeduct: number;
 
 	const reportedCostUsd = usage.cost ?? usage.estimated_cost;
 	if (reportedCostUsd != null && reportedCostUsd > 0) {
-		costCents = Math.ceil(reportedCostUsd * 100);
+		// If USD cost is directly reported by upstream, we map 1 USD = 100 Credits (or whatever custom factor)
+		// For simplicity, we convert reported cost assuming 1 Credit = 1 Cent of USD.
+		creditsToDeduct = reportedCostUsd * 100;
 	} else {
-		const inputCost =
-			(usage.prompt_tokens / 1_000_000) * modelCost.inputCentsPerM;
-		const outputCost =
-			(usage.completion_tokens / 1_000_000) * modelCost.outputCentsPerM;
-		costCents = Math.ceil(inputCost + outputCost);
+		const inputPrice =
+			(usage.prompt_tokens / 1_000_000) * modelPrice.inputPricePerM;
+		const outputPrice =
+			(usage.completion_tokens / 1_000_000) * modelPrice.outputPricePerM;
+		creditsToDeduct = inputPrice + outputPrice;
 	}
 
 	try {
@@ -45,10 +47,10 @@ export async function recordUsage(
 			model,
 			input_tokens: usage.prompt_tokens,
 			output_tokens: usage.completion_tokens,
-			cost_cents: costCents,
+			credits_used: creditsToDeduct,
 		});
 
-		await new ListingsDao(db).deductCredits(listingId, costCents);
+		await new QuotasDao(db).deductQuota(listingId, creditsToDeduct);
 	} catch (err) {
 		console.error("[BILLING] Ledger write failed:", err);
 	}

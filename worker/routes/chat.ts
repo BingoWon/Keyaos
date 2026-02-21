@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { recordUsage } from "../core/billing";
-import { ListingsDao } from "../core/db/listings-dao";
+import { QuotasDao } from "../core/db/quotas-dao";
 import { dispatch } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
 import type { Env } from "../index";
@@ -19,12 +19,12 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const { listing, provider, upstreamModel, modelCost } = await dispatch(
+	const { listing, provider, upstreamModel, modelPrice } = await dispatch(
 		c.env.DB,
 		model,
 	);
 
-	const listingsDao = new ListingsDao(c.env.DB);
+	const quotasDao = new QuotasDao(c.env.DB);
 
 	const upstreamBody = {
 		...body,
@@ -48,18 +48,18 @@ chatRouter.post("/completions", async (c) => {
 						listingId: listing.id,
 						provider: listing.provider,
 						model: upstreamModel,
-						modelCost,
+						modelPrice,
 						usage,
 					}).catch((err) => console.error("[BILLING] waitUntil failed:", err)),
 				);
 			},
 		);
 
-		await listingsDao.reportSuccess(listing.id);
+		await quotasDao.reportSuccess(listing.id);
 		return finalResponse;
 	} catch (err) {
 		const statusCode = err instanceof ApiError ? err.statusCode : 500;
-		await listingsDao.reportFailure(listing.id, statusCode);
+		await quotasDao.reportFailure(listing.id, statusCode);
 		throw err;
 	}
 });

@@ -10,7 +10,7 @@ interface LedgerEntry {
 	model: string;
 	inputTokens: number;
 	outputTokens: number;
-	costCents: number;
+	creditsUsed: number;
 	createdAt: number;
 }
 
@@ -66,7 +66,7 @@ export function Ledger() {
 									{t("ledger.tokens")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white sm:pr-6">
-									{t("ledger.cost")}
+									{t("ledger.credits_used")}
 								</th>
 							</tr>
 						</thead>
@@ -86,7 +86,7 @@ export function Ledger() {
 										{(tx.inputTokens + tx.outputTokens).toLocaleString()}
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-right font-medium text-gray-900 dark:text-white sm:pr-6">
-										${(tx.costCents / 100).toFixed(4)}
+										{tx.creditsUsed > 0 ? tx.creditsUsed.toFixed(4) : "Free"}
 									</td>
 								</tr>
 							))}

@@ -5,12 +5,12 @@ export interface DbApiKey {
 	created_at: number;
 }
 
-export interface DbCreditListing {
+export interface DbQuotaListing {
 	id: string; // "openrouter:sk-or-xxxx"
 	provider: string; // openrouter, deepinfra, zenmux
 	api_key: string;
-	credits_cents: number;
-	credits_source: string; // 'auto' or 'manual'
+	quota: number;
+	quota_source: string; // 'auto' or 'manual'
 	is_enabled: number;
 	price_multiplier: number;
 	health_status: string; // 'ok' | 'degraded' | 'dead' | 'unknown'
@@ -23,8 +23,8 @@ export interface DbMarketQuote {
 	provider: string;
 	upstream_id: string; // "anthropic/claude-3-opus"
 	display_name: string | null;
-	input_cost: number;
-	output_cost: number;
+	input_price: number;
+	output_price: number;
 	context_length: number | null;
 	is_active: number;
 	refreshed_at: number;
@@ -32,11 +32,11 @@ export interface DbMarketQuote {
 
 export interface DbLedgerEntry {
 	id: string; // uuid
-	listing_id: string; // Maps to DbCreditListing.id
+	listing_id: string; // Maps to DbQuotaListing.id
 	provider: string;
 	model: string;
 	input_tokens: number;
 	output_tokens: number;
-	cost_cents: number;
+	credits_used: number;
 	created_at: number;
 }

@@ -3,15 +3,15 @@
  */
 import { Hono } from "hono";
 import { LedgerDao } from "../core/db/ledger-dao";
-import { ListingsDao } from "../core/db/listings-dao";
+import { QuotasDao } from "../core/db/quotas-dao";
 import { getAllProviders } from "../core/providers/registry";
 import type { Env } from "../index";
 
 const systemRouter = new Hono<{ Bindings: Env }>();
 
 systemRouter.get("/pool/stats", async (c) => {
-	const listingsDao = new ListingsDao(c.env.DB);
-	return c.json(await listingsDao.getStats());
+	const quotasDao = new QuotasDao(c.env.DB);
+	return c.json(await quotasDao.getStats());
 });
 
 systemRouter.get("/providers", (c) => {
@@ -35,7 +35,7 @@ systemRouter.get("/ledger", async (c) => {
 			model: tx.model,
 			inputTokens: tx.input_tokens,
 			outputTokens: tx.output_tokens,
-			costCents: tx.cost_cents,
+			creditsUsed: tx.credits_used,
 			createdAt: tx.created_at,
 		})),
 	});

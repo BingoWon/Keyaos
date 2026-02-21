@@ -1,7 +1,7 @@
 import type { DbLedgerEntry } from "./schema";
 
 export class LedgerDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async createEntry(
 		tx: Omit<DbLedgerEntry, "id" | "created_at">,
@@ -12,7 +12,7 @@ export class LedgerDao {
 			.prepare(
 				`INSERT INTO ledger (
 					id, listing_id, provider, model,
-					input_tokens, output_tokens, cost_cents, created_at
+					input_tokens, output_tokens, credits_used, created_at
 				) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
@@ -22,7 +22,7 @@ export class LedgerDao {
 				tx.model,
 				tx.input_tokens,
 				tx.output_tokens,
-				tx.cost_cents,
+				tx.credits_used,
 				Date.now(),
 			)
 			.run();

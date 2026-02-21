@@ -11,7 +11,8 @@ interface Stats {
 	totalListings: number;
 	activeProviders: number;
 	deadListings: number;
-	totalBalanceCents: number;
+	deadListings: number;
+	totalQuota: number;
 }
 
 export function Dashboard() {
@@ -38,8 +39,8 @@ export function Dashboard() {
 			icon: DocumentCheckIcon,
 		},
 		{
-			name: t("dashboard.total_credits"),
-			stat: stats ? `$${(stats.totalBalanceCents / 100).toFixed(2)}` : "-",
+			name: t("dashboard.total_quota"),
+			stat: stats ? stats.totalQuota.toFixed(2) : "-",
 			icon: CurrencyDollarIcon,
 		},
 	];

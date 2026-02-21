@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { ListingsDao } from "../core/db/listings-dao";
+import { QuotasDao } from "../core/db/quotas-dao";
 import { getAllProviders, getProvider } from "../core/providers/registry";
 import type { Env } from "../index";
 import { ApiError, BadRequestError } from "../shared/errors";
@@ -10,23 +10,24 @@ function maskKey(key: string): string {
 	return `${key.slice(0, 10)}•••${key.slice(-3)}`;
 }
 
-const listingsRouter = new Hono<{ Bindings: Env }>();
+const quotasRouter = new Hono<{ Bindings: Env }>();
 
-/** Convert native-currency amount to USD cents */
-function toUsdCents(
+/** Convert native-currency amount to universal Quota ratio matching USD value */
+function toQuota(
 	amount: number,
 	currency: "USD" | "CNY",
 	cnyRate: number,
 ): number {
 	const usd = currency === "CNY" ? amount / cnyRate : amount;
-	return Math.round(usd * 100);
+	// Store as a REAL value in DB, no need to multiply by 100
+	return usd;
 }
 
-listingsRouter.post("/", async (c) => {
+quotasRouter.post("/", async (c) => {
 	let body: {
 		provider: string;
 		apiKey: string;
-		credits?: number;
+		quota?: number;
 		isEnabled?: number;
 		priceMultiplier?: number;
 	};
@@ -58,41 +59,41 @@ listingsRouter.post("/", async (c) => {
 	}
 
 	// Check for duplicate API key
-	const listingsDao = new ListingsDao(c.env.DB);
-	const existing = await listingsDao.findByApiKey(body.apiKey);
+	const quotasDao = new QuotasDao(c.env.DB);
+	const existing = await quotasDao.findByApiKey(body.apiKey);
 	if (existing) {
 		throw new BadRequestError("This API key has already been added.");
 	}
 
-	// ─── Determine credits ─────────────────────────────────
-	let creditsCents = 0;
-	let creditsSource: "auto" | "manual" = "manual";
+	// ─── Determine quota ─────────────────────────────────
+	let quota = 0;
+	let quotaSource: "auto" | "manual" = "manual";
 
 	if (provider.info.supportsAutoCredits) {
-		creditsSource = "auto";
+		quotaSource = "auto";
 		const cnyRate = parseFloat(c.env.CNY_USD_RATE || "7");
-		const credits = await provider.fetchCredits(body.apiKey);
-		if (credits?.remaining != null) {
-			creditsCents = toUsdCents(
-				credits.remaining,
+		const upstream = await provider.fetchCredits(body.apiKey);
+		if (upstream?.remaining != null) {
+			quota = toQuota(
+				upstream.remaining,
 				provider.info.currency,
 				cnyRate,
 			);
 		}
 	} else {
-		if (body.credits == null || body.credits <= 0) {
+		if (body.quota == null || body.quota <= 0) {
 			throw new BadRequestError(
-				`${body.provider} does not support automatic credit detection. Please provide a "credits" value (in USD).`,
+				`${body.provider} does not support automatic detection. Please provide a "quota" value.`,
 			);
 		}
-		creditsCents = Math.round(body.credits * 100);
+		quota = body.quota;
 	}
 
-	const listing = await listingsDao.addListing({
+	const listing = await quotasDao.addListing({
 		provider: body.provider,
 		apiKey: body.apiKey,
-		creditsCents,
-		creditsSource,
+		quota,
+		quotaSource,
 		isEnabled: body.isEnabled,
 		priceMultiplier: body.priceMultiplier,
 	});
@@ -102,25 +103,25 @@ listingsRouter.post("/", async (c) => {
 			id: listing.id,
 			provider: listing.provider,
 			keyHint: maskKey(listing.api_key),
-			credits: listing.credits_cents / 100,
-			creditsSource: listing.credits_source,
+			quota: listing.quota,
+			quotaSource: listing.quota_source,
 			health: listing.health_status,
-			message: "Credit Listing added successfully",
+			message: "Quota Listing added successfully",
 		},
 		201,
 	);
 });
 
-listingsRouter.get("/", async (c) => {
-	const listingsDao = new ListingsDao(c.env.DB);
-	const all = await listingsDao.getAllListings();
+quotasRouter.get("/", async (c) => {
+	const quotasDao = new QuotasDao(c.env.DB);
+	const all = await quotasDao.getAllListings();
 	return c.json({
 		data: all.map((l) => ({
 			id: l.id,
 			provider: l.provider,
 			keyHint: maskKey(l.api_key),
-			credits: l.credits_cents / 100,
-			creditsSource: l.credits_source,
+			quota: l.quota,
+			quotaSource: l.quota_source,
 			health: l.health_status,
 			isEnabled: l.is_enabled === 1,
 			priceMultiplier: l.price_multiplier,
@@ -129,47 +130,46 @@ listingsRouter.get("/", async (c) => {
 	});
 });
 
-listingsRouter.patch("/:id/credits", async (c) => {
+quotasRouter.patch("/:id/quota", async (c) => {
 	const id = c.req.param("id");
-	const listingsDao = new ListingsDao(c.env.DB);
-	const listing = await listingsDao.getListing(id);
+	const quotasDao = new QuotasDao(c.env.DB);
+	const listing = await quotasDao.getListing(id);
 
 	if (!listing) {
 		throw new ApiError(
-			"Credit listing not found",
+			"Quota listing not found",
 			404,
 			"not_found",
 			"listing_not_found",
 		);
 	}
 
-	if (listing.credits_source === "auto") {
+	if (listing.quota_source === "auto") {
 		throw new BadRequestError(
-			"Cannot manually set credits for auto-credit providers. Credits are fetched automatically.",
+			"Cannot manually set quota for auto-detected providers. System fetches them automatically.",
 		);
 	}
 
-	let body: { credits: number };
+	let body: { quota: number };
 	try {
 		body = await c.req.json();
 	} catch {
 		throw new BadRequestError("Invalid JSON body");
 	}
 
-	if (body.credits == null || body.credits < 0) {
-		throw new BadRequestError("credits must be a non-negative number (USD)");
+	if (body.quota == null || body.quota < 0) {
+		throw new BadRequestError("quota must be a non-negative number");
 	}
 
-	const creditsCents = Math.round(body.credits * 100);
-	await listingsDao.updateCredits(id, creditsCents, "manual");
+	await quotasDao.updateQuota(id, body.quota, "manual");
 
 	if (
-		creditsCents > 0 &&
-		listing.is_active === 0 &&
+		body.quota > 0 &&
+		listing.is_enabled === 0 &&
 		listing.health_status !== "dead"
 	) {
 		await c.env.DB.prepare(
-			"UPDATE credit_listings SET is_active = 1 WHERE id = ?",
+			"UPDATE quota_listings SET is_enabled = 1 WHERE id = ?",
 		)
 			.bind(id)
 			.run();
@@ -177,26 +177,26 @@ listingsRouter.patch("/:id/credits", async (c) => {
 
 	return c.json({
 		id,
-		credits: creditsCents / 100,
-		message: "Credits updated",
+		quota: body.quota,
+		message: "Quota updated",
 	});
 });
 
-listingsRouter.delete("/:id", async (c) => {
-	const listingsDao = new ListingsDao(c.env.DB);
-	const success = await listingsDao.deleteListing(c.req.param("id"));
+quotasRouter.delete("/:id", async (c) => {
+	const quotasDao = new QuotasDao(c.env.DB);
+	const success = await quotasDao.deleteListing(c.req.param("id"));
 	if (!success) {
 		throw new ApiError(
-			"Credit listing not found",
+			"Quota listing not found",
 			404,
 			"not_found",
 			"listing_not_found",
 		);
 	}
-	return c.json({ message: "Credit listing removed", id: c.req.param("id") });
+	return c.json({ message: "Quota listing removed", id: c.req.param("id") });
 });
 
-listingsRouter.patch("/:id/settings", async (c) => {
+quotasRouter.patch("/:id/settings", async (c) => {
 	const id = c.req.param("id");
 	let body: { isEnabled?: number; priceMultiplier?: number };
 	try {
@@ -205,11 +205,11 @@ listingsRouter.patch("/:id/settings", async (c) => {
 		throw new BadRequestError("Invalid JSON body");
 	}
 
-	const listingsDao = new ListingsDao(c.env.DB);
-	const listing = await listingsDao.getListing(id);
+	const quotasDao = new QuotasDao(c.env.DB);
+	const listing = await quotasDao.getListing(id);
 	if (!listing) {
 		throw new ApiError(
-			"Credit listing not found",
+			"Quota listing not found",
 			404,
 			"not_found",
 			"listing_not_found",
@@ -219,7 +219,7 @@ listingsRouter.patch("/:id/settings", async (c) => {
 	const isEnabled = body.isEnabled ?? listing.is_enabled;
 	const priceMultiplier = body.priceMultiplier ?? listing.price_multiplier;
 
-	await listingsDao.updateListingSettings(id, isEnabled, priceMultiplier);
+	await quotasDao.updateListingSettings(id, isEnabled, priceMultiplier);
 
 	return c.json({
 		message: "Settings updated",
@@ -229,14 +229,14 @@ listingsRouter.patch("/:id/settings", async (c) => {
 	});
 });
 
-listingsRouter.get("/:id/credits", async (c) => {
+quotasRouter.get("/:id/quota", async (c) => {
 	const id = c.req.param("id");
-	const listingsDao = new ListingsDao(c.env.DB);
-	const listing = await listingsDao.getListing(id);
+	const quotasDao = new QuotasDao(c.env.DB);
+	const listing = await quotasDao.getListing(id);
 
 	if (!listing) {
 		throw new ApiError(
-			"Credit listing not found",
+			"Quota listing not found",
 			404,
 			"not_found",
 			"listing_not_found",
@@ -246,23 +246,23 @@ listingsRouter.get("/:id/credits", async (c) => {
 	const result: Record<string, unknown> = {
 		id: listing.id,
 		provider: listing.provider,
-		credits: listing.credits_cents / 100,
-		creditsSource: listing.credits_source,
+		quota: listing.quota,
+		quotaSource: listing.quota_source,
 	};
 
-	if (listing.credits_source === "auto") {
+	if (listing.quota_source === "auto") {
 		const provider = getProvider(listing.provider);
 		if (provider) {
 			const cnyRate = parseFloat(c.env.CNY_USD_RATE || "7");
 			const upstream = await provider.fetchCredits(listing.api_key);
 			if (upstream?.remaining != null) {
-				const newCents = toUsdCents(
+				const newQuota = toQuota(
 					upstream.remaining,
 					provider.info.currency,
 					cnyRate,
 				);
-				await listingsDao.updateCredits(id, newCents, "auto");
-				result.credits = newCents / 100;
+				await quotasDao.updateQuota(id, newQuota, "auto");
+				result.quota = newQuota;
 				result.upstream = {
 					remaining: upstream.remaining,
 					usage: upstream.usage,
@@ -275,4 +275,4 @@ listingsRouter.get("/:id/credits", async (c) => {
 	return c.json(result);
 });
 
-export default listingsRouter;
+export default quotasRouter;
