@@ -1,37 +1,44 @@
 [
 	{
-		"id": "openai/gpt-5.3-codex",
-		"name": "GPT-5.3 Codex",
-		"input_usd": 2.0,
-		"output_usd": 16.0,
+		"id": "openai/gpt-5.1-codex-mini",
+		"name": "OpenAI: GPT-5.1-Codex-Mini",
+		"input_usd": 0.25,
+		"output_usd": 2,
 		"context_length": 400000
 	},
 	{
-		"id": "openai/gpt-5.2-codex",
-		"name": "GPT-5.2 Codex",
-		"input_usd": 1.75,
-		"output_usd": 14.0,
+		"id": "openai/gpt-5-codex",
+		"name": "OpenAI: GPT-5 Codex",
+		"input_usd": 1.25,
+		"output_usd": 10,
 		"context_length": 400000
 	},
 	{
-		"id": "openai/gpt-5.2",
-		"name": "GPT-5.2",
-		"input_usd": 1.75,
-		"output_usd": 14.0,
+		"id": "openai/gpt-5.1-codex",
+		"name": "OpenAI: GPT-5.1-Codex",
+		"input_usd": 1.25,
+		"output_usd": 10,
 		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5.1-codex-max",
-		"name": "GPT-5.1 Codex Max",
-		"input_usd": 1.75,
-		"output_usd": 14.0,
+		"name": "OpenAI: GPT-5.1-Codex-Max",
+		"input_usd": 1.25,
+		"output_usd": 10,
 		"context_length": 400000
 	},
 	{
-		"id": "openai/gpt-5.1-codex-mini",
-		"name": "GPT-5.1 Codex Mini",
-		"input_usd": 0.3,
-		"output_usd": 1.2,
+		"id": "openai/gpt-5.2",
+		"name": "OpenAI: GPT-5.2",
+		"input_usd": 1.75,
+		"output_usd": 14,
+		"context_length": 400000
+	},
+	{
+		"id": "openai/gpt-5.2-codex",
+		"name": "OpenAI: GPT-5.2-Codex",
+		"input_usd": 1.75,
+		"output_usd": 14,
 		"context_length": 400000
 	}
 ]
