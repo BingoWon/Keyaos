@@ -16,7 +16,7 @@ Google DeepMind's advanced AI coding IDE. Uses Google's internal CodeAssist infr
 
 ## Architecture
 
-Antigravity shares the same v1internal protocol as Gemini CLI. The adapter reuses `protocols/gemini-native.ts` for request/response conversion, adding Antigravity-specific fields:
+Antigravity and Gemini CLI share a unified `GoogleOAuthAdapter` class (`providers/google-oauth-adapter.ts`), parameterized by OAuth credentials, base URLs, and optional request augmentation. Protocol conversion is handled by the shared `protocols/gemini-native.ts`:
 
 ```
 OpenAI body → toGeminiRequest() → add userAgent/requestType/requestId → v1internal API
@@ -32,7 +32,6 @@ v1internal response → toOpenAIResponse() / createGeminiToOpenAIStream() → Op
 | Extra fields | None | `userAgent`, `requestType`, `requestId` |
 | Claude models | No | Yes (claude-sonnet-4-6, claude-opus-4-6-thinking) |
 | Gemini 3.x | Limited | Full (high/low variants, 3.1) |
-| Non-streaming | `streamGenerateContent` (no alt=sse) | `generateContent` |
 
 ## Models
 

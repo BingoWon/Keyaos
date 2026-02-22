@@ -21,6 +21,13 @@
 		"context_length": 1048576
 	},
 	{
+		"id": "google/gemini-2.0-flash",
+		"name": "Gemini 2.0 Flash",
+		"input_usd": 0.1,
+		"output_usd": 0.4,
+		"context_length": 1048576
+	},
+	{
 		"id": "google/gemini-2.5-flash-thinking",
 		"name": "Gemini 2.5 Flash Thinking",
 		"input_usd": 0.15,
