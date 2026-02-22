@@ -9,6 +9,7 @@ import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
 import oaiproModels from "../models/oaipro.json";
 import openaiModels from "../models/openai.json";
+import qwenCodeModels from "../models/qwen-code.json";
 import {
 	antigravityAdapter,
 	geminiCliAdapter,
@@ -253,6 +254,39 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("openai", openaiModels),
+	},
+	{
+		id: "qwen-code",
+		name: "Qwen Code",
+		logoUrl: "https://chat.qwen.ai/favicon.ico",
+		baseUrl: "https://coding.dashscope.aliyuncs.com/v1",
+		currency: "USD",
+		supportsAutoCredits: false,
+		staticModels: true,
+		stripModelPrefix: true,
+		parseModels: () => parseStaticUsdModels("qwen-code", qwenCodeModels),
+		customValidateKey: async (secret) => {
+			try {
+				const res = await fetch(
+					"https://coding.dashscope.aliyuncs.com/v1/chat/completions",
+					{
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${secret}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							model: "qwen3-coder-plus",
+							messages: [{ role: "user", content: "." }],
+							max_tokens: 1,
+						}),
+					},
+				);
+				return res.ok;
+			} catch {
+				return false;
+			}
+		},
 	},
 ];
 

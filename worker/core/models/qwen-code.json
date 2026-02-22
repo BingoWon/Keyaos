@@ -1,0 +1,23 @@
+[
+	{
+		"id": "qwen-code/qwen3.5-plus",
+		"name": "Qwen 3.5 Plus",
+		"input_usd": 0.4,
+		"output_usd": 2.4,
+		"context_length": 131072
+	},
+	{
+		"id": "qwen-code/qwen3-coder-plus",
+		"name": "Qwen 3 Coder Plus",
+		"input_usd": 1.0,
+		"output_usd": 5.0,
+		"context_length": 131072
+	},
+	{
+		"id": "qwen-code/qwen3-max-2026-01-23",
+		"name": "Qwen 3 Max (2026-01-23)",
+		"input_usd": 1.2,
+		"output_usd": 6.0,
+		"context_length": 131072
+	}
+]
