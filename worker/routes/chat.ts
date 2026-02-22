@@ -19,11 +19,11 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
-	const rawProvider = body.provider as string | string[] | undefined;
+	const { provider: rawProvider, ...rest } = body;
 	const providers = rawProvider
 		? Array.isArray(rawProvider)
-			? rawProvider
-			: [rawProvider]
+			? (rawProvider as string[])
+			: [rawProvider as string]
 		: undefined;
 
 	const owner_id = c.get("owner_id");
@@ -34,9 +34,9 @@ chatRouter.post("/completions", async (c) => {
 
 	for (const { credential, provider, modelId, modelPrice } of candidates) {
 		const upstreamBody = {
-			...body,
+			...rest,
 			model: modelId,
-			stream_options: body.stream ? { include_usage: true } : undefined,
+			stream_options: rest.stream ? { include_usage: true } : undefined,
 		};
 
 		try {
