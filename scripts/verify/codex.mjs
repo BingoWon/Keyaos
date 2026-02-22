@@ -50,8 +50,9 @@ try {
 console.log("\n=== 1. Refresh Token Rotation (read-only check) ===");
 console.log("   ⚠️  SKIPPED — OpenAI enforces single-use refresh tokens.");
 console.log("   Calling the refresh endpoint would invalidate the token in auth.json.");
-console.log("   The Codex adapter uses access_token for validation and caches refresh");
-console.log("   token rotations in the DB after each OAuth refresh.");
+console.log("   Official format: POST JSON to auth.openai.com/oauth/token");
+console.log("   Scope: 'openid profile email' (no offline_access)");
+console.log("   Response refresh_token is Optional — may not always be returned.");
 results.refresh_token_note = "OpenAI enforces rotation — not tested to avoid invalidation";
 
 const headers = {

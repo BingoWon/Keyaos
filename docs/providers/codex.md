@@ -75,14 +75,21 @@ OpenAI OAuth 实行 **refresh token rotation**（刷新令牌轮换）：
 
 ```
 POST https://auth.openai.com/oauth/token
-client_id=app_EMoamEEZ73f0CkXaXp7hrann
-grant_type=refresh_token
-refresh_token=<refresh_token>
-scope=openid profile email offline_access
+Content-Type: application/json
+
+{
+  "client_id": "app_EMoamEEZ73f0CkXaXp7hrann",
+  "grant_type": "refresh_token",
+  "refresh_token": "<refresh_token>",
+  "scope": "openid profile email"
+}
 ```
 
+- 使用 JSON body（与官方 Codex CLI 一致），**不使用** `application/x-www-form-urlencoded`
+- scope 为 `"openid profile email"`，**不含** `offline_access`（与官方一致）
 - 无需 client_secret（PKCE 公开客户端）
-- 返回新 access_token（10 天有效）+ **新 refresh_token**（旧的立即失效）
+- 返回新 access_token（10 天有效）
+- `refresh_token` 为 **Optional** 字段——可能返回新 token（旧的立即失效），也可能不返回（保留原 token）
 
 ### 2.5 关键发现：API 端点
 

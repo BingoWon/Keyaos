@@ -62,27 +62,32 @@ export class CodexAdapter implements ProviderAdapter {
 
 	private async refresh(
 		refreshToken: string,
-	): Promise<{ accessToken: string; expiresIn: number; newRefreshToken: string }> {
+	): Promise<{
+		accessToken: string;
+		expiresIn: number;
+		newRefreshToken: string | null;
+	}> {
+		// Match the official Codex CLI: JSON body, no offline_access scope
 		const res = await fetch(OAUTH_TOKEN_URL, {
 			method: "POST",
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body: new URLSearchParams({
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
 				client_id: CLIENT_ID,
 				grant_type: "refresh_token",
 				refresh_token: refreshToken,
-				scope: "openid profile email offline_access",
+				scope: "openid profile email",
 			}),
 		});
 		if (!res.ok) throw new Error(`Token refresh failed: ${res.status}`);
 		const json = (await res.json()) as {
 			access_token: string;
 			expires_in: number;
-			refresh_token: string;
+			refresh_token?: string;
 		};
 		return {
 			accessToken: json.access_token,
 			expiresIn: json.expires_in,
-			newRefreshToken: json.refresh_token,
+			newRefreshToken: json.refresh_token ?? null,
 		};
 	}
 
@@ -93,7 +98,7 @@ export class CodexAdapter implements ProviderAdapter {
 
 		const { accessToken, expiresIn, newRefreshToken } = await this.refresh(cred.refresh_token);
 		const rotated: CodexCredential = {
-			refresh_token: newRefreshToken,
+			refresh_token: newRefreshToken ?? cred.refresh_token,
 			account_id: cred.account_id,
 			access_token: accessToken,
 			expires_at: Date.now() + expiresIn * 1000,
