@@ -31,20 +31,23 @@ export class PaymentsDao {
 		return id;
 	}
 
-	async markCompleted(sessionId: string): Promise<boolean> {
+	async transition(
+		sessionId: string,
+		to: "completed" | "expired",
+	): Promise<boolean> {
 		const res = await this.db
 			.prepare(
-				"UPDATE payments SET status = 'completed' WHERE stripe_session_id = ? AND status = 'pending'",
+				"UPDATE payments SET status = ? WHERE stripe_session_id = ? AND status = 'pending'",
 			)
-			.bind(sessionId)
+			.bind(to, sessionId)
 			.run();
 		return (res.meta?.changes ?? 0) > 0;
 	}
 
-	async isCompleted(sessionId: string): Promise<boolean> {
+	async isFinal(sessionId: string): Promise<boolean> {
 		const row = await this.db
 			.prepare(
-				"SELECT 1 FROM payments WHERE stripe_session_id = ? AND status = 'completed'",
+				"SELECT 1 FROM payments WHERE stripe_session_id = ? AND status IN ('completed', 'expired')",
 			)
 			.bind(sessionId)
 			.first();

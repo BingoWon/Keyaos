@@ -107,7 +107,10 @@
 		"no_data": "暂无充值记录",
 		"time": "时间",
 		"amount": "金额",
-		"status": "状态"
+		"status": "状态",
+		"status_completed": "已完成",
+		"status_pending": "待支付",
+		"status_expired": "已过期"
 	},
 	"guide": {
 		"title": "快速开始",

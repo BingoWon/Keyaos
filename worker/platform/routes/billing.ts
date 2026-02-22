@@ -75,27 +75,29 @@ webhookRouter.post("/stripe", async (c) => {
 	if (!valid) return c.text("Invalid signature", 400);
 
 	const event = JSON.parse(payload) as StripeCheckoutEvent;
-	if (event.type !== "checkout.session.completed") return c.json({ received: true });
-
 	const session = event.data.object;
+	const paymentsDao = new PaymentsDao(c.env.DB);
+
+	if (event.type === "checkout.session.expired") {
+		await paymentsDao.transition(session.id, "expired");
+		return c.json({ received: true, expired: true });
+	}
+
+	if (event.type !== "checkout.session.completed") return c.json({ received: true });
 	if (session.payment_status !== "paid") return c.json({ received: true });
 
 	const { owner_id, credits: creditsStr } = session.metadata;
 	const credits = Number.parseFloat(creditsStr);
 	if (!owner_id || !credits || credits <= 0) return c.text("Invalid metadata", 400);
 
-	const paymentsDao = new PaymentsDao(c.env.DB);
-
-	if (await paymentsDao.isCompleted(session.id)) {
+	if (await paymentsDao.isFinal(session.id)) {
 		return c.json({ received: true, duplicate: true });
 	}
 
-	const updated = await paymentsDao.markCompleted(session.id);
-	if (!updated) {
-		return c.json({ received: true, skipped: true });
+	if (await paymentsDao.transition(session.id, "completed")) {
+		await new WalletDao(c.env.DB).credit(owner_id, credits);
+		return c.json({ received: true, credited: credits });
 	}
 
-	await new WalletDao(c.env.DB).credit(owner_id, credits);
-
-	return c.json({ received: true, credited: credits });
+	return c.json({ received: true, skipped: true });
 });

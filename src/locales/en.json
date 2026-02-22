@@ -107,7 +107,10 @@
 		"no_data": "No payments yet",
 		"time": "Time",
 		"amount": "Amount",
-		"status": "Status"
+		"status": "Status",
+		"status_completed": "Completed",
+		"status_pending": "Pending",
+		"status_expired": "Expired"
 	},
 	"guide": {
 		"title": "Quick Start",

@@ -185,7 +185,7 @@ worker/
 | stripe_session_id | TEXT UNIQUE | Stripe Checkout Session ID（幂等防重复入账） |
 | amount_cents | INTEGER | 实付金额（美分） |
 | credits | REAL | 入账 Credits（$1 USD = $1 Credits, 1:1） |
-| status | TEXT | `pending` / `completed` / `failed` |
+| status | TEXT | `pending` → `completed` / `expired` |
 | created_at | INTEGER | 创建时间 |
 
 ## API 路由
