@@ -44,4 +44,24 @@ export class LedgerDao {
 
 		return res.results || [];
 	}
+
+	/** Sum credits_used per credential for a given owner */
+	async getEarningsByCredential(
+		owner_id: string,
+	): Promise<Map<string, number>> {
+		const res = await this.db
+			.prepare(
+				`SELECT credential_id, SUM(credits_used) as total
+				 FROM ledger WHERE owner_id = ?
+				 GROUP BY credential_id`,
+			)
+			.bind(owner_id)
+			.all<{ credential_id: string; total: number }>();
+
+		const map = new Map<string, number>();
+		for (const row of res.results || []) {
+			map.set(row.credential_id, row.total);
+		}
+		return map;
+	}
 }

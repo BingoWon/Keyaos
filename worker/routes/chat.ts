@@ -33,6 +33,7 @@ chatRouter.post("/completions", async (c) => {
 	let lastError: unknown;
 
 	for (const { credential, provider, modelId, modelPrice } of candidates) {
+		const isSub = provider.info.isSubscription ?? false;
 		const upstreamBody = {
 			...rest,
 			model: modelId,
@@ -46,7 +47,11 @@ chatRouter.post("/completions", async (c) => {
 			);
 
 			if (!response.ok) {
-				await credDao.reportFailure(credential.id, response.status);
+				await credDao.reportFailure(
+					credential.id,
+					response.status,
+					isSub,
+				);
 				lastError = new Error(
 					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
@@ -74,7 +79,9 @@ chatRouter.post("/completions", async (c) => {
 					c.executionCtx.waitUntil(credDao.reportSuccess(credential.id));
 				},
 				onStreamError: () => {
-					c.executionCtx.waitUntil(credDao.reportFailure(credential.id));
+					c.executionCtx.waitUntil(
+						credDao.reportFailure(credential.id, undefined, isSub),
+					);
 				},
 			});
 
@@ -82,7 +89,7 @@ chatRouter.post("/completions", async (c) => {
 			finalResponse.headers.set("x-provider", credential.provider);
 			return finalResponse;
 		} catch (err) {
-			await credDao.reportFailure(credential.id);
+			await credDao.reportFailure(credential.id, undefined, isSub);
 			lastError = err;
 		}
 	}

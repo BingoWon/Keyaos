@@ -271,6 +271,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://coding.dashscope.aliyuncs.com/v1",
 		currency: "USD",
 		supportsAutoCredits: false,
+		isSubscription: true,
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("qwen-code", qwenCodeModels),

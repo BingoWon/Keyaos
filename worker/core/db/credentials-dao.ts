@@ -1,5 +1,8 @@
 import type { DbCredential } from "./schema";
 
+/** Subscription-based credentials use a 5-hour cooldown before auto-recovery */
+const COOLDOWN_MS = 5 * 60 * 60 * 1000;
+
 export class CredentialsDao {
 	constructor(private db: D1Database) {}
 
@@ -69,17 +72,24 @@ export class CredentialsDao {
 		return result.success && result.meta?.rows_written === 1;
 	}
 
+	/**
+	 * Select credentials available for dispatching.
+	 * Excludes: dead, disabled, and cooldown credentials still within their window.
+	 */
 	async selectAvailable(
 		provider: string,
 		owner_id: string,
 	): Promise<DbCredential[]> {
+		const now = Date.now();
 		const res = await this.db
 			.prepare(
 				`SELECT * FROM upstream_credentials
-				 WHERE provider = ? AND owner_id = ? AND is_enabled = 1 AND health_status != 'dead'
+				 WHERE provider = ? AND owner_id = ? AND is_enabled = 1
+				   AND health_status != 'dead'
+				   AND (health_status != 'cooldown' OR last_health_check + ? < ?)
 				 ORDER BY price_multiplier ASC, COALESCE(quota, 9999999) DESC`,
 			)
-			.bind(provider, owner_id)
+			.bind(provider, owner_id, COOLDOWN_MS, now)
 			.all<DbCredential>();
 		return res.results || [];
 	}
@@ -105,7 +115,7 @@ export class CredentialsDao {
 				`UPDATE upstream_credentials
 				 SET quota = CASE WHEN quota IS NOT NULL THEN MAX(quota - ?, 0) ELSE NULL END,
 				     health_status = CASE
-				         WHEN quota IS NOT NULL AND quota - ? <= 0 THEN 'dead'
+				         WHEN quota IS NOT NULL AND quota - ? <= 0 THEN 'degraded'
 				         ELSE health_status
 				     END
 				 WHERE id = ?`,
@@ -156,11 +166,34 @@ export class CredentialsDao {
 			.run();
 	}
 
-	async reportFailure(id: string, statusCode?: number): Promise<void> {
-		const status =
-			statusCode === 401 || statusCode === 402 || statusCode === 403
-				? "dead"
-				: "degraded";
+	/**
+	 * Record an upstream failure.
+	 * - Subscription providers: first failure → cooldown (auto-recovers after 5h);
+	 *   failure after cooldown recovery → dead (needs manual intervention).
+	 * - Balance providers: 401/402/403 → dead; others → degraded.
+	 */
+	async reportFailure(
+		id: string,
+		statusCode?: number,
+		isSubscription?: boolean,
+	): Promise<void> {
+		let status: string;
+		if (isSubscription) {
+			const cred = await this.db
+				.prepare(
+					"SELECT health_status FROM upstream_credentials WHERE id = ?",
+				)
+				.bind(id)
+				.first<{ health_status: string }>();
+			// First failure or currently ok → cooldown; already was cooldown → dead
+			status = cred?.health_status === "cooldown" ? "dead" : "cooldown";
+		} else {
+			status =
+				statusCode === 401 || statusCode === 402 || statusCode === 403
+					? "dead"
+					: "degraded";
+		}
+
 		await this.db
 			.prepare(
 				"UPDATE upstream_credentials SET health_status = ?, last_health_check = ? WHERE id = ?",

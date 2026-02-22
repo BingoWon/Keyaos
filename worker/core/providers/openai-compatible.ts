@@ -28,6 +28,8 @@ export interface OpenAICompatibleConfig {
 	extraHeaders?: Record<string, string>;
 	/** Override default GET-based key validation (for providers where /models is public). */
 	customValidateKey?: (secret: string) => Promise<boolean>;
+	/** Subscription-based provider — no quota tracking, uses cooldown health recovery. */
+	isSubscription?: boolean;
 }
 
 /** USD dollars → integer cents per 1M tokens */
@@ -64,6 +66,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			logoUrl: config.logoUrl,
 			supportsAutoCredits: config.supportsAutoCredits,
 			currency: config.currency,
+			isSubscription: config.isSubscription,
 		};
 	}
 

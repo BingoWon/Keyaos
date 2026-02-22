@@ -4,4 +4,5 @@ export interface ProviderMeta {
 	logoUrl: string;
 	supportsAutoCredits: boolean;
 	authType: "api_key" | "oauth";
+	isSubscription: boolean;
 }

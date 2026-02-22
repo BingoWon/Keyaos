@@ -71,6 +71,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			supportsAutoCredits: false,
 			currency: "USD",
 			authType: "oauth",
+			isSubscription: true,
 		};
 	}
 

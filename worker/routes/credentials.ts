@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { CredentialsDao } from "../core/db/credentials-dao";
+import { LedgerDao } from "../core/db/ledger-dao";
 import { getAllProviders, getProvider } from "../core/providers/registry";
 import { ApiError, BadRequestError } from "../shared/errors";
 import type { AppEnv } from "../shared/types";
@@ -81,18 +82,19 @@ credentialsRouter.post("/", async (c) => {
 	}
 
 	const authType = provider.info.authType ?? "api_key";
+	const isSub = provider.info.isSubscription ?? false;
 	let quota: number | null = null;
 	let quotaSource: "auto" | "manual" | null = null;
 
-	if (provider.info.supportsAutoCredits) {
+	if (isSub) {
+		// Subscription-based provider — no quota tracking
+	} else if (provider.info.supportsAutoCredits) {
 		quotaSource = "auto";
 		const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
 		const upstream = await provider.fetchCredits(secret);
 		if (upstream?.remaining != null) {
 			quota = toQuota(upstream.remaining, provider.info.currency, cnyRate);
 		}
-	} else if (authType === "oauth") {
-		// Subscription-based provider — no quota concept
 	} else if (body.quota != null && body.quota > 0) {
 		quota = body.quota;
 		quotaSource = "manual";
@@ -128,8 +130,11 @@ credentialsRouter.post("/", async (c) => {
 });
 
 credentialsRouter.get("/", async (c) => {
-	const dao = new CredentialsDao(c.env.DB);
-	const all = await dao.getAll(c.get("owner_id"));
+	const ownerId = c.get("owner_id");
+	const [all, earnings] = await Promise.all([
+		new CredentialsDao(c.env.DB).getAll(ownerId),
+		new LedgerDao(c.env.DB).getEarningsByCredential(ownerId),
+	]);
 	return c.json({
 		data: all.map((cred) => ({
 			id: cred.id,
@@ -142,6 +147,7 @@ credentialsRouter.get("/", async (c) => {
 			isEnabled: cred.is_enabled === 1,
 			priceMultiplier: cred.price_multiplier,
 			addedAt: cred.added_at,
+			earnings: earnings.get(cred.id) ?? 0,
 		})),
 	});
 });

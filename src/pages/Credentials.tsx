@@ -30,6 +30,7 @@ interface CredentialInfo {
 	isEnabled: boolean;
 	priceMultiplier: number;
 	addedAt: number;
+	earnings: number;
 }
 
 export function Credentials() {
@@ -68,8 +69,8 @@ export function Credentials() {
 
 	const selectedProvider = providers.find((p) => p.id === draft.provider);
 	const isAutoProvider = selectedProvider?.supportsAutoCredits ?? false;
-	const isOAuthProvider = selectedProvider?.authType === "oauth";
-	const needsManualQuota = !isAutoProvider && !isOAuthProvider;
+	const isSubProvider = selectedProvider?.isSubscription ?? false;
+	const needsManualQuota = !isAutoProvider && !isSubProvider;
 
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -182,7 +183,11 @@ export function Credentials() {
 		}
 	};
 
+	const isSubscription = (cred: CredentialInfo) =>
+		providers.find((p) => p.id === cred.provider)?.isSubscription ?? false;
+
 	const formatQuota = (cred: CredentialInfo) => {
+		if (isSubscription(cred)) return t("credentials.subscription");
 		if (cred.quota == null) return t("credentials.no_quota");
 		return cred.quota.toFixed(2);
 	};
@@ -264,7 +269,7 @@ export function Credentials() {
 									}
 									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder={
-										isOAuthProvider
+										selectedProvider?.authType === "oauth"
 											? "refresh_token or paste oauth_creds.json"
 											: "sk-..."
 									}
@@ -389,6 +394,12 @@ export function Credentials() {
 											scope="col"
 											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
 										>
+											{t("credentials.earnings")}
+										</th>
+										<th
+											scope="col"
+											className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white"
+										>
 											{t("credentials.price_multiplier")}
 										</th>
 										<th
@@ -420,14 +431,14 @@ export function Credentials() {
 								<tbody className="divide-y divide-gray-200 bg-white dark:divide-white/10 dark:bg-gray-900">
 									{loading ? (
 										<tr>
-											<td colSpan={8} className="py-10">
+											<td colSpan={9} className="py-10">
 												<PageLoader />
 											</td>
 										</tr>
 									) : credentials.length === 0 ? (
 										<tr>
 											<td
-												colSpan={8}
+												colSpan={9}
 												className="py-4 text-center text-sm text-gray-500 dark:text-gray-400"
 											>
 												{t("credentials.no_data")}
@@ -439,6 +450,7 @@ export function Credentials() {
 												key={cred.id}
 												className={cred.isEnabled ? "" : "opacity-50"}
 											>
+												{/* Provider */}
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
 													{(() => {
 														const meta = providers.find(
@@ -457,6 +469,7 @@ export function Credentials() {
 														);
 													})()}
 												</td>
+												{/* Secret */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
 													<div className="flex items-center gap-2">
 														{cred.secretHint}
@@ -473,6 +486,7 @@ export function Credentials() {
 														</button>
 													</div>
 												</td>
+												{/* Quota */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
 													{editingId === cred.id ? (
 														<div className="flex items-center gap-2">
@@ -504,11 +518,13 @@ export function Credentials() {
 													) : (
 														<span
 															className={`font-mono flex items-center ${
-																cred.quota == null
-																	? "text-gray-400 dark:text-gray-500"
-																	: cred.quota > 0
-																		? "text-green-600 dark:text-green-400"
-																		: "text-red-500 dark:text-red-400"
+																isSubscription(cred)
+																	? "text-indigo-500 dark:text-indigo-400"
+																	: cred.quota == null
+																		? "text-gray-400 dark:text-gray-500"
+																		: cred.quota > 0
+																			? "text-green-600 dark:text-green-400"
+																			: "text-red-500 dark:text-red-400"
 															}`}
 														>
 															{formatQuota(cred)}
@@ -528,6 +544,11 @@ export function Credentials() {
 														</span>
 													)}
 												</td>
+												{/* Earnings */}
+												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-900 dark:text-white">
+													${cred.earnings.toFixed(4)}
+												</td>
+												{/* Price Multiplier */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													{editingSettingsId === cred.id ? (
 														<div className="flex items-center gap-2">
@@ -584,12 +605,15 @@ export function Credentials() {
 														</div>
 													)}
 												</td>
+												{/* Health */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													<HealthBadge status={cred.health} />
 												</td>
+												{/* Added */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
 													{formatDateTime(cred.addedAt)}
 												</td>
+												{/* Enabled */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
 													<label className="inline-flex items-center cursor-pointer">
 														<input
@@ -616,6 +640,7 @@ export function Credentials() {
 														</span>
 													</label>
 												</td>
+												{/* Actions */}
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
 													<button
 														type="button"

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-export type HealthStatus = "ok" | "degraded" | "dead";
+export type HealthStatus = "ok" | "degraded" | "dead" | "cooldown";
 
 interface HealthBadgeProps {
 	status: HealthStatus;
@@ -10,6 +10,8 @@ const HEALTH_VARIANTS: Record<HealthStatus, string> = {
 	ok: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400",
 	degraded:
 		"bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-500",
+	cooldown:
+		"bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-400",
 	dead: "bg-red-50 text-red-700 ring-red-600/10 dark:bg-red-400/10 dark:text-red-400",
 };
 

@@ -7,6 +7,7 @@ export interface ProviderInfo {
 	supportsAutoCredits: boolean;
 	currency: "USD" | "CNY";
 	authType?: "api_key" | "oauth";
+	isSubscription?: boolean;
 }
 
 export interface ProviderCredits {
