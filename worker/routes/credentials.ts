@@ -173,6 +173,13 @@ credentialsRouter.patch("/:id/quota", async (c) => {
 		);
 	}
 
+	const provider = getProvider(credential.provider);
+	if (provider?.info.isSubscription) {
+		throw new BadRequestError(
+			"Subscription-based providers do not use quota tracking.",
+		);
+	}
+
 	const body = parse(
 		UpdateQuotaBody,
 		await c.req.json().catch(() => {
