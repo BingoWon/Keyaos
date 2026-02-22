@@ -527,23 +527,10 @@ Base URL: https://api.openai.com/v1
 supportsAutoCredits: false
 费用返回: 无 (需自行计算，usage 返回 prompt_tokens/completion_tokens/total_tokens)
 流式 usage: 支持 stream_options ✅
-特殊事项: 静态模型定价 (hardcode); 模型 ID 扁平格式 (gpt-4o-mini, 非 openai/gpt-4o-mini); 不含 Codex 系列 (已由独立 Codex adapter 处理); 97 个模型中仅 16 个主力 chat/reasoning 模型纳入定价
+特殊事项: 静态模型定价 (hardcode); 模型 ID 扁平格式 (gpt-4o-mini, 非 openai/gpt-4o-mini); 包含 Codex 系列模型 (通过标准 API key 访问); 97 个模型中仅主力 chat/reasoning 模型纳入定价
 详细档案: docs/providers/openai.md
 ```
 
-### Codex
+### ~~Codex~~ (已摒弃)
 
-```
-Base URL: https://chatgpt.com/backend-api/codex
-兼容性: 不兼容 OpenAI ❌ (Responses API 协议, 需协议转换层)
-认证方式: OAuth PKCE (refresh_token + account_id → access_token 自动刷新, 无 client_secret)
-货币: N/A (订阅制无余额)
-模型列表 API: 无 (硬编码)
-凭证验证方式: Token refresh 成功=有效, 失败=无效
-余额查询 API: N/A
-supportsAutoCredits: false
-费用返回: ✅ (usage.input_tokens/output_tokens, 使用影子定价自行计算)
-流式 usage: response.completed 事件含完整 usage
-特殊事项: 用户需提供 refresh_token + account_id (均在 ~/.codex/auth.json 中); ChatGPT-Account-ID header 必需; store 必须为 false; 仅支持 Codex 系列模型
-详细档案: docs/providers/codex.md
-```
+> **已于 2026-02-22 决定摒弃。** chatgpt.com 屏蔽所有 Cloudflare Workers 出站请求（通过检测 `Cf-Worker` 请求头返回 403），导致反代在 CF Workers 架构下不可行。详见 `docs/providers/codex.md`。

@@ -45,13 +45,6 @@ chatRouter.post("/completions", async (c) => {
 				upstreamBody,
 			);
 
-			if (provider.getRotatedSecret) {
-				const rotated = provider.getRotatedSecret();
-				if (rotated) {
-					c.executionCtx.waitUntil(credDao.updateSecret(credential.id, rotated));
-				}
-			}
-
 			if (!response.ok) {
 				await credDao.reportFailure(credential.id, response.status);
 				lastError = new Error(

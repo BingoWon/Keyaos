@@ -1,266 +1,124 @@
-# Codex — 验证测试档案
+# Codex — 已摒弃（Deprecated）
 
-> 测试日期：2026-02-22 (updated)
-> 测试凭证来源：`~/.codex/auth.json`（ChatGPT OAuth 登录，Plus 计划）
-> 验证状态：**全链路打通** ✅
-> 验证脚本：`scripts/verify/codex.mjs`
-> 验证结果：`scripts/verify/codex.json`
+> **状态：已摒弃** ❌
+> **决定日期：2026-02-22**
+> **原因：chatgpt.com 屏蔽 Cloudflare Workers 出站请求，反代不可行**
+> **保留文件：`scripts/verify/codex.mjs`、`scripts/verify/codex.json`（验证档案）**
+> **已删除文件：`worker/core/providers/codex-adapter.ts`、`worker/core/protocols/codex-responses.ts`、`worker/core/models/codex.json`、`scripts/generate/codex.mjs`**
 
-## 一、基本信息
+---
 
-| 项目 | 内容 |
-|------|------|
-| 供应商名称 | `codex` |
-| 官方名称 | OpenAI Codex |
-| 类型 | 反代适配（本地 CLI 工具额度共享） |
-| API 协议 | **OpenAI Responses API**（`POST /responses`），非标准 Chat Completions |
-| API 端点 | `https://chatgpt.com/backend-api/codex/responses` |
-| 认证方式 | OAuth 2.0 + PKCE（ChatGPT 账号登录），`Bearer <access_token>` + `ChatGPT-Account-ID` header |
-| OAuth Client ID | `app_EMoamEEZ73f0CkXaXp7hrann`（公开值，PKCE 无 client_secret） |
-| OAuth Issuer | `https://auth.openai.com` |
-| 凭证存储位置 | `~/.codex/auth.json`（或 OS Keyring） |
-| 用户需上传 | `~/.codex/auth.json` 完整内容（包含 `access_token`、`refresh_token`、`account_id`） |
-| 订阅要求 | ChatGPT Plus / Pro / Team / Enterprise |
-| 官方文档 | https://developers.openai.com/codex |
+## 一、为什么摒弃 Codex
 
-## 二、认证机制详解
+### 根本原因：Cloudflare Workers 的 `Cf-Worker` 请求头
 
-### 2.1 认证模式
+Cloudflare Workers 运行时（workerd）对所有通过 `fetch()` 发出的出站 HTTP 请求**自动注入** `Cf-Worker` 请求头。这是运行时级别的行为，Worker 代码**无法移除或覆盖**——请求头在代码执行之后、请求发出之前由运行时注入。
 
-ChatGPT OAuth 2.0 + PKCE（无 client_secret）：
-- 登录后获得 `access_token`、`refresh_token`、`id_token`
-- access_token 有效期约 10 天（864000s）
-- redirect_uri: `http://localhost:1455/auth/callback`
+chatgpt.com（Codex API 的唯一端点）检测到 `Cf-Worker` 请求头后，对所有此类请求返回 **403 Forbidden**（HTML 错误页面），不区分请求内容。
 
-### 2.2 auth.json 结构
+### 验证过程
 
-```json
-{
-  "auth_mode": "chatgpt",
-  "OPENAI_API_KEY": null,
-  "tokens": {
-    "id_token": "eyJ...",
-    "access_token": "eyJ...",
-    "refresh_token": "rt_...",
-    "account_id": "d126c61f-..."
-  },
-  "last_refresh": "2026-02-22T02:47:38.714277Z"
-}
-```
+1. **发现问题**：用户在前端添加 Codex 凭证时始终失败（`validateKey` 返回 `false`），但所有 Node.js 测试脚本均能成功验证。
 
-用户上传完整 auth.json 内容，适配器自动提取所需字段。
+2. **添加调试端点**：在 Worker 中添加临时 `/debug/codex-test` 端点，直接测试 `normalizeSecret` + `validateKey` 流程。
+   - `normalizeSecret` 完全正常（JSON 解析、JWT 解码、expires_at 提取全部成功）
+   - `validateKey` 中的 `fetch("https://chatgpt.com/backend-api/codex/responses", ...)` 返回 **403 Forbidden + HTML 页面**
 
-### 2.3 关键发现：Refresh Token 轮换（单次使用）
+3. **确认 `Cf-Worker` 请求头**：通过 `/debug/fetch-test` 端点请求 httpbin.org，观察到 Worker 出站请求携带：
+   ```
+   "Cf-Worker": "keyaos.example.com"
+   ```
 
-**⚠️ 这是本适配中最重要的设计约束。**
+4. **最终验证**：在 Node.js 中手动添加 `Cf-Worker: keyaos.example.com` 请求头访问 chatgpt.com → **同样返回 403**。确认该请求头是触发封锁的直接原因。
 
-OpenAI OAuth 实行 **refresh token rotation**（刷新令牌轮换）：
+### 影响范围
 
-- 每次使用 `refresh_token` 换取新的 `access_token` 时，OpenAI 同时返回一个**新的** `refresh_token`
-- 旧的 `refresh_token` 立即失效
-- 如果尝试重用已消耗的 refresh_token，会返回 `refresh_token_reused` 错误
-
-**关键观察**：
-- Codex CLI 本身在正常使用中**不频繁刷新 token**——access_token 有效期 10 天，CLI 在有效期内直接使用 access_token
-- 因此 `~/.codex/auth.json` 中的 `refresh_token` 在用户正常使用期间通常**不会变化**
-- 但一旦被消耗（无论是我们的适配器还是其他工具），该 token 即刻失效
-
-**适配器设计应对**：
-1. **凭证添加时**：优先使用 `access_token` 进行验证（JWT 解析 exp 判断有效期），避免消耗 refresh_token
-2. **请求转发时**：access_token 有效则直接使用；过期时调用 refresh 并**捕获新的 refresh_token**
-3. **轮换持久化**：通过 `ProviderAdapter.getRotatedSecret()` 接口，调用方在 `forwardRequest` 后检查是否有新 token，如有则更新数据库
-4. **验证脚本**：**绝不调用** refresh 端点，避免破坏 auth.json 中的 token
-
-### 2.4 Token 刷新接口
-
-```
-POST https://auth.openai.com/oauth/token
-Content-Type: application/json
-
-{
-  "client_id": "app_EMoamEEZ73f0CkXaXp7hrann",
-  "grant_type": "refresh_token",
-  "refresh_token": "<refresh_token>",
-  "scope": "openid profile email"
-}
-```
-
-- 使用 JSON body（与官方 Codex CLI 一致），**不使用** `application/x-www-form-urlencoded`
-- scope 为 `"openid profile email"`，**不含** `offline_access`（与官方一致）
-- 无需 client_secret（PKCE 公开客户端）
-- 返回新 access_token（10 天有效）
-- `refresh_token` 为 **Optional** 字段——可能返回新 token（旧的立即失效），也可能不返回（保留原 token）
-
-### 2.5 关键发现：API 端点
-
-ChatGPT OAuth 模式下，Codex **不使用** `api.openai.com/v1`，而是使用：
-
-```
-https://chatgpt.com/backend-api/codex/responses
-```
-
-源码依据（`model_provider_info.rs:148`）：
-```rust
-let default_base_url = if matches!(auth_mode, Some(AuthMode::Chatgpt)) {
-    "https://chatgpt.com/backend-api/codex"
-} else {
-    "https://api.openai.com/v1"
-};
-```
-
-## 三、测试结果汇总
-
-### A. Access Token 有效性检查 ✅
-
-- JWT 解析 `exp` 字段判断有效期
-- 当前 token 剩余 ~233 小时（约 10 天）
-- 过期时需用户运行 `codex login` 重新获取
-
-### B. 凭证验证（access_token 路径）✅
-
-使用 access_token 向 `/responses` 发送最小请求验证认证有效性：
-- HTTP 400（认证通过，请求格式无关紧要）= 验证成功
-- HTTP 401 = 认证失败
-
-### C. 流式请求 ✅（唯一支持的模式）
-
-**⚠️ Codex API 现在要求 `stream: true`。非流式请求返回 400 "Stream must be set to true"。**
-
-```
-POST https://chatgpt.com/backend-api/codex/responses
-Headers: Authorization: Bearer <access_token>
-         ChatGPT-Account-ID: <account_id>
-         Content-Type: application/json
-Body: {
-  "model": "gpt-5.2-codex",
-  "instructions": "You are a helpful assistant.",
-  "input": [{"role": "user", "content": "Say hello in one word only."}],
-  "store": false,
-  "stream": true
-}
-```
-
-SSE 事件序列：
-1. `response.created` — 响应创建
-2. `response.in_progress` — 开始处理
-3. `response.output_item.added` — reasoning 开始
-4. `response.output_item.done` — reasoning 完成
-5. `response.output_item.added` — message 开始
-6. `response.content_part.added` — 内容块开始
-7. `response.output_text.delta` — **增量文本**（`delta` 字段）
-8. `response.output_text.done` — 文本完成
-9. `response.content_part.done` — 内容块完成
-10. `response.output_item.done` — message 完成
-11. `response.completed` — **最终事件，包含完整 usage（在 `response` 嵌套对象中）**
-
-Usage 位置：`data.response.usage`，包含 `input_tokens`、`output_tokens`、`total_tokens`。
-
-### D. 非流式请求 ❌（不再支持）
-
-- `stream: false` → HTTP 400 "Stream must be set to true"
-- 适配器始终发送 `stream: true` 到上游，对于客户端非流式请求，收集 SSE 流后组装完整响应返回
-
-### E. 模型限制
-
-- ✅ `gpt-5.2-codex`、`gpt-5.1-codex-mini`、`gpt-5.3-codex` 等 Codex 系列
-- ❌ `gpt-4o-mini` 等通用模型（返回 400: "not supported when using Codex with a ChatGPT account"）
-
-### F. 凭证验证 ✅
-
-- 无效 token → HTTP 401
-
-### G. 必需请求字段
-
-- `instructions`：必填（返回 400: "Instructions are required"）
-- `input`：必须是数组（返回 400: "Input must be a list"）
-- `store`：必须设为 `false`（返回 400: "Store must be set to false"）
-- `stream`：必须设为 `true`（返回 400: "Stream must be set to true"）
-
-## 四、本地模型缓存
-
-`~/.codex/models_cache.json` 包含 10 个模型（visibility=list 表示用户可见）：
-
-| slug | visibility | reasoning levels |
+| 端点 | 从 Workers 访问 | 备注 |
 |------|:---:|------|
-| gpt-5.3-codex | list | low, medium, high, xhigh |
-| gpt-5.2-codex | list | low, medium, high, xhigh |
-| gpt-5.1-codex-max | list | low, medium, high, xhigh |
-| gpt-5.2 | list | low, medium, high, xhigh |
-| gpt-5.1-codex-mini | list | low, medium, high, xhigh |
-| gpt-5.1-codex | hide | low, medium, high, xhigh |
-| gpt-5.1 | hide | low, medium, high, xhigh |
-| gpt-5-codex | hide | low, medium, high, xhigh |
-| gpt-5 | hide | low, medium, high, xhigh |
-| gpt-5-codex-mini | hide | low, medium, high, xhigh |
+| `chatgpt.com/backend-api/codex/*` | ❌ 403 | Codex API（ChatGPT OAuth 凭证唯一端点） |
+| `auth.openai.com/oauth/token` | ✅ 200 | OAuth token 刷新 |
+| `api.openai.com/v1/*` | ✅ 200 | OpenAI 标准 API（但 ChatGPT OAuth token 无权限） |
 
-## 五、与 Gemini CLI 对比
+ChatGPT OAuth access_token 的 `aud` 为 `https://api.openai.com/v1`，但实际仅有 `chatgpt.com` 端点接受：
+- `api.openai.com/v1/responses` → 401 "Missing scopes: api.responses.write"
+- `api.openai.com/v1/chat/completions` → 429 "insufficient_quota"
 
-| 维度 | Gemini CLI | Codex |
-|------|-----------|-----------|
-| OAuth 类型 | Google "Installed App" | PKCE (public client) |
-| Client Secret | 有（公开，已硬编码） | **无** |
-| Refresh Token 轮换 | **否**（可重复使用） | **是**（单次使用，消耗后失效） |
-| 用户上传凭证 | refresh_token | auth.json（含 access_token + refresh_token + account_id） |
-| API 端点 | `cloudcode-pa.googleapis.com` | `chatgpt.com/backend-api/codex` |
-| API 协议 | Google Native → 需协议转换 | Responses API → 需协议转换 |
-| 流式格式 | 自定义 JSON chunks | SSE events (`response.output_text.delta`) |
-| 非流式支持 | ✅ | ❌（必须 stream=true） |
-| Usage 返回 | ✅ | ✅ (`input_tokens`, `output_tokens`) |
-| 免费使用 | ✅ Google 免费额度 | ❌ 需 ChatGPT Plus/Pro 订阅 |
-| 余额查询 | ❌ | ❌ |
-| 模型获取 | API 可查询 | 本地缓存 / 手工维护 |
+**结论：不存在可用的替代端点。**
 
-## 六、适配实现
+### 不存在可行的规避方案
 
-### 凭证方案
+| 方案 | 结果 |
+|------|------|
+| 添加 User-Agent / originator 请求头 | 无效，403 依旧 |
+| 使用 `api.openai.com` 替代端点 | ChatGPT OAuth token 无权限 |
+| 移除 `Cf-Worker` 请求头 | 不可能，运行时注入 |
+| 外部中继（Vercel/AWS 部署中间代理） | 技术可行但增加架构复杂度、延迟和运维成本 |
+| 整体迁移离开 Cloudflare Workers | 代价过大，失去 D1/Cron/Workers 生态 |
 
-用户粘贴 `~/.codex/auth.json` 完整内容。适配器 `normalizeSecret()` 自动提取：
-- `refresh_token`、`account_id`（必需）
-- `access_token`、`expires_at`（可选，从 JWT 解析有效期）
+### 这个限制不影响 OpenAI 官方适配
 
-### 认证链路
+使用标准 API key 的 OpenAI 适配（`openai` provider）完全正常：
+- 端点 `api.openai.com/v1` 不屏蔽 Workers
+- Codex 系列模型（如 `gpt-5.2-codex`）通过 OpenAI 标准 API 可正常访问
+- 只要用户有足额的 OpenAI API credits，即可使用所有 Codex 模型
 
-1. 首选使用 `access_token`（有效期内直接使用）
-2. 过期时使用 `refresh_token` 刷新，同时捕获新的 `refresh_token` 并持久化到数据库
-3. 每个请求携带 `Authorization: Bearer <access_token>` 和 `ChatGPT-Account-ID: <account_id>`
+Codex 适配器的目的是让 ChatGPT Plus 订阅用户共享闲置额度。这个特定场景依赖 `chatgpt.com` 端点，因此不可行。
+
+---
+
+## 二、曾经完成的工作（已删除代码的存档）
+
+以下记录已删除代码的核心设计，以便将来参考。
+
+### 适配器设计
+
+- **CodexAdapter**（`worker/core/providers/codex-adapter.ts`）：实现 `ProviderAdapter` 接口
+- **协议转换层**（`worker/core/protocols/codex-responses.ts`）：OpenAI Chat Completions ↔ Codex Responses API 双向转换
+- **静态模型定价**（`worker/core/models/codex.json`）：通过 OpenRouter 交叉引用生成
+- **价格生成脚本**（`scripts/generate/codex.mjs`）：从 OpenRouter 拉取 Codex 模型定价
+
+### 认证机制
+
+- OAuth 2.0 + PKCE，Client ID: `app_EMoamEEZ73f0CkXaXp7hrann`
+- Refresh token 单次使用轮换（OpenAI 特有）
+- `getRotatedSecret()` 接口用于在 token 轮换后持久化新 token
+- 凭证格式：用户粘贴 `~/.codex/auth.json` 完整内容
 
 ### 协议转换
 
-Chat Completions → Responses API 请求转换：
-- `messages` → `input`（数组格式）
-- 增加 `instructions`（从 system message 提取或使用默认值）
-- 增加 `store: false`
-- **始终 `stream: true`**（上游不支持非流式）
+- 请求：`messages` → `input` 数组，提取 `instructions`，强制 `store: false`、`stream: true`
+- 响应（流式）：`response.output_text.delta` → `choices[0].delta.content`
+- 响应（非流式客户端）：收集完整 SSE 流 → 组装 `chat.completion` 对象
+- Usage：从 `response.completed` 事件的 `response.usage` 中提取
 
-Responses API → Chat Completions 响应转换：
-- 流式：`response.output_text.delta` → `choices[0].delta.content`
-- 非流式客户端：收集完整 SSE 流 → 组装 `chat.completion` 响应
-- `response.completed` 的 `response.usage` → Chat Completions `usage`
+### 关键发现
 
-### 定价
+1. Codex API **仅接受** `stream: true`，非流式返回 400
+2. 必需请求字段：`instructions`、`input`（数组）、`store: false`、`stream: true`
+3. 仅支持 Codex 系列模型（`gpt-5.2-codex` 等），通用模型返回 400
+4. `ChatGPT-Account-ID` 请求头必需
+5. OAuth refresh 使用 JSON body（非 form-urlencoded），scope 为 `openid profile email`（无 `offline_access`）
+6. `refresh_token` 在 OAuth 响应中为 Optional 字段
 
-公开定价通过 OpenRouter 交叉引用自动维护（`scripts/generate/codex.mjs`）。
-Usage 字段返回 `input_tokens` 和 `output_tokens`，可直接用于计费。
+---
 
-## 七、踩坑记录
+## 三、验证档案
 
-### 7.1 refresh_token_reused 错误
+验证脚本和结果保留在：
+- `scripts/verify/codex.mjs` — 完整的 Codex API 验证测试脚本
+- `scripts/verify/codex.json` — 最后一次验证的完整结果
 
-**症状**：用户粘贴 auth.json 添加凭证时失败。
-**根因**：验证测试脚本调用了 OAuth refresh 端点，消耗了一次性的 refresh_token。后续任何使用该 token 的操作都会失败。
-**修复**：
-1. 验证时优先使用 access_token（不消耗 refresh_token）
-2. 验证脚本不再调用 refresh 端点
-3. 适配器实现 `getRotatedSecret()` 在 token 轮换后持久化新 token
+这些文件证明：**Codex API 本身功能完全正常，协议转换方案完全可行**。摒弃的唯一原因是 Cloudflare Workers 运行时限制。
 
-### 7.2 stream=false 被拒绝
+---
 
-**症状**：非流式请求返回 400 "Stream must be set to true"。
-**根因**：Codex API 不再支持非流式请求（可能是近期变更）。
-**修复**：协议转换层始终设置 `stream: true`；适配器对非流式客户端请求收集 SSE 流后组装完整响应。
+## 四、如果将来重新考虑
 
-### 7.3 错误的 API 端点
+如果将来需要重新支持 Codex，需满足以下**任一条件**：
 
-**症状**：使用 `api.openai.com/v1` 返回 401/403。
-**根因**：ChatGPT OAuth 模式使用 `chatgpt.com/backend-api/codex`，不是标准 OpenAI API。
-**发现途径**：阅读 Codex CLI Rust 源码 `model_provider_info.rs`。
+1. **Cloudflare 提供关闭 `Cf-Worker` 请求头的选项**（目前不存在）
+2. **OpenAI 取消对 Workers 流量的屏蔽**（可能性极低）
+3. **项目迁移到不注入识别头的运行时**（如 Vercel Edge、Deno Deploy）
+4. **部署外部中继服务**（Worker → 中继 → chatgpt.com）
+
+此前完成的所有工作（协议转换、OAuth 轮换、定价方案）均已验证可行，参考本文档和验证脚本即可恢复。
