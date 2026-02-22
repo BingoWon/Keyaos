@@ -1,9 +1,3 @@
-export interface DbWallet {
-	owner_id: string;
-	balance: number;
-	updated_at: number;
-}
-
 export class WalletDao {
 	constructor(private db: D1Database) {}
 

@@ -72,7 +72,7 @@ export function Billing() {
 		[getToken],
 	);
 
-	const customCents = Math.floor(Number.parseFloat(customAmount || "0") * 100);
+	const customCents = Math.round(Number.parseFloat(customAmount || "0") * 100);
 
 	return (
 		<div>

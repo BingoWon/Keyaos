@@ -21,7 +21,7 @@ export function Dashboard() {
 	const { data: stats, loading, error } = useFetch<Stats>("/api/pool/stats");
 	const { data: wallet } = useFetch<{ balance: number }>(
 		"/api/billing/balance",
-		{ requireAuth: isPlatform },
+		{ skip: !isPlatform },
 	);
 
 	if (error) {

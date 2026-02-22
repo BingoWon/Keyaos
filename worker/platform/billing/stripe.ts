@@ -56,16 +56,18 @@ export async function verifyWebhookSignature(
 	sigHeader: string,
 	secret: string,
 ): Promise<boolean> {
-	const parts = Object.fromEntries(
-		sigHeader.split(",").map((p) => {
-			const [k, v] = p.split("=");
-			return [k, v];
-		}),
-	);
+	let timestamp = "";
+	const signatures: string[] = [];
+	for (const part of sigHeader.split(",")) {
+		const eq = part.indexOf("=");
+		if (eq === -1) continue;
+		const k = part.slice(0, eq);
+		const v = part.slice(eq + 1);
+		if (k === "t") timestamp = v;
+		else if (k === "v1") signatures.push(v);
+	}
 
-	const timestamp = parts.t;
-	const signature = parts.v1;
-	if (!timestamp || !signature) return false;
+	if (!timestamp || signatures.length === 0) return false;
 
 	const tolerance = 300;
 	if (Math.abs(Date.now() / 1000 - Number(timestamp)) > tolerance) return false;
@@ -88,7 +90,7 @@ export async function verifyWebhookSignature(
 		.map((b) => b.toString(16).padStart(2, "0"))
 		.join("");
 
-	return expected === signature;
+	return signatures.includes(expected);
 }
 
 export interface StripeCheckoutEvent {

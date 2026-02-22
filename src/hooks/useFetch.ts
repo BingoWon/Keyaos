@@ -3,10 +3,11 @@ import { useAuth } from "../auth";
 
 interface FetchOptions extends RequestInit {
 	requireAuth?: boolean;
+	skip?: boolean;
 }
 
 export function useFetch<T>(url: string, options: FetchOptions = {}) {
-	const { requireAuth = true, ...fetchOptions } = options;
+	const { requireAuth = true, skip = false, ...fetchOptions } = options;
 	const { getToken, signOut } = useAuth();
 
 	const optionsRef = useRef(fetchOptions);
@@ -18,6 +19,10 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 
 	const execute = useCallback(
 		async (signal: AbortSignal) => {
+			if (skip) {
+				setLoading(false);
+				return;
+			}
 			setLoading(true);
 			setError(null);
 
@@ -52,7 +57,7 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 				setLoading(false);
 			}
 		},
-		[url, getToken, requireAuth, signOut],
+		[url, getToken, requireAuth, skip, signOut],
 	);
 
 	useEffect(() => {

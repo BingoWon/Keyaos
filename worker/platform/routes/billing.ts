@@ -21,6 +21,10 @@ billing.get("/balance", async (c) => {
 
 // ─── POST /checkout ──────────────────────────────────────
 billing.post("/checkout", async (c) => {
+	if (!c.env.STRIPE_SECRET_KEY) {
+		return c.json({ error: { message: "Billing not configured", type: "server_error" } }, 503);
+	}
+
 	const { amount } = await c.req.json<{ amount: number }>();
 	if (!amount || !Number.isInteger(amount) || amount < 100) {
 		throw new BadRequestError("Amount must be at least 100 cents ($1)");
@@ -30,7 +34,7 @@ billing.post("/checkout", async (c) => {
 	const ownerId = c.get("owner_id");
 
 	const { url, sessionId } = await createCheckoutSession({
-		secretKey: c.env.STRIPE_SECRET_KEY!,
+		secretKey: c.env.STRIPE_SECRET_KEY,
 		ownerId,
 		amountCents: amount,
 		successUrl: `${origin}/dashboard/billing?success=true`,
