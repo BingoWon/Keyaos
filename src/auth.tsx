@@ -21,6 +21,7 @@ export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 interface AuthContextType {
 	getToken: () => Promise<string | null>;
+	isLoaded: boolean;
 	isSignedIn: boolean;
 	signOut: () => void;
 	/** Core mode only: sign in with admin token */
@@ -45,6 +46,7 @@ function CoreAuthProvider({ children }: { children: ReactNode }) {
 	const value = useMemo<AuthContextType>(
 		() => ({
 			getToken: async () => token,
+			isLoaded: true,
 			isSignedIn: !!token,
 			signOut: () => {
 				localStorage.removeItem("admin_token");
@@ -69,12 +71,13 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
 	const value = useMemo<AuthContextType>(
 		() => ({
 			getToken: () => clerk.getToken(),
+			isLoaded: clerk.isLoaded,
 			isSignedIn: clerk.isSignedIn ?? false,
 			signOut: () => {
 				clerk.signOut();
 			},
 		}),
-		[clerk.getToken, clerk.isSignedIn, clerk.signOut],
+		[clerk.getToken, clerk.isLoaded, clerk.isSignedIn, clerk.signOut],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -130,7 +133,8 @@ export function AuthGuard({
 	children: ReactNode;
 	fallback: ReactNode;
 }) {
-	const { isSignedIn } = useAuth();
+	const { isLoaded, isSignedIn } = useAuth();
+	if (!isLoaded) return null;
 	return <>{isSignedIn ? children : fallback}</>;
 }
 
