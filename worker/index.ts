@@ -33,6 +33,7 @@ app.use(
 		origin: "*",
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
+		exposeHeaders: ["x-request-id", "x-provider"],
 	}),
 );
 

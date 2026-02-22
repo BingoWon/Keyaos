@@ -53,6 +53,8 @@ chatRouter.post("/completions", async (c) => {
 				continue;
 			}
 
+			const requestId = crypto.randomUUID();
+
 			const finalResponse = interceptResponse(response, c.executionCtx, {
 				onUsage: (usage) => {
 					c.executionCtx.waitUntil(
@@ -76,6 +78,8 @@ chatRouter.post("/completions", async (c) => {
 				},
 			});
 
+			finalResponse.headers.set("x-request-id", requestId);
+			finalResponse.headers.set("x-provider", credential.provider);
 			return finalResponse;
 		} catch (err) {
 			await credDao.reportFailure(credential.id);
