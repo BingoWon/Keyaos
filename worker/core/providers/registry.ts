@@ -8,6 +8,7 @@
 import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
 import oaiproModels from "../models/oaipro.json";
+import openaiModels from "../models/openai.json";
 import { CodexAdapter } from "./codex-adapter";
 import { GeminiCliAdapter } from "./gemini-cli-adapter";
 import type {
@@ -217,6 +218,17 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("oaipro", oaiproModels),
+	},
+	{
+		id: "openai",
+		name: "OpenAI",
+		logoUrl: "https://openai.com/favicon.ico",
+		baseUrl: "https://api.openai.com/v1",
+		currency: "USD",
+		supportsAutoCredits: false,
+		staticModels: true,
+		stripModelPrefix: true,
+		parseModels: () => parseStaticUsdModels("openai", openaiModels),
 	},
 ];
 
