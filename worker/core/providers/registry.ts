@@ -172,6 +172,29 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		currency: "USD",
 		supportsAutoCredits: false,
 		parseModels: parseZenMuxModels,
+		// /models is public (no auth required) — validate via a minimal chat completion
+		customValidateKey: async (secret) => {
+			try {
+				const res = await fetch(
+					"https://zenmux.ai/api/v1/chat/completions",
+					{
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${secret}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							model: "google/gemma-3-12b-it",
+							messages: [{ role: "user", content: "." }],
+							max_tokens: 1,
+						}),
+					},
+				);
+				return res.ok;
+			} catch {
+				return false;
+			}
+		},
 	},
 	{
 		id: "deepinfra",

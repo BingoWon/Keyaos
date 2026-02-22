@@ -44,7 +44,7 @@ export function toResponsesRequest(
 		instructions,
 		input,
 		store: false,
-		stream: body.stream === true,
+		stream: true, // Codex API requires streaming; non-stream clients collect the stream
 	};
 
 	if (body.temperature != null) req.temperature = body.temperature;
@@ -54,23 +54,59 @@ export function toResponsesRequest(
 	return req;
 }
 
-// ─── Response: Responses API → Chat Completions (non-streaming) ──
+// ─── Collect SSE → Chat Completions (non-streaming) ─────────
 
-export function toOpenAIResponse(
-	raw: Record<string, unknown>,
+/**
+ * Reads a Responses API SSE stream and returns a Chat Completions response.
+ * Used when the client requests non-streaming but the upstream requires stream=true.
+ */
+export async function collectStreamToResponse(
+	stream: ReadableStream<Uint8Array>,
 	model: string,
-): Record<string, unknown> {
-	const output = raw.output as Record<string, unknown>[] | undefined;
+): Promise<Record<string, unknown>> {
+	const reader = stream.getReader();
+	const decoder = new TextDecoder();
+	let buffer = "";
 	let text = "";
-	for (const item of output ?? []) {
-		if (item.type !== "message") continue;
-		const content = item.content as Record<string, unknown>[] | undefined;
-		for (const part of content ?? []) {
-			if (part.type === "output_text") text += part.text ?? "";
+	let usage: Record<string, unknown> | undefined;
+	let responseId = "";
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		buffer += decoder.decode(value, { stream: true });
+
+		while (true) {
+			const end = buffer.indexOf("\n\n");
+			if (end === -1) break;
+			const frame = buffer.slice(0, end);
+			buffer = buffer.slice(end + 2);
+
+			let eventType = "";
+			let dataStr = "";
+			for (const line of frame.split("\n")) {
+				if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+				else if (line.startsWith("data: ")) dataStr = line.slice(6);
+			}
+			if (!dataStr) continue;
+
+			let data: Record<string, unknown>;
+			try {
+				data = JSON.parse(dataStr);
+			} catch {
+				continue;
+			}
+
+			if (eventType === "response.output_text.delta") {
+				text += (data.delta as string) ?? "";
+			} else if (eventType === "response.completed") {
+				const resp = data.response as Record<string, unknown> | undefined;
+				usage = resp?.usage as Record<string, unknown> | undefined;
+				responseId = (resp?.id as string) ?? "";
+			}
 		}
 	}
 
-	const usage = raw.usage as Record<string, unknown> | undefined;
 	const mapped = usage
 		? {
 				prompt_tokens: usage.input_tokens as number,
@@ -80,9 +116,9 @@ export function toOpenAIResponse(
 		: undefined;
 
 	return {
-		id: `chatcmpl-${(raw.id as string) ?? crypto.randomUUID()}`,
+		id: `chatcmpl-${responseId || crypto.randomUUID()}`,
 		object: "chat.completion",
-		created: (raw.created_at as number) ?? Math.floor(Date.now() / 1000),
+		created: Math.floor(Date.now() / 1000),
 		model,
 		choices: [
 			{

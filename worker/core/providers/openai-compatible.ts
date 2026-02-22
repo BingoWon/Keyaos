@@ -26,6 +26,8 @@ export interface OpenAICompatibleConfig {
 	/** Strip `vendor/` prefix from model name before forwarding (for native APIs). */
 	stripModelPrefix?: boolean;
 	extraHeaders?: Record<string, string>;
+	/** Override default GET-based key validation (for providers where /models is public). */
+	customValidateKey?: (secret: string) => Promise<boolean>;
 }
 
 /** USD dollars → integer cents per 1M tokens */
@@ -66,6 +68,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 	}
 
 	async validateKey(secret: string): Promise<boolean> {
+		if (this.config.customValidateKey) return this.config.customValidateKey(secret);
 		try {
 			const url = this.config.validationUrl || `${this.config.baseUrl}/models`;
 			const res = await fetch(url, {

@@ -11,8 +11,8 @@
 
 import codexModels from "../models/codex.json";
 import {
+	collectStreamToResponse,
 	createResponsesToOpenAIStream,
-	toOpenAIResponse,
 	toResponsesRequest,
 } from "../protocols/codex-responses";
 import type {
@@ -162,7 +162,7 @@ export class CodexAdapter implements ProviderAdapter {
 						instructions: "hi",
 						input: [{ role: "user", content: "hi" }],
 						store: false,
-						stream: false,
+						stream: true,
 					}),
 				});
 				return res.ok || res.status === 400;
@@ -234,8 +234,9 @@ export class CodexAdapter implements ProviderAdapter {
 
 		const model = (body.model as string) ?? "codex";
 
+		if (!upstream.body) return new Response("", { status: 502 });
+
 		if (streaming) {
-			if (!upstream.body) return new Response("", { status: 502 });
 			return new Response(
 				upstream.body.pipeThrough(createResponsesToOpenAIStream(model)),
 				{
@@ -248,8 +249,9 @@ export class CodexAdapter implements ProviderAdapter {
 			);
 		}
 
-		const raw = (await upstream.json()) as Record<string, unknown>;
-		return new Response(JSON.stringify(toOpenAIResponse(raw, model)), {
+		// Upstream always streams; collect into a non-streaming response
+		const result = await collectStreamToResponse(upstream.body, model);
+		return new Response(JSON.stringify(result), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },
 		});

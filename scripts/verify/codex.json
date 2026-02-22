@@ -1,0 +1,45 @@
+{
+  "access_token": {
+    "valid": true,
+    "remaining_hours": 233.8
+  },
+  "refresh_token_note": "OpenAI enforces rotation — not tested to avoid invalidation",
+  "validation": {
+    "status": 400,
+    "passed": true
+  },
+  "non_stream": {
+    "status": 400,
+    "rejected": true,
+    "note": "stream=true required"
+  },
+  "stream": {
+    "success": true,
+    "events": [
+      "response.created",
+      "response.in_progress",
+      "response.output_item.added",
+      "response.output_item.done",
+      "response.content_part.added",
+      "response.output_text.delta",
+      "response.output_text.done",
+      "response.content_part.done",
+      "response.completed"
+    ],
+    "output": "Hello",
+    "usage": {
+      "input_tokens": 23,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 18,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 41
+    }
+  },
+  "invalid_token": {
+    "status": 401
+  }
+}
