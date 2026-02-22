@@ -22,8 +22,8 @@ billing.get("/balance", async (c) => {
 // ─── POST /checkout ──────────────────────────────────────
 billing.post("/checkout", async (c) => {
 	const { amount } = await c.req.json<{ amount: number }>();
-	if (!amount || amount < 100 || amount > 99999) {
-		throw new BadRequestError("Amount must be between 100 and 99999 cents ($1–$999)");
+	if (!amount || !Number.isInteger(amount) || amount < 100) {
+		throw new BadRequestError("Amount must be at least 100 cents ($1)");
 	}
 
 	const origin = new URL(c.req.url).origin;
@@ -82,17 +82,14 @@ webhookRouter.post("/stripe", async (c) => {
 
 	const paymentsDao = new PaymentsDao(c.env.DB);
 
-	if (await paymentsDao.existsBySession(session.id)) {
+	if (await paymentsDao.isCompleted(session.id)) {
 		return c.json({ received: true, duplicate: true });
 	}
 
-	await paymentsDao.create({
-		owner_id,
-		stripe_session_id: session.id,
-		amount_cents: session.amount_total,
-		credits,
-		status: "completed",
-	});
+	const updated = await paymentsDao.markCompleted(session.id);
+	if (!updated) {
+		return c.json({ received: true, skipped: true });
+	}
 
 	await new WalletDao(c.env.DB).credit(owner_id, credits);
 

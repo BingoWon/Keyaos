@@ -184,7 +184,7 @@ worker/
 | owner_id | TEXT | 用户 ID |
 | stripe_session_id | TEXT UNIQUE | Stripe Checkout Session ID（幂等防重复入账） |
 | amount_cents | INTEGER | 实付金额（美分） |
-| credits | REAL | 入账 Credits（$1 = 100 Credits） |
+| credits | REAL | 入账 Credits（$1 USD = $1 Credits, 1:1） |
 | status | TEXT | `pending` / `completed` / `failed` |
 | created_at | INTEGER | 创建时间 |
 
@@ -294,7 +294,7 @@ Gemini CLI 等 OAuth 供应商依赖 Google 的 "installed app" OAuth 模型，�
 - `payments` 表记录 Stripe 充值流水（`stripe_session_id` UNIQUE 防重复入账）。
 - Stripe Checkout 一次性付费，零自建支付 UI，使用 raw `fetch()` 调用 Stripe REST API。
 - Webhook `/api/webhooks/stripe` 签名验证（Web Crypto HMAC-SHA256）。
-- 兑换比率：$1 USD = 100 Credits。
+- 兑换比率：$1 USD = $1 Credits（1:1）。
 - **待实现**：钱包余额消费扣减（请求前预检 + 请求后扣减）、防透支机制。
 
 ### 方向三：调度引擎与公开市场

@@ -66,7 +66,7 @@
 		"enabled_true": "已启用",
 		"enabled_false": "已禁用",
 		"price_multiplier": "定价乘数",
-		"price_multiplier_helper": "当前乘数为 {{ratio}}x。每消耗等值 1.00 USD 的标准上游请求时，将从用户余额中扣除 {{credited}} 平台额度 (Credits)。",
+		"price_multiplier_helper": "当前乘数为 {{ratio}}x。每消耗等值 $1.00 的上游请求时，将从用户余额中扣除 ${{credited}} Credits。",
 		"no_quota": "无"
 	},
 	"models": {
@@ -99,7 +99,10 @@
 		"subtitle": "通过 Stripe 充值平台额度",
 		"balance": "Credits 余额",
 		"top_up": "充值",
-		"rate": "$1 USD = 100 Credits",
+		"rate": "$1 USD = $1 Credits",
+		"custom_placeholder": "自定义金额",
+		"success": "支付成功 — 额度已到账！",
+		"canceled": "支付已取消",
 		"history": "充值记录",
 		"no_data": "暂无充值记录",
 		"time": "时间",

@@ -66,7 +66,7 @@
 		"enabled_true": "Enabled",
 		"enabled_false": "Disabled",
 		"price_multiplier": "Price Multiplier",
-		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of standard upstream API cost, requests will deduct {{credited}} Platform Credits.",
+		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of upstream API cost, requests will deduct ${{credited}} Credits.",
 		"no_quota": "N/A"
 	},
 	"models": {
@@ -99,7 +99,10 @@
 		"subtitle": "Top up your credits balance via Stripe",
 		"balance": "Credits Balance",
 		"top_up": "Top Up",
-		"rate": "$1 USD = 100 Credits",
+		"rate": "$1 USD = $1 Credits",
+		"custom_placeholder": "Custom amount",
+		"success": "Payment successful — credits added!",
+		"canceled": "Payment canceled",
 		"history": "Payment History",
 		"no_data": "No payments yet",
 		"time": "Time",

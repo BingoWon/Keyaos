@@ -1,41 +1,54 @@
 import { CreditCardIcon } from "@heroicons/react/24/outline";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 
-const PRESETS = [500, 1000, 2500, 5000] as const;
-
-function formatUsd(cents: number) {
-	return `$${(cents / 100).toFixed(2)}`;
-}
-
-function formatCredits(cents: number) {
-	return (cents / 100) * 100;
-}
+const PRESETS = [500, 1000, 2000, 5000] as const;
 
 export function Billing() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const {
 		data: wallet,
 		loading: walletLoading,
+		refetch: refetchWallet,
 	} = useFetch<{ balance: number }>("/api/billing/balance");
-	const { data: history, loading: historyLoading } =
-		useFetch<
-			{
-				id: string;
-				amount_cents: number;
-				credits: number;
-				status: string;
-				created_at: number;
-			}[]
-		>("/api/billing/history");
+	const {
+		data: history,
+		loading: historyLoading,
+		refetch: refetchHistory,
+	} = useFetch<
+		{
+			id: string;
+			amount_cents: number;
+			credits: number;
+			status: string;
+			created_at: number;
+		}[]
+	>("/api/billing/history");
 	const [loading, setLoading] = useState(false);
+	const [customAmount, setCustomAmount] = useState("");
+
+	useEffect(() => {
+		if (searchParams.get("success") === "true") {
+			toast.success(t("billing.success"));
+			refetchWallet();
+			refetchHistory();
+			setSearchParams({}, { replace: true });
+		} else if (searchParams.get("canceled") === "true") {
+			toast(t("billing.canceled"), { icon: "↩" });
+			setSearchParams({}, { replace: true });
+		}
+	}, [searchParams, setSearchParams, refetchWallet, refetchHistory, t]);
 
 	const handleCheckout = useCallback(
 		async (amountCents: number) => {
+			if (amountCents < 100) return;
 			setLoading(true);
 			try {
 				const token = await getToken();
@@ -47,14 +60,19 @@ export function Billing() {
 					},
 					body: JSON.stringify({ amount: amountCents }),
 				});
-				const { url } = await res.json();
-				if (url) window.location.href = url;
+				const json = await res.json();
+				if (json.url) window.location.href = json.url;
+				else toast.error(json.error?.message ?? "Checkout failed");
+			} catch {
+				toast.error("Network error");
 			} finally {
 				setLoading(false);
 			}
 		},
 		[getToken],
 	);
+
+	const customCents = Math.floor(Number.parseFloat(customAmount || "0") * 100);
 
 	return (
 		<div>
@@ -81,7 +99,7 @@ export function Billing() {
 								{t("billing.balance")}
 							</p>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-								{walletLoading ? "—" : (wallet?.balance ?? 0).toFixed(2)}
+								${walletLoading ? "—" : (wallet?.balance ?? 0).toFixed(2)}
 							</p>
 						</div>
 					</div>
@@ -93,6 +111,8 @@ export function Billing() {
 				<h4 className="text-sm font-medium text-gray-900 dark:text-white">
 					{t("billing.top_up")}
 				</h4>
+
+				{/* Preset buttons */}
 				<div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
 					{PRESETS.map((cents) => (
 						<button
@@ -100,16 +120,39 @@ export function Billing() {
 							type="button"
 							disabled={loading}
 							onClick={() => handleCheckout(cents)}
-							className="relative rounded-lg border border-gray-300 bg-white px-4 py-3 text-center shadow-sm hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 disabled:opacity-50 dark:border-gray-600 dark:bg-white/5 dark:hover:border-indigo-400"
+							className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-center shadow-sm hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 disabled:opacity-50 dark:border-gray-600 dark:bg-white/5 dark:hover:border-indigo-400"
 						>
 							<span className="block text-lg font-semibold text-gray-900 dark:text-white">
-								{formatUsd(cents)}
-							</span>
-							<span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
-								{formatCredits(cents)} Credits
+								${(cents / 100).toFixed(0)}
 							</span>
 						</button>
 					))}
+				</div>
+
+				{/* Custom amount */}
+				<div className="mt-3 flex gap-3">
+					<div className="relative flex-1">
+						<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+							$
+						</span>
+						<input
+							type="number"
+							min="1"
+							step="1"
+							placeholder={t("billing.custom_placeholder")}
+							value={customAmount}
+							onChange={(e) => setCustomAmount(e.target.value)}
+							className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-7 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-white/5 dark:text-white"
+						/>
+					</div>
+					<button
+						type="button"
+						disabled={loading || customCents < 100}
+						onClick={() => handleCheckout(customCents)}
+						className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+					>
+						{t("billing.top_up")}
+					</button>
 				</div>
 				<p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
 					{t("billing.rate")}
@@ -141,9 +184,6 @@ export function Billing() {
 										{t("billing.amount")}
 									</th>
 									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-										Credits
-									</th>
-									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
 										{t("billing.status")}
 									</th>
 								</tr>
@@ -154,11 +194,8 @@ export function Billing() {
 										<td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
 											{new Date(p.created_at).toLocaleString()}
 										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-											{formatUsd(p.amount_cents)}
-										</td>
 										<td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-											+{p.credits.toFixed(2)}
+											+${p.credits.toFixed(2)}
 										</td>
 										<td className="whitespace-nowrap px-4 py-3 text-sm">
 											<span

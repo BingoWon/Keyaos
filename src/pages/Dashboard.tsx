@@ -52,7 +52,7 @@ export function Dashboard() {
 			? [
 					{
 						name: t("dashboard.wallet_balance"),
-						stat: wallet ? wallet.balance.toFixed(2) : "-",
+						stat: wallet ? `$${wallet.balance.toFixed(2)}` : "-",
 						icon: CreditCardIcon,
 					},
 				]

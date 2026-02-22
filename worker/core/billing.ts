@@ -29,7 +29,7 @@ export async function recordUsage(
 
 	const reportedCostUsd = usage.cost ?? usage.estimated_cost;
 	if (reportedCostUsd != null && reportedCostUsd > 0) {
-		creditsToDeduct = reportedCostUsd * 100;
+		creditsToDeduct = reportedCostUsd;
 	} else {
 		const inputPrice =
 			(usage.prompt_tokens / 1_000_000) * modelPrice.inputPricePerM;

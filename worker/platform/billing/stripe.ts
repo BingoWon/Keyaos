@@ -7,10 +7,10 @@
  */
 
 const STRIPE_API = "https://api.stripe.com/v1";
-const CREDITS_PER_USD = 100;
 
+/** $1 USD = $1 Credits (1:1) */
 export function centsToCredits(cents: number): number {
-	return (cents / 100) * CREDITS_PER_USD;
+	return cents / 100;
 }
 
 export async function createCheckoutSession(opts: {
