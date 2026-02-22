@@ -152,6 +152,34 @@ function parseDeepSeekCredits(
 	return { remaining: balance, usage: null };
 }
 
+// ─── Shared validation helpers ──────────────────────────────
+
+/** Validate API key via a minimal chat completion (for providers where /models is unusable) */
+function validateViaChat(
+	url: string,
+	model: string,
+): (secret: string) => Promise<boolean> {
+	return async (secret) => {
+		try {
+			const res = await fetch(url, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${secret}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					model,
+					messages: [{ role: "user", content: "." }],
+					max_tokens: 1,
+				}),
+			});
+			return res.ok;
+		} catch {
+			return false;
+		}
+	};
+}
+
 // ─── Provider configs ───────────────────────────────────────
 // To add a new provider: add one entry here. Nothing else.
 
@@ -175,29 +203,10 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		currency: "USD",
 		supportsAutoCredits: false,
 		parseModels: parseZenMuxModels,
-		// /models is public (no auth required) — validate via a minimal chat completion
-		customValidateKey: async (secret) => {
-			try {
-				const res = await fetch(
-					"https://zenmux.ai/api/v1/chat/completions",
-					{
-						method: "POST",
-						headers: {
-							Authorization: `Bearer ${secret}`,
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							model: "google/gemma-3-12b-it",
-							messages: [{ role: "user", content: "." }],
-							max_tokens: 1,
-						}),
-					},
-				);
-				return res.ok;
-			} catch {
-				return false;
-			}
-		},
+		customValidateKey: validateViaChat(
+			"https://zenmux.ai/api/v1/chat/completions",
+			"google/gemma-3-12b-it",
+		),
 	},
 	{
 		id: "deepinfra",
@@ -258,35 +267,17 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 	{
 		id: "qwen-code",
 		name: "Qwen Code",
-		logoUrl: "https://chat.qwen.ai/favicon.ico",
+		logoUrl: "https://qwenlm.github.io/favicon.png",
 		baseUrl: "https://coding.dashscope.aliyuncs.com/v1",
 		currency: "USD",
 		supportsAutoCredits: false,
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("qwen-code", qwenCodeModels),
-		customValidateKey: async (secret) => {
-			try {
-				const res = await fetch(
-					"https://coding.dashscope.aliyuncs.com/v1/chat/completions",
-					{
-						method: "POST",
-						headers: {
-							Authorization: `Bearer ${secret}`,
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							model: "qwen3-coder-plus",
-							messages: [{ role: "user", content: "." }],
-							max_tokens: 1,
-						}),
-					},
-				);
-				return res.ok;
-			} catch {
-				return false;
-			}
-		},
+		customValidateKey: validateViaChat(
+			"https://coding.dashscope.aliyuncs.com/v1/chat/completions",
+			"qwen3-coder-plus",
+		),
 	},
 ];
 
