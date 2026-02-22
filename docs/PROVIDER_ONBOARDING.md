@@ -531,6 +531,23 @@ supportsAutoCredits: false
 详细档案: docs/providers/openai.md
 ```
 
+### Antigravity
+
+```
+Base URL: https://daily-cloudcode-pa.sandbox.googleapis.com (primary)
+兼容性: Google v1internal (same as Gemini CLI, shared protocol converter)
+货币: USD
+Auth: Google OAuth 2.0 (refresh token, reusable)
+OAuth Client: 1071006060591-...apps.googleusercontent.com (Antigravity-specific)
+模型列表: fetchAvailableModels via API → Gemini 3.x family + Claude models
+凭证验证方式: OAuth token refresh + loadCodeAssist
+余额查询 API: N/A (quota-based)
+supportsAutoCredits: false
+流式 usage: 支持 ✅
+特殊事项: 与 Gemini CLI 共享协议转换层; 支持 Claude 模型 (Google proxy); base URL 自动发现带降级; SSE 使用 CRLF 行终止符 (已处理)
+详细档案: docs/providers/antigravity.md
+```
+
 ### ~~Codex~~ (已摒弃)
 
 > **已于 2026-02-22 决定摒弃。** chatgpt.com 屏蔽所有 Cloudflare Workers 出站请求（通过检测 `Cf-Worker` 请求头返回 403），导致反代在 CF Workers 架构下不可行。详见 `docs/providers/codex.md`。

@@ -1,0 +1,192 @@
+{
+  "timestamp": "2026-02-22T11:45:08.955Z",
+  "tests": {
+    "oauth_refresh": {
+      "status": "pass",
+      "summary": "access_token=ya29.a0ATkoCc5YSzm28..., expires_in=3599",
+      "scope": "https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/experimentsandconfigs https://www.googleapis.com/auth/userinfo.profile openid https://www.googleapis.com/auth/userinfo.email",
+      "tokenType": "Bearer"
+    },
+    "base_url_discovery": {
+      "status": "pass",
+      "summary": "https://daily-cloudcode-pa.sandbox.googleapis.com → project=bionic-acre-r0cj3",
+      "baseUrl": "https://daily-cloudcode-pa.sandbox.googleapis.com",
+      "projectId": "bionic-acre-r0cj3",
+      "tier": "standard-tier",
+      "paidTier": "g1-pro-tier"
+    },
+    "fetch_models": {
+      "status": "pass",
+      "summary": "17 models: gemini-2.5-pro, gemini-3.1-pro-high, claude-sonnet-4-6, chat_23310, gemini-2.5-flash, tab_flash_lite_preview, tab_jump_flash_lite_preview, gemini-2.5-flash-lite, claude-opus-4-6-thinking, gpt-oss-120b-medium, gemini-3-pro-image, chat_20706, gemini-3.1-pro-low, gemini-3-pro-low, gemini-2.5-flash-thinking, gemini-3-flash, gemini-3-pro-high",
+      "models": [
+        "gemini-2.5-pro",
+        "gemini-3.1-pro-high",
+        "claude-sonnet-4-6",
+        "chat_23310",
+        "gemini-2.5-flash",
+        "tab_flash_lite_preview",
+        "tab_jump_flash_lite_preview",
+        "gemini-2.5-flash-lite",
+        "claude-opus-4-6-thinking",
+        "gpt-oss-120b-medium",
+        "gemini-3-pro-image",
+        "chat_20706",
+        "gemini-3.1-pro-low",
+        "gemini-3-pro-low",
+        "gemini-2.5-flash-thinking",
+        "gemini-3-flash",
+        "gemini-3-pro-high"
+      ],
+      "quotaInfo": {
+        "gemini-2.5-pro": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "gemini-3.1-pro-high": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "claude-sonnet-4-6": {
+          "resetTime": "2026-02-23T09:21:46Z"
+        },
+        "chat_23310": {
+          "remainingFraction": 1
+        },
+        "gemini-2.5-flash": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "tab_flash_lite_preview": {
+          "remainingFraction": 1
+        },
+        "tab_jump_flash_lite_preview": {
+          "remainingFraction": 1
+        },
+        "gemini-2.5-flash-lite": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "claude-opus-4-6-thinking": {
+          "resetTime": "2026-02-23T09:21:46Z"
+        },
+        "gpt-oss-120b-medium": {
+          "resetTime": "2026-02-23T09:21:46Z"
+        },
+        "gemini-3-pro-image": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T15:48:36Z"
+        },
+        "chat_20706": {
+          "remainingFraction": 1
+        },
+        "gemini-3.1-pro-low": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "gemini-3-pro-low": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "gemini-2.5-flash-thinking": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        },
+        "gemini-3-flash": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T15:48:01Z"
+        },
+        "gemini-3-pro-high": {
+          "remainingFraction": 1,
+          "resetTime": "2026-02-22T16:45:11Z"
+        }
+      }
+    },
+    "non_streaming_gemini-2.5-flash": {
+      "status": "pass",
+      "summary": "\"Hello there\" finish=MAX_TOKENS",
+      "content": "Hello there",
+      "finishReason": "MAX_TOKENS",
+      "usage": {
+        "promptTokenCount": 7,
+        "candidatesTokenCount": 2,
+        "totalTokenCount": 33,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2
+          }
+        ],
+        "thoughtsTokenCount": 24
+      },
+      "responseStructure": [
+        "response",
+        "traceId",
+        "metadata"
+      ]
+    },
+    "streaming_gemini-2.5-flash": {
+      "status": "pass",
+      "summary": "2 chunks, \"Hello there, how are you\" finish=MAX_TOKENS",
+      "chunks": 2,
+      "content": "Hello there, how are you",
+      "finishReason": "MAX_TOKENS",
+      "usage": {
+        "promptTokenCount": 7,
+        "candidatesTokenCount": 6,
+        "totalTokenCount": 33,
+        "trafficType": "ON_DEMAND",
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 6
+          }
+        ],
+        "thoughtsTokenCount": 20
+      }
+    },
+    "streaming_claude-sonnet-4-6": {
+      "status": "pass",
+      "summary": "8 chunks, \"\"Hello there, hope you're well!\"\" finish=STOP",
+      "chunks": 8,
+      "content": "\"Hello there, hope you're well!\"",
+      "finishReason": "STOP",
+      "usage": {
+        "promptTokenCount": 15,
+        "candidatesTokenCount": 12,
+        "totalTokenCount": 27
+      }
+    },
+    "gemini_cli_base_compat": {
+      "status": "pass",
+      "summary": "https://cloudcode-pa.googleapis.com → HTTP 200 (same token, Gemini CLI format)",
+      "httpStatus": 200
+    }
+  },
+  "accounts": [
+    {
+      "email": "crowdcomputed@gmail.com",
+      "projectId": "bionic-acre-r0cj3"
+    },
+    {
+      "email": "wanastamarey@gmail.com",
+      "projectId": "inspiring-vault-09hpx"
+    },
+    {
+      "email": "xahaysysyaxhayssttstacajystst@gmail.com",
+      "projectId": "fair-contact-9n78f"
+    }
+  ]
+}

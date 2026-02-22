@@ -60,7 +60,7 @@ export function toGeminiRequest(
 	if (Object.keys(gen).length > 0) request.generationConfig = gen;
 
 	const rawModel = body.model as string;
-	const model = rawModel.replace(/^google\//, "");
+	const model = rawModel.replace(/^[^/]+\//, "");
 	return { model, project: projectId, request };
 }
 
@@ -115,30 +115,40 @@ function extractCandidate(resp: Record<string, unknown>): {
 	};
 }
 
-/** Convert a Gemini JSON response (non-streaming) to OpenAI chat.completion */
+/** Convert a Gemini JSON response (non-streaming) to OpenAI chat.completion.
+ *  Handles both single objects (generateContent) and arrays (streamGenerateContent without alt=sse). */
 export function toOpenAIResponse(
 	raw: unknown,
 	model: string,
 ): Record<string, unknown> {
-	const data = Array.isArray(raw) ? raw[0] : raw;
-	const { text, finishReason, usage } = extractCandidate(data);
-	const responseId =
-		(data?.response as Record<string, unknown>)?.responseId ??
-		crypto.randomUUID();
+	const chunks = Array.isArray(raw) ? raw : [raw];
+	const parts: string[] = [];
+	let lastFinishReason: string | null = null;
+	let lastUsage: ReturnType<typeof mapUsage>;
+	let responseId: string | undefined;
+
+	for (const chunk of chunks) {
+		const { text, finishReason, usage } = extractCandidate(chunk);
+		if (text) parts.push(text);
+		if (finishReason) lastFinishReason = finishReason;
+		if (usage) lastUsage = usage;
+		responseId ??=
+			(chunk?.response as Record<string, unknown>)?.responseId as string;
+	}
 
 	return {
-		id: `chatcmpl-${responseId}`,
+		id: `chatcmpl-${responseId ?? crypto.randomUUID()}`,
 		object: "chat.completion",
 		created: Math.floor(Date.now() / 1000),
 		model,
 		choices: [
 			{
 				index: 0,
-				message: { role: "assistant", content: text },
-				finish_reason: finishReason ?? "stop",
+				message: { role: "assistant", content: parts.join("") },
+				finish_reason: lastFinishReason ?? "stop",
 			},
 		],
-		...(usage && { usage }),
+		...(lastUsage && { usage: lastUsage }),
 	};
 }
 
@@ -161,7 +171,7 @@ export function createGeminiToOpenAIStream(
 
 	return new TransformStream({
 		transform(chunk, controller) {
-			buffer += decoder.decode(chunk, { stream: true });
+			buffer += decoder.decode(chunk, { stream: true }).replace(/\r\n/g, "\n");
 
 			while (true) {
 				const end = buffer.indexOf("\n\n");

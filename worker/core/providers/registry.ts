@@ -9,6 +9,7 @@ import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
 import oaiproModels from "../models/oaipro.json";
 import openaiModels from "../models/openai.json";
+import { AntigravityAdapter } from "./antigravity-adapter";
 import { GeminiCliAdapter } from "./gemini-cli-adapter";
 import type {
 	ParsedModel,
@@ -261,6 +262,7 @@ for (const config of PROVIDER_CONFIGS) {
 }
 
 adapters.set("gemini-cli", new GeminiCliAdapter());
+adapters.set("antigravity", new AntigravityAdapter());
 
 export function getProvider(id: string): ProviderAdapter | undefined {
 	return adapters.get(id);
