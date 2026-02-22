@@ -171,7 +171,6 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://zenmux.ai/api/v1",
 		currency: "USD",
 		supportsAutoCredits: false,
-		validationUrl: "https://zenmux.ai/api/v1/generation?id=_validate",
 		parseModels: parseZenMuxModels,
 	},
 	{

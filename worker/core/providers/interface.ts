@@ -32,4 +32,7 @@ export interface ProviderAdapter {
 	): Promise<Response>;
 
 	fetchModels(cnyUsdRate?: number): Promise<ParsedModel[]>;
+
+	/** Returns a rotated secret if the credential was updated during the last operation (e.g. OAuth token rotation). */
+	getRotatedSecret?(): string | null;
 }

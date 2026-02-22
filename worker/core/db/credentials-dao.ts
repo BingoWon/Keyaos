@@ -147,6 +147,13 @@ export class CredentialsDao {
 			.run();
 	}
 
+	async updateSecret(id: string, secret: string): Promise<void> {
+		await this.db
+			.prepare("UPDATE upstream_credentials SET secret = ? WHERE id = ?")
+			.bind(secret, id)
+			.run();
+	}
+
 	async reportSuccess(id: string): Promise<void> {
 		await this.db
 			.prepare(

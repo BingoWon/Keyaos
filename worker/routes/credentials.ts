@@ -74,6 +74,11 @@ credentialsRouter.post("/", async (c) => {
 		);
 	}
 
+	if (provider.getRotatedSecret) {
+		const rotated = provider.getRotatedSecret();
+		if (rotated) secret = rotated;
+	}
+
 	const dao = new CredentialsDao(c.env.DB);
 	const existing = await dao.findBySecret(secret);
 	if (existing) {

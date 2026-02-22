@@ -3,6 +3,10 @@
  *
  * Speaks OpenAI Responses API via chatgpt.com/backend-api/codex.
  * Protocol conversion is delegated to protocols/codex-responses.ts.
+ *
+ * OpenAI enforces refresh token rotation: each use of a refresh_token
+ * invalidates it and returns a new one. The adapter captures the rotated
+ * token via getRotatedSecret() so the caller can persist it to DB.
  */
 
 import codexModels from "../models/codex.json";
@@ -28,11 +32,8 @@ const CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
 interface CodexCredential {
 	refresh_token: string;
 	account_id: string;
-}
-
-interface CachedToken {
-	accessToken: string;
-	expiresAt: number;
+	access_token?: string;
+	expires_at?: number;
 }
 
 export class CodexAdapter implements ProviderAdapter {
@@ -45,7 +46,7 @@ export class CodexAdapter implements ProviderAdapter {
 		authType: "oauth",
 	};
 
-	private cache = new Map<string, CachedToken>();
+	private rotatedSecret: string | null = null;
 
 	// ─── Credential helpers ─────────────────────────────
 
@@ -61,7 +62,7 @@ export class CodexAdapter implements ProviderAdapter {
 
 	private async refresh(
 		refreshToken: string,
-	): Promise<{ accessToken: string; expiresIn: number }> {
+	): Promise<{ accessToken: string; expiresIn: number; newRefreshToken: string }> {
 		const res = await fetch(OAUTH_TOKEN_URL, {
 			method: "POST",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -76,20 +77,28 @@ export class CodexAdapter implements ProviderAdapter {
 		const json = (await res.json()) as {
 			access_token: string;
 			expires_in: number;
+			refresh_token: string;
 		};
-		return { accessToken: json.access_token, expiresIn: json.expires_in };
+		return {
+			accessToken: json.access_token,
+			expiresIn: json.expires_in,
+			newRefreshToken: json.refresh_token,
+		};
 	}
 
-	private async getToken(refreshToken: string): Promise<string> {
-		const hit = this.cache.get(refreshToken);
-		if (hit && hit.expiresAt > Date.now() + 60_000) return hit.accessToken;
+	private async getToken(cred: CodexCredential): Promise<{ accessToken: string; rotated: CodexCredential | null }> {
+		if (cred.access_token && cred.expires_at && cred.expires_at > Date.now() + 60_000) {
+			return { accessToken: cred.access_token, rotated: null };
+		}
 
-		const { accessToken, expiresIn } = await this.refresh(refreshToken);
-		this.cache.set(refreshToken, {
-			accessToken,
-			expiresAt: Date.now() + expiresIn * 1000,
-		});
-		return accessToken;
+		const { accessToken, expiresIn, newRefreshToken } = await this.refresh(cred.refresh_token);
+		const rotated: CodexCredential = {
+			refresh_token: newRefreshToken,
+			account_id: cred.account_id,
+			access_token: accessToken,
+			expires_at: Date.now() + expiresIn * 1000,
+		};
+		return { accessToken, rotated };
 	}
 
 	// ─── ProviderAdapter interface ──────────────────────
@@ -109,6 +118,7 @@ export class CodexAdapter implements ProviderAdapter {
 		const tokens = (obj.tokens ?? obj) as Record<string, unknown>;
 		const rt = tokens.refresh_token as string | undefined;
 		const aid = tokens.account_id as string | undefined;
+		const at = tokens.access_token as string | undefined;
 
 		if (!rt) {
 			throw new Error(
@@ -121,17 +131,56 @@ export class CodexAdapter implements ProviderAdapter {
 			);
 		}
 
-		return JSON.stringify({ refresh_token: rt, account_id: aid });
+		const cred: CodexCredential = { refresh_token: rt, account_id: aid };
+		if (at) {
+			cred.access_token = at;
+			try {
+				const payload = JSON.parse(atob(at.split(".")[1]));
+				if (payload.exp) cred.expires_at = payload.exp * 1000;
+			} catch {
+				// Can't parse JWT — skip expiry, will refresh on first use
+			}
+		}
+
+		return JSON.stringify(cred);
 	}
 
 	async validateKey(secret: string): Promise<boolean> {
 		try {
-			const { refresh_token } = this.parseCredential(secret);
-			await this.refresh(refresh_token);
-			return true;
+			const cred = this.parseCredential(secret);
+
+			if (cred.access_token && cred.expires_at && cred.expires_at > Date.now() + 60_000) {
+				const res = await fetch(`${CODEX_BASE}/responses`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${cred.access_token}`,
+						"ChatGPT-Account-ID": cred.account_id,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						model: "gpt-4.1-mini",
+						instructions: "hi",
+						input: [{ role: "user", content: "hi" }],
+						store: false,
+						stream: false,
+					}),
+				});
+				return res.ok || res.status === 400;
+			}
+
+			// No valid access_token — must refresh (consumes the refresh_token)
+			const { accessToken, rotated } = await this.getToken(cred);
+			if (rotated) this.rotatedSecret = JSON.stringify(rotated);
+			return !!accessToken;
 		} catch {
 			return false;
 		}
+	}
+
+	getRotatedSecret(): string | null {
+		const s = this.rotatedSecret;
+		this.rotatedSecret = null;
+		return s;
 	}
 
 	async fetchCredits(_secret: string): Promise<ProviderCredits | null> {
@@ -146,7 +195,9 @@ export class CodexAdapter implements ProviderAdapter {
 
 		let accessToken: string;
 		try {
-			accessToken = await this.getToken(cred.refresh_token);
+			const result = await this.getToken(cred);
+			accessToken = result.accessToken;
+			if (result.rotated) this.rotatedSecret = JSON.stringify(result.rotated);
 		} catch {
 			return new Response(
 				JSON.stringify({
