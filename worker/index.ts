@@ -1,5 +1,5 @@
 import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
@@ -102,10 +102,20 @@ app.use("/v1/*", async (c, next) => {
 app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/models", modelsRouter);
-app.route("/api/billing", billingRouter);
 app.route("/api", systemRouter);
 
-// ─── Platform: Stripe Webhook (public, signature-verified) ─
+// ─── Platform-only routes (gated at request time) ───────
+const platformNotFound = (c: Context) =>
+	c.json({ error: { message: "Not Found", type: "invalid_request_error" } }, 404);
+
+app.use("/api/billing/*", async (c, next) =>
+	c.env.CLERK_SECRET_KEY ? next() : platformNotFound(c),
+);
+app.route("/api/billing", billingRouter);
+
+app.use("/api/webhooks/*", async (c, next) =>
+	c.env.STRIPE_WEBHOOK_SECRET ? next() : platformNotFound(c),
+);
 app.route("/api/webhooks", webhookRouter);
 
 // ─── OpenAI-compatible API ──────────────────────────────
