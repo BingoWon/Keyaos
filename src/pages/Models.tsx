@@ -128,6 +128,7 @@ function ModelCard({
 												/>
 											)}
 											{meta?.name ?? p.provider}
+											<CopyButton text={p.provider} />
 										</span>
 									);
 								})()}

@@ -8,6 +8,7 @@
 import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
 import oaiproModels from "../models/oaipro.json";
+import { CodexAdapter } from "./codex-adapter";
 import { GeminiCliAdapter } from "./gemini-cli-adapter";
 import type {
 	ParsedModel,
@@ -227,6 +228,7 @@ for (const config of PROVIDER_CONFIGS) {
 }
 
 adapters.set("gemini-cli", new GeminiCliAdapter());
+adapters.set("codex", new CodexAdapter());
 
 export function getProvider(id: string): ProviderAdapter | undefined {
 	return adapters.get(id);

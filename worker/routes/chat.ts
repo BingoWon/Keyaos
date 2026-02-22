@@ -19,8 +19,15 @@ chatRouter.post("/completions", async (c) => {
 	const model = body.model as string;
 	if (!model) throw new BadRequestError("model is required");
 
+	const rawProvider = body.provider as string | string[] | undefined;
+	const providers = rawProvider
+		? Array.isArray(rawProvider)
+			? rawProvider
+			: [rawProvider]
+		: undefined;
+
 	const owner_id = c.get("owner_id");
-	const candidates = await dispatchAll(c.env.DB, model, owner_id);
+	const candidates = await dispatchAll(c.env.DB, model, owner_id, providers);
 	const credDao = new CredentialsDao(c.env.DB);
 
 	let lastError: unknown;

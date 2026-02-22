@@ -29,6 +29,7 @@ export async function dispatchAll(
 	db: D1Database,
 	model: string,
 	owner_id: string,
+	providers?: string[],
 ): Promise<DispatchResult[]> {
 	if (!model) throw new BadRequestError("Model is required");
 
@@ -39,6 +40,7 @@ export async function dispatchAll(
 	const candidates: DispatchResult[] = [];
 
 	for (const offering of offerings) {
+		if (providers?.length && !providers.includes(offering.provider)) continue;
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
