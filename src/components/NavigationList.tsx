@@ -1,5 +1,6 @@
 import {
 	CpuChipIcon,
+	CreditCardIcon,
 	DocumentTextIcon,
 	HomeIcon,
 	KeyIcon,
@@ -7,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
+import { isPlatform } from "../auth";
 import { LanguageSelector } from "./LanguageSelector";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -36,6 +38,15 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			href: "/dashboard/ledger",
 			icon: DocumentTextIcon,
 		},
+		...(isPlatform
+			? [
+					{
+						name: t("nav.billing"),
+						href: "/dashboard/billing",
+						icon: CreditCardIcon,
+					},
+				]
+			: []),
 	];
 
 	return (

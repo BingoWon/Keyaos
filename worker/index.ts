@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
+import billingRouter, { webhookRouter } from "./platform/routes/billing";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
 import credentialsRouter from "./routes/credentials";
@@ -39,6 +40,8 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 
 // ─── Auth: Management API (/api/*) ─────────────────────
 app.use("/api/*", async (c, next) => {
+	if (new URL(c.req.url).pathname.startsWith("/api/webhooks/")) return next();
+
 	if (c.env.CLERK_SECRET_KEY) {
 		await clerkMiddleware()(c, async () => {});
 		const auth = getAuth(c);
@@ -99,7 +102,11 @@ app.use("/v1/*", async (c, next) => {
 app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/models", modelsRouter);
+app.route("/api/billing", billingRouter);
 app.route("/api", systemRouter);
+
+// ─── Platform: Stripe Webhook (public, signature-verified) ─
+app.route("/api/webhooks", webhookRouter);
 
 // ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);

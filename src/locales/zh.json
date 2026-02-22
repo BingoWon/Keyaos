@@ -17,6 +17,7 @@
 		"credentials": "上游凭证",
 		"api_keys": "API 密钥",
 		"ledger": "交易记录",
+		"billing": "充值",
 		"guide": "快速开始",
 		"logout": "退出登录"
 	},
@@ -35,7 +36,8 @@
 		"title": "概览",
 		"total_credentials": "凭证总数",
 		"active_credentials": "活跃凭证",
-		"total_quota": "总配额"
+		"total_quota": "总配额",
+		"wallet_balance": "钱包余额"
 	},
 	"api_keys": {
 		"title": "API 密钥",
@@ -91,6 +93,18 @@
 		"tokens": "Token 数",
 		"credits_used": "扣除额度",
 		"no_data": "暂无交易记录"
+	},
+	"billing": {
+		"title": "充值",
+		"subtitle": "通过 Stripe 充值平台额度",
+		"balance": "Credits 余额",
+		"top_up": "充值",
+		"rate": "$1 USD = 100 Credits",
+		"history": "充值记录",
+		"no_data": "暂无充值记录",
+		"time": "时间",
+		"amount": "金额",
+		"status": "状态"
 	},
 	"guide": {
 		"title": "快速开始",

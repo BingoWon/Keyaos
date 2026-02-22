@@ -17,6 +17,7 @@
 		"credentials": "Credentials",
 		"api_keys": "API Keys",
 		"ledger": "Ledger",
+		"billing": "Billing",
 		"guide": "Guide",
 		"logout": "Log out"
 	},
@@ -35,7 +36,8 @@
 		"title": "Overview",
 		"total_credentials": "Total Credentials",
 		"active_credentials": "Active Credentials",
-		"total_quota": "Total Quota"
+		"total_quota": "Total Quota",
+		"wallet_balance": "Wallet Balance"
 	},
 	"api_keys": {
 		"title": "API Keys",
@@ -91,6 +93,18 @@
 		"tokens": "Tokens",
 		"credits_used": "Credits Spent",
 		"no_data": "No ledger entries yet"
+	},
+	"billing": {
+		"title": "Billing",
+		"subtitle": "Top up your credits balance via Stripe",
+		"balance": "Credits Balance",
+		"top_up": "Top Up",
+		"rate": "$1 USD = 100 Credits",
+		"history": "Payment History",
+		"no_data": "No payments yet",
+		"time": "Time",
+		"amount": "Amount",
+		"status": "Status"
 	},
 	"guide": {
 		"title": "Quick Start",

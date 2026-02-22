@@ -1,9 +1,11 @@
 import {
+	CreditCardIcon,
 	CurrencyDollarIcon,
 	DocumentCheckIcon,
 	KeyIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
+import { isPlatform } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 
@@ -17,6 +19,10 @@ interface Stats {
 export function Dashboard() {
 	const { t } = useTranslation();
 	const { data: stats, loading, error } = useFetch<Stats>("/api/pool/stats");
+	const { data: wallet } = useFetch<{ balance: number }>(
+		"/api/billing/balance",
+		{ requireAuth: isPlatform },
+	);
 
 	if (error) {
 		return (
@@ -42,6 +48,15 @@ export function Dashboard() {
 			stat: stats ? stats.totalQuota.toFixed(2) : "-",
 			icon: CurrencyDollarIcon,
 		},
+		...(isPlatform
+			? [
+					{
+						name: t("dashboard.wallet_balance"),
+						stat: wallet ? wallet.balance.toFixed(2) : "-",
+						icon: CreditCardIcon,
+					},
+				]
+			: []),
 	];
 
 	return (

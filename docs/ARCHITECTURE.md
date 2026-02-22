@@ -85,6 +85,13 @@ worker/
 │   ├── openai-compatible.ts  OpenAI 兼容适配器
 │   ├── gemini-cli-adapter.ts  Gemini CLI (OAuth + 协议转换)
 │   └── registry.ts        供应商注册表（引用 models/*.json）
+├── platform/              # Platform-only（core 不依赖）
+│   ├── billing/
+│   │   ├── wallet-dao.ts   用户钱包余额
+│   │   ├── payments-dao.ts 充值记录
+│   │   └── stripe.ts       Stripe Checkout + Webhook 签名验证
+│   └── routes/
+│       └── billing.ts      /api/billing/* + /api/webhooks/stripe
 ├── routes/
 │   ├── chat.ts             POST /v1/chat/completions
 │   ├── models.ts           获取可用模型定价
@@ -161,9 +168,29 @@ worker/
 | credits_used | REAL | 扣除的平台额度 (Credits) |
 | created_at | INTEGER | 产生时间 |
 
+### wallets [Platform]
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| owner_id | TEXT PK | 用户 ID（Clerk userId） |
+| balance | REAL | 当前 Credits 余额 |
+| updated_at | INTEGER | 最后更新时间 |
+
+### payments [Platform]
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | TEXT PK | `pay_<uuid>` |
+| owner_id | TEXT | 用户 ID |
+| stripe_session_id | TEXT UNIQUE | Stripe Checkout Session ID（幂等防重复入账） |
+| amount_cents | INTEGER | 实付金额（美分） |
+| credits | REAL | 入账 Credits（$1 = 100 Credits） |
+| status | TEXT | `pending` / `completed` / `failed` |
+| created_at | INTEGER | 创建时间 |
+
 ## API 路由
 
-所有路由（除 `/health`）均需 `Authorization: Bearer <ADMIN_TOKEN>`。
+所有路由（除 `/health` 和 `/api/webhooks/*`）均需认证。
 
 ### OpenAI 兼容 API
 
@@ -182,6 +209,15 @@ worker/
 | `/api/pool/stats` | GET | Key 池统计 |
 | `/api/providers` | GET | 已集成供应商列表 |
 | `/health` | GET | 健康检查（公开） |
+
+### Platform 计费 API
+
+| 路由 | 方法 | 认证 | 说明 |
+|------|------|------|------|
+| `/api/billing/balance` | GET | Clerk | 查询钱包余额 |
+| `/api/billing/checkout` | POST | Clerk | 创建 Stripe Checkout Session |
+| `/api/billing/history` | GET | Clerk | 充值记录 |
+| `/api/webhooks/stripe` | POST | Stripe 签名 | Webhook 回调，入账 Credits |
 
 ## 上游平台
 
@@ -248,15 +284,18 @@ Gemini CLI 等 OAuth 供应商依赖 Google 的 "installed app" OAuth 模型，�
 
 `platform` 是基于 `core` 之上演进出的多租户算力市场。核心原则依然是 **由外向内依赖**（`platform` 依赖 `core`，而 `core` 保持独立纯净）。
 
-### 方向一：身份鉴权与租户隔离体系
-- 引入用户资源表 (`users` / `organizations`)。
-- 集成无状态 Auth 方案（如 Clerk、Supabase Auth 或 GitHub OAuth）。
-- 扩展 D1 Schema，使得 `upstream_credentials`、`api_keys`、`ledger` 等全局大表具备 `owner_id`，防止租户间数据越权。
+### 方向一：身份鉴权与租户隔离体系 ✅ 已完成
+- Clerk 集成（`CLERK_SECRET_KEY` / `VITE_CLERK_PUBLISHABLE_KEY`）。
+- 全表 `owner_id` 租户隔离。
+- 前端 `isPlatform` 运行时门控。
 
-### 方向二：中心化账户与支付网关
-- 建立法币/平台币（Credits）的高一致性钱包余额表。
-- 接入 Stripe 等支付渠道，支持终端用户兑换系统 Credits 额度。
-- 设计防透支与结算锁定机制，通过 `ledger` 流水严格对账。
+### 方向二：中心化账户与支付网关 ✅ 充值已完成
+- `wallets` 表存储用户 Credits 余额。
+- `payments` 表记录 Stripe 充值流水（`stripe_session_id` UNIQUE 防重复入账）。
+- Stripe Checkout 一次性付费，零自建支付 UI，使用 raw `fetch()` 调用 Stripe REST API。
+- Webhook `/api/webhooks/stripe` 签名验证（Web Crypto HMAC-SHA256）。
+- 兑换比率：$1 USD = 100 Credits。
+- **待实现**：钱包余额消费扣减（请求前预检 + 请求后扣减）、防透支机制。
 
 ### 方向三：调度引擎与公开市场
 - 允许供给方将自己的 `upstream_credentials` 公开到交易池。
