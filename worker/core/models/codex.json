@@ -40,5 +40,12 @@
 		"input_usd": 1.75,
 		"output_usd": 14,
 		"context_length": 400000
+	},
+	{
+		"id": "openai/gpt-5.3-codex",
+		"name": "OpenAI: GPT-5.3-Codex",
+		"input_usd": 1.75,
+		"output_usd": 14,
+		"context_length": 400000
 	}
 ]
