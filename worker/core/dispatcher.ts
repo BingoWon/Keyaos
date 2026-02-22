@@ -64,8 +64,9 @@ export async function dispatchAll(
 
 	if (candidates.length === 0) throw new NoKeyAvailableError(model);
 
-	candidates.sort(
-		(a, b) => a.modelPrice.inputPricePerM - b.modelPrice.inputPricePerM,
-	);
+	candidates.sort((a, b) => {
+		const diff = a.modelPrice.inputPricePerM - b.modelPrice.inputPricePerM;
+		return diff !== 0 ? diff : Math.random() - 0.5;
+	});
 	return candidates;
 }

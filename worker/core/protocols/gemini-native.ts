@@ -59,7 +59,9 @@ export function toGeminiRequest(
 	if (body.max_tokens != null) gen.maxOutputTokens = body.max_tokens;
 	if (Object.keys(gen).length > 0) request.generationConfig = gen;
 
-	return { model: body.model, project: projectId, request };
+	const rawModel = body.model as string;
+	const model = rawModel.replace(/^google\//, "");
+	return { model, project: projectId, request };
 }
 
 // ─── Response: Gemini → OpenAI ──────────────────────────
