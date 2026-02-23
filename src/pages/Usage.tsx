@@ -106,7 +106,10 @@ export function Usage() {
 									{t("usage.provider")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
-									{t("usage.tokens")}
+									{t("usage.input_tokens")}
+								</th>
+								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
+									{t("usage.output_tokens")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white sm:pr-6">
 									{t("usage.credits")}
@@ -129,7 +132,10 @@ export function Usage() {
 										{tx.provider}
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500 dark:text-gray-400">
-										{(tx.inputTokens + tx.outputTokens).toLocaleString()}
+										{tx.inputTokens.toLocaleString()}
+									</td>
+									<td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500 dark:text-gray-400">
+										{tx.outputTokens.toLocaleString()}
 									</td>
 									<td
 										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${
