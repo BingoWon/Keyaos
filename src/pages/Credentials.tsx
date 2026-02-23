@@ -14,7 +14,7 @@ import {
 	InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
@@ -865,12 +865,15 @@ function GuidancePanel({
 					)}
 
 					{guide.filePath && (
-						<p className="text-xs text-gray-500 dark:text-gray-400">
-							{t("credentials.guide_file_location")}{" "}
-							<code className="rounded bg-gray-200 px-1 py-0.5 font-mono text-gray-700 dark:bg-white/10 dark:text-gray-300">
-								{guide.filePath}
-							</code>
-						</p>
+						<div className="flex items-center justify-between gap-2">
+							<p className="text-xs text-gray-500 dark:text-gray-400">
+								{t("credentials.guide_file_location")}{" "}
+								<code className="rounded bg-gray-200 px-1 py-0.5 font-mono text-gray-700 dark:bg-white/10 dark:text-gray-300">
+									{guide.filePath}
+								</code>
+							</p>
+							<CopyPromptButton providerId={providerId} />
+						</div>
 					)}
 				</div>
 			)}
@@ -897,6 +900,50 @@ function LinkifiedText({ text }: { text: string }) {
 				) : (
 					part
 				),
+			)}
+		</>
+	);
+}
+
+function CopyPromptButton({ providerId }: { providerId: string }) {
+	const { t } = useTranslation();
+	const [hover, setHover] = useState(false);
+	const [pos, setPos] = useState({ x: 0, y: 0 });
+
+	const prompt = t(`credentials.copy_prompt_text.${providerId}`);
+
+	const onMove = useCallback((e: React.MouseEvent) => {
+		setPos({ x: e.clientX, y: e.clientY });
+	}, []);
+
+	return (
+		<>
+			<button
+				type="button"
+				onMouseEnter={() => setHover(true)}
+				onMouseLeave={() => setHover(false)}
+				onMouseMove={onMove}
+				onClick={() => {
+					navigator.clipboard.writeText(prompt);
+					toast.success(t("credentials.copied"));
+				}}
+				className="shrink-0 inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20 dark:hover:bg-amber-500/20 transition-colors"
+			>
+				<ClipboardDocumentIcon className="size-3.5" />
+				{t("credentials.copy_prompt")}
+			</button>
+			{hover && (
+				<div
+					className="fixed z-50 max-w-xs rounded-lg bg-gray-900 px-3 py-2.5 text-xs shadow-xl pointer-events-none"
+					style={{ left: pos.x + 14, top: pos.y + 14 }}
+				>
+					<p className="font-medium text-amber-300 mb-1.5">
+						{t("credentials.copy_prompt_tooltip")}
+					</p>
+					<p className="text-gray-400 whitespace-pre-wrap line-clamp-6 leading-relaxed">
+						{prompt}
+					</p>
+				</div>
 			)}
 		</>
 	);

@@ -78,6 +78,13 @@
 		"hint_access_token": "This looks like a temporary access token (expires in ~1 hour). Please use the refresh token instead.",
 		"error_quota_required": "This provider requires a manual quota value. Please enter the remaining balance.",
 		"error_secret_format": "The key format doesn't match the expected pattern ({{example}}). Please double-check.",
+		"copy_prompt": "Copy Prompt for AI",
+		"copy_prompt_tooltip": "Click to copy a prompt you can paste into your AI IDE or CLI tool to extract the credential automatically.",
+		"copy_prompt_text": {
+			"gemini-cli": "I need to extract my Gemini CLI refresh token from this machine.\n\n1. Read the file: ~/.gemini/oauth_creds.json\n2. Extract ONLY the \"refresh_token\" field value\n3. Display the refresh_token value so I can copy it\n\nSecurity: Do NOT display the full file contents or any \"access_token\" values — only the refresh_token. The refresh_token typically starts with \"1//\".",
+			"antigravity": "I need to extract my Antigravity IDE refresh token from this machine.\n\n1. Find and read JSON files in: ~/.antigravity_tools/accounts/\n2. Extract the nested \"token.refresh_token\" field value\n3. Display the refresh_token value so I can copy it\n\nSecurity: Do NOT display the full file contents or any access token values — only the refresh_token. The refresh_token typically starts with \"1//\".",
+			"kiro": "I need to extract my Kiro IDE refresh token from this machine.\n\n1. Read the file: ~/.aws/sso/cache/kiro-auth-token.json\n2. Extract ONLY the \"refreshToken\" field value (camelCase, NOT \"accessToken\")\n3. Display the refreshToken value so I can copy it\n\nSecurity: Do NOT display the full file contents or any \"accessToken\" values — only the refreshToken. The refreshToken typically starts with \"aor\"."
+		},
 		"guide_steps": {
 			"openrouter": ["Go to https://openrouter.ai/settings/keys", "Click \"Create\" to generate a new API key and copy it"],
 			"zenmux": ["Go to https://zenmux.ai/platform/pay-as-you-go", "Click \"Create API Key\" and copy it"],

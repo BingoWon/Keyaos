@@ -78,6 +78,13 @@
 		"hint_access_token": "这看起来是一个临时访问令牌（约 1 小时后过期），请改用 refresh token。",
 		"error_quota_required": "该服务商需要手动填写余额配额，请输入剩余额度。",
 		"error_secret_format": "密钥格式不匹配预期格式 ({{example}})，请仔细检查。",
+		"copy_prompt": "复制 AI 提示词",
+		"copy_prompt_tooltip": "点击复制提示词，粘贴到你的 AI IDE 或命令行工具中，即可自动提取凭证信息。",
+		"copy_prompt_text": {
+			"gemini-cli": "我需要从本机提取 Gemini CLI 的 refresh token。\n\n1. 读取文件：~/.gemini/oauth_creds.json\n2. 仅提取 \"refresh_token\" 字段的值\n3. 将 refresh_token 的值展示出来以便我复制\n\n安全提醒：请勿展示完整文件内容或任何 \"access_token\" 的值，只需要 refresh_token。refresh_token 通常以 \"1//\" 开头。",
+			"antigravity": "我需要从本机提取 Antigravity IDE 的 refresh token。\n\n1. 查找并读取目录中的 JSON 文件：~/.antigravity_tools/accounts/\n2. 提取嵌套字段 \"token.refresh_token\" 的值\n3. 将 refresh_token 的值展示出来以便我复制\n\n安全提醒：请勿展示完整文件内容或任何 access token 的值，只需要 refresh_token。refresh_token 通常以 \"1//\" 开头。",
+			"kiro": "我需要从本机提取 Kiro IDE 的 refresh token。\n\n1. 读取文件：~/.aws/sso/cache/kiro-auth-token.json\n2. 仅提取 \"refreshToken\" 字段的值（注意是驼峰命名，不是 \"accessToken\"）\n3. 将 refreshToken 的值展示出来以便我复制\n\n安全提醒：请勿展示完整文件内容或任何 \"accessToken\" 的值，只需要 refreshToken。refreshToken 通常以 \"aor\" 开头。"
+		},
 		"guide_steps": {
 			"openrouter": ["前往 https://openrouter.ai/settings/keys", "点击 \"Create\" 按钮创建新密钥并复制"],
 			"zenmux": ["前往 https://zenmux.ai/platform/pay-as-you-go", "点击 \"Create API Key\" 创建新密钥并复制"],
