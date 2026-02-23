@@ -1,9 +1,10 @@
 import {
+	BookOpenIcon,
 	CpuChipIcon,
 	CreditCardIcon,
-	DocumentTextIcon,
 	HomeIcon,
 	KeyIcon,
+	ListBulletIcon,
 	ServerStackIcon,
 	ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
@@ -33,9 +34,14 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		},
 		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },
 		{
+			name: t("nav.usage"),
+			href: "/dashboard/usage",
+			icon: ListBulletIcon,
+		},
+		{
 			name: t("nav.ledger"),
 			href: "/dashboard/ledger",
-			icon: DocumentTextIcon,
+			icon: BookOpenIcon,
 		},
 		...(isPlatform
 			? [

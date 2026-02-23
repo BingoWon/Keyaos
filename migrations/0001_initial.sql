@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS model_pricing (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_model ON model_pricing(provider, model_id);
 CREATE INDEX IF NOT EXISTS idx_model_pricing_routing ON model_pricing(model_id, is_active, input_price);
 
--- 4. Usage ledger (two-sided: consumer + credential owner)
-CREATE TABLE IF NOT EXISTS ledger (
+-- 4. API usage records (two-sided: consumer + credential owner)
+CREATE TABLE IF NOT EXISTS usage (
     id TEXT PRIMARY KEY,
     consumer_id TEXT NOT NULL,
     credential_id TEXT NOT NULL,
@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS ledger (
     created_at INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_ledger_consumer ON ledger(consumer_id);
-CREATE INDEX IF NOT EXISTS idx_ledger_credential_owner ON ledger(credential_owner_id);
+CREATE INDEX IF NOT EXISTS idx_usage_consumer ON usage(consumer_id);
+CREATE INDEX IF NOT EXISTS idx_usage_credential_owner ON usage(credential_owner_id);
 
 -- 5. [Platform] User wallets
 CREATE TABLE IF NOT EXISTS wallets (

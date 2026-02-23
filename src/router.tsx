@@ -14,12 +14,14 @@ import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
 import { Models } from "./pages/Models";
 import { NotFound } from "./pages/NotFound";
+import { Usage } from "./pages/Usage";
 
 const dashboardChildren = [
 	{ index: true, element: <Dashboard /> },
 	{ path: "models", element: <Models /> },
 	{ path: "api-keys", element: <ApiKeys /> },
 	{ path: "credentials", element: <Credentials /> },
+	{ path: "usage", element: <Usage /> },
 	{ path: "ledger", element: <Ledger /> },
 	{ path: "guide", element: <Guide /> },
 	...(isPlatform ? [{ path: "billing", element: <Billing /> }] : []),

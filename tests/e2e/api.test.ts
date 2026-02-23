@@ -117,11 +117,11 @@ test("Chat completion (streaming)", async () => {
 	console.log(`  Provider: ${res.headers.get("x-provider")}`);
 });
 
-test("Ledger entries exist in database", () => {
+test("Usage entries exist in database", () => {
 	const rows = dbQuery(
-		"SELECT COUNT(*) as cnt FROM ledger",
+		"SELECT COUNT(*) as cnt FROM usage",
 	) as { cnt: number }[];
-	console.log(`  Ledger entries: ${rows[0].cnt}`);
+	console.log(`  Usage entries: ${rows[0].cnt}`);
 });
 
 test("No credential has price_multiplier > 1.0", () => {

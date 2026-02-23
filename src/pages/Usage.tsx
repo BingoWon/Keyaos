@@ -2,87 +2,51 @@ import {
 	ArrowDownTrayIcon,
 	ArrowPathIcon,
 	ArrowUpTrayIcon,
-	BanknotesIcon,
-	CreditCardIcon,
-	WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 
-interface LedgerEntry {
+interface UsageEntry {
 	id: string;
-	type: "usage" | "top_up" | "adjustment";
-	category: string;
-	description: string;
-	amount: number;
-	created_at: number;
+	direction: "spent" | "earned" | "self";
+	provider: string;
+	model: string;
+	inputTokens: number;
+	outputTokens: number;
+	netCredits: number;
+	createdAt: number;
 }
 
-const CATEGORY_CONFIG: Record<
-	string,
-	{
-		icon: typeof ArrowUpTrayIcon;
-		colorClass: string;
-		bgClass: string;
-		labelKey: string;
-	}
-> = {
-	api_spend: {
-		icon: ArrowUpTrayIcon,
-		colorClass: "text-red-700 dark:text-red-400",
-		bgClass: "bg-red-50 dark:bg-red-900/30",
-		labelKey: "ledger.api_spend",
-	},
-	credential_earn: {
-		icon: ArrowDownTrayIcon,
-		colorClass: "text-green-700 dark:text-green-400",
-		bgClass: "bg-green-50 dark:bg-green-900/30",
-		labelKey: "ledger.credential_earn",
-	},
-	self_use: {
-		icon: ArrowPathIcon,
-		colorClass: "text-gray-500 dark:text-gray-400",
-		bgClass: "bg-gray-50 dark:bg-white/5",
-		labelKey: "ledger.self_use",
-	},
-	top_up: {
-		icon: CreditCardIcon,
-		colorClass: "text-blue-700 dark:text-blue-400",
-		bgClass: "bg-blue-50 dark:bg-blue-900/30",
-		labelKey: "ledger.top_up",
-	},
-	grant: {
-		icon: BanknotesIcon,
-		colorClass: "text-emerald-700 dark:text-emerald-400",
-		bgClass: "bg-emerald-50 dark:bg-emerald-900/30",
-		labelKey: "ledger.grant",
-	},
-	revoke: {
-		icon: WrenchScrewdriverIcon,
-		colorClass: "text-orange-700 dark:text-orange-400",
-		bgClass: "bg-orange-50 dark:bg-orange-900/30",
-		labelKey: "ledger.revoke",
-	},
-};
-
-function CategoryBadge({ category }: { category: string }) {
+function DirectionBadge({ direction }: { direction: UsageEntry["direction"] }) {
 	const { t } = useTranslation();
-	const config = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.self_use;
-	const Icon = config.icon;
 
+	if (direction === "earned") {
+		return (
+			<span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+				<ArrowDownTrayIcon className="size-3" />
+				{t("usage.earned")}
+			</span>
+		);
+	}
+	if (direction === "spent") {
+		return (
+			<span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+				<ArrowUpTrayIcon className="size-3" />
+				{t("usage.spent")}
+			</span>
+		);
+	}
 	return (
-		<span
-			className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${config.bgClass} ${config.colorClass}`}
-		>
-			<Icon className="size-3" />
-			{t(config.labelKey)}
+		<span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
+			<ArrowPathIcon className="size-3" />
+			{t("usage.self_use")}
 		</span>
 	);
 }
 
-function formatAmount(value: number): string {
+function formatCredits(value: number): string {
 	if (value === 0) return "$0.00000";
 	const abs = Math.abs(value);
 	const sign = value > 0 ? "+" : "-";
@@ -90,19 +54,19 @@ function formatAmount(value: number): string {
 	return `${sign}$${abs.toFixed(5)}`;
 }
 
-export function Ledger() {
+export function Usage() {
 	const { t } = useTranslation();
 	const formatDateTime = useFormatDateTime();
 	const {
 		data: entries,
 		loading,
 		error,
-	} = useFetch<LedgerEntry[]>("/api/ledger?limit=200");
+	} = useFetch<UsageEntry[]>("/api/usage?limit=100");
 
 	if (error) {
 		return (
 			<div className="p-4 text-sm text-red-500 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
-				Failed to load ledger: {error.message}
+				Failed to load usage: {error.message}
 			</div>
 		);
 	}
@@ -110,10 +74,10 @@ export function Ledger() {
 	return (
 		<div>
 			<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-				{t("ledger.title")}
+				{t("usage.title")}
 			</h3>
 			<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-				{t("ledger.subtitle")}
+				{t("usage.subtitle")}
 			</p>
 
 			{loading ? (
@@ -122,7 +86,7 @@ export function Ledger() {
 				</div>
 			) : !entries?.length ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-					{t("ledger.no_data")}
+					{t("usage.no_data")}
 				</p>
 			) : (
 				<div className="mt-5 overflow-hidden shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">
@@ -130,41 +94,53 @@ export function Ledger() {
 						<thead className="bg-gray-50 dark:bg-white/5">
 							<tr>
 								<th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
-									{t("ledger.time")}
+									{t("usage.time")}
 								</th>
 								<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-									{t("ledger.type")}
+									{t("usage.direction")}
 								</th>
 								<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-									{t("ledger.description")}
+									{t("usage.model")}
+								</th>
+								<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+									{t("usage.provider")}
+								</th>
+								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
+									{t("usage.tokens")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white sm:pr-6">
-									{t("ledger.amount")}
+									{t("usage.credits")}
 								</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-200 dark:divide-white/5 bg-white dark:bg-transparent">
-							{entries.map((entry) => (
-								<tr key={`${entry.type}-${entry.id}`}>
+							{entries.map((tx) => (
+								<tr key={tx.id}>
 									<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 dark:text-gray-400 sm:pl-6">
-										{formatDateTime(entry.created_at)}
+										{formatDateTime(tx.createdAt)}
 									</td>
 									<td className="whitespace-nowrap px-3 py-4">
-										<CategoryBadge category={entry.category} />
+										<DirectionBadge direction={tx.direction} />
 									</td>
-									<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 dark:text-white">
-										{entry.description || "—"}
+									<td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 dark:text-white">
+										{tx.model}
+									</td>
+									<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+										{tx.provider}
+									</td>
+									<td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500 dark:text-gray-400">
+										{(tx.inputTokens + tx.outputTokens).toLocaleString()}
 									</td>
 									<td
 										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${
-											entry.amount > 0
+											tx.netCredits > 0
 												? "text-green-600 dark:text-green-400"
-												: entry.amount < 0
+												: tx.netCredits < 0
 													? "text-red-600 dark:text-red-400"
 													: "text-gray-400 dark:text-gray-500"
 										}`}
 									>
-										{formatAmount(entry.amount)}
+										{formatCredits(tx.netCredits)}
 									</td>
 								</tr>
 							))}

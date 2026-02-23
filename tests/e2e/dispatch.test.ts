@@ -177,19 +177,19 @@ describe("Dispatch: billing correctness", () => {
 		// Wait for async billing via waitUntil
 		await new Promise((r) => setTimeout(r, 2000));
 
-		const ledger = dbQuery(
-			"SELECT credential_id, base_cost FROM ledger ORDER BY created_at DESC LIMIT 1",
+		const usageRows = dbQuery(
+			"SELECT credential_id, base_cost FROM usage ORDER BY created_at DESC LIMIT 1",
 		) as { credential_id: string; base_cost: number }[];
 
-		assert.ok(ledger.length > 0, "No ledger entry found after chat");
+		assert.ok(usageRows.length > 0, "No usage entry found after chat");
 		assert.strictEqual(
-			ledger[0].credential_id,
+			usageRows[0].credential_id,
 			result.credentialId,
-			"Ledger credential_id must match x-credential-id response header",
+			"Usage credential_id must match x-credential-id response header",
 		);
-		assert.ok(ledger[0].base_cost > 0, "Base cost must be positive");
+		assert.ok(usageRows[0].base_cost > 0, "Base cost must be positive");
 		console.log(
-			`  cred=${result.credentialId.slice(-8)}, base_cost=${ledger[0].base_cost}`,
+			`  cred=${result.credentialId.slice(-8)}, base_cost=${usageRows[0].base_cost}`,
 		);
 	});
 });

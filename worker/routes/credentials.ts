@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { CredentialsDao } from "../core/db/credentials-dao";
-import { LedgerDao } from "../core/db/ledger-dao";
+import { UsageDao } from "../core/db/usage-dao";
 import { getAllProviders, getProvider } from "../core/providers/registry";
 import { ApiError, BadRequestError } from "../shared/errors";
 import type { AppEnv } from "../shared/types";
@@ -145,7 +145,7 @@ credentialsRouter.get("/", async (c) => {
 	const ownerId = c.get("owner_id");
 	const [all, earnings] = await Promise.all([
 		new CredentialsDao(c.env.DB).getAll(ownerId),
-		new LedgerDao(c.env.DB).getEarningsByCredential(ownerId),
+		new UsageDao(c.env.DB).getEarningsByCredential(ownerId),
 	]);
 	return c.json({
 		data: all.map((cred) => ({

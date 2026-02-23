@@ -1,16 +1,16 @@
-import type { DbLedgerEntry } from "./schema";
+import type { DbUsageEntry } from "./schema";
 
-export class LedgerDao {
+export class UsageDao {
 	constructor(private db: D1Database) {}
 
 	async createEntry(
-		tx: Omit<DbLedgerEntry, "id" | "created_at">,
+		tx: Omit<DbUsageEntry, "id" | "created_at">,
 	): Promise<string> {
 		const id = `tx_${crypto.randomUUID()}`;
 
 		await this.db
 			.prepare(
-				`INSERT INTO ledger (
+				`INSERT INTO usage (
 					id, consumer_id, credential_id, credential_owner_id, provider, model,
 					input_tokens, output_tokens, base_cost,
 					consumer_charged, provider_earned, platform_fee, created_at
@@ -36,22 +36,15 @@ export class LedgerDao {
 		return id;
 	}
 
-	/**
-	 * Get entries where the user is either consumer or credential owner.
-	 * Returns a unified two-sided view.
-	 */
-	async getEntriesForUser(
-		userId: string,
-		limit = 50,
-	): Promise<DbLedgerEntry[]> {
+	async getEntriesForUser(userId: string, limit = 50): Promise<DbUsageEntry[]> {
 		const res = await this.db
 			.prepare(
-				`SELECT * FROM ledger
+				`SELECT * FROM usage
 				 WHERE consumer_id = ? OR credential_owner_id = ?
 				 ORDER BY created_at DESC LIMIT ?`,
 			)
 			.bind(userId, userId, limit)
-			.all<DbLedgerEntry>();
+			.all<DbUsageEntry>();
 
 		return res.results || [];
 	}
@@ -63,7 +56,7 @@ export class LedgerDao {
 		const res = await this.db
 			.prepare(
 				`SELECT credential_id, SUM(provider_earned) as total
-				 FROM ledger WHERE credential_owner_id = ?
+				 FROM usage WHERE credential_owner_id = ?
 				 GROUP BY credential_id`,
 			)
 			.bind(credentialOwnerId)

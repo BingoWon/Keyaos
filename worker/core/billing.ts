@@ -7,7 +7,7 @@
 
 import type { Settlement } from "../shared/types";
 import { CredentialsDao } from "./db/credentials-dao";
-import { LedgerDao } from "./db/ledger-dao";
+import { UsageDao } from "./db/usage-dao";
 import type { TokenUsage } from "./utils/stream";
 
 export interface BillingParams {
@@ -55,7 +55,7 @@ export async function recordUsage(
 	if (inputTokens + outputTokens <= 0) return;
 
 	try {
-		await new LedgerDao(db).createEntry({
+		await new UsageDao(db).createEntry({
 			consumer_id: consumerId,
 			credential_id: credentialId,
 			credential_owner_id: credentialOwnerId,
@@ -71,6 +71,6 @@ export async function recordUsage(
 
 		await new CredentialsDao(db).deductQuota(credentialId, baseCost);
 	} catch (err) {
-		console.error("[BILLING] Ledger write failed:", err);
+		console.error("[BILLING] Usage record write failed:", err);
 	}
 }

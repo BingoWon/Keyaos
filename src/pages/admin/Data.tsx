@@ -5,7 +5,7 @@ import { PageLoader } from "../../components/PageLoader";
 import { useFetch } from "../../hooks/useFetch";
 
 const TABLES = [
-	"ledger",
+	"usage",
 	"upstream_credentials",
 	"wallets",
 	"payments",

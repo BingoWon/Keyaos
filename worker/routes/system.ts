@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { CredentialsDao } from "../core/db/credentials-dao";
-import { LedgerDao } from "../core/db/ledger-dao";
+import { UsageDao } from "../core/db/usage-dao";
 import { getAllProviders } from "../core/providers/registry";
 import type { AppEnv } from "../shared/types";
 
@@ -31,10 +31,11 @@ systemRouter.get("/providers", (c) => {
 	return c.json({ data: providers });
 });
 
-systemRouter.get("/ledger", async (c) => {
+/** API usage records (per-request detail) */
+systemRouter.get("/usage", async (c) => {
 	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);
 	const userId = c.get("owner_id");
-	const dao = new LedgerDao(c.env.DB);
+	const dao = new UsageDao(c.env.DB);
 	const entries = await dao.getEntriesForUser(userId, limit);
 
 	return c.json({
@@ -66,6 +67,85 @@ systemRouter.get("/ledger", async (c) => {
 			};
 		}),
 	});
+});
+
+/**
+ * Unified ledger: all credit movements in chronological order.
+ * Combines usage (API spend/earn), payments (top-ups), and admin adjustments.
+ */
+systemRouter.get("/ledger", async (c) => {
+	const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
+	const userId = c.get("owner_id");
+	const db = c.env.DB;
+
+	const res = await db
+		.prepare(
+			`SELECT * FROM (
+				SELECT
+					id, 'usage' AS type,
+					CASE
+						WHEN consumer_id = ? AND credential_owner_id = ? THEN 'self_use'
+						WHEN consumer_id = ? THEN 'api_spend'
+						ELSE 'credential_earn'
+					END AS category,
+					model AS description,
+					CASE
+						WHEN consumer_id = ? AND credential_owner_id = ? THEN 0
+						WHEN consumer_id = ? THEN -consumer_charged
+						ELSE provider_earned
+					END AS amount,
+					created_at
+				FROM usage
+				WHERE consumer_id = ? OR credential_owner_id = ?
+
+				UNION ALL
+
+				SELECT
+					id, 'top_up' AS type,
+					'top_up' AS category,
+					'Stripe' AS description,
+					credits AS amount,
+					created_at
+				FROM payments
+				WHERE owner_id = ? AND status = 'completed'
+
+				UNION ALL
+
+				SELECT
+					id, 'adjustment' AS type,
+					CASE WHEN amount >= 0 THEN 'grant' ELSE 'revoke' END AS category,
+					COALESCE(reason, '') AS description,
+					amount,
+					created_at
+				FROM credit_adjustments
+				WHERE owner_id = ?
+			) combined
+			ORDER BY created_at DESC
+			LIMIT ?`,
+		)
+		.bind(
+			userId,
+			userId,
+			userId,
+			userId,
+			userId,
+			userId,
+			userId,
+			userId,
+			userId,
+			userId,
+			limit,
+		)
+		.all<{
+			id: string;
+			type: "usage" | "top_up" | "adjustment";
+			category: string;
+			description: string;
+			amount: number;
+			created_at: number;
+		}>();
+
+	return c.json({ data: res.results || [] });
 });
 
 export default systemRouter;

@@ -18,7 +18,7 @@ export interface UserRow {
 }
 
 const QUERYABLE_TABLES: Record<string, string> = {
-	ledger: "created_at",
+	usage: "created_at",
 	upstream_credentials: "created_at",
 	wallets: "updated_at",
 	payments: "created_at",
@@ -45,7 +45,7 @@ export class AdminDao {
 					`SELECT COUNT(*) AS cnt,
 					        COALESCE(SUM(consumer_charged), 0) AS consumed,
 					        COALESCE(SUM(platform_fee), 0) AS fees
-					 FROM ledger`,
+					 FROM usage`,
 				)
 				.first<{ cnt: number; consumed: number; fees: number }>(),
 			this.db
@@ -85,7 +85,7 @@ export class AdminDao {
 				 ) p ON p.owner_id = w.owner_id
 				 LEFT JOIN (
 					SELECT consumer_id, SUM(consumer_charged) AS consumed
-					FROM ledger
+					FROM usage
 					GROUP BY consumer_id
 				 ) l ON l.consumer_id = w.owner_id
 				 LEFT JOIN (

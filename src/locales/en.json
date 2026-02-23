@@ -16,6 +16,7 @@
 		"models": "Models",
 		"credentials": "Credentials",
 		"api_keys": "API Keys",
+		"usage": "Usage",
 		"ledger": "Ledger",
 		"billing": "Billing",
 		"guide": "Guide",
@@ -152,9 +153,9 @@
 		"sync_success": "Sync completed",
 		"sync_failed": "Sync failed"
 	},
-	"ledger": {
-		"title": "Ledger",
-		"subtitle": "Track credits earned from sharing and spent via API usage",
+	"usage": {
+		"title": "Usage",
+		"subtitle": "Per-request API usage detail — credits earned from sharing and spent via API calls",
 		"time": "Time",
 		"direction": "Type",
 		"model": "Model",
@@ -164,6 +165,21 @@
 		"earned": "Earned",
 		"spent": "Spent",
 		"self_use": "Self-use",
+		"no_data": "No usage records yet"
+	},
+	"ledger": {
+		"title": "Ledger",
+		"subtitle": "Complete timeline of all credit movements",
+		"time": "Time",
+		"type": "Type",
+		"description": "Description",
+		"amount": "Amount",
+		"api_spend": "API Spend",
+		"credential_earn": "Earned",
+		"self_use": "Self-use",
+		"top_up": "Top Up",
+		"grant": "Grant",
+		"revoke": "Revoke",
 		"no_data": "No ledger entries yet"
 	},
 	"billing": {

@@ -16,7 +16,8 @@
 		"models": "模型",
 		"credentials": "上游凭证",
 		"api_keys": "API 密钥",
-		"ledger": "交易记录",
+		"usage": "使用记录",
+		"ledger": "账户流水",
 		"billing": "充值",
 		"guide": "快速开始",
 		"admin": "管理后台",
@@ -149,9 +150,9 @@
 		"sync_success": "同步完成",
 		"sync_failed": "同步失败"
 	},
-	"ledger": {
-		"title": "交易记录",
-		"subtitle": "追踪共享凭证赚取的收益和 API 调用消耗的额度",
+	"usage": {
+		"title": "使用记录",
+		"subtitle": "逐条 API 请求明细 — 含共享凭证获得的收益和 API 调用的消耗",
 		"time": "时间",
 		"direction": "类型",
 		"model": "模型",
@@ -161,7 +162,22 @@
 		"earned": "收入",
 		"spent": "消费",
 		"self_use": "自用",
-		"no_data": "暂无交易记录"
+		"no_data": "暂无使用记录"
+	},
+	"ledger": {
+		"title": "账户流水",
+		"subtitle": "全部 Credits 变动的完整时间线",
+		"time": "时间",
+		"type": "类型",
+		"description": "描述",
+		"amount": "金额",
+		"api_spend": "API 消费",
+		"credential_earn": "共享收益",
+		"self_use": "自用",
+		"top_up": "充值",
+		"grant": "赠与",
+		"revoke": "扣除",
+		"no_data": "暂无账户流水"
 	},
 	"billing": {
 		"title": "充值",
