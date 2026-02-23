@@ -15,14 +15,11 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../../auth";
+import { UserMenu, useAuth } from "../../auth";
 import { LanguageSelector } from "../../components/LanguageSelector";
 import { Logo } from "../../components/Logo";
 import { ThemeToggle } from "../../components/ThemeToggle";
-
-function classNames(...classes: string[]) {
-	return classes.filter(Boolean).join(" ");
-}
+import { classNames } from "../../utils/classNames";
 
 function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 	const { t } = useTranslation();
@@ -112,7 +109,7 @@ export function AdminLayout() {
 	const { t } = useTranslation();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
-	if (!isLoaded) return null;
+	if (!isLoaded || isAdmin === null) return null;
 	if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
 	return (
@@ -144,8 +141,9 @@ export function AdminLayout() {
 							</div>
 						</TransitionChild>
 						<div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10">
-							<div className="flex h-16 shrink-0 items-center">
+							<div className="flex h-16 shrink-0 items-center justify-between">
 								<Logo />
+								<UserMenu />
 							</div>
 							<AdminNav onNavigate={() => setSidebarOpen(false)} />
 						</div>
@@ -155,8 +153,9 @@ export function AdminLayout() {
 
 			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
 				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 dark:border-white/10 dark:bg-black/10">
-					<div className="flex h-16 shrink-0 items-center">
+					<div className="flex h-16 shrink-0 items-center justify-between">
 						<Logo />
+						<UserMenu />
 					</div>
 					<AdminNav />
 				</div>

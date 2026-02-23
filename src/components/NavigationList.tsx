@@ -10,12 +10,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { isPlatform, useAuth } from "../auth";
+import { classNames } from "../utils/classNames";
 import { LanguageSelector } from "./LanguageSelector";
 import { ThemeToggle } from "./ThemeToggle";
-
-function classNames(...classes: string[]) {
-	return classes.filter(Boolean).join(" ");
-}
 
 interface NavigationListProps {
 	onNavigate?: () => void;
@@ -49,7 +46,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 					},
 				]
 			: []),
-		...(isAdmin
+		...(isAdmin === true
 			? [
 					{
 						name: t("nav.admin"),

@@ -46,7 +46,7 @@ admin.get("/adjustments", async (c) => {
 	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);
 	const offset = Math.max(Number(c.req.query("offset")) || 0, 0);
 	const result = await new AdminDao(c.env.DB).getAdjustments(limit, offset);
-	return c.json({ data: result.rows, total: result.total });
+	return c.json({ rows: result.rows, total: result.total });
 });
 
 admin.get("/table/:name", async (c) => {
@@ -60,7 +60,7 @@ admin.get("/table/:name", async (c) => {
 			limit,
 			offset,
 		);
-		return c.json({ data: result.rows, total: result.total });
+		return c.json({ rows: result.rows, total: result.total });
 	} catch (err) {
 		throw new BadRequestError(
 			err instanceof Error ? err.message : "Invalid table",

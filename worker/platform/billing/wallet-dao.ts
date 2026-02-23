@@ -31,4 +31,14 @@ export class WalletDao {
 			.run();
 		return (res.meta?.changes ?? 0) > 0;
 	}
+
+	/** Admin revocation: always succeeds, caps balance at 0 */
+	async forceDebit(ownerId: string, amount: number): Promise<void> {
+		await this.db
+			.prepare(
+				"UPDATE wallets SET balance = MAX(0, balance - ?), updated_at = ? WHERE owner_id = ?",
+			)
+			.bind(amount, Date.now(), ownerId)
+			.run();
+	}
 }

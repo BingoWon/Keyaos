@@ -28,11 +28,11 @@ export function Data() {
 	const limit = 50;
 
 	const { data, loading, refetch } = useFetch<{
-		data: Record<string, unknown>[];
+		rows: Record<string, unknown>[];
 		total: number;
 	}>(`/api/admin/table/${table}?limit=${limit}&offset=${page * limit}`);
 
-	const rows = data?.data ?? [];
+	const rows = data?.rows ?? [];
 	const total = data?.total ?? 0;
 	const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
 	const totalPages = Math.ceil(total / limit);

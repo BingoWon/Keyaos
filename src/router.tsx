@@ -44,18 +44,22 @@ export const router = createBrowserRouter([
 		),
 		children: dashboardChildren,
 	},
-	{
-		path: "/admin",
-		element: (
-			<AuthGuard fallback={<Navigate to="/login" replace />}>
-				<AdminLayout />
-			</AuthGuard>
-		),
-		children: [
-			{ index: true, element: <Overview /> },
-			{ path: "users", element: <Users /> },
-			{ path: "data", element: <Data /> },
-		],
-	},
+	...(isPlatform
+		? [
+				{
+					path: "/admin",
+					element: (
+						<AuthGuard fallback={<Navigate to="/login" replace />}>
+							<AdminLayout />
+						</AuthGuard>
+					),
+					children: [
+						{ index: true, element: <Overview /> },
+						{ path: "users", element: <Users /> },
+						{ path: "data", element: <Data /> },
+					],
+				},
+			]
+		: []),
 	{ path: "*", element: <NotFound /> },
 ]);

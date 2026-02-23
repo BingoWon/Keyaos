@@ -129,12 +129,7 @@ export class AdminDao {
 		if (amount > 0) {
 			await this.wallet.credit(ownerId, amount);
 		} else if (amount < 0) {
-			await this.db
-				.prepare(
-					"UPDATE wallets SET balance = MAX(0, balance + ?), updated_at = ? WHERE owner_id = ?",
-				)
-				.bind(amount, Date.now(), ownerId)
-				.run();
+			await this.wallet.forceDebit(ownerId, -amount);
 		}
 	}
 

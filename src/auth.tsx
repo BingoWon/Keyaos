@@ -23,7 +23,8 @@ interface AuthContextType {
 	getToken: () => Promise<string | null>;
 	isLoaded: boolean;
 	isSignedIn: boolean;
-	isAdmin: boolean;
+	/** null = not yet determined (loading), false = not admin, true = admin */
+	isAdmin: boolean | null;
 	signOut: () => void;
 	/** Core mode only: sign in with admin token */
 	signIn?: (token: string) => void;
@@ -49,7 +50,7 @@ function CoreAuthProvider({ children }: { children: ReactNode }) {
 			getToken: async () => token,
 			isLoaded: true,
 			isSignedIn: !!token,
-			isAdmin: false,
+			isAdmin: false as const,
 			signOut: () => {
 				localStorage.removeItem("admin_token");
 				setToken(null);
@@ -69,16 +70,22 @@ function CoreAuthProvider({ children }: { children: ReactNode }) {
 
 function ClerkAuthBridge({ children }: { children: ReactNode }) {
 	const clerk = useClerkAuth();
-	const [isAdmin, setIsAdmin] = useState(false);
+	const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
 	useEffect(() => {
-		if (!clerk.isSignedIn) return;
+		if (!clerk.isSignedIn) {
+			setIsAdmin(false);
+			return;
+		}
 		clerk.getToken().then((t) => {
-			if (!t) return;
+			if (!t) {
+				setIsAdmin(false);
+				return;
+			}
 			fetch("/api/me", { headers: { Authorization: `Bearer ${t}` } })
 				.then((r) => r.json())
 				.then((d: { isAdmin?: boolean }) => setIsAdmin(!!d.isAdmin))
-				.catch(() => {});
+				.catch(() => setIsAdmin(false));
 		});
 	}, [clerk.isSignedIn, clerk.getToken]);
 
