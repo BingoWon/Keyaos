@@ -10,15 +10,13 @@ import googleAIStudioModels from "../models/google-ai-studio.json";
 import oaiproModels from "../models/oaipro.json";
 import openaiModels from "../models/openai.json";
 import qwenCodeModels from "../models/qwen-code.json";
-import {
-	antigravityAdapter,
-	geminiCliAdapter,
-} from "./google-oauth-adapter";
+import { antigravityAdapter, geminiCliAdapter } from "./google-oauth-adapter";
 import type {
 	ParsedModel,
 	ProviderAdapter,
 	ProviderCredits,
 } from "./interface";
+import { kiroAdapter } from "./kiro-adapter";
 import {
 	dollarsToCentsPerM,
 	OpenAICompatibleAdapter,
@@ -291,6 +289,7 @@ for (const config of PROVIDER_CONFIGS) {
 
 adapters.set("gemini-cli", geminiCliAdapter);
 adapters.set("antigravity", antigravityAdapter);
+adapters.set("kiro", kiroAdapter);
 
 export function getProvider(id: string): ProviderAdapter | undefined {
 	return adapters.get(id);
