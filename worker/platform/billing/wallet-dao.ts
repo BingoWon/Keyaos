@@ -31,12 +31,4 @@ export class WalletDao {
 			.run();
 		return (res.meta?.changes ?? 0) > 0;
 	}
-
-	async hasBalance(ownerId: string, minimum = 0): Promise<boolean> {
-		const row = await this.db
-			.prepare("SELECT balance FROM wallets WHERE owner_id = ?")
-			.bind(ownerId)
-			.first<{ balance: number }>();
-		return (row?.balance ?? 0) > minimum;
-	}
 }

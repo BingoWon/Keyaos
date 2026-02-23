@@ -82,30 +82,20 @@ export class CredentialsDao {
 		ownerId?: string,
 	): Promise<DbCredential[]> {
 		const now = Date.now();
-
-		if (ownerId) {
-			const res = await this.db
-				.prepare(
-					`SELECT * FROM upstream_credentials
-					 WHERE provider = ? AND owner_id = ? AND is_enabled = 1
-					   AND health_status != 'dead'
-					   AND (health_status != 'cooldown' OR last_health_check + ? < ?)
-					 ORDER BY price_multiplier ASC, COALESCE(quota, 9999999) DESC`,
-				)
-				.bind(provider, ownerId, COOLDOWN_MS, now)
-				.all<DbCredential>();
-			return res.results || [];
-		}
+		const ownerClause = ownerId ? "AND owner_id = ? " : "";
+		const binds: (string | number)[] = ownerId
+			? [provider, ownerId, COOLDOWN_MS, now]
+			: [provider, COOLDOWN_MS, now];
 
 		const res = await this.db
 			.prepare(
 				`SELECT * FROM upstream_credentials
-				 WHERE provider = ? AND is_enabled = 1
+				 WHERE provider = ? ${ownerClause}AND is_enabled = 1
 				   AND health_status != 'dead'
 				   AND (health_status != 'cooldown' OR last_health_check + ? < ?)
 				 ORDER BY price_multiplier ASC, COALESCE(quota, 9999999) DESC`,
 			)
-			.bind(provider, COOLDOWN_MS, now)
+			.bind(...binds)
 			.all<DbCredential>();
 		return res.results || [];
 	}

@@ -50,15 +50,11 @@ systemRouter.get("/ledger", async (c) => {
 			return {
 				id: tx.id,
 				direction,
-				credentialId: tx.credential_id,
 				provider: tx.provider,
 				model: tx.model,
 				inputTokens: tx.input_tokens,
 				outputTokens: tx.output_tokens,
 				baseCost: tx.base_cost,
-				consumerCharged: tx.consumer_charged,
-				providerEarned: tx.provider_earned,
-				platformFee: tx.platform_fee,
 				netCredits,
 				createdAt: tx.created_at,
 			};

@@ -11,15 +11,11 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 interface LedgerEntry {
 	id: string;
 	direction: "spent" | "earned" | "self";
-	credentialId: string;
 	provider: string;
 	model: string;
 	inputTokens: number;
 	outputTokens: number;
 	baseCost: number;
-	consumerCharged: number;
-	providerEarned: number;
-	platformFee: number;
 	netCredits: number;
 	createdAt: number;
 }

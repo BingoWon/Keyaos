@@ -10,3 +10,9 @@ export type Env = {
 };
 
 export type AppEnv = { Bindings: Env; Variables: { owner_id: string } };
+
+export interface Settlement {
+	consumerCharged: number;
+	providerEarned: number;
+	platformFee: number;
+}

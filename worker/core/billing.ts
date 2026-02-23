@@ -5,7 +5,7 @@
  * in worker/platform/billing/settlement.ts.
  */
 
-import type { Settlement } from "../platform/billing/settlement";
+import type { Settlement } from "../shared/types";
 import { CredentialsDao } from "./db/credentials-dao";
 import { LedgerDao } from "./db/ledger-dao";
 import type { TokenUsage } from "./utils/stream";
@@ -16,8 +16,9 @@ export interface BillingParams {
 	credentialOwnerId: string;
 	provider: string;
 	model: string;
-	modelPrice: { inputPricePerM: number; outputPricePerM: number };
-	usage: TokenUsage;
+	baseCost: number;
+	inputTokens: number;
+	outputTokens: number;
 	settlement: Settlement;
 }
 
@@ -45,16 +46,13 @@ export async function recordUsage(
 		credentialOwnerId,
 		provider,
 		model,
-		modelPrice,
-		usage,
+		baseCost,
+		inputTokens,
+		outputTokens,
 		settlement,
 	} = params;
 
-	const totalTokens =
-		usage.total_tokens || usage.prompt_tokens + usage.completion_tokens;
-	if (totalTokens <= 0) return;
-
-	const baseCost = calculateBaseCost(modelPrice, usage);
+	if (inputTokens + outputTokens <= 0) return;
 
 	try {
 		await new LedgerDao(db).createEntry({
@@ -63,8 +61,8 @@ export async function recordUsage(
 			credential_owner_id: credentialOwnerId,
 			provider,
 			model,
-			input_tokens: usage.prompt_tokens,
-			output_tokens: usage.completion_tokens,
+			input_tokens: inputTokens,
+			output_tokens: outputTokens,
 			base_cost: baseCost,
 			consumer_charged: settlement.consumerCharged,
 			provider_earned: settlement.providerEarned,

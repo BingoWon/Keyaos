@@ -9,15 +9,10 @@
  * Self-use (consumer = credential owner) incurs no wallet operations.
  */
 
+import type { Settlement } from "../../shared/types";
 import { WalletDao } from "./wallet-dao";
 
 export const SERVICE_FEE_RATE = 0.01;
-
-export interface Settlement {
-	consumerCharged: number;
-	providerEarned: number;
-	platformFee: number;
-}
 
 export function calculateSettlement(
 	baseCost: number,

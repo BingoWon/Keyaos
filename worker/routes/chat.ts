@@ -90,8 +90,9 @@ chatRouter.post("/completions", async (c) => {
 								credentialOwnerId,
 								provider: credential.provider,
 								model: modelId,
-								modelPrice,
-								usage,
+								baseCost,
+								inputTokens: usage.prompt_tokens,
+								outputTokens: usage.completion_tokens,
 								settlement,
 							});
 
