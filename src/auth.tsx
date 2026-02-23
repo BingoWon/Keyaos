@@ -115,7 +115,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
 				afterSignOutUrl="/login"
 				signInForceRedirectUrl="/dashboard"
-				appearance={{ baseTheme: isDark ? dark : undefined }}
+				appearance={{
+					baseTheme: isDark ? dark : undefined,
+					layout: { socialButtonsVariant: "blockButton" },
+					elements: {
+						socialButtons: {
+							display: "flex",
+							flexDirection: "column",
+							gap: "12px",
+						},
+						socialButtonsBlockButton: {
+							width: "100%",
+						},
+					},
+				}}
 			>
 				<ClerkAuthBridge>{children}</ClerkAuthBridge>
 			</ClerkProvider>

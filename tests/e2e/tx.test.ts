@@ -1,14 +1,36 @@
+/**
+ * Transaction & billing e2e test
+ *
+ * Verifies that a chat completion creates a corresponding ledger entry
+ * with the correct credential_id.
+ */
+
 import assert from "node:assert";
+import { execSync } from "node:child_process";
 import { test } from "node:test";
 
-const ADMIN_TOKEN = "admin";
+const API_BASE = process.env.API_BASE || "http://localhost:5173";
+const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
+if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
 
-test("Ledger entry created after chat completion", async () => {
-	const response = await fetch("http://localhost:8787/v1/chat/completions", {
+function dbQuery(sql: string): unknown[] {
+	const raw = execSync(
+		`npx wrangler d1 execute keyaos-db --local --command "${sql.replace(/"/g, '\\"')}" --json 2>/dev/null`,
+		{ cwd: process.cwd(), encoding: "utf-8" },
+	);
+	return JSON.parse(raw)[0]?.results ?? [];
+}
+
+test("Ledger entry created after chat completion with correct credential", async () => {
+	const beforeCount = (
+		dbQuery("SELECT COUNT(*) as cnt FROM ledger") as { cnt: number }[]
+	)[0].cnt;
+
+	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${ADMIN_TOKEN}`,
+			Authorization: `Bearer ${KEYAOS_KEY}`,
 		},
 		body: JSON.stringify({
 			model: "openai/gpt-4o-mini",
@@ -17,18 +39,30 @@ test("Ledger entry created after chat completion", async () => {
 		}),
 	});
 
-	const data = await response.json();
-	console.log("Response body:", data);
+	assert.strictEqual(res.status, 200);
+	const usedCredId = res.headers.get("x-credential-id");
+	assert.ok(usedCredId, "Missing x-credential-id header");
 
-	// Give waitUntil 1 second to fire DB inserts
-	await new Promise((r) => setTimeout(r, 1000));
+	// waitUntil fires async — poll until new ledger entry appears
+	let entry: { credential_id: string; credits_used: number } | undefined;
+	for (let i = 0; i < 10; i++) {
+		await new Promise((r) => setTimeout(r, 500));
+		const rows = dbQuery(
+			`SELECT credential_id, credits_used FROM ledger WHERE credential_id = '${usedCredId}' ORDER BY created_at DESC LIMIT 1`,
+		) as { credential_id: string; credits_used: number }[];
+		const afterCount = (
+			dbQuery("SELECT COUNT(*) as cnt FROM ledger") as { cnt: number }[]
+		)[0].cnt;
+		if (afterCount > beforeCount && rows.length > 0) {
+			entry = rows[0];
+			break;
+		}
+	}
 
-	const ledger = await fetch("http://localhost:8787/api/ledger?limit=1", {
-		headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-	});
-	const ledgerData = await ledger.json();
-	console.log("Latest ledger entry:", ledgerData.data?.[0]);
-
-	assert.strictEqual(response.status, 200);
-	assert.ok(data.choices?.length > 0);
+	assert.ok(entry, "No matching ledger entry found within 5 seconds");
+	assert.strictEqual(entry.credential_id, usedCredId);
+	assert.ok(entry.credits_used > 0, "Credits used should be positive");
+	console.log(
+		`  Credential: ${usedCredId?.slice(-8)}, Credits: ${entry.credits_used}`,
+	);
 });

@@ -87,6 +87,7 @@ chatRouter.post("/completions", async (c) => {
 
 			finalResponse.headers.set("x-request-id", requestId);
 			finalResponse.headers.set("x-provider", credential.provider);
+			finalResponse.headers.set("x-credential-id", credential.id);
 			return finalResponse;
 		} catch (err) {
 			await credDao.reportFailure(credential.id, undefined, isSub);

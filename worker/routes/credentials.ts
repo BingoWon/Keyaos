@@ -25,7 +25,11 @@ const AddCredentialBody = z.object({
 	secret: z.string().min(1, "secret is required"),
 	quota: z.number().positive().optional(),
 	isEnabled: z.number().int().min(0).max(1).optional(),
-	priceMultiplier: z.number().positive().optional(),
+	priceMultiplier: z
+		.number()
+		.positive()
+		.max(1, "price_multiplier must not exceed 1.0")
+		.optional(),
 });
 
 const UpdateQuotaBody = z.object({
@@ -34,7 +38,11 @@ const UpdateQuotaBody = z.object({
 
 const UpdateSettingsBody = z.object({
 	isEnabled: z.number().int().min(0).max(1).optional(),
-	priceMultiplier: z.number().positive().optional(),
+	priceMultiplier: z
+		.number()
+		.positive()
+		.max(1, "price_multiplier must not exceed 1.0")
+		.optional(),
 });
 
 const credentialsRouter = new Hono<AppEnv>();

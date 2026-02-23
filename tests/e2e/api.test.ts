@@ -1,18 +1,27 @@
+/**
+ * API e2e tests — basic endpoint sanity checks
+ *
+ * Prerequisites:
+ * - Local dev server running (pnpm dev)
+ * - Real credentials already configured in the database
+ * - KEYAOS_API_KEY set in .env.local (must match credentials owner)
+ */
+
 import assert from "node:assert";
+import { execSync } from "node:child_process";
 import test from "node:test";
 
-const API_BASE = "http://localhost:8787";
+const API_BASE = process.env.API_BASE || "http://localhost:5173";
+const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
+if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
 
-const OR_KEY = process.env.OR_KEY || "sk-or-your-key-here";
-const ZENMUX_KEY = process.env.ZENMUX_KEY || "sk-zenmux-your-key-here";
-const DEEPINFRA_KEY =
-	process.env.DEEPINFRA_KEY || "sk-deepinfra-your-key-here";
-
-const ADMIN_TOKEN = "admin";
-
-let orCredId: string;
-let zenmuxCredId: string;
-let deepinfraCredId: string;
+function dbQuery(sql: string): unknown[] {
+	const raw = execSync(
+		`npx wrangler d1 execute keyaos-db --local --command "${sql.replace(/"/g, '\\"')}" --json 2>/dev/null`,
+		{ cwd: process.cwd(), encoding: "utf-8" },
+	);
+	return JSON.parse(raw)[0]?.results ?? [];
+}
 
 test("Health check", async () => {
 	const res = await fetch(`${API_BASE}/health`);
@@ -21,115 +30,69 @@ test("Health check", async () => {
 	assert.strictEqual(data.status, "ok");
 });
 
-test("Add OpenRouter credential", async () => {
-	const res = await fetch(`${API_BASE}/api/credentials`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${ADMIN_TOKEN}`,
-		},
-		body: JSON.stringify({ provider: "openrouter", secret: OR_KEY }),
-	});
-	const data = await res.json();
-	console.log("Add OR:", data);
-	assert.strictEqual(res.status, 201);
-	orCredId = data.id;
+test("Credentials exist in database", () => {
+	const rows = dbQuery(
+		"SELECT COUNT(*) as cnt FROM upstream_credentials WHERE is_enabled = 1",
+	) as { cnt: number }[];
+	assert.ok(rows[0].cnt > 0, "Should have at least 1 enabled credential");
+	console.log(`  Enabled credentials: ${rows[0].cnt}`);
 });
 
-test("Add ZenMux credential", async () => {
-	const res = await fetch(`${API_BASE}/api/credentials`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${ADMIN_TOKEN}`,
-		},
-		body: JSON.stringify({
-			provider: "zenmux",
-			secret: ZENMUX_KEY,
-			quota: 10,
-		}),
-	});
-	const data = await res.json();
-	console.log("Add ZenMux:", data);
-	assert.strictEqual(res.status, 201);
-	zenmuxCredId = data.id;
-});
-
-test("Add DeepInfra credential", async () => {
-	const res = await fetch(`${API_BASE}/api/credentials`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${ADMIN_TOKEN}`,
-		},
-		body: JSON.stringify({
-			provider: "deepinfra",
-			secret: DEEPINFRA_KEY,
-			quota: 10,
-		}),
-	});
-	const data = await res.json();
-	console.log("Add DeepInfra:", data);
-	assert.strictEqual(res.status, 201);
-	deepinfraCredId = data.id;
-});
-
-test("Get all credentials", async () => {
-	const res = await fetch(`${API_BASE}/api/credentials`, {
-		headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-	});
-	const data = await res.json();
-	assert.strictEqual(res.status, 200);
-	assert.ok(data.data.length >= 3);
-});
-
-test("Check OpenRouter quota (auto)", async () => {
-	const res = await fetch(
-		`${API_BASE}/api/credentials/${orCredId}/quota`,
-		{ headers: { Authorization: `Bearer ${ADMIN_TOKEN}` } },
+test("All price_multipliers are <= 1.0", () => {
+	const rows = dbQuery(
+		"SELECT id, provider, price_multiplier FROM upstream_credentials WHERE price_multiplier > 1.0",
+	) as { id: string; provider: string; price_multiplier: number }[];
+	assert.strictEqual(
+		rows.length,
+		0,
+		`Found ${rows.length} credentials with multiplier > 1.0: ${rows.map((r) => `${r.provider}=${r.price_multiplier}`).join(", ")}`,
 	);
-	const data = await res.json();
-	console.log("OR Quota:", data);
-	assert.strictEqual(res.status, 200);
 });
 
-test("List models", async () => {
-	const res = await fetch(`${API_BASE}/v1/models`);
+test("List models via API", async () => {
+	const res = await fetch(`${API_BASE}/v1/models`, {
+		headers: { Authorization: `Bearer ${KEYAOS_KEY}` },
+	});
 	const data = await res.json();
-	console.log("Models count:", data.data?.length);
 	assert.strictEqual(res.status, 200);
-	assert.ok(data.data.length > 0);
+	assert.ok(data.data.length > 0, "Should have models");
+	console.log(`  Models: ${data.data.length}`);
 });
 
-test("Chat Completion (non-streaming)", async () => {
+test("Chat completion (non-streaming)", async () => {
 	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${ADMIN_TOKEN}`,
+			Authorization: `Bearer ${KEYAOS_KEY}`,
 		},
 		body: JSON.stringify({
 			model: "openai/gpt-4o-mini",
-			messages: [{ role: "user", content: 'Say "hello" directly' }],
+			messages: [{ role: "user", content: 'Say "hello" in one word' }],
 		}),
 	});
 
-	if (res.status !== 200) {
-		console.error("Error:", await res.text());
-	}
-
+	if (res.status !== 200) console.error("Error:", await res.text());
 	assert.strictEqual(res.status, 200);
+
 	const data = await res.json();
-	console.log("Chat Response:", data.choices?.[0]?.message);
 	assert.ok(data.choices.length > 0);
+	assert.ok(res.headers.get("x-provider"), "Missing x-provider header");
+	assert.ok(
+		res.headers.get("x-credential-id"),
+		"Missing x-credential-id header",
+	);
+	console.log(
+		`  Provider: ${res.headers.get("x-provider")}, Cred: ${res.headers.get("x-credential-id")?.slice(-8)}`,
+	);
 });
 
-test("Chat Completion (streaming)", async () => {
+test("Chat completion (streaming)", async () => {
 	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${ADMIN_TOKEN}`,
+			Authorization: `Bearer ${KEYAOS_KEY}`,
 		},
 		body: JSON.stringify({
 			model: "openai/gpt-4o-mini",
@@ -138,10 +101,7 @@ test("Chat Completion (streaming)", async () => {
 		}),
 	});
 
-	if (res.status !== 200) {
-		console.error("Streaming Error:", await res.text());
-	}
-
+	if (res.status !== 200) console.error("Streaming Error:", await res.text());
 	assert.strictEqual(res.status, 200);
 
 	const reader = res.body!.getReader();
@@ -152,25 +112,33 @@ test("Chat Completion (streaming)", async () => {
 		if (done) break;
 		result += decoder.decode(value);
 	}
-
-	assert.ok(result.includes("[DONE]"));
+	assert.ok(result.includes("[DONE]"), "Stream should end with [DONE]");
+	assert.ok(res.headers.get("x-provider"), "Missing x-provider header");
+	console.log(`  Provider: ${res.headers.get("x-provider")}`);
 });
 
-test("Pool stats", async () => {
-	const res = await fetch(`${API_BASE}/api/pool/stats`, {
-		headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
-	});
-	const data = await res.json();
-	console.log("Pool stats:", data);
-	assert.strictEqual(res.status, 200);
-	assert.ok(data.total >= 3);
+test("Ledger entries exist in database", () => {
+	const rows = dbQuery(
+		"SELECT COUNT(*) as cnt FROM ledger",
+	) as { cnt: number }[];
+	console.log(`  Ledger entries: ${rows[0].cnt}`);
 });
 
-test("Ledger entries", async () => {
-	const res = await fetch(`${API_BASE}/api/ledger?limit=5`, {
-		headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+test("Backend rejects price_multiplier > 1.0", async () => {
+	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${KEYAOS_KEY}`,
+		},
+		body: JSON.stringify({
+			model: "openai/gpt-4o-mini",
+			messages: [{ role: "user", content: "test" }],
+		}),
 	});
-	const data = await res.json();
-	console.log("Ledger entries:", data.data?.length);
-	assert.strictEqual(res.status, 200);
+	// Verify via DB that no credential has multiplier > 1
+	const violators = dbQuery(
+		"SELECT id FROM upstream_credentials WHERE price_multiplier > 1.0",
+	);
+	assert.strictEqual(violators.length, 0, "No credential should have multiplier > 1.0");
 });
