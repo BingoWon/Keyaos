@@ -80,6 +80,7 @@ export function Credentials() {
 	const isOAuth = selectedProvider?.authType === "oauth";
 	const guide = selectedProvider?.credentialGuide;
 	const [guideOpen, setGuideOpen] = useState(true);
+	const [priceMultiplierTouched, setPriceMultiplierTouched] = useState(false);
 
 	const secretHint = useMemo<{
 		type: "json" | "access_token" | null;
@@ -125,9 +126,13 @@ export function Credentials() {
 					secret: "",
 					quota: "",
 					isEnabled: true,
-					priceMultiplier: "1.0",
+					priceMultiplier:
+						providers.find((p) => p.id === defaultProvider)?.isSubscription
+							? "0.5"
+							: "0.8",
 				});
 				setShowPassword(false);
+				setPriceMultiplierTouched(false);
 				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
@@ -231,7 +236,21 @@ export function Credentials() {
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<button
 						type="button"
-						onClick={() => setIsAddOpen(true)}
+						onClick={() => {
+							const pid = providers[0]?.id ?? "openrouter";
+							const isSub =
+								providers.find((p) => p.id === pid)?.isSubscription ?? false;
+							setDraft({
+								provider: pid,
+								secret: "",
+								quota: "",
+								isEnabled: true,
+								priceMultiplier: isSub ? "0.5" : "0.8",
+							});
+							setPriceMultiplierTouched(false);
+							setShowPassword(false);
+							setIsAddOpen(true);
+						}}
 						className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
@@ -262,9 +281,19 @@ export function Credentials() {
 									<select
 										id="provider"
 										value={draft.provider}
-										onChange={(e) =>
-											setDraft({ ...draft, provider: e.target.value })
-										}
+										onChange={(e) => {
+										const newId = e.target.value;
+										const isSub =
+											providers.find((p) => p.id === newId)?.isSubscription ??
+											false;
+										setDraft((d) => ({
+											...d,
+											provider: newId,
+											...(!priceMultiplierTouched && {
+												priceMultiplier: isSub ? "0.5" : "0.8",
+											}),
+										}));
+									}}
 										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									>
 										{providers.map((p) => (
@@ -404,12 +433,10 @@ export function Credentials() {
 									step="0.01"
 									required
 									value={draft.priceMultiplier}
-									onChange={(e) =>
-										setDraft({
-											...draft,
-											priceMultiplier: e.target.value,
-										})
-									}
+								onChange={(e) => {
+									setDraft({ ...draft, priceMultiplier: e.target.value });
+									setPriceMultiplierTouched(true);
+								}}
 									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="1.0"
 								/>
@@ -433,6 +460,7 @@ export function Credentials() {
 								onClick={() => {
 									setIsAddOpen(false);
 									setShowPassword(false);
+									setPriceMultiplierTouched(false);
 								}}
 								className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:ring-0 dark:hover:bg-white/20"
 							>
@@ -798,7 +826,9 @@ function GuidancePanel({
 								<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
 									{idx + 1}
 								</span>
-								<span>{step}</span>
+								<span>
+								<LinkifiedText text={step} />
+							</span>
 							</li>
 						))}
 					</ol>
@@ -818,6 +848,30 @@ function GuidancePanel({
 				</div>
 			)}
 		</div>
+	);
+}
+
+function LinkifiedText({ text }: { text: string }) {
+	const parts = text.split(/(https?:\/\/[^\s)]+)/);
+	if (parts.length === 1) return <>{text}</>;
+	return (
+		<>
+			{parts.map((part) =>
+				part.match(/^https?:\/\//) ? (
+					<a
+						key={part}
+						href={part}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline"
+					>
+						{part}
+					</a>
+				) : (
+					part
+				),
+			)}
+		</>
 	);
 }
 

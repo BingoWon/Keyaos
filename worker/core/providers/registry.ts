@@ -195,7 +195,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "sk-or-v1-...",
 			steps: [
-				"Go to openrouter.ai/settings/keys",
+				"Go to https://openrouter.ai/settings/keys",
 				"Create a new API key and copy it",
 			],
 		},
@@ -215,7 +215,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "sk-...",
 			steps: [
-				"Go to zenmux.ai and sign in",
+				"Go to https://zenmux.ai and sign in",
 				"Navigate to API Keys page and create a new key",
 			],
 		},
@@ -231,7 +231,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "sk-...",
 			steps: [
-				"Go to deepinfra.com/dash/api_keys",
+				"Go to https://deepinfra.com/dash/api_keys",
 				"Create a new API key and copy it",
 			],
 		},
@@ -251,7 +251,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "sk-...",
 			steps: [
-				"Go to platform.deepseek.com/api_keys",
+				"Go to https://platform.deepseek.com/api_keys",
 				"Create a new API key and copy it",
 			],
 		},
@@ -270,7 +270,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "AIza...",
 			steps: [
-				"Go to aistudio.google.com/apikey",
+				"Go to https://aistudio.google.com/apikey",
 				"Create a new API key and copy it",
 			],
 		},
@@ -287,7 +287,10 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		parseModels: () => parseStaticUsdModels("oaipro", oaiproModels),
 		credentialGuide: {
 			placeholder: "sk-...",
-			steps: ["Go to oaipro.com dashboard", "Create a new API key and copy it"],
+			steps: [
+				"Go to https://oaipro.com dashboard",
+				"Create a new API key and copy it",
+			],
 		},
 	},
 	{
@@ -303,7 +306,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "sk-...",
 			steps: [
-				"Go to platform.openai.com/api-keys",
+				"Go to https://platform.openai.com/api-keys",
 				"Create a new secret key and copy it",
 			],
 		},
