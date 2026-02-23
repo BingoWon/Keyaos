@@ -180,6 +180,7 @@
 		"top_up": "Top Up",
 		"grant": "Grant",
 		"revoke": "Revoke",
+		"admin_adjustment": "Admin adjustment",
 		"no_data": "No ledger entries yet"
 	},
 	"billing": {

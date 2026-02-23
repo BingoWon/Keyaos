@@ -146,7 +146,10 @@ export function Ledger() {
 										<CategoryBadge category={entry.category} />
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 dark:text-white">
-										{entry.description || "—"}
+										{entry.description ||
+											(entry.type === "adjustment"
+												? t("ledger.admin_adjustment")
+												: "—")}
 									</td>
 									<td
 										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${

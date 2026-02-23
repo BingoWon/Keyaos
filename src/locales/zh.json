@@ -177,6 +177,7 @@
 		"top_up": "充值",
 		"grant": "赠与",
 		"revoke": "扣除",
+		"admin_adjustment": "管理员调整",
 		"no_data": "暂无账户流水"
 	},
 	"billing": {
