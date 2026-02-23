@@ -1,13 +1,13 @@
 /**
  * Cross-user billing e2e test
  *
- * Uses a CONSUMER API key whose owner differs from the credential owners,
- * triggering the full platform settlement flow:
+ * Verifies the full platform settlement flow when the consumer (API key owner)
+ * differs from the credential owner:
  *   consumer wallet debit, provider wallet credit, 1% bilateral service fee.
  *
  * Prerequisites:
  * - Local dev server running (pnpm dev) with CLERK_SECRET_KEY configured
- * - BILLING_TEST_KEY in .env.local (must belong to a DIFFERENT user than credentials)
+ * - KEYAOS_API_KEY in .env.local (must belong to a DIFFERENT user than credentials)
  * - The consumer wallet must have a positive balance
  */
 
@@ -16,9 +16,8 @@ import { execSync } from "node:child_process";
 import { describe, test } from "node:test";
 
 const API_BASE = process.env.API_BASE || "http://localhost:5173";
-const CONSUMER_KEY =
-	process.env.BILLING_TEST_KEY ||
-	"sk-keyaos-21735ae73bc64146b2ae0d3e466671da";
+const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
+if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
 
 function dbQuery(sql: string): unknown[] {
 	const raw = execSync(
@@ -38,7 +37,7 @@ function getBalance(ownerId: string): number {
 describe("Platform billing: cross-user settlement", () => {
 	test("Consumer balance decreases, provider balance increases", async () => {
 		const consumerRow = dbQuery(
-			`SELECT owner_id FROM api_keys WHERE id = '${CONSUMER_KEY}'`,
+			`SELECT owner_id FROM api_keys WHERE id = '${KEYAOS_KEY}'`,
 		) as { owner_id: string }[];
 		assert.ok(consumerRow.length > 0, "Consumer API key not found in DB");
 		const consumerId = consumerRow[0].owner_id;
@@ -61,7 +60,7 @@ describe("Platform billing: cross-user settlement", () => {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				Authorization: `Bearer ${CONSUMER_KEY}`,
+				Authorization: `Bearer ${KEYAOS_KEY}`,
 			},
 			body: JSON.stringify({
 				model: "openai/gpt-4o-mini",
@@ -142,14 +141,12 @@ describe("Platform billing: cross-user settlement", () => {
 		console.log(
 			`  provider: ${beforeProvider.toFixed(6)} → ${afterProvider.toFixed(6)}`,
 		);
-		console.log(
-			`  base=${entry.base_cost}, fee=${entry.platform_fee}`,
-		);
+		console.log(`  base=${entry.base_cost}, fee=${entry.platform_fee}`);
 	});
 
 	test("Zero-balance consumer gets 402 Insufficient Credits", async () => {
 		const consumerRow = dbQuery(
-			`SELECT owner_id FROM api_keys WHERE id = '${CONSUMER_KEY}'`,
+			`SELECT owner_id FROM api_keys WHERE id = '${KEYAOS_KEY}'`,
 		) as { owner_id: string }[];
 		const consumerId = consumerRow[0].owner_id;
 		const originalBalance = getBalance(consumerId);
@@ -158,7 +155,6 @@ describe("Platform billing: cross-user settlement", () => {
 			`UPDATE wallets SET balance = 0 WHERE owner_id = '${consumerId}'`,
 		);
 
-		// Small delay to let the DB write propagate
 		await new Promise((r) => setTimeout(r, 500));
 
 		try {
@@ -166,7 +162,7 @@ describe("Platform billing: cross-user settlement", () => {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${CONSUMER_KEY}`,
+					Authorization: `Bearer ${KEYAOS_KEY}`,
 				},
 				body: JSON.stringify({
 					model: "openai/gpt-4o-mini",

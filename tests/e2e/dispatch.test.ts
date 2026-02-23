@@ -16,7 +16,7 @@
  *
  * Prerequisites:
  * - Local dev server running (pnpm dev)
- * - KEYAOS_API_KEY in .env.local matching credentials owner
+ * - KEYAOS_API_KEY in .env.local
  */
 
 import assert from "node:assert";

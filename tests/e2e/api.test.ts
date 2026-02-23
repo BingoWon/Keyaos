@@ -4,7 +4,7 @@
  * Prerequisites:
  * - Local dev server running (pnpm dev)
  * - Real credentials already configured in the database
- * - KEYAOS_API_KEY set in .env.local (must match credentials owner)
+ * - KEYAOS_API_KEY set in .env.local
  */
 
 import assert from "node:assert";
@@ -124,21 +124,13 @@ test("Ledger entries exist in database", () => {
 	console.log(`  Ledger entries: ${rows[0].cnt}`);
 });
 
-test("Backend rejects price_multiplier > 1.0", async () => {
-	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${KEYAOS_KEY}`,
-		},
-		body: JSON.stringify({
-			model: "openai/gpt-4o-mini",
-			messages: [{ role: "user", content: "test" }],
-		}),
-	});
-	// Verify via DB that no credential has multiplier > 1
+test("No credential has price_multiplier > 1.0", () => {
 	const violators = dbQuery(
-		"SELECT id FROM upstream_credentials WHERE price_multiplier > 1.0",
+		"SELECT id, provider, price_multiplier FROM upstream_credentials WHERE price_multiplier > 1.0",
+	) as { id: string; provider: string; price_multiplier: number }[];
+	assert.strictEqual(
+		violators.length,
+		0,
+		`Found ${violators.length} credentials with multiplier > 1.0: ${violators.map((r) => `${r.provider}=${r.price_multiplier}`).join(", ")}`,
 	);
-	assert.strictEqual(violators.length, 0, "No credential should have multiplier > 1.0");
 });

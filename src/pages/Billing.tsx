@@ -9,6 +9,11 @@ import { useFetch } from "../hooks/useFetch";
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
 
+function floorToDecimals(value: number, decimals: number): string {
+	const factor = 10 ** decimals;
+	return (Math.floor(value * factor) / factor).toFixed(decimals);
+}
+
 export function Billing() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
@@ -99,7 +104,7 @@ export function Billing() {
 								{t("billing.balance")}
 							</p>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-								${walletLoading ? "—" : (wallet?.balance ?? 0).toFixed(2)}
+								${walletLoading ? "—" : floorToDecimals(wallet?.balance ?? 0, 4)}
 							</p>
 						</div>
 					</div>

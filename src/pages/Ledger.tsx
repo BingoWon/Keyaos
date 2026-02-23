@@ -15,7 +15,6 @@ interface LedgerEntry {
 	model: string;
 	inputTokens: number;
 	outputTokens: number;
-	baseCost: number;
 	netCredits: number;
 	createdAt: number;
 }
@@ -52,10 +51,11 @@ function DirectionBadge({
 }
 
 function formatCredits(value: number): string {
-	if (value === 0) return "$0.00";
-	if (Math.abs(value) < 0.0001) return value > 0 ? "+<$0.0001" : "-<$0.0001";
-	const sign = value > 0 ? "+" : "";
-	return `${sign}$${value.toFixed(4)}`;
+	if (value === 0) return "$0.00000";
+	const abs = Math.abs(value);
+	const sign = value > 0 ? "+" : "-";
+	if (abs < 0.00001) return `${sign}$0.00001`;
+	return `${sign}$${abs.toFixed(5)}`;
 }
 
 export function Ledger() {
@@ -112,11 +112,8 @@ export function Ledger() {
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
 									{t("ledger.tokens")}
 								</th>
-								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
-									{t("ledger.base_cost")}
-								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white sm:pr-6">
-									{t("ledger.net_credits")}
+									{t("ledger.credits")}
 								</th>
 							</tr>
 						</thead>
@@ -137,9 +134,6 @@ export function Ledger() {
 									</td>
 									<td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500 dark:text-gray-400">
 										{(tx.inputTokens + tx.outputTokens).toLocaleString()}
-									</td>
-									<td className="whitespace-nowrap px-3 py-4 text-sm text-right text-gray-500 dark:text-gray-400">
-										{tx.baseCost > 0 ? `$${tx.baseCost.toFixed(4)}` : "—"}
 									</td>
 									<td
 										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${

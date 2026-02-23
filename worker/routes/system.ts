@@ -54,7 +54,6 @@ systemRouter.get("/ledger", async (c) => {
 				model: tx.model,
 				inputTokens: tx.input_tokens,
 				outputTokens: tx.output_tokens,
-				baseCost: tx.base_cost,
 				netCredits,
 				createdAt: tx.created_at,
 			};
