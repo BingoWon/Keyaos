@@ -8,9 +8,9 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 ADMIN_TOKEN = "admin"    # Core auth: change this! Used as Bearer token for dashboard + API.
 CNY_USD_RATE = "7"       # CNY → USD exchange rate (used for DeepSeek balance conversion)
-# Platform mode (optional): set CLERK_PUBLISHABLE_KEY here and secrets in .dev.vars / Cloudflare Secrets
-# CLERK_PUBLISHABLE_KEY = "pk_test_xxxxx"
-# Secrets (via `wrangler secret put`): CLERK_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+# Platform mode (optional): secrets via `wrangler secret put` or .dev.vars
+# Secrets: CLERK_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+# Frontend env: VITE_CLERK_PUBLISHABLE_KEY (set in .env.local, not here — Vite handles it)
 
 [assets]
 directory = "./dist"
