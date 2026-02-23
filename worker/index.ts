@@ -3,6 +3,7 @@ import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
+import adminRouter from "./platform/routes/admin";
 import billingRouter, { webhookRouter } from "./platform/routes/billing";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
@@ -116,6 +117,11 @@ app.use("/api/billing/*", async (c, next) =>
 	c.env.CLERK_SECRET_KEY ? next() : platformNotFound(c),
 );
 app.route("/api/billing", billingRouter);
+
+app.use("/api/admin/*", async (c, next) =>
+	c.env.PLATFORM_OWNER_ID ? next() : platformNotFound(c),
+);
+app.route("/api/admin", adminRouter);
 
 app.use("/api/webhooks/*", async (c, next) =>
 	c.env.STRIPE_WEBHOOK_SECRET ? next() : platformNotFound(c),

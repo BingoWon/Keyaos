@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthGuard, isPlatform } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
+import { Admin } from "./pages/Admin";
 import { ApiKeys } from "./pages/ApiKeys";
 import { Billing } from "./pages/Billing";
 import { Credentials } from "./pages/Credentials";
@@ -19,6 +20,7 @@ const dashboardChildren = [
 	{ path: "ledger", element: <Ledger /> },
 	{ path: "guide", element: <Guide /> },
 	...(isPlatform ? [{ path: "billing", element: <Billing /> }] : []),
+	{ path: "admin", element: <Admin /> },
 ];
 
 export const router = createBrowserRouter([

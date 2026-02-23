@@ -86,3 +86,14 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_id);
+
+-- 7. [Platform] Admin credit adjustments (audit trail for grants/revokes)
+CREATE TABLE IF NOT EXISTS credit_adjustments (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    amount REAL NOT NULL,
+    reason TEXT,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_adjustments_owner ON credit_adjustments(owner_id);

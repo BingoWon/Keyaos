@@ -19,6 +19,7 @@
 		"ledger": "Ledger",
 		"billing": "Billing",
 		"guide": "Guide",
+		"admin": "Admin",
 		"logout": "Log out"
 	},
 	"theme": {
@@ -182,6 +183,35 @@
 		"status_completed": "Completed",
 		"status_pending": "Pending",
 		"status_expired": "Expired"
+	},
+	"admin": {
+		"title": "Admin",
+		"subtitle": "Platform-level operations and data management",
+		"overview": "Platform Overview",
+		"total_revenue": "Total Revenue",
+		"total_consumption": "Total Consumption",
+		"service_fees": "Service Fees",
+		"total_requests": "Total Requests",
+		"active_credentials": "Active Credentials",
+		"registered_users": "Registered Users",
+		"users": "User Management",
+		"user_id": "User ID",
+		"balance": "Balance",
+		"topped_up": "Topped Up",
+		"consumed": "Consumed",
+		"credentials_count": "Credentials",
+		"adjust": "Adjust",
+		"amount_placeholder": "±amount",
+		"reason_placeholder": "Reason",
+		"amount_required": "Enter a non-zero amount",
+		"grant_success": "Credits granted",
+		"revoke_success": "Credits revoked",
+		"no_users": "No users yet",
+		"data_explorer": "Data Explorer",
+		"no_data": "No rows in this table",
+		"showing": "{{from}}–{{to}} of {{total}}",
+		"prev": "Prev",
+		"next": "Next"
 	},
 	"guide": {
 		"title": "Quick Start",

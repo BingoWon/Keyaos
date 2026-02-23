@@ -19,6 +19,7 @@
 		"ledger": "交易记录",
 		"billing": "充值",
 		"guide": "快速开始",
+		"admin": "管理后台",
 		"logout": "退出登录"
 	},
 	"theme": {
@@ -179,6 +180,35 @@
 		"status_completed": "已完成",
 		"status_pending": "待支付",
 		"status_expired": "已过期"
+	},
+	"admin": {
+		"title": "管理后台",
+		"subtitle": "平台级运营管理与数据查询",
+		"overview": "平台概览",
+		"total_revenue": "总充值收入",
+		"total_consumption": "总消耗",
+		"service_fees": "累计服务费",
+		"total_requests": "总请求数",
+		"active_credentials": "活跃凭证数",
+		"registered_users": "注册用户数",
+		"users": "用户管理",
+		"user_id": "用户 ID",
+		"balance": "余额",
+		"topped_up": "充值",
+		"consumed": "消耗",
+		"credentials_count": "凭证数",
+		"adjust": "调整",
+		"amount_placeholder": "±金额",
+		"reason_placeholder": "原因",
+		"amount_required": "请输入非零金额",
+		"grant_success": "Credits 已发放",
+		"revoke_success": "Credits 已扣除",
+		"no_users": "暂无用户",
+		"data_explorer": "数据浏览",
+		"no_data": "此表暂无数据",
+		"showing": "第 {{from}}–{{to}} 条，共 {{total}} 条",
+		"prev": "上一页",
+		"next": "下一页"
 	},
 	"guide": {
 		"title": "快速开始",

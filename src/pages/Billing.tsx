@@ -104,7 +104,8 @@ export function Billing() {
 								{t("billing.balance")}
 							</p>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-								${walletLoading ? "—" : floorToDecimals(wallet?.balance ?? 0, 4)}
+								$
+								{walletLoading ? "—" : floorToDecimals(wallet?.balance ?? 0, 4)}
 							</p>
 						</div>
 					</div>

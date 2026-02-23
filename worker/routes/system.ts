@@ -6,6 +6,13 @@ import type { AppEnv } from "../shared/types";
 
 const systemRouter = new Hono<AppEnv>();
 
+systemRouter.get("/me", (c) => {
+	const ownerId = c.get("owner_id");
+	const isAdmin =
+		!!c.env.PLATFORM_OWNER_ID && ownerId === c.env.PLATFORM_OWNER_ID;
+	return c.json({ ownerId, isAdmin });
+});
+
 systemRouter.get("/pool/stats", async (c) => {
 	const dao = new CredentialsDao(c.env.DB);
 	return c.json(await dao.getStats(c.get("owner_id")));
