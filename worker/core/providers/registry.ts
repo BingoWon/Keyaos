@@ -194,6 +194,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		parseModels: parseOpenRouterModels,
 		credentialGuide: {
 			placeholder: "sk-or-v1-...",
+			secretPattern: "^sk-or-v1-[a-f0-9]+$",
 			steps: [
 				"Go to https://openrouter.ai/settings/keys",
 				"Create a new API key and copy it",
@@ -213,7 +214,8 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 			"google/gemma-3-12b-it",
 		),
 		credentialGuide: {
-			placeholder: "sk-...",
+			placeholder: "sk-ai-v1-...",
+			secretPattern: "^sk-ai-v1-[a-f0-9]+$",
 			steps: [
 				"Go to https://zenmux.ai and sign in",
 				"Navigate to API Keys page and create a new key",
@@ -229,7 +231,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		supportsAutoCredits: false,
 		parseModels: parseDeepInfraModels,
 		credentialGuide: {
-			placeholder: "sk-...",
+			placeholder: "Paste your API token",
 			steps: [
 				"Go to https://deepinfra.com/dash/api_keys",
 				"Create a new API key and copy it",
@@ -250,6 +252,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		parseModels: () => parseStaticUsdModels("deepseek", deepseekModels),
 		credentialGuide: {
 			placeholder: "sk-...",
+			secretPattern: "^sk-[a-f0-9]+$",
 			steps: [
 				"Go to https://platform.deepseek.com/api_keys",
 				"Create a new API key and copy it",
@@ -269,6 +272,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
 		credentialGuide: {
 			placeholder: "AIza...",
+			secretPattern: "^AIza[A-Za-z0-9_-]+$",
 			steps: [
 				"Go to https://aistudio.google.com/apikey",
 				"Create a new API key and copy it",
@@ -287,6 +291,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		parseModels: () => parseStaticUsdModels("oaipro", oaiproModels),
 		credentialGuide: {
 			placeholder: "sk-...",
+			secretPattern: "^sk-[A-Za-z0-9]+$",
 			steps: [
 				"Go to https://oaipro.com dashboard",
 				"Create a new API key and copy it",
@@ -304,7 +309,8 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("openai", openaiModels),
 		credentialGuide: {
-			placeholder: "sk-...",
+			placeholder: "sk-proj-...",
+			secretPattern: "^sk-(proj-)?[A-Za-z0-9_-]+$",
 			steps: [
 				"Go to https://platform.openai.com/api-keys",
 				"Create a new secret key and copy it",
@@ -328,6 +334,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		),
 		credentialGuide: {
 			placeholder: "sk-sp-...",
+			secretPattern: "^sk-sp-[a-f0-9]+$",
 			steps: [
 				"Open Tongyi Lingma IDE plugin settings",
 				"Copy the API key from the plugin configuration",

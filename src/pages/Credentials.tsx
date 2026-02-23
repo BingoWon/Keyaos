@@ -100,6 +100,25 @@ export function Credentials() {
 
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (needsManualQuota && !draft.quota) {
+			toast.error(t("credentials.error_quota_required"));
+			return;
+		}
+
+		const trimmedSecret = draft.secret.trim();
+		if (guide?.secretPattern && !isOAuth) {
+			const re = new RegExp(guide.secretPattern);
+			if (!re.test(trimmedSecret)) {
+				toast.error(
+					t("credentials.error_secret_format", {
+						example: guide.placeholder,
+					}),
+				);
+				return;
+			}
+		}
+
 		const tid = toast.loading(t("common.loading"));
 		try {
 			const body: Record<string, unknown> = {

@@ -1,5 +1,6 @@
 export interface CredentialGuide {
 	placeholder: string;
+	secretPattern?: string;
 	filePath?: string;
 	command?: string;
 	steps: string[];

@@ -75,7 +75,9 @@
 		"guide_file_location": "文件位置：",
 		"copied": "已复制",
 		"hint_json_detected": "检测到 JSON 格式 — 将自动提取令牌",
-		"hint_access_token": "这看起来是一个临时访问令牌（约 1 小时后过期），请改用 refresh token。"
+		"hint_access_token": "这看起来是一个临时访问令牌（约 1 小时后过期），请改用 refresh token。",
+		"error_quota_required": "该服务商需要手动填写余额配额，请输入剩余额度。",
+		"error_secret_format": "密钥格式不匹配预期格式 ({{example}})，请仔细检查。"
 	},
 	"models": {
 		"title": "模型",

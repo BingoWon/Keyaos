@@ -57,6 +57,16 @@ credentialsRouter.post("/", async (c) => {
 		);
 	}
 
+	const isSub = provider.info.isSubscription ?? false;
+	const needsManualQuota =
+		!isSub && !provider.info.supportsAutoCredits;
+
+	if (needsManualQuota && (body.quota == null || body.quota <= 0)) {
+		throw new BadRequestError(
+			`${body.provider} does not support automatic quota detection. Please provide a "quota" value.`,
+		);
+	}
+
 	let secret: string;
 	try {
 		secret = provider.normalizeSecret
@@ -82,7 +92,6 @@ credentialsRouter.post("/", async (c) => {
 	}
 
 	const authType = provider.info.authType ?? "api_key";
-	const isSub = provider.info.isSubscription ?? false;
 	let quota: number | null = null;
 	let quotaSource: "auto" | "manual" | null = null;
 
@@ -95,13 +104,9 @@ credentialsRouter.post("/", async (c) => {
 		if (upstream?.remaining != null) {
 			quota = toQuota(upstream.remaining, provider.info.currency, cnyRate);
 		}
-	} else if (body.quota != null && body.quota > 0) {
-		quota = body.quota;
-		quotaSource = "manual";
 	} else {
-		throw new BadRequestError(
-			`${body.provider} does not support automatic quota detection. Please provide a "quota" value.`,
-		);
+		quota = body.quota!;
+		quotaSource = "manual";
 	}
 
 	const credential = await dao.add({

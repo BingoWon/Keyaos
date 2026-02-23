@@ -2,6 +2,7 @@ import type { DbModelPricing } from "../db/schema";
 
 export interface CredentialGuide {
 	placeholder: string;
+	secretPattern?: string;
 	filePath?: string;
 	command?: string;
 	steps: string[];

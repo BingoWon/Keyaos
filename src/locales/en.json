@@ -75,7 +75,9 @@
 		"guide_file_location": "File location:",
 		"copied": "Copied",
 		"hint_json_detected": "JSON detected — token will be auto-extracted",
-		"hint_access_token": "This looks like a temporary access token (expires in ~1 hour). Please use the refresh token instead."
+		"hint_access_token": "This looks like a temporary access token (expires in ~1 hour). Please use the refresh token instead.",
+		"error_quota_required": "This provider requires a manual quota value. Please enter the remaining balance.",
+		"error_secret_format": "The key format doesn't match the expected pattern ({{example}}). Please double-check."
 	},
 	"models": {
 		"title": "Models",
