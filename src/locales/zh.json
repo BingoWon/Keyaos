@@ -71,6 +71,7 @@
 		"price_multiplier": "定价乘数",
 		"price_multiplier_helper": "当前乘数为 {{ratio}}x。每消耗等值 $1.00 的上游请求时，将从用户余额中扣除 ${{credited}} Credits。",
 		"no_quota": "无",
+		"refresh_quota": "从服务商刷新配额",
 		"guide_title": "如何获取此凭证",
 		"guide_file_location": "文件位置：",
 		"copied": "已复制",

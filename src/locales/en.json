@@ -71,6 +71,7 @@
 		"price_multiplier": "Price Multiplier",
 		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of upstream API cost, requests will deduct ${{credited}} Credits.",
 		"no_quota": "N/A",
+		"refresh_quota": "Refresh quota from provider",
 		"guide_title": "How to get this credential",
 		"guide_file_location": "File location:",
 		"copied": "Copied",

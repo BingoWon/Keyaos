@@ -1,4 +1,5 @@
 import {
+	ArrowPathIcon,
 	CheckIcon,
 	ChevronDownIcon,
 	ChevronUpIcon,
@@ -67,6 +68,9 @@ export function Credentials() {
 		null,
 	);
 	const [editPriceMultiplier, setEditPriceMultiplier] = useState("");
+	const [refreshingQuotaId, setRefreshingQuotaId] = useState<string | null>(
+		null,
+	);
 
 	const getHeaders = async () => ({
 		"Content-Type": "application/json",
@@ -184,6 +188,27 @@ export function Credentials() {
 		} catch (err) {
 			console.error(err);
 			toast.error(t("common.error"), { id: tid });
+		}
+	};
+
+	const handleRefreshQuota = async (id: string) => {
+		setRefreshingQuotaId(id);
+		try {
+			const res = await fetch(`/api/credentials/${id}/quota`, {
+				headers: await getHeaders(),
+			});
+			if (res.ok) {
+				refetch();
+				toast.success(t("common.success"));
+			} else {
+				const data = await res.json();
+				toast.error(data.error?.message || res.statusText);
+			}
+		} catch (err) {
+			console.error(err);
+			toast.error(t("common.error"));
+		} finally {
+			setRefreshingQuotaId(null);
 		}
 	};
 
@@ -660,6 +685,19 @@ export function Credentials() {
 															}`}
 														>
 															{formatQuota(cred)}
+															{cred.quotaSource === "auto" && (
+																<button
+																	type="button"
+																	disabled={refreshingQuotaId === cred.id}
+																	onClick={() => handleRefreshQuota(cred.id)}
+																	className="ml-2 text-gray-400 hover:text-indigo-500 disabled:opacity-50"
+																	title={t("credentials.refresh_quota")}
+																>
+																	<ArrowPathIcon
+																		className={`size-4 ${refreshingQuotaId === cred.id ? "animate-spin" : ""}`}
+																	/>
+																</button>
+															)}
 															{cred.quotaSource === "manual" && (
 																<button
 																	type="button"
