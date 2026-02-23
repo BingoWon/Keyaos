@@ -44,12 +44,12 @@ test("Ledger entry created after chat completion with correct credential", async
 	assert.ok(usedCredId, "Missing x-credential-id header");
 
 	// waitUntil fires async — poll until new ledger entry appears
-	let entry: { credential_id: string; credits_used: number } | undefined;
+	let entry: { credential_id: string; base_cost: number } | undefined;
 	for (let i = 0; i < 10; i++) {
 		await new Promise((r) => setTimeout(r, 500));
 		const rows = dbQuery(
-			`SELECT credential_id, credits_used FROM ledger WHERE credential_id = '${usedCredId}' ORDER BY created_at DESC LIMIT 1`,
-		) as { credential_id: string; credits_used: number }[];
+			`SELECT credential_id, base_cost FROM ledger WHERE credential_id = '${usedCredId}' ORDER BY created_at DESC LIMIT 1`,
+		) as { credential_id: string; base_cost: number }[];
 		const afterCount = (
 			dbQuery("SELECT COUNT(*) as cnt FROM ledger") as { cnt: number }[]
 		)[0].cnt;
@@ -61,8 +61,8 @@ test("Ledger entry created after chat completion with correct credential", async
 
 	assert.ok(entry, "No matching ledger entry found within 5 seconds");
 	assert.strictEqual(entry.credential_id, usedCredId);
-	assert.ok(entry.credits_used > 0, "Credits used should be positive");
+	assert.ok(entry.base_cost > 0, "Base cost should be positive");
 	console.log(
-		`  Credential: ${usedCredId?.slice(-8)}, Credits: ${entry.credits_used}`,
+		`  Credential: ${usedCredId?.slice(-8)}, Cost: ${entry.base_cost}`,
 	);
 });

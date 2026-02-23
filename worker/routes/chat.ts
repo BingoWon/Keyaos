@@ -1,9 +1,18 @@
 import { Hono } from "hono";
-import { recordUsage } from "../core/billing";
+import { calculateBaseCost, recordUsage } from "../core/billing";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
-import { BadRequestError, NoKeyAvailableError } from "../shared/errors";
+import {
+	calculateSettlement,
+	settleWallets,
+} from "../platform/billing/settlement";
+import { WalletDao } from "../platform/billing/wallet-dao";
+import {
+	BadRequestError,
+	InsufficientCreditsError,
+	NoKeyAvailableError,
+} from "../shared/errors";
 import type { AppEnv } from "../shared/types";
 
 const chatRouter = new Hono<AppEnv>();
@@ -26,8 +35,16 @@ chatRouter.post("/completions", async (c) => {
 			: [rawProvider as string]
 		: undefined;
 
-	const owner_id = c.get("owner_id");
-	const candidates = await dispatchAll(c.env.DB, model, owner_id, providers);
+	const consumerId = c.get("owner_id");
+	const isPlatform = !!c.env.CLERK_SECRET_KEY;
+
+	if (isPlatform) {
+		const balance = await new WalletDao(c.env.DB).getBalance(consumerId);
+		if (balance <= 0) throw new InsufficientCreditsError();
+	}
+
+	const poolOwnerId = isPlatform ? undefined : consumerId;
+	const candidates = await dispatchAll(c.env.DB, model, poolOwnerId, providers);
 	const credDao = new CredentialsDao(c.env.DB);
 
 	let lastError: unknown;
@@ -47,11 +64,7 @@ chatRouter.post("/completions", async (c) => {
 			);
 
 			if (!response.ok) {
-				await credDao.reportFailure(
-					credential.id,
-					response.status,
-					isSub,
-				);
+				await credDao.reportFailure(credential.id, response.status, isSub);
 				lastError = new Error(
 					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
@@ -59,18 +72,38 @@ chatRouter.post("/completions", async (c) => {
 			}
 
 			const requestId = crypto.randomUUID();
+			const credentialOwnerId = credential.owner_id;
+			const isSelfUse = consumerId === credentialOwnerId;
 
 			const finalResponse = interceptResponse(response, c.executionCtx, {
 				onUsage: (usage) => {
 					c.executionCtx.waitUntil(
-						recordUsage(c.env.DB, {
-							ownerId: owner_id,
-							credentialId: credential.id,
-							provider: credential.provider,
-							model: modelId,
-							modelPrice,
-							usage,
-						}).catch((err) =>
+						(async () => {
+							const baseCost = calculateBaseCost(modelPrice, usage);
+							const settlement = isPlatform
+								? calculateSettlement(baseCost, isSelfUse)
+								: { consumerCharged: 0, providerEarned: 0, platformFee: 0 };
+
+							await recordUsage(c.env.DB, {
+								consumerId,
+								credentialId: credential.id,
+								credentialOwnerId,
+								provider: credential.provider,
+								model: modelId,
+								modelPrice,
+								usage,
+								settlement,
+							});
+
+							if (isPlatform && !isSelfUse) {
+								await settleWallets(
+									c.env.DB,
+									consumerId,
+									credentialOwnerId,
+									settlement,
+								);
+							}
+						})().catch((err) =>
 							console.error("[BILLING] waitUntil failed:", err),
 						),
 					);

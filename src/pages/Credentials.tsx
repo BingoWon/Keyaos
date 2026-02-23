@@ -149,10 +149,10 @@ export function Credentials() {
 					secret: "",
 					quota: "",
 					isEnabled: true,
-					priceMultiplier:
-						providers.find((p) => p.id === defaultProvider)?.isSubscription
-							? "0.5"
-							: "0.8",
+					priceMultiplier: providers.find((p) => p.id === defaultProvider)
+						?.isSubscription
+						? "0.5"
+						: "0.8",
 				});
 				setShowPassword(false);
 				setPriceMultiplierTouched(false);
@@ -326,18 +326,18 @@ export function Credentials() {
 										id="provider"
 										value={draft.provider}
 										onChange={(e) => {
-										const newId = e.target.value;
-										const isSub =
-											providers.find((p) => p.id === newId)?.isSubscription ??
-											false;
-										setDraft((d) => ({
-											...d,
-											provider: newId,
-											...(!priceMultiplierTouched && {
-												priceMultiplier: isSub ? "0.5" : "0.8",
-											}),
-										}));
-									}}
+											const newId = e.target.value;
+											const isSub =
+												providers.find((p) => p.id === newId)?.isSubscription ??
+												false;
+											setDraft((d) => ({
+												...d,
+												provider: newId,
+												...(!priceMultiplierTouched && {
+													priceMultiplier: isSub ? "0.5" : "0.8",
+												}),
+											}));
+										}}
 										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									>
 										{providers.map((p) => (

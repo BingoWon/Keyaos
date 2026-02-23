@@ -197,19 +197,19 @@ export function Billing() {
 										<td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
 											+${p.credits.toFixed(2)}
 										</td>
-									<td className="whitespace-nowrap px-4 py-3 text-sm">
-										<span
-											className={
-												p.status === "completed"
-													? "text-green-600 dark:text-green-400"
-													: p.status === "expired"
-														? "text-gray-400 dark:text-gray-500"
-														: "text-yellow-600 dark:text-yellow-400"
-											}
-										>
-											{t(`billing.status_${p.status}`)}
-										</span>
-									</td>
+										<td className="whitespace-nowrap px-4 py-3 text-sm">
+											<span
+												className={
+													p.status === "completed"
+														? "text-green-600 dark:text-green-400"
+														: p.status === "expired"
+															? "text-gray-400 dark:text-gray-500"
+															: "text-yellow-600 dark:text-yellow-400"
+												}
+											>
+												{t(`billing.status_${p.status}`)}
+											</span>
+										</td>
 									</tr>
 								))}
 							</tbody>

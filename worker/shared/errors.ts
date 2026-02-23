@@ -46,3 +46,14 @@ export class NoKeyAvailableError extends ApiError {
 		);
 	}
 }
+
+export class InsufficientCreditsError extends ApiError {
+	constructor() {
+		super(
+			"Insufficient credits balance. Please top up.",
+			402,
+			"billing_error",
+			"insufficient_credits",
+		);
+	}
+}

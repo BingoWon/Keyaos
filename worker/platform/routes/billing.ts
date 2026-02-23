@@ -1,14 +1,14 @@
 import { Hono } from "hono";
-import type { AppEnv } from "../../shared/types";
 import { BadRequestError } from "../../shared/errors";
-import { WalletDao } from "../billing/wallet-dao";
+import type { AppEnv } from "../../shared/types";
 import { PaymentsDao } from "../billing/payments-dao";
 import {
 	centsToCredits,
 	createCheckoutSession,
-	verifyWebhookSignature,
 	type StripeCheckoutEvent,
+	verifyWebhookSignature,
 } from "../billing/stripe";
+import { WalletDao } from "../billing/wallet-dao";
 
 const billing = new Hono<AppEnv>();
 
@@ -22,7 +22,10 @@ billing.get("/balance", async (c) => {
 // ─── POST /checkout ──────────────────────────────────────
 billing.post("/checkout", async (c) => {
 	if (!c.env.STRIPE_SECRET_KEY) {
-		return c.json({ error: { message: "Billing not configured", type: "server_error" } }, 503);
+		return c.json(
+			{ error: { message: "Billing not configured", type: "server_error" } },
+			503,
+		);
 	}
 
 	const { amount } = await c.req.json<{ amount: number }>();
@@ -83,12 +86,14 @@ webhookRouter.post("/stripe", async (c) => {
 		return c.json({ received: true, expired: true });
 	}
 
-	if (event.type !== "checkout.session.completed") return c.json({ received: true });
+	if (event.type !== "checkout.session.completed")
+		return c.json({ received: true });
 	if (session.payment_status !== "paid") return c.json({ received: true });
 
 	const { owner_id, credits: creditsStr } = session.metadata;
 	const credits = Number.parseFloat(creditsStr);
-	if (!owner_id || !credits || credits <= 0) return c.text("Invalid metadata", 400);
+	if (!owner_id || !credits || credits <= 0)
+		return c.text("Invalid metadata", 400);
 
 	if (await paymentsDao.isFinal(session.id)) {
 		return c.json({ received: true, duplicate: true });

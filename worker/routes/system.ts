@@ -26,19 +26,43 @@ systemRouter.get("/providers", (c) => {
 
 systemRouter.get("/ledger", async (c) => {
 	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);
+	const userId = c.get("owner_id");
 	const dao = new LedgerDao(c.env.DB);
-	const ledger = await dao.getRecentEntries(c.get("owner_id"), limit);
+	const entries = await dao.getEntriesForUser(userId, limit);
+
 	return c.json({
-		data: ledger.map((tx) => ({
-			id: tx.id,
-			credentialId: tx.credential_id,
-			provider: tx.provider,
-			model: tx.model,
-			inputTokens: tx.input_tokens,
-			outputTokens: tx.output_tokens,
-			creditsUsed: tx.credits_used,
-			createdAt: tx.created_at,
-		})),
+		data: entries.map((tx) => {
+			const isConsumer = tx.consumer_id === userId;
+			const isProvider = tx.credential_owner_id === userId;
+
+			let direction: "spent" | "earned" | "self";
+			if (isConsumer && isProvider) direction = "self";
+			else if (isConsumer) direction = "spent";
+			else direction = "earned";
+
+			const netCredits =
+				direction === "spent"
+					? -tx.consumer_charged
+					: direction === "earned"
+						? tx.provider_earned
+						: 0;
+
+			return {
+				id: tx.id,
+				direction,
+				credentialId: tx.credential_id,
+				provider: tx.provider,
+				model: tx.model,
+				inputTokens: tx.input_tokens,
+				outputTokens: tx.output_tokens,
+				baseCost: tx.base_cost,
+				consumerCharged: tx.consumer_charged,
+				providerEarned: tx.provider_earned,
+				platformFee: tx.platform_fee,
+				netCredits,
+				createdAt: tx.created_at,
+			};
+		}),
 	});
 });
 

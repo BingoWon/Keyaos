@@ -87,17 +87,50 @@
 			"kiro": "我需要从本机提取 Kiro IDE 的 refresh token。\n\n1. 读取文件：~/.aws/sso/cache/kiro-auth-token.json\n2. 仅提取 \"refreshToken\" 字段的值（注意是驼峰命名，不是 \"accessToken\"）\n3. 将 refreshToken 的值展示出来以便我复制\n\n安全提醒：请勿展示完整文件内容或任何 \"accessToken\" 的值，只需要 refreshToken。refreshToken 通常以 \"aor\" 开头。"
 		},
 		"guide_steps": {
-			"openrouter": ["前往 https://openrouter.ai/settings/keys", "点击 \"Create\" 按钮创建新密钥并复制"],
-			"zenmux": ["前往 https://zenmux.ai/platform/pay-as-you-go", "点击 \"Create API Key\" 创建新密钥并复制"],
-			"deepinfra": ["前往 https://deepinfra.com/dash/keys", "点击 \"New API Key\" 创建新密钥并复制"],
-			"deepseek": ["前往 https://platform.deepseek.com/api_keys", "创建新的 API 密钥并复制"],
-			"google-ai-studio": ["前往 https://aistudio.google.com/apikey", "创建新的 API 密钥并复制"],
+			"openrouter": [
+				"前往 https://openrouter.ai/settings/keys",
+				"点击 \"Create\" 按钮创建新密钥并复制"
+			],
+			"zenmux": [
+				"前往 https://zenmux.ai/platform/pay-as-you-go",
+				"点击 \"Create API Key\" 创建新密钥并复制"
+			],
+			"deepinfra": [
+				"前往 https://deepinfra.com/dash/keys",
+				"点击 \"New API Key\" 创建新密钥并复制"
+			],
+			"deepseek": [
+				"前往 https://platform.deepseek.com/api_keys",
+				"创建新的 API 密钥并复制"
+			],
+			"google-ai-studio": [
+				"前往 https://aistudio.google.com/apikey",
+				"创建新的 API 密钥并复制"
+			],
 			"oaipro": ["前往 https://oaipro.com 控制面板", "创建新的 API 密钥并复制"],
-			"openai": ["前往 https://platform.openai.com/api-keys", "创建新的密钥并复制"],
-			"qwen-code": ["前往 https://bailian.console.aliyun.com/?tab=model#/efm/coding_plan", "点击「获取 Coding Plan API Key」获取套餐专属密钥并复制"],
-			"gemini-cli": ["安装 Gemini CLI 并运行 `gemini` 登录 Google 账号", "执行命令：cat ~/.gemini/oauth_creds.json", "粘贴文件内容或仅粘贴 refresh_token 的值"],
-			"antigravity": ["打开 Antigravity IDE 并登录 Google 账号", "执行命令：cat ~/.antigravity_tools/accounts/*.json", "粘贴文件内容或仅粘贴 refresh_token 的值"],
-			"kiro": ["安装 Kiro IDE 并使用 GitHub 或 Google 登录", "执行命令：cat ~/.aws/sso/cache/kiro-auth-token.json", "粘贴文件内容或仅粘贴 refreshToken 的值"]
+			"openai": [
+				"前往 https://platform.openai.com/api-keys",
+				"创建新的密钥并复制"
+			],
+			"qwen-code": [
+				"前往 https://bailian.console.aliyun.com/?tab=model#/efm/coding_plan",
+				"点击「获取 Coding Plan API Key」获取套餐专属密钥并复制"
+			],
+			"gemini-cli": [
+				"安装 Gemini CLI 并运行 `gemini` 登录 Google 账号",
+				"执行命令：cat ~/.gemini/oauth_creds.json",
+				"粘贴文件内容或仅粘贴 refresh_token 的值"
+			],
+			"antigravity": [
+				"打开 Antigravity IDE 并登录 Google 账号",
+				"执行命令：cat ~/.antigravity_tools/accounts/*.json",
+				"粘贴文件内容或仅粘贴 refresh_token 的值"
+			],
+			"kiro": [
+				"安装 Kiro IDE 并使用 GitHub 或 Google 登录",
+				"执行命令：cat ~/.aws/sso/cache/kiro-auth-token.json",
+				"粘贴文件内容或仅粘贴 refreshToken 的值"
+			]
 		}
 	},
 	"models": {
@@ -117,12 +150,17 @@
 	},
 	"ledger": {
 		"title": "交易记录",
-		"subtitle": "最近的 API 调用和费用明细",
+		"subtitle": "追踪共享凭证赚取的收益和 API 调用消耗的额度",
 		"time": "时间",
+		"direction": "类型",
 		"model": "模型",
 		"provider": "供应商",
 		"tokens": "Token 数",
-		"credits_used": "扣除额度",
+		"base_cost": "基础成本",
+		"net_credits": "净变动",
+		"earned": "收入",
+		"spent": "消费",
+		"self_use": "自用",
 		"no_data": "暂无交易记录"
 	},
 	"billing": {

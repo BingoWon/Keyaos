@@ -54,10 +54,7 @@ export class PaymentsDao {
 		return !!row;
 	}
 
-	async getHistory(
-		ownerId: string,
-		limit = 50,
-	): Promise<DbPayment[]> {
+	async getHistory(ownerId: string, limit = 50): Promise<DbPayment[]> {
 		const res = await this.db
 			.prepare(
 				"SELECT * FROM payments WHERE owner_id = ? ORDER BY created_at DESC LIMIT ?",

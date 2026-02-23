@@ -132,8 +132,8 @@ export function toOpenAIResponse(
 		if (text) parts.push(text);
 		if (finishReason) lastFinishReason = finishReason;
 		if (usage) lastUsage = usage;
-		responseId ??=
-			(chunk?.response as Record<string, unknown>)?.responseId as string;
+		responseId ??= (chunk?.response as Record<string, unknown>)
+			?.responseId as string;
 	}
 
 	return {

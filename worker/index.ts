@@ -107,7 +107,10 @@ app.route("/api", systemRouter);
 
 // ─── Platform-only routes (gated at request time) ───────
 const platformNotFound = (c: Context) =>
-	c.json({ error: { message: "Not Found", type: "invalid_request_error" } }, 404);
+	c.json(
+		{ error: { message: "Not Found", type: "invalid_request_error" } },
+		404,
+	);
 
 app.use("/api/billing/*", async (c, next) =>
 	c.env.CLERK_SECRET_KEY ? next() : platformNotFound(c),

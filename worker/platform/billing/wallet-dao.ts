@@ -20,4 +20,23 @@ export class WalletDao {
 			.bind(ownerId, amount, Date.now())
 			.run();
 	}
+
+	async debit(ownerId: string, amount: number): Promise<boolean> {
+		const res = await this.db
+			.prepare(
+				`UPDATE wallets SET balance = balance - ?, updated_at = ?
+				 WHERE owner_id = ? AND balance >= ?`,
+			)
+			.bind(amount, Date.now(), ownerId, amount)
+			.run();
+		return (res.meta?.changes ?? 0) > 0;
+	}
+
+	async hasBalance(ownerId: string, minimum = 0): Promise<boolean> {
+		const row = await this.db
+			.prepare("SELECT balance FROM wallets WHERE owner_id = ?")
+			.bind(ownerId)
+			.first<{ balance: number }>();
+		return (row?.balance ?? 0) > minimum;
+	}
 }

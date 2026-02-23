@@ -36,12 +36,16 @@ export interface DbModelPricing {
 
 export interface DbLedgerEntry {
 	id: string;
-	owner_id: string;
+	consumer_id: string;
 	credential_id: string;
+	credential_owner_id: string;
 	provider: string;
 	model: string;
 	input_tokens: number;
 	output_tokens: number;
-	credits_used: number;
+	base_cost: number;
+	consumer_charged: number;
+	provider_earned: number;
+	platform_fee: number;
 	created_at: number;
 }

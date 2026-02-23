@@ -66,8 +66,7 @@ credentialsRouter.post("/", async (c) => {
 	}
 
 	const isSub = provider.info.isSubscription ?? false;
-	const needsManualQuota =
-		!isSub && !provider.info.supportsAutoCredits;
+	const needsManualQuota = !isSub && !provider.info.supportsAutoCredits;
 
 	if (needsManualQuota && (body.quota == null || body.quota <= 0)) {
 		throw new BadRequestError(

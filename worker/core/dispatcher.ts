@@ -24,11 +24,13 @@ export interface DispatchResult {
  * Offerings are sorted by input_price ASC from DB; within each offering,
  * credentials are sorted by price_multiplier ASC then quota DESC (NULL = unlimited).
  * Final candidates are globally sorted by true effective cost.
+ *
+ * When ownerId is omitted (platform mode), credentials are pooled from ALL users.
  */
 export async function dispatchAll(
 	db: D1Database,
 	model: string,
-	owner_id: string,
+	ownerId?: string,
 	providers?: string[],
 ): Promise<DispatchResult[]> {
 	if (!model) throw new BadRequestError("Model is required");
@@ -46,7 +48,7 @@ export async function dispatchAll(
 
 		const credentials = await credDao.selectAvailable(
 			offering.provider,
-			owner_id,
+			ownerId,
 		);
 
 		for (const credential of credentials) {

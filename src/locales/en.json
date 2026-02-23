@@ -87,17 +87,53 @@
 			"kiro": "I need to extract my Kiro IDE refresh token from this machine.\n\n1. Read the file: ~/.aws/sso/cache/kiro-auth-token.json\n2. Extract ONLY the \"refreshToken\" field value (camelCase, NOT \"accessToken\")\n3. Display the refreshToken value so I can copy it\n\nSecurity: Do NOT display the full file contents or any \"accessToken\" values — only the refreshToken. The refreshToken typically starts with \"aor\"."
 		},
 		"guide_steps": {
-			"openrouter": ["Go to https://openrouter.ai/settings/keys", "Click \"Create\" to generate a new API key and copy it"],
-			"zenmux": ["Go to https://zenmux.ai/platform/pay-as-you-go", "Click \"Create API Key\" and copy it"],
-			"deepinfra": ["Go to https://deepinfra.com/dash/keys", "Click \"New API Key\" and copy it"],
-			"deepseek": ["Go to https://platform.deepseek.com/api_keys", "Create a new API key and copy it"],
-			"google-ai-studio": ["Go to https://aistudio.google.com/apikey", "Create a new API key and copy it"],
-			"oaipro": ["Go to https://oaipro.com dashboard", "Create a new API key and copy it"],
-			"openai": ["Go to https://platform.openai.com/api-keys", "Create a new secret key and copy it"],
-			"qwen-code": ["Go to https://bailian.console.aliyun.com/?tab=model#/efm/coding_plan", "Click \"获取 Coding Plan API Key\" to get the plan-exclusive API key and copy it"],
-			"gemini-cli": ["Install Gemini CLI and run `gemini` to sign in with Google", "Run: cat ~/.gemini/oauth_creds.json", "Paste the file contents or just the refresh_token value"],
-			"antigravity": ["Open Antigravity IDE and sign in with Google", "Run: cat ~/.antigravity_tools/accounts/*.json", "Paste the file contents or just the refresh_token value"],
-			"kiro": ["Install Kiro IDE and sign in with GitHub or Google", "Run: cat ~/.aws/sso/cache/kiro-auth-token.json", "Paste the file contents or just the refreshToken value"]
+			"openrouter": [
+				"Go to https://openrouter.ai/settings/keys",
+				"Click \"Create\" to generate a new API key and copy it"
+			],
+			"zenmux": [
+				"Go to https://zenmux.ai/platform/pay-as-you-go",
+				"Click \"Create API Key\" and copy it"
+			],
+			"deepinfra": [
+				"Go to https://deepinfra.com/dash/keys",
+				"Click \"New API Key\" and copy it"
+			],
+			"deepseek": [
+				"Go to https://platform.deepseek.com/api_keys",
+				"Create a new API key and copy it"
+			],
+			"google-ai-studio": [
+				"Go to https://aistudio.google.com/apikey",
+				"Create a new API key and copy it"
+			],
+			"oaipro": [
+				"Go to https://oaipro.com dashboard",
+				"Create a new API key and copy it"
+			],
+			"openai": [
+				"Go to https://platform.openai.com/api-keys",
+				"Create a new secret key and copy it"
+			],
+			"qwen-code": [
+				"Go to https://bailian.console.aliyun.com/?tab=model#/efm/coding_plan",
+				"Click \"获取 Coding Plan API Key\" to get the plan-exclusive API key and copy it"
+			],
+			"gemini-cli": [
+				"Install Gemini CLI and run `gemini` to sign in with Google",
+				"Run: cat ~/.gemini/oauth_creds.json",
+				"Paste the file contents or just the refresh_token value"
+			],
+			"antigravity": [
+				"Open Antigravity IDE and sign in with Google",
+				"Run: cat ~/.antigravity_tools/accounts/*.json",
+				"Paste the file contents or just the refresh_token value"
+			],
+			"kiro": [
+				"Install Kiro IDE and sign in with GitHub or Google",
+				"Run: cat ~/.aws/sso/cache/kiro-auth-token.json",
+				"Paste the file contents or just the refreshToken value"
+			]
 		}
 	},
 	"models": {
@@ -117,12 +153,17 @@
 	},
 	"ledger": {
 		"title": "Ledger",
-		"subtitle": "Recent API calls and their costs",
+		"subtitle": "Track credits earned from sharing and spent via API usage",
 		"time": "Time",
+		"direction": "Type",
 		"model": "Model",
 		"provider": "Provider",
 		"tokens": "Tokens",
-		"credits_used": "Credits Spent",
+		"base_cost": "Base Cost",
+		"net_credits": "Net Credits",
+		"earned": "Earned",
+		"spent": "Spent",
+		"self_use": "Self-use",
 		"no_data": "No ledger entries yet"
 	},
 	"billing": {

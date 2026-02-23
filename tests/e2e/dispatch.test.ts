@@ -178,8 +178,8 @@ describe("Dispatch: billing correctness", () => {
 		await new Promise((r) => setTimeout(r, 2000));
 
 		const ledger = dbQuery(
-			"SELECT credential_id, credits_used FROM ledger ORDER BY created_at DESC LIMIT 1",
-		) as { credential_id: string; credits_used: number }[];
+			"SELECT credential_id, base_cost FROM ledger ORDER BY created_at DESC LIMIT 1",
+		) as { credential_id: string; base_cost: number }[];
 
 		assert.ok(ledger.length > 0, "No ledger entry found after chat");
 		assert.strictEqual(
@@ -187,9 +187,9 @@ describe("Dispatch: billing correctness", () => {
 			result.credentialId,
 			"Ledger credential_id must match x-credential-id response header",
 		);
-		assert.ok(ledger[0].credits_used > 0, "Credits used must be positive");
+		assert.ok(ledger[0].base_cost > 0, "Base cost must be positive");
 		console.log(
-			`  cred=${result.credentialId.slice(-8)}, credits_used=${ledger[0].credits_used}`,
+			`  cred=${result.credentialId.slice(-8)}, base_cost=${ledger[0].base_cost}`,
 		);
 	});
 });

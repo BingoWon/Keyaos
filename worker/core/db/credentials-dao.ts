@@ -75,21 +75,37 @@ export class CredentialsDao {
 	/**
 	 * Select credentials available for dispatching.
 	 * Excludes: dead, disabled, and cooldown credentials still within their window.
+	 * When ownerId is omitted (platform mode), pools from ALL users' credentials.
 	 */
 	async selectAvailable(
 		provider: string,
-		owner_id: string,
+		ownerId?: string,
 	): Promise<DbCredential[]> {
 		const now = Date.now();
+
+		if (ownerId) {
+			const res = await this.db
+				.prepare(
+					`SELECT * FROM upstream_credentials
+					 WHERE provider = ? AND owner_id = ? AND is_enabled = 1
+					   AND health_status != 'dead'
+					   AND (health_status != 'cooldown' OR last_health_check + ? < ?)
+					 ORDER BY price_multiplier ASC, COALESCE(quota, 9999999) DESC`,
+				)
+				.bind(provider, ownerId, COOLDOWN_MS, now)
+				.all<DbCredential>();
+			return res.results || [];
+		}
+
 		const res = await this.db
 			.prepare(
 				`SELECT * FROM upstream_credentials
-				 WHERE provider = ? AND owner_id = ? AND is_enabled = 1
+				 WHERE provider = ? AND is_enabled = 1
 				   AND health_status != 'dead'
 				   AND (health_status != 'cooldown' OR last_health_check + ? < ?)
 				 ORDER BY price_multiplier ASC, COALESCE(quota, 9999999) DESC`,
 			)
-			.bind(provider, owner_id, COOLDOWN_MS, now)
+			.bind(provider, COOLDOWN_MS, now)
 			.all<DbCredential>();
 		return res.results || [];
 	}
@@ -180,9 +196,7 @@ export class CredentialsDao {
 		let status: string;
 		if (isSubscription) {
 			const cred = await this.db
-				.prepare(
-					"SELECT health_status FROM upstream_credentials WHERE id = ?",
-				)
+				.prepare("SELECT health_status FROM upstream_credentials WHERE id = ?")
 				.bind(id)
 				.first<{ health_status: string }>();
 			// First failure or currently ok → cooldown; already was cooldown → dead
