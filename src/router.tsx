@@ -22,9 +22,13 @@ const dashboardChildren = [
 	{ path: "api-keys", element: <ApiKeys /> },
 	{ path: "credentials", element: <Credentials /> },
 	{ path: "usage", element: <Usage /> },
-	{ path: "ledger", element: <Ledger /> },
+	...(isPlatform
+		? [
+				{ path: "ledger", element: <Ledger /> },
+				{ path: "billing", element: <Billing /> },
+			]
+		: []),
 	{ path: "guide", element: <Guide /> },
-	...(isPlatform ? [{ path: "billing", element: <Billing /> }] : []),
 ];
 
 export const router = createBrowserRouter([

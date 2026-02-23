@@ -101,7 +101,7 @@ describe("Platform billing: cross-user settlement", () => {
 			`Provider balance should increase: ${beforeProvider} → ${afterProvider}`,
 		);
 
-		const ledger = dbQuery(
+		const usageRows = dbQuery(
 			`SELECT consumer_id, credential_owner_id, base_cost, consumer_charged, provider_earned, platform_fee
 			 FROM usage WHERE credential_id = '${credentialId}'
 			 ORDER BY created_at DESC LIMIT 1`,
@@ -114,8 +114,8 @@ describe("Platform billing: cross-user settlement", () => {
 			platform_fee: number;
 		}[];
 
-		assert.ok(ledger.length > 0, "Usage entry not found");
-		const entry = ledger[0];
+		assert.ok(usageRows.length > 0, "Usage entry not found");
+		const entry = usageRows[0];
 		assert.strictEqual(entry.consumer_id, consumerId);
 		assert.strictEqual(entry.credential_owner_id, providerId);
 		assert.ok(entry.base_cost > 0, "base_cost should be positive");

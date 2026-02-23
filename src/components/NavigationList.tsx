@@ -38,13 +38,13 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			href: "/dashboard/usage",
 			icon: ListBulletIcon,
 		},
-		{
-			name: t("nav.ledger"),
-			href: "/dashboard/ledger",
-			icon: BookOpenIcon,
-		},
 		...(isPlatform
 			? [
+					{
+						name: t("nav.ledger"),
+						href: "/dashboard/ledger",
+						icon: BookOpenIcon,
+					},
 					{
 						name: t("nav.billing"),
 						href: "/dashboard/billing",

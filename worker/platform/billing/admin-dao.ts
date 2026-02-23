@@ -34,7 +34,7 @@ export class AdminDao {
 	}
 
 	async getOverview(): Promise<PlatformOverview> {
-		const [revenue, ledgerAgg, creds, users] = await Promise.all([
+		const [revenue, usageAgg, creds, users] = await Promise.all([
 			this.db
 				.prepare(
 					"SELECT COALESCE(SUM(credits), 0) AS total FROM payments WHERE status = 'completed'",
@@ -60,9 +60,9 @@ export class AdminDao {
 
 		return {
 			totalRevenue: revenue?.total ?? 0,
-			totalConsumption: ledgerAgg?.consumed ?? 0,
-			totalServiceFees: ledgerAgg?.fees ?? 0,
-			totalRequests: ledgerAgg?.cnt ?? 0,
+			totalConsumption: usageAgg?.consumed ?? 0,
+			totalServiceFees: usageAgg?.fees ?? 0,
+			totalRequests: usageAgg?.cnt ?? 0,
 			activeCredentials: creds?.cnt ?? 0,
 			registeredUsers: users?.cnt ?? 0,
 		};

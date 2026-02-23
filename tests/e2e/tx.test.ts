@@ -43,7 +43,7 @@ test("Usage entry created after chat completion with correct credential", async 
 	const usedCredId = res.headers.get("x-credential-id");
 	assert.ok(usedCredId, "Missing x-credential-id header");
 
-	// waitUntil fires async — poll until new ledger entry appears
+	// waitUntil fires async — poll until new usage entry appears
 	let entry: { credential_id: string; base_cost: number } | undefined;
 	for (let i = 0; i < 10; i++) {
 		await new Promise((r) => setTimeout(r, 500));
