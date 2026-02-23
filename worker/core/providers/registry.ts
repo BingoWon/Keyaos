@@ -192,6 +192,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		creditsUrl: "https://openrouter.ai/api/v1/credits",
 		validationUrl: "https://openrouter.ai/api/v1/auth/key",
 		parseModels: parseOpenRouterModels,
+		credentialGuide: {
+			placeholder: "sk-or-v1-...",
+			steps: [
+				"Go to openrouter.ai/settings/keys",
+				"Create a new API key and copy it",
+			],
+		},
 	},
 	{
 		id: "zenmux",
@@ -205,6 +212,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 			"https://zenmux.ai/api/v1/chat/completions",
 			"google/gemma-3-12b-it",
 		),
+		credentialGuide: {
+			placeholder: "sk-...",
+			steps: [
+				"Go to zenmux.ai and sign in",
+				"Navigate to API Keys page and create a new key",
+			],
+		},
 	},
 	{
 		id: "deepinfra",
@@ -214,6 +228,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		currency: "USD",
 		supportsAutoCredits: false,
 		parseModels: parseDeepInfraModels,
+		credentialGuide: {
+			placeholder: "sk-...",
+			steps: [
+				"Go to deepinfra.com/dash/api_keys",
+				"Create a new API key and copy it",
+			],
+		},
 	},
 	{
 		id: "deepseek",
@@ -227,6 +248,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("deepseek", deepseekModels),
+		credentialGuide: {
+			placeholder: "sk-...",
+			steps: [
+				"Go to platform.deepseek.com/api_keys",
+				"Create a new API key and copy it",
+			],
+		},
 	},
 	{
 		id: "google-ai-studio",
@@ -239,6 +267,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		stripModelPrefix: true,
 		parseModels: () =>
 			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
+		credentialGuide: {
+			placeholder: "AIza...",
+			steps: [
+				"Go to aistudio.google.com/apikey",
+				"Create a new API key and copy it",
+			],
+		},
 	},
 	{
 		id: "oaipro",
@@ -250,6 +285,10 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("oaipro", oaiproModels),
+		credentialGuide: {
+			placeholder: "sk-...",
+			steps: ["Go to oaipro.com dashboard", "Create a new API key and copy it"],
+		},
 	},
 	{
 		id: "openai",
@@ -261,6 +300,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("openai", openaiModels),
+		credentialGuide: {
+			placeholder: "sk-...",
+			steps: [
+				"Go to platform.openai.com/api-keys",
+				"Create a new secret key and copy it",
+			],
+		},
 	},
 	{
 		id: "qwen-code",
@@ -277,6 +323,13 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 			"https://coding.dashscope.aliyuncs.com/v1/chat/completions",
 			"qwen3-coder-plus",
 		),
+		credentialGuide: {
+			placeholder: "sk-sp-...",
+			steps: [
+				"Open Tongyi Lingma IDE plugin settings",
+				"Copy the API key from the plugin configuration",
+			],
+		},
 	},
 ];
 

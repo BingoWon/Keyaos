@@ -1,5 +1,7 @@
 import {
 	CheckIcon,
+	ChevronDownIcon,
+	ChevronUpIcon,
 	ClipboardDocumentIcon,
 	EyeIcon,
 	EyeSlashIcon,
@@ -7,8 +9,12 @@ import {
 	PlusIcon,
 	XMarkIcon,
 } from "@heroicons/react/20/solid";
+import {
+	CommandLineIcon,
+	InformationCircleIcon,
+} from "@heroicons/react/24/outline";
 import type React from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
@@ -17,7 +23,7 @@ import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import type { ProviderMeta } from "../types/provider";
+import type { CredentialGuide, ProviderMeta } from "../types/provider";
 
 interface CredentialInfo {
 	id: string;
@@ -71,6 +77,25 @@ export function Credentials() {
 	const isAutoProvider = selectedProvider?.supportsAutoCredits ?? false;
 	const isSubProvider = selectedProvider?.isSubscription ?? false;
 	const needsManualQuota = !isAutoProvider && !isSubProvider;
+	const isOAuth = selectedProvider?.authType === "oauth";
+	const guide = selectedProvider?.credentialGuide;
+	const [guideOpen, setGuideOpen] = useState(true);
+
+	const secretHint = useMemo<{
+		type: "json" | "access_token" | null;
+		message: string;
+	}>(() => {
+		const v = draft.secret.trim();
+		if (!v) return { type: null, message: "" };
+		if (v.startsWith("{"))
+			return { type: "json", message: t("credentials.hint_json_detected") };
+		if (v.startsWith("ya29.") || v.startsWith("aoa"))
+			return {
+				type: "access_token",
+				message: t("credentials.hint_access_token"),
+			};
+		return { type: null, message: "" };
+	}, [draft.secret, t]);
 
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -216,42 +241,54 @@ export function Credentials() {
 			</div>
 
 			{isAddOpen && (
-				<div className="mt-6 rounded-lg bg-gray-50 p-4 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-					<form
-						onSubmit={handleAdd}
-						className="flex flex-col sm:flex-row gap-4 items-end"
-					>
-						<div className="w-full sm:w-auto">
-							<label
-								htmlFor="provider"
-								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-							>
-								{t("credentials.provider")}
-							</label>
-							<div className="mt-1 flex items-center gap-2">
-								{selectedProvider && (
-									<ProviderLogo
-										src={selectedProvider.logoUrl}
-										name={selectedProvider.name}
-									/>
-								)}
-								<select
-									id="provider"
-									value={draft.provider}
-									onChange={(e) =>
-										setDraft({ ...draft, provider: e.target.value })
-									}
-									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+				<div className="mt-6 rounded-lg bg-gray-50 p-5 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+					<form onSubmit={handleAdd} className="space-y-4">
+						{/* Row 1: Provider selector */}
+						<div className="flex items-end gap-4">
+							<div className="w-full sm:w-64">
+								<label
+									htmlFor="provider"
+									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 								>
-									{providers.map((p) => (
-										<option key={p.id} value={p.id}>
-											{p.name}
-										</option>
-									))}
-								</select>
+									{t("credentials.provider")}
+								</label>
+								<div className="mt-1 flex items-center gap-2">
+									{selectedProvider && (
+										<ProviderLogo
+											src={selectedProvider.logoUrl}
+											name={selectedProvider.name}
+										/>
+									)}
+									<select
+										id="provider"
+										value={draft.provider}
+										onChange={(e) =>
+											setDraft({ ...draft, provider: e.target.value })
+										}
+										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+									>
+										{providers.map((p) => (
+											<option key={p.id} value={p.id}>
+												{p.name}
+											</option>
+										))}
+									</select>
+								</div>
 							</div>
 						</div>
-						<div className="w-full sm:flex-1">
+
+						{/* Guidance panel */}
+						{guide && (
+							<GuidancePanel
+								guide={guide}
+								isOAuth={isOAuth}
+								open={guideOpen}
+								onToggle={() => setGuideOpen(!guideOpen)}
+							/>
+						)}
+
+						{/* Row 2: Secret input */}
+						<div>
 							<label
 								htmlFor="secret"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -259,25 +296,53 @@ export function Credentials() {
 								{t("credentials.secret")}
 							</label>
 							<div className="relative mt-1">
-								<input
-									type={showPassword ? "text" : "password"}
-									id="secret"
-									required
-									value={draft.secret}
-									onChange={(e) =>
-										setDraft({ ...draft, secret: e.target.value })
-									}
-									className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-									placeholder={
-										selectedProvider?.authType === "oauth"
-											? "refresh_token or paste oauth_creds.json"
-											: "sk-..."
-									}
-								/>
+								{isOAuth ? (
+									<textarea
+										id="secret"
+										required
+										rows={showPassword ? 4 : 1}
+										value={
+											showPassword
+												? draft.secret
+												: draft.secret
+													? "\u2022".repeat(Math.min(draft.secret.length, 40))
+													: ""
+										}
+										onChange={(e) => {
+											if (showPassword)
+												setDraft({ ...draft, secret: e.target.value });
+										}}
+										onFocus={() => {
+											if (!showPassword) setShowPassword(true);
+										}}
+										onPaste={(e) => {
+											if (!showPassword) {
+												e.preventDefault();
+												const text = e.clipboardData.getData("text");
+												setDraft({ ...draft, secret: text });
+												setShowPassword(true);
+											}
+										}}
+										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none"
+										placeholder={guide?.placeholder ?? "refresh_token or JSON"}
+									/>
+								) : (
+									<input
+										type={showPassword ? "text" : "password"}
+										id="secret"
+										required
+										value={draft.secret}
+										onChange={(e) =>
+											setDraft({ ...draft, secret: e.target.value })
+										}
+										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+										placeholder={guide?.placeholder ?? "sk-..."}
+									/>
+								)}
 								<button
 									type="button"
 									onClick={() => setShowPassword(!showPassword)}
-									className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+									className="absolute top-2 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
 								>
 									{showPassword ? (
 										<EyeSlashIcon className="size-5" />
@@ -286,64 +351,83 @@ export function Credentials() {
 									)}
 								</button>
 							</div>
-						</div>
-						{needsManualQuota && (
-							<div className="w-full sm:w-32">
-								<label
-									htmlFor="quota"
-									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+							{/* Smart format detection hint */}
+							{secretHint.type && (
+								<p
+									className={`mt-1.5 flex items-center gap-1 text-xs ${
+										secretHint.type === "json"
+											? "text-green-600 dark:text-green-400"
+											: "text-amber-600 dark:text-amber-400"
+									}`}
 								>
-									{t("credentials.quota")}
-								</label>
-								<input
-									type="number"
-									id="quota"
-									min="0"
-									step="0.01"
-									value={draft.quota}
-									onChange={(e) =>
-										setDraft({ ...draft, quota: e.target.value })
-									}
-									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-									placeholder="10.00"
-								/>
-							</div>
-						)}
-						<div className="w-full sm:w-80">
-							<label
-								htmlFor="priceMultiplier"
-								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-							>
-								{t("credentials.price_multiplier")}
-							</label>
-							<input
-								type="number"
-								id="priceMultiplier"
-								min="0.1"
-								step="0.01"
-								required
-								value={draft.priceMultiplier}
-								onChange={(e) =>
-									setDraft({
-										...draft,
-										priceMultiplier: e.target.value,
-									})
-								}
-								className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-								placeholder="1.0"
-							/>
-							{draft.priceMultiplier && (
-								<p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-									{t("credentials.price_multiplier_helper", {
-										ratio: draft.priceMultiplier,
-										credited: (
-											1.0 * (Number.parseFloat(draft.priceMultiplier) || 0)
-										).toFixed(2),
-									})}
+									<InformationCircleIcon className="size-4 shrink-0" />
+									{secretHint.message}
 								</p>
 							)}
 						</div>
-						<div className="flex gap-2 w-full sm:w-auto">
+
+						{/* Row 3: Quota + Price Multiplier side by side */}
+						<div className="flex flex-col sm:flex-row gap-4">
+							{needsManualQuota && (
+								<div className="w-full sm:w-40">
+									<label
+										htmlFor="quota"
+										className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+									>
+										{t("credentials.quota")}
+									</label>
+									<input
+										type="number"
+										id="quota"
+										min="0"
+										step="0.01"
+										value={draft.quota}
+										onChange={(e) =>
+											setDraft({ ...draft, quota: e.target.value })
+										}
+										className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+										placeholder="10.00"
+									/>
+								</div>
+							)}
+							<div className="w-full sm:w-56">
+								<label
+									htmlFor="priceMultiplier"
+									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+								>
+									{t("credentials.price_multiplier")}
+								</label>
+								<input
+									type="number"
+									id="priceMultiplier"
+									min="0.1"
+									step="0.01"
+									required
+									value={draft.priceMultiplier}
+									onChange={(e) =>
+										setDraft({
+											...draft,
+											priceMultiplier: e.target.value,
+										})
+									}
+									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+									placeholder="1.0"
+								/>
+								{draft.priceMultiplier && (
+									<p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+										{t("credentials.price_multiplier_helper", {
+											ratio: draft.priceMultiplier,
+											credited: (
+												1.0 * (Number.parseFloat(draft.priceMultiplier) || 0)
+											).toFixed(2),
+										})}
+									</p>
+								)}
+							</div>
+						</div>
+
+						{/* Row 4: Actions */}
+						<div className="flex justify-end gap-3 pt-1">
 							<button
 								type="button"
 								onClick={() => {
@@ -659,6 +743,103 @@ export function Credentials() {
 					</div>
 				</div>
 			</div>
+		</div>
+	);
+}
+
+// ─── Guidance Panel ─────────────────────────────────────
+
+function GuidancePanel({
+	guide,
+	isOAuth,
+	open,
+	onToggle,
+}: {
+	guide: CredentialGuide;
+	isOAuth: boolean;
+	open: boolean;
+	onToggle: () => void;
+}) {
+	const { t } = useTranslation();
+
+	const copyToClipboard = (text: string) => {
+		navigator.clipboard.writeText(text);
+		toast.success(t("credentials.copied"));
+	};
+
+	if (!isOAuth && guide.steps.length <= 1) return null;
+
+	return (
+		<div className="rounded-md border border-indigo-100 bg-indigo-50/50 dark:border-indigo-500/20 dark:bg-indigo-500/5">
+			<button
+				type="button"
+				onClick={onToggle}
+				className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-md transition-colors"
+			>
+				<span className="flex items-center gap-1.5">
+					<InformationCircleIcon className="size-4" />
+					{t("credentials.guide_title")}
+				</span>
+				{open ? (
+					<ChevronUpIcon className="size-4" />
+				) : (
+					<ChevronDownIcon className="size-4" />
+				)}
+			</button>
+
+			{open && (
+				<div className="px-3 pb-3 space-y-2">
+					<ol className="list-none space-y-1.5">
+						{guide.steps.map((step, idx) => (
+							<li
+								key={step}
+								className="flex gap-2 text-sm text-gray-700 dark:text-gray-300"
+							>
+								<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+									{idx + 1}
+								</span>
+								<span>{step}</span>
+							</li>
+						))}
+					</ol>
+
+					{guide.command && (
+						<CopyableCommand command={guide.command} onCopy={copyToClipboard} />
+					)}
+
+					{guide.filePath && (
+						<p className="text-xs text-gray-500 dark:text-gray-400">
+							{t("credentials.guide_file_location")}{" "}
+							<code className="rounded bg-gray-200 px-1 py-0.5 font-mono text-gray-700 dark:bg-white/10 dark:text-gray-300">
+								{guide.filePath}
+							</code>
+						</p>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function CopyableCommand({
+	command,
+	onCopy,
+}: {
+	command: string;
+	onCopy: (text: string) => void;
+}) {
+	return (
+		<div className="flex items-center gap-2 rounded-md bg-gray-900 px-3 py-2 font-mono text-xs text-gray-100 dark:bg-black/40">
+			<CommandLineIcon className="size-4 shrink-0 text-gray-400" />
+			<code className="flex-1 select-all truncate">{command}</code>
+			<button
+				type="button"
+				onClick={() => onCopy(command)}
+				className="shrink-0 text-gray-400 hover:text-white transition-colors"
+				title="Copy"
+			>
+				<ClipboardDocumentIcon className="size-4" />
+			</button>
 		</div>
 	);
 }

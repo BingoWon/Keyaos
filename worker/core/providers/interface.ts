@@ -1,5 +1,12 @@
 import type { DbModelPricing } from "../db/schema";
 
+export interface CredentialGuide {
+	placeholder: string;
+	filePath?: string;
+	command?: string;
+	steps: string[];
+}
+
 export interface ProviderInfo {
 	id: string;
 	name: string;
@@ -8,6 +15,7 @@ export interface ProviderInfo {
 	currency: "USD" | "CNY";
 	authType?: "api_key" | "oauth";
 	isSubscription?: boolean;
+	credentialGuide?: CredentialGuide;
 }
 
 export interface ProviderCredits {

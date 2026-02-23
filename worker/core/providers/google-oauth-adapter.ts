@@ -42,6 +42,8 @@ export interface GoogleOAuthConfig {
 	userAgent?: string;
 	models: ModelEntry[];
 	credentialHint: string;
+	credentialSteps: string[];
+	credentialCommand?: string;
 	extractRefreshToken?: (json: Record<string, unknown>) => string | undefined;
 	augmentRequest?: (base: Record<string, unknown>) => Record<string, unknown>;
 }
@@ -72,6 +74,12 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			currency: "USD",
 			authType: "oauth",
 			isSubscription: true,
+			credentialGuide: {
+				placeholder: "1//...",
+				filePath: cfg.credentialHint,
+				command: cfg.credentialCommand,
+				steps: cfg.credentialSteps,
+			},
 		};
 	}
 
@@ -112,22 +120,16 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 	): Promise<{ baseUrl: string; projectId: string }> {
 		for (const baseUrl of this.cfg.baseUrls) {
 			try {
-				const res = await fetch(
-					`${baseUrl}/v1internal:loadCodeAssist`,
-					{
-						method: "POST",
-						headers: this.authHeaders(accessToken),
-						body: "{}",
-					},
-				);
+				const res = await fetch(`${baseUrl}/v1internal:loadCodeAssist`, {
+					method: "POST",
+					headers: this.authHeaders(accessToken),
+					body: "{}",
+				});
 				if (!res.ok) continue;
 				const json = (await res.json()) as Record<string, string>;
-				const projectId =
-					json.cloudaicompanionProject ?? json.billingProject;
+				const projectId = json.cloudaicompanionProject ?? json.billingProject;
 				if (projectId) return { baseUrl, projectId };
-			} catch {
-				continue;
-			}
+			} catch {}
 		}
 		throw new Error(`All ${this.cfg.id} base URLs failed`);
 	}
@@ -192,18 +194,13 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			const { accessToken } = await this.refresh(secret);
 			for (const baseUrl of this.cfg.baseUrls) {
 				try {
-					const res = await fetch(
-						`${baseUrl}/v1internal:loadCodeAssist`,
-						{
-							method: "POST",
-							headers: this.authHeaders(accessToken),
-							body: "{}",
-						},
-					);
+					const res = await fetch(`${baseUrl}/v1internal:loadCodeAssist`, {
+						method: "POST",
+						headers: this.authHeaders(accessToken),
+						body: "{}",
+					});
 					if (res.ok) return true;
-				} catch {
-					continue;
-				}
+				} catch {}
 			}
 			return false;
 		} catch {
@@ -298,15 +295,11 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 // ─── Provider Instances ─────────────────────────────────
 // Split credential strings to avoid GitHub push-protection false positives.
 
-const GEMINI_CID = [
-	"681255809395",
-	"oo8ft2oprdrnp9e3aqf6av3hmdib135j",
-].join("-");
+const GEMINI_CID = ["681255809395", "oo8ft2oprdrnp9e3aqf6av3hmdib135j"].join(
+	"-",
+);
 
-const AG_CID = [
-	"1071006060591",
-	"tmhssin2h21lcre235vtolojh4g403ep",
-].join("-");
+const AG_CID = ["1071006060591", "tmhssin2h21lcre235vtolojh4g403ep"].join("-");
 
 export const geminiCliAdapter = new GoogleOAuthAdapter({
 	id: "gemini-cli",
@@ -317,6 +310,12 @@ export const geminiCliAdapter = new GoogleOAuthAdapter({
 	baseUrls: ["https://cloudcode-pa.googleapis.com"],
 	models: geminiCliModels,
 	credentialHint: "~/.gemini/oauth_creds.json",
+	credentialCommand: "cat ~/.gemini/oauth_creds.json",
+	credentialSteps: [
+		"Install Gemini CLI and run `gemini` to sign in with Google",
+		"Run: cat ~/.gemini/oauth_creds.json",
+		"Paste the file contents or just the refresh_token value",
+	],
 });
 
 export const antigravityAdapter = new GoogleOAuthAdapter({
@@ -333,11 +332,15 @@ export const antigravityAdapter = new GoogleOAuthAdapter({
 	userAgent: "antigravity",
 	models: antigravityModels,
 	credentialHint: "~/.antigravity_tools/accounts/<uuid>.json",
+	credentialCommand: "cat ~/.antigravity_tools/accounts/*.json",
+	credentialSteps: [
+		"Open Antigravity IDE and sign in with Google",
+		"Run: cat ~/.antigravity_tools/accounts/*.json",
+		"Paste the file contents or just the refresh_token value",
+	],
 	extractRefreshToken: (json) => {
 		const token = json.token as Record<string, unknown> | undefined;
-		return (token?.refresh_token ?? json.refresh_token) as
-			| string
-			| undefined;
+		return (token?.refresh_token ?? json.refresh_token) as string | undefined;
 	},
 	augmentRequest: (base) => ({
 		...base,

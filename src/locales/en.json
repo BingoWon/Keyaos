@@ -70,7 +70,12 @@
 		"enabled_false": "Disabled",
 		"price_multiplier": "Price Multiplier",
 		"price_multiplier_helper": "At {{ratio}}x multiplier, for every $1.00 of upstream API cost, requests will deduct ${{credited}} Credits.",
-		"no_quota": "N/A"
+		"no_quota": "N/A",
+		"guide_title": "How to get this credential",
+		"guide_file_location": "File location:",
+		"copied": "Copied",
+		"hint_json_detected": "JSON detected — token will be auto-extracted",
+		"hint_access_token": "This looks like a temporary access token (expires in ~1 hour). Please use the refresh token instead."
 	},
 	"models": {
 		"title": "Models",

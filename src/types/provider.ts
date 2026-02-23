@@ -1,3 +1,10 @@
+export interface CredentialGuide {
+	placeholder: string;
+	filePath?: string;
+	command?: string;
+	steps: string[];
+}
+
 export interface ProviderMeta {
 	id: string;
 	name: string;
@@ -5,4 +12,5 @@ export interface ProviderMeta {
 	supportsAutoCredits: boolean;
 	authType: "api_key" | "oauth";
 	isSubscription: boolean;
+	credentialGuide: CredentialGuide | null;
 }

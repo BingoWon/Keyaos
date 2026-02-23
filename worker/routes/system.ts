@@ -19,6 +19,7 @@ systemRouter.get("/providers", (c) => {
 		supportsAutoCredits: p.info.supportsAutoCredits,
 		authType: p.info.authType ?? "api_key",
 		isSubscription: p.info.isSubscription ?? false,
+		credentialGuide: p.info.credentialGuide ?? null,
 	}));
 	return c.json({ data: providers });
 });

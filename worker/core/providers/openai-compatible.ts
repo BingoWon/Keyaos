@@ -1,4 +1,5 @@
 import type {
+	CredentialGuide,
 	ParsedModel,
 	ProviderAdapter,
 	ProviderCredits,
@@ -30,6 +31,7 @@ export interface OpenAICompatibleConfig {
 	customValidateKey?: (secret: string) => Promise<boolean>;
 	/** Subscription-based provider — no quota tracking, uses cooldown health recovery. */
 	isSubscription?: boolean;
+	credentialGuide?: CredentialGuide;
 }
 
 /** USD dollars → integer cents per 1M tokens */
@@ -67,11 +69,13 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			supportsAutoCredits: config.supportsAutoCredits,
 			currency: config.currency,
 			isSubscription: config.isSubscription,
+			credentialGuide: config.credentialGuide,
 		};
 	}
 
 	async validateKey(secret: string): Promise<boolean> {
-		if (this.config.customValidateKey) return this.config.customValidateKey(secret);
+		if (this.config.customValidateKey)
+			return this.config.customValidateKey(secret);
 		try {
 			const url = this.config.validationUrl || `${this.config.baseUrl}/models`;
 			const res = await fetch(url, {
