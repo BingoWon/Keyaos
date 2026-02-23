@@ -9,8 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
-import { isPlatform } from "../auth";
-import { useIsAdmin } from "../hooks/useIsAdmin";
+import { isPlatform, useAuth } from "../auth";
 import { LanguageSelector } from "./LanguageSelector";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -25,7 +24,7 @@ interface NavigationListProps {
 export function NavigationList({ onNavigate }: NavigationListProps) {
 	const location = useLocation();
 	const { t } = useTranslation();
-	const isAdmin = useIsAdmin();
+	const { isAdmin } = useAuth();
 
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon },
@@ -54,7 +53,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			? [
 					{
 						name: t("nav.admin"),
-						href: "/dashboard/admin",
+						href: "/admin",
 						icon: ShieldCheckIcon,
 					},
 				]

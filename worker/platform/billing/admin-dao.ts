@@ -1,3 +1,5 @@
+import { WalletDao } from "./wallet-dao";
+
 export interface PlatformOverview {
 	totalRevenue: number;
 	totalConsumption: number;
@@ -15,8 +17,21 @@ export interface UserRow {
 	credentialsShared: number;
 }
 
+const QUERYABLE_TABLES: Record<string, string> = {
+	ledger: "created_at",
+	upstream_credentials: "created_at",
+	wallets: "updated_at",
+	payments: "created_at",
+	api_keys: "created_at",
+	model_pricing: "provider",
+	credit_adjustments: "created_at",
+};
+
 export class AdminDao {
-	constructor(private db: D1Database) {}
+	private wallet: WalletDao;
+	constructor(private db: D1Database) {
+		this.wallet = new WalletDao(db);
+	}
 
 	async getOverview(): Promise<PlatformOverview> {
 		const [revenue, ledgerAgg, creds, users] = await Promise.all([
@@ -103,31 +118,42 @@ export class AdminDao {
 		reason: string,
 	): Promise<void> {
 		const id = `adj_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
-		const now = Date.now();
 
 		await this.db
 			.prepare(
 				"INSERT INTO credit_adjustments (id, owner_id, amount, reason, created_at) VALUES (?, ?, ?, ?, ?)",
 			)
-			.bind(id, ownerId, amount, reason, now)
+			.bind(id, ownerId, amount, reason, Date.now())
 			.run();
 
 		if (amount > 0) {
-			await this.db
-				.prepare(
-					`INSERT INTO wallets (owner_id, balance, updated_at) VALUES (?, ?, ?)
-					 ON CONFLICT(owner_id) DO UPDATE SET balance = balance + excluded.balance, updated_at = excluded.updated_at`,
-				)
-				.bind(ownerId, amount, now)
-				.run();
+			await this.wallet.credit(ownerId, amount);
 		} else if (amount < 0) {
 			await this.db
 				.prepare(
 					"UPDATE wallets SET balance = MAX(0, balance + ?), updated_at = ? WHERE owner_id = ?",
 				)
-				.bind(amount, now, ownerId)
+				.bind(amount, Date.now(), ownerId)
 				.run();
 		}
+	}
+
+	async getAdjustments(
+		limit: number,
+		offset: number,
+	): Promise<{ rows: unknown[]; total: number }> {
+		const [data, count] = await Promise.all([
+			this.db
+				.prepare(
+					"SELECT * FROM credit_adjustments ORDER BY created_at DESC LIMIT ? OFFSET ?",
+				)
+				.bind(limit, offset)
+				.all(),
+			this.db
+				.prepare("SELECT COUNT(*) AS cnt FROM credit_adjustments")
+				.first<{ cnt: number }>(),
+		]);
+		return { rows: data.results || [], total: count?.cnt ?? 0 };
 	}
 
 	async queryTable(
@@ -135,22 +161,19 @@ export class AdminDao {
 		limit: number,
 		offset: number,
 	): Promise<{ rows: unknown[]; total: number }> {
-		const allowed = [
-			"api_keys",
-			"upstream_credentials",
-			"model_pricing",
-			"ledger",
-			"wallets",
-			"payments",
-			"credit_adjustments",
-		];
-		if (!allowed.includes(table)) {
+		const orderCol = QUERYABLE_TABLES[table];
+		if (!orderCol) {
 			throw new Error(`Table "${table}" is not queryable`);
 		}
 
+		const orderClause =
+			orderCol === "provider"
+				? `ORDER BY ${orderCol} ASC`
+				: `ORDER BY ${orderCol} DESC`;
+
 		const [data, count] = await Promise.all([
 			this.db
-				.prepare(`SELECT * FROM ${table} LIMIT ? OFFSET ?`)
+				.prepare(`SELECT * FROM ${table} ${orderClause} LIMIT ? OFFSET ?`)
 				.bind(limit, offset)
 				.all(),
 			this.db

@@ -42,6 +42,13 @@ admin.post("/credits", async (c) => {
 	return c.json({ success: true });
 });
 
+admin.get("/adjustments", async (c) => {
+	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);
+	const offset = Math.max(Number(c.req.query("offset")) || 0, 0);
+	const result = await new AdminDao(c.env.DB).getAdjustments(limit, offset);
+	return c.json({ data: result.rows, total: result.total });
+});
+
 admin.get("/table/:name", async (c) => {
 	const table = c.req.param("name");
 	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);

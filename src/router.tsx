@@ -1,8 +1,11 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AuthGuard, isPlatform } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
-import { Admin } from "./pages/Admin";
 import { ApiKeys } from "./pages/ApiKeys";
+import { AdminLayout } from "./pages/admin/AdminLayout";
+import { Data } from "./pages/admin/Data";
+import { Overview } from "./pages/admin/Overview";
+import { Users } from "./pages/admin/Users";
 import { Billing } from "./pages/Billing";
 import { Credentials } from "./pages/Credentials";
 import { Dashboard } from "./pages/Dashboard";
@@ -20,7 +23,6 @@ const dashboardChildren = [
 	{ path: "ledger", element: <Ledger /> },
 	{ path: "guide", element: <Guide /> },
 	...(isPlatform ? [{ path: "billing", element: <Billing /> }] : []),
-	{ path: "admin", element: <Admin /> },
 ];
 
 export const router = createBrowserRouter([
@@ -41,6 +43,19 @@ export const router = createBrowserRouter([
 			</AuthGuard>
 		),
 		children: dashboardChildren,
+	},
+	{
+		path: "/admin",
+		element: (
+			<AuthGuard fallback={<Navigate to="/login" replace />}>
+				<AdminLayout />
+			</AuthGuard>
+		),
+		children: [
+			{ index: true, element: <Overview /> },
+			{ path: "users", element: <Users /> },
+			{ path: "data", element: <Data /> },
+		],
 	},
 	{ path: "*", element: <NotFound /> },
 ]);
