@@ -77,7 +77,20 @@
 		"hint_json_detected": "检测到 JSON 格式 — 将自动提取令牌",
 		"hint_access_token": "这看起来是一个临时访问令牌（约 1 小时后过期），请改用 refresh token。",
 		"error_quota_required": "该服务商需要手动填写余额配额，请输入剩余额度。",
-		"error_secret_format": "密钥格式不匹配预期格式 ({{example}})，请仔细检查。"
+		"error_secret_format": "密钥格式不匹配预期格式 ({{example}})，请仔细检查。",
+		"guide_steps": {
+			"openrouter": ["前往 https://openrouter.ai/settings/keys", "创建新的 API 密钥并复制"],
+			"zenmux": ["前往 https://zenmux.ai 并登录", "进入 API Keys 页面，创建新密钥并复制"],
+			"deepinfra": ["前往 https://deepinfra.com/dash/api_keys", "创建新的 API 密钥并复制"],
+			"deepseek": ["前往 https://platform.deepseek.com/api_keys", "创建新的 API 密钥并复制"],
+			"google-ai-studio": ["前往 https://aistudio.google.com/apikey", "创建新的 API 密钥并复制"],
+			"oaipro": ["前往 https://oaipro.com 控制面板", "创建新的 API 密钥并复制"],
+			"openai": ["前往 https://platform.openai.com/api-keys", "创建新的密钥并复制"],
+			"qwen-code": ["打开通义灵码 IDE 插件设置", "从插件配置中复制 API 密钥"],
+			"gemini-cli": ["安装 Gemini CLI 并运行 `gemini` 登录 Google 账号", "执行命令：cat ~/.gemini/oauth_creds.json", "粘贴文件内容或仅粘贴 refresh_token 的值"],
+			"antigravity": ["打开 Antigravity IDE 并登录 Google 账号", "执行命令：cat ~/.antigravity_tools/accounts/*.json", "粘贴文件内容或仅粘贴 refresh_token 的值"],
+			"kiro": ["安装 Kiro IDE 并使用 GitHub 或 Google 登录", "执行命令：cat ~/.aws/sso/cache/kiro-auth-token.json", "粘贴文件内容或仅粘贴 refreshToken 的值"]
+		}
 	},
 	"models": {
 		"title": "模型",

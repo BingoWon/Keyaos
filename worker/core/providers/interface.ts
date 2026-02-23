@@ -5,7 +5,6 @@ export interface CredentialGuide {
 	secretPattern?: string;
 	filePath?: string;
 	command?: string;
-	steps: string[];
 }
 
 export interface ProviderInfo {

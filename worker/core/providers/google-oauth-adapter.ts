@@ -42,7 +42,6 @@ export interface GoogleOAuthConfig {
 	userAgent?: string;
 	models: ModelEntry[];
 	credentialHint: string;
-	credentialSteps: string[];
 	credentialCommand?: string;
 	extractRefreshToken?: (json: Record<string, unknown>) => string | undefined;
 	augmentRequest?: (base: Record<string, unknown>) => Record<string, unknown>;
@@ -78,7 +77,6 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 				placeholder: "1//...",
 				filePath: cfg.credentialHint,
 				command: cfg.credentialCommand,
-				steps: cfg.credentialSteps,
 			},
 		};
 	}
@@ -311,11 +309,6 @@ export const geminiCliAdapter = new GoogleOAuthAdapter({
 	models: geminiCliModels,
 	credentialHint: "~/.gemini/oauth_creds.json",
 	credentialCommand: "cat ~/.gemini/oauth_creds.json",
-	credentialSteps: [
-		"Install Gemini CLI and run `gemini` to sign in with Google",
-		"Run: cat ~/.gemini/oauth_creds.json",
-		"Paste the file contents or just the refresh_token value",
-	],
 });
 
 export const antigravityAdapter = new GoogleOAuthAdapter({
@@ -333,11 +326,6 @@ export const antigravityAdapter = new GoogleOAuthAdapter({
 	models: antigravityModels,
 	credentialHint: "~/.antigravity_tools/accounts/<uuid>.json",
 	credentialCommand: "cat ~/.antigravity_tools/accounts/*.json",
-	credentialSteps: [
-		"Open Antigravity IDE and sign in with Google",
-		"Run: cat ~/.antigravity_tools/accounts/*.json",
-		"Paste the file contents or just the refresh_token value",
-	],
 	extractRefreshToken: (json) => {
 		const token = json.token as Record<string, unknown> | undefined;
 		return (token?.refresh_token ?? json.refresh_token) as string | undefined;

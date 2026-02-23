@@ -329,6 +329,7 @@ export function Credentials() {
 						{guide && (
 							<GuidancePanel
 								guide={guide}
+								providerId={draft.provider}
 								isOAuth={isOAuth}
 								open={guideOpen}
 								onToggle={() => setGuideOpen(!guideOpen)}
@@ -798,23 +799,30 @@ export function Credentials() {
 
 function GuidancePanel({
 	guide,
+	providerId,
 	isOAuth,
 	open,
 	onToggle,
 }: {
 	guide: CredentialGuide;
+	providerId: string;
 	isOAuth: boolean;
 	open: boolean;
 	onToggle: () => void;
 }) {
 	const { t } = useTranslation();
 
+	const steps = t(`credentials.guide_steps.${providerId}`, {
+		returnObjects: true,
+		defaultValue: [],
+	}) as string[];
+
 	const copyToClipboard = (text: string) => {
 		navigator.clipboard.writeText(text);
 		toast.success(t("credentials.copied"));
 	};
 
-	if (!isOAuth && guide.steps.length <= 1) return null;
+	if (!steps.length || (!isOAuth && steps.length <= 1)) return null;
 
 	return (
 		<div className="rounded-md border border-indigo-100 bg-indigo-50/50 dark:border-indigo-500/20 dark:bg-indigo-500/5">
@@ -837,7 +845,7 @@ function GuidancePanel({
 			{open && (
 				<div className="px-3 pb-3 space-y-2">
 					<ol className="list-none space-y-1.5">
-						{guide.steps.map((step, idx) => (
+						{steps.map((step, idx) => (
 							<li
 								key={step}
 								className="flex gap-2 text-sm text-gray-700 dark:text-gray-300"
@@ -846,8 +854,8 @@ function GuidancePanel({
 									{idx + 1}
 								</span>
 								<span>
-								<LinkifiedText text={step} />
-							</span>
+									<LinkifiedText text={step} />
+								</span>
 							</li>
 						))}
 					</ol>

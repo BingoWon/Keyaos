@@ -87,11 +87,6 @@ export class KiroAdapter implements ProviderAdapter {
 			placeholder: "aor...",
 			filePath: "~/.aws/sso/cache/kiro-auth-token.json",
 			command: "cat ~/.aws/sso/cache/kiro-auth-token.json",
-			steps: [
-				"Install Kiro IDE and sign in with GitHub or Google",
-				"Run: cat ~/.aws/sso/cache/kiro-auth-token.json",
-				"Paste the file contents or just the refreshToken value",
-			],
 		},
 	};
 
