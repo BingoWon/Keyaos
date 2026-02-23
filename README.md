@@ -37,4 +37,4 @@ Point any OpenAI-compatible client to your worker:
 
 ## License
 
-MIT
+[BSL 1.1](LICENSE) — free to self-host and use internally. Commercial hosting as a competing service requires a separate license. Converts to Apache 2.0 after four years.
