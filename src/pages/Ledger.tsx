@@ -1,6 +1,5 @@
 import {
 	ArrowDownTrayIcon,
-	ArrowPathIcon,
 	ArrowUpTrayIcon,
 	BanknotesIcon,
 	CreditCardIcon,
@@ -41,12 +40,6 @@ const CATEGORY_CONFIG: Record<
 		bgClass: "bg-green-50 dark:bg-green-900/30",
 		labelKey: "ledger.credential_earn",
 	},
-	self_use: {
-		icon: ArrowPathIcon,
-		colorClass: "text-gray-500 dark:text-gray-400",
-		bgClass: "bg-gray-50 dark:bg-white/5",
-		labelKey: "ledger.self_use",
-	},
 	top_up: {
 		icon: CreditCardIcon,
 		colorClass: "text-blue-700 dark:text-blue-400",
@@ -69,7 +62,7 @@ const CATEGORY_CONFIG: Record<
 
 function CategoryBadge({ category }: { category: string }) {
 	const { t } = useTranslation();
-	const config = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.self_use;
+	const config = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.api_spend;
 	const Icon = config.icon;
 
 	return (

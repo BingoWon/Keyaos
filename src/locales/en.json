@@ -176,7 +176,6 @@
 		"amount": "Amount",
 		"api_spend": "API Spend",
 		"credential_earn": "Earned",
-		"self_use": "Self-use",
 		"top_up": "Top Up",
 		"grant": "Grant",
 		"revoke": "Revoke",

@@ -83,20 +83,13 @@ systemRouter.get("/ledger", async (c) => {
 			`SELECT * FROM (
 				SELECT
 					id, 'usage' AS type,
-					CASE
-						WHEN consumer_id = ? AND credential_owner_id = ? THEN 'self_use'
-						WHEN consumer_id = ? THEN 'api_spend'
-						ELSE 'credential_earn'
-					END AS category,
+					CASE WHEN consumer_id = ? THEN 'api_spend' ELSE 'credential_earn' END AS category,
 					model AS description,
-					CASE
-						WHEN consumer_id = ? AND credential_owner_id = ? THEN 0
-						WHEN consumer_id = ? THEN -consumer_charged
-						ELSE provider_earned
-					END AS amount,
+					CASE WHEN consumer_id = ? THEN -consumer_charged ELSE provider_earned END AS amount,
 					created_at
 				FROM usage
-				WHERE consumer_id = ? OR credential_owner_id = ?
+				WHERE (consumer_id = ? OR credential_owner_id = ?)
+					AND NOT (consumer_id = ? AND credential_owner_id = ?)
 
 				UNION ALL
 
@@ -123,19 +116,7 @@ systemRouter.get("/ledger", async (c) => {
 			ORDER BY created_at DESC
 			LIMIT ?`,
 		)
-		.bind(
-			userId,
-			userId,
-			userId,
-			userId,
-			userId,
-			userId,
-			userId,
-			userId,
-			userId,
-			userId,
-			limit,
-		)
+		.bind(userId, userId, userId, userId, userId, userId, userId, userId, limit)
 		.all<{
 			id: string;
 			type: "usage" | "top_up" | "adjustment";
