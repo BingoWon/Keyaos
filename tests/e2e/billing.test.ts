@@ -13,7 +13,7 @@
 
 import assert from "node:assert";
 import { describe, test } from "node:test";
-import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils";
+import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils.ts";
 
 function getBalance(ownerId: string): number {
 	const rows = dbQuery(

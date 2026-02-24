@@ -7,7 +7,7 @@
 
 import assert from "node:assert";
 import { test } from "node:test";
-import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils";
+import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils.ts";
 
 test("Usage entry created after chat completion with correct credential", async () => {
 	const beforeCount = (
