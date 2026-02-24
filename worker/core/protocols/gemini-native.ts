@@ -5,6 +5,8 @@
  * Gemini CLI (cloudcode-pa), Antigravity IDE, future Google services.
  */
 
+import { extractText } from "./shared";
+
 // ─── Types ──────────────────────────────────────────────
 
 interface GeminiPart {
@@ -15,8 +17,6 @@ interface GeminiContent {
 	role: "user" | "model";
 	parts: GeminiPart[];
 }
-
-import { extractText } from "./shared";
 
 // ─── Request: OpenAI → Gemini ───────────────────────────
 
