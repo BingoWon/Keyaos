@@ -157,6 +157,12 @@ export function toAnthropicResponse(
 
 	const content: Record<string, unknown>[] = [];
 
+	const reasoning =
+		(message?.reasoning as string) || (message?.reasoning_content as string);
+	if (reasoning) {
+		content.push({ type: "thinking", thinking: reasoning });
+	}
+
 	if (message?.content) {
 		content.push({ type: "text", text: message.content });
 	}
@@ -207,7 +213,7 @@ export function createOpenAIToAnthropicStream(
 	let buffer = "";
 	let started = false;
 	let blockIndex = 0;
-	let inBlock = false;
+	let blockType: "thinking" | "text" | "tool_use" | null = null;
 	let finished = false;
 	let inputTokens = 0;
 	let outputTokens = 0;
@@ -242,13 +248,13 @@ export function createOpenAIToAnthropicStream(
 	}
 
 	function closeBlock(ctrl: TransformStreamDefaultController<Uint8Array>) {
-		if (!inBlock) return;
+		if (!blockType) return;
 		emit(ctrl, "content_block_stop", {
 			type: "content_block_stop",
 			index: blockIndex,
 		});
 		blockIndex++;
-		inBlock = false;
+		blockType = null;
 	}
 
 	function finalize(
@@ -303,22 +309,40 @@ export function createOpenAIToAnthropicStream(
 
 					if (delta && !started) ensureStarted(ctrl);
 
-					if (delta?.content != null) {
-						if (!inBlock) {
+					const reasoning =
+						(delta?.reasoning as string) ??
+						(delta?.reasoning_content as string);
+					if (reasoning) {
+						if (blockType !== "thinking") {
+							closeBlock(ctrl);
+							emit(ctrl, "content_block_start", {
+								type: "content_block_start",
+								index: blockIndex,
+								content_block: { type: "thinking", thinking: "" },
+							});
+							blockType = "thinking";
+						}
+						emit(ctrl, "content_block_delta", {
+							type: "content_block_delta",
+							index: blockIndex,
+							delta: { type: "thinking_delta", thinking: reasoning },
+						});
+					}
+
+					if (delta?.content) {
+						if (blockType !== "text") {
+							closeBlock(ctrl);
 							emit(ctrl, "content_block_start", {
 								type: "content_block_start",
 								index: blockIndex,
 								content_block: { type: "text", text: "" },
 							});
-							inBlock = true;
+							blockType = "text";
 						}
 						emit(ctrl, "content_block_delta", {
 							type: "content_block_delta",
 							index: blockIndex,
-							delta: {
-								type: "text_delta",
-								text: delta.content,
-							},
+							delta: { type: "text_delta", text: delta.content },
 						});
 					}
 
@@ -338,7 +362,7 @@ export function createOpenAIToAnthropicStream(
 										input: {},
 									},
 								});
-								inBlock = true;
+								blockType = "tool_use";
 							}
 
 							if (fn?.arguments) {
@@ -361,7 +385,13 @@ export function createOpenAIToAnthropicStream(
 			}
 		},
 		flush(ctrl) {
-			if (!finished && started) finalize(ctrl, "end_turn");
+			if (!finished) {
+				if (started) finalize(ctrl, "end_turn");
+				else {
+					ensureStarted(ctrl);
+					finalize(ctrl, "end_turn");
+				}
+			}
 		},
 	});
 }

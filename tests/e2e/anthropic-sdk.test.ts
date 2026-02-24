@@ -125,6 +125,55 @@ test("Anthropic SDK: tool use", async () => {
 	);
 });
 
+const REASONING_MODEL = "deepseek/deepseek-r1-0528";
+
+test("Anthropic SDK: reasoning → thinking (non-streaming)", async () => {
+	const msg = await client.messages.create({
+		model: REASONING_MODEL,
+		max_tokens: 300,
+		messages: [{ role: "user", content: "What is 15 * 37?" }],
+	});
+
+	const types = msg.content.map((b) => b.type);
+	const thinkingBlock = msg.content.find((b) => b.type === "thinking");
+	assert.ok(thinkingBlock, `Should have thinking block, got: [${types}]`);
+	const thinking = (thinkingBlock as unknown as { thinking: string }).thinking;
+	assert.ok(thinking.length > 0, "Thinking should have content");
+	console.log(`  Blocks: [${types}], Thinking: "${thinking.slice(0, 60)}..."`);
+});
+
+test("Anthropic SDK: reasoning → thinking (streaming)", async () => {
+	const stream = await client.messages.create({
+		model: REASONING_MODEL,
+		max_tokens: 300,
+		messages: [{ role: "user", content: "What is 15 * 37?" }],
+		stream: true,
+	});
+
+	const blockTypes: string[] = [];
+	let thinkingText = "";
+	let contentText = "";
+
+	for await (const event of stream) {
+		if (event.type === "content_block_start") {
+			blockTypes.push(event.content_block.type);
+		}
+		if (event.type === "content_block_delta") {
+			if (event.delta.type === "thinking_delta") {
+				thinkingText += (event.delta as unknown as { thinking: string }).thinking;
+			} else if (event.delta.type === "text_delta") {
+				contentText += event.delta.text;
+			}
+		}
+	}
+
+	assert.ok(blockTypes.includes("thinking"), `Should have thinking block, got: [${blockTypes}]`);
+	assert.ok(thinkingText.length > 0, "Should have thinking content");
+	console.log(
+		`  Blocks: [${blockTypes}], Thinking: "${thinkingText.slice(0, 50)}...", Content: "${contentText.slice(0, 50)}"`,
+	);
+});
+
 test("Anthropic SDK: x-api-key authentication", async () => {
 	const res = await fetch(`${API_BASE}/v1/messages`, {
 		method: "POST",
