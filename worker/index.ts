@@ -1,6 +1,7 @@
 import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
 import adminRouter from "./platform/routes/admin";
@@ -8,11 +9,11 @@ import billingRouter, { webhookRouter } from "./platform/routes/billing";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
 import credentialsRouter from "./routes/credentials";
+import messagesRouter from "./routes/messages";
 import modelsRouter from "./routes/models";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import type { AppEnv, Env } from "./shared/types";
-import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 const CORE_OWNER = "self";
 
@@ -34,7 +35,12 @@ app.use(
 	cors({
 		origin: "*",
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-		allowHeaders: ["Content-Type", "Authorization"],
+		allowHeaders: [
+			"Content-Type",
+			"Authorization",
+			"x-api-key",
+			"anthropic-version",
+		],
 		exposeHeaders: ["x-request-id", "x-provider", "x-credential-id"],
 	}),
 );
@@ -68,10 +74,11 @@ app.use("/api/*", async (c, next) => {
 
 // ─── Auth: Downstream API (/v1/*) ──────────────────────
 app.use("/v1/*", async (c, next) => {
-	const token = c.req
-		.header("Authorization")
-		?.replace(/^Bearer\s+/i, "")
-		.trim();
+	const token =
+		c.req
+			.header("Authorization")
+			?.replace(/^Bearer\s+/i, "")
+			.trim() || c.req.header("x-api-key")?.trim();
 	if (!token) throw new AuthenticationError("Missing authorization token");
 
 	const key = await new ApiKeysDao(c.env.DB).getKey(token);
@@ -132,6 +139,9 @@ app.route("/api/webhooks", webhookRouter);
 // ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);
 app.route("/v1/models", modelsRouter);
+
+// ─── Anthropic-compatible API ───────────────────────────
+app.route("/v1/messages", messagesRouter);
 
 // ─── SPA Fallback ───────────────────────────────────────
 app.notFound(async (c) => {
