@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
+import { formatSignedUSD } from "../utils/format";
 
 interface LedgerEntry {
 	id: string;
@@ -75,13 +76,6 @@ function CategoryBadge({ category }: { category: string }) {
 	);
 }
 
-function formatAmount(value: number): string {
-	if (value === 0) return "$0.00000";
-	const abs = Math.abs(value);
-	const sign = value > 0 ? "+" : "-";
-	if (abs < 0.00001) return `${sign}$0.00001`;
-	return `${sign}$${abs.toFixed(5)}`;
-}
 
 export function Ledger() {
 	const { t } = useTranslation();
@@ -160,7 +154,7 @@ export function Ledger() {
 													: "text-gray-400 dark:text-gray-500"
 										}`}
 									>
-										{formatAmount(entry.amount)}
+										{formatSignedUSD(entry.amount)}
 									</td>
 								</tr>
 							))}

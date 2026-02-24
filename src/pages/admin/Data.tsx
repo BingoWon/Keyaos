@@ -16,8 +16,11 @@ const TABLES = [
 
 function formatCell(value: unknown): string {
 	if (value == null) return "—";
-	if (typeof value === "number" && !Number.isInteger(value))
-		return value.toFixed(6);
+	if (typeof value === "number" && !Number.isInteger(value)) {
+		const abs = Math.abs(value);
+		if (abs >= 0.01) return value.toFixed(2);
+		return String(Number(value.toPrecision(3)));
+	}
 	return String(value);
 }
 

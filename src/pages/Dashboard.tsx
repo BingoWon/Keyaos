@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { isPlatform } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
+import { formatUSD } from "../utils/format";
 
 interface Stats {
 	total: number;
@@ -45,14 +46,14 @@ export function Dashboard() {
 		},
 		{
 			name: t("dashboard.total_quota"),
-			stat: stats ? stats.totalQuota.toFixed(2) : "-",
+			stat: stats ? formatUSD(stats.totalQuota) : "-",
 			icon: CurrencyDollarIcon,
 		},
 		...(isPlatform
 			? [
 					{
 						name: t("dashboard.wallet_balance"),
-						stat: wallet ? `$${wallet.balance.toFixed(2)}` : "-",
+						stat: wallet ? formatUSD(wallet.balance) : "-",
 						icon: CreditCardIcon,
 					},
 				]

@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../../components/PageLoader";
 import { useFetch } from "../../hooks/useFetch";
+import { formatUSD } from "../../utils/format";
 
 interface PlatformOverview {
 	totalRevenue: number;
@@ -30,17 +31,17 @@ export function Overview() {
 		? [
 				{
 					name: t("admin.total_revenue"),
-					value: `$${data.totalRevenue.toFixed(2)}`,
+					value: formatUSD(data.totalRevenue),
 					icon: BanknotesIcon,
 				},
 				{
 					name: t("admin.total_consumption"),
-					value: `$${data.totalConsumption.toFixed(4)}`,
+					value: formatUSD(data.totalConsumption),
 					icon: CreditCardIcon,
 				},
 				{
 					name: t("admin.service_fees"),
-					value: `$${data.totalServiceFees.toFixed(4)}`,
+					value: formatUSD(data.totalServiceFees),
 					icon: ChartBarIcon,
 				},
 				{

@@ -32,7 +32,9 @@ interface ProviderRow {
 
 function formatPrice(price: number) {
 	if (price === 0) return "Free";
-	return `$${(price / 100).toFixed(4).replace(/\.?0+$/, "")}`;
+	const usd = price / 100;
+	if (usd >= 0.01) return `$${usd.toFixed(2)}`;
+	return `$${Number(usd.toPrecision(3))}`;
 }
 
 function formatContext(len: number) {

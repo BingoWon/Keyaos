@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../auth";
 import { PageLoader } from "../../components/PageLoader";
 import { useFetch } from "../../hooks/useFetch";
+import { formatUSD } from "../../utils/format";
 
 interface UserRow {
 	ownerId: string;
@@ -109,13 +110,13 @@ export function Users() {
 										{u.ownerId}
 									</td>
 									<td className="whitespace-nowrap px-3 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
-										${u.balance.toFixed(4)}
+										{formatUSD(u.balance)}
 									</td>
 									<td className="whitespace-nowrap px-3 py-3 text-sm text-right text-gray-500 dark:text-gray-400">
-										${u.totalToppedUp.toFixed(2)}
+										{formatUSD(u.totalToppedUp)}
 									</td>
 									<td className="whitespace-nowrap px-3 py-3 text-sm text-right text-gray-500 dark:text-gray-400">
-										${u.totalConsumed.toFixed(4)}
+										{formatUSD(u.totalConsumed)}
 									</td>
 									<td className="whitespace-nowrap px-3 py-3 text-sm text-right text-gray-500 dark:text-gray-400">
 										{u.credentialsShared}

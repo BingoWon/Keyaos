@@ -6,13 +6,9 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
+import { formatSignedUSD, formatUSD } from "../utils/format";
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
-
-function floorToDecimals(value: number, decimals: number): string {
-	const factor = 10 ** decimals;
-	return (Math.floor(value * factor) / factor).toFixed(decimals);
-}
 
 export function Billing() {
 	const { t } = useTranslation();
@@ -105,7 +101,7 @@ export function Billing() {
 							</p>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
 								$
-								{walletLoading ? "—" : floorToDecimals(wallet?.balance ?? 0, 4)}
+								{walletLoading ? "—" : formatUSD(wallet?.balance ?? 0).slice(1)}
 							</p>
 						</div>
 					</div>
@@ -201,7 +197,7 @@ export function Billing() {
 											{new Date(p.created_at).toLocaleString()}
 										</td>
 										<td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-											+${p.credits.toFixed(2)}
+											{formatSignedUSD(p.credits)}
 										</td>
 										<td className="whitespace-nowrap px-4 py-3 text-sm">
 											<span

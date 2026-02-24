@@ -25,6 +25,7 @@ import { ProviderLogo } from "../components/ProviderLogo";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { CredentialGuide, ProviderMeta } from "../types/provider";
+import { formatUSD } from "../utils/format";
 
 interface CredentialInfo {
 	id: string;
@@ -263,7 +264,7 @@ export function Credentials() {
 	const formatQuota = (cred: CredentialInfo) => {
 		if (isSubscription(cred)) return t("credentials.subscription");
 		if (cred.quota == null) return t("credentials.no_quota");
-		return cred.quota.toFixed(2);
+		return formatUSD(cred.quota);
 	};
 
 	return (
@@ -717,7 +718,7 @@ export function Credentials() {
 												</td>
 												{/* Earnings */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-900 dark:text-white">
-													${cred.earnings.toFixed(4)}
+													{formatUSD(cred.earnings)}
 												</td>
 												{/* Price Multiplier */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
