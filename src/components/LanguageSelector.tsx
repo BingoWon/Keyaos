@@ -25,7 +25,7 @@ export function LanguageSelector() {
 			<MenuItems
 				anchor="bottom end"
 				transition
-				className="z-10 w-36 [--anchor-gap:4px] rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-white/10 transition duration-100 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+				className="z-[100] w-36 [--anchor-gap:4px] rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-white/10 transition duration-100 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
 			>
 				{languages.map((lang) => (
 					<MenuItem key={lang.code}>
