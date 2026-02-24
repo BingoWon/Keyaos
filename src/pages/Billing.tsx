@@ -100,8 +100,7 @@ export function Billing() {
 								{t("billing.balance")}
 							</p>
 							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-								$
-								{walletLoading ? "—" : formatUSD(wallet?.balance ?? 0).slice(1)}
+								{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
 							</p>
 						</div>
 					</div>

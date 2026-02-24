@@ -47,7 +47,6 @@ function DirectionBadge({ direction }: { direction: UsageEntry["direction"] }) {
 	);
 }
 
-
 export function Usage() {
 	const { t } = useTranslation();
 	const formatDateTime = useFormatDateTime();

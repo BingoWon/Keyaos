@@ -76,7 +76,6 @@ function CategoryBadge({ category }: { category: string }) {
 	);
 }
 
-
 export function Ledger() {
 	const { t } = useTranslation();
 	const formatDateTime = useFormatDateTime();
