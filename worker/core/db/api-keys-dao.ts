@@ -8,7 +8,7 @@ export class ApiKeysDao {
 
 		await this.db
 			.prepare(
-				`INSERT INTO api_keys (id, owner_id, name, is_active, created_at)
+				`INSERT INTO api_keys (id, owner_id, name, is_enabled, created_at)
 				 VALUES (?, ?, ?, 1, ?)`,
 			)
 			.bind(id, owner_id, name, Date.now())
@@ -34,6 +34,32 @@ export class ApiKeysDao {
 			.bind(owner_id)
 			.all<DbApiKey>();
 		return res.results || [];
+	}
+
+	async updateKey(
+		id: string,
+		owner_id: string,
+		updates: { name?: string; is_enabled?: number },
+	): Promise<boolean> {
+		const sets: string[] = [];
+		const values: unknown[] = [];
+		if (updates.name !== undefined) {
+			sets.push("name = ?");
+			values.push(updates.name);
+		}
+		if (updates.is_enabled !== undefined) {
+			sets.push("is_enabled = ?");
+			values.push(updates.is_enabled);
+		}
+		if (sets.length === 0) return false;
+
+		const result = await this.db
+			.prepare(
+				`UPDATE api_keys SET ${sets.join(", ")} WHERE id = ? AND owner_id = ?`,
+			)
+			.bind(...values, id, owner_id)
+			.run();
+		return (result.meta?.changes ?? 0) > 0;
 	}
 
 	async deleteKey(id: string, owner_id: string): Promise<boolean> {

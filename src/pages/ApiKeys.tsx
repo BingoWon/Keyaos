@@ -1,4 +1,12 @@
-import { PlusIcon } from "@heroicons/react/20/solid";
+import {
+	CheckIcon,
+	ClipboardDocumentIcon,
+	EyeIcon,
+	EyeSlashIcon,
+	PencilSquareIcon,
+	PlusIcon,
+	XMarkIcon,
+} from "@heroicons/react/20/solid";
 import type React from "react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -9,10 +17,15 @@ import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 
 interface ApiKeyInfo {
-	id: string; // sk-keyaos-...
+	id: string;
 	name: string;
-	is_active: number;
+	is_enabled: number;
 	created_at: number;
+}
+
+function maskKey(id: string): string {
+	if (id.length <= 16) return id;
+	return `${id.slice(0, 10)}...${id.slice(-4)}`;
 }
 
 export function ApiKeys() {
@@ -23,33 +36,62 @@ export function ApiKeys() {
 	const {
 		data: apiKeys,
 		loading,
-		refetch: fetchApiKeys,
+		refetch,
 	} = useFetch<ApiKeyInfo[]>("/api/api-keys");
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [newName, setNewName] = useState("");
+	const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+	const [editingId, setEditingId] = useState<string | null>(null);
+	const [editName, setEditName] = useState("");
+
+	const getHeaders = async () => ({
+		"Content-Type": "application/json",
+		Authorization: `Bearer ${await getToken()}`,
+	});
 
 	const handleAdd = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const token = await getToken();
 			const res = await fetch("/api/api-keys", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
+				headers: await getHeaders(),
 				body: JSON.stringify({ name: newName }),
 			});
 			const result = await res.json();
 			if (res.ok) {
 				setIsAddOpen(false);
 				setNewName("");
-				fetchApiKeys();
+				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(result.error?.message || res.statusText, { id: tid });
+			}
+		} catch (err) {
+			console.error(err);
+			toast.error(t("common.error"), { id: tid });
+		}
+	};
+
+	const handleUpdate = async (
+		id: string,
+		updates: { name?: string; isEnabled?: number },
+	) => {
+		const tid = toast.loading(t("common.loading"));
+		try {
+			const res = await fetch(`/api/api-keys/${id}`, {
+				method: "PATCH",
+				headers: await getHeaders(),
+				body: JSON.stringify(updates),
+			});
+			if (res.ok) {
+				setEditingId(null);
+				refetch();
+				toast.success(t("common.success"), { id: tid });
+			} else {
+				const data = await res.json();
+				toast.error(data.error?.message || res.statusText, { id: tid });
 			}
 		} catch (err) {
 			console.error(err);
@@ -61,16 +103,12 @@ export function ApiKeys() {
 		if (!confirm(`${t("common.confirm")}?`)) return;
 		const tid = toast.loading(t("common.loading"));
 		try {
-			const token = await getToken();
 			const res = await fetch(`/api/api-keys/${id}`, {
 				method: "DELETE",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
+				headers: await getHeaders(),
 			});
 			if (res.ok) {
-				fetchApiKeys();
+				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				toast.error(t("common.error"), { id: tid });
@@ -79,6 +117,15 @@ export function ApiKeys() {
 			console.error(err);
 			toast.error(t("common.error"), { id: tid });
 		}
+	};
+
+	const toggleReveal = (id: string) => {
+		setRevealedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
 	};
 
 	return (
@@ -124,7 +171,7 @@ export function ApiKeys() {
 								value={newName}
 								onChange={(e) => setNewName(e.target.value)}
 								className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-								placeholder="e.g. Test Key"
+								placeholder="e.g. Production"
 							/>
 						</div>
 						<div className="flex gap-2 w-full sm:w-auto">
@@ -157,13 +204,13 @@ export function ApiKeys() {
 											{t("api_keys.name")}
 										</th>
 										<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-											{t("api_keys.token")}
-										</th>
-										<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-											{t("api_keys.status")}
+											{t("api_keys.key")}
 										</th>
 										<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
 											{t("api_keys.created_at")}
+										</th>
+										<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
+											{t("api_keys.enabled")}
 										</th>
 										<th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
 											<span className="sr-only">{t("common.actions")}</span>
@@ -188,27 +235,119 @@ export function ApiKeys() {
 										</tr>
 									) : (
 										apiKeys.map((k) => (
-											<tr key={k.id}>
+											<tr
+												key={k.id}
+												className={k.is_enabled ? "" : "opacity-50"}
+											>
+												{/* Name (editable) */}
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
-													{k.name}
-												</td>
-												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
-													{k.id}
-												</td>
-												<td className="whitespace-nowrap px-3 py-4 text-sm">
-													{k.is_active ? (
-														<span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-															Active
-														</span>
+													{editingId === k.id ? (
+														<div className="flex items-center gap-2">
+															<input
+																type="text"
+																value={editName}
+																onChange={(e) => setEditName(e.target.value)}
+																className="w-32 rounded-md border-gray-300 py-1 px-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+															/>
+															<button
+																type="button"
+																onClick={() =>
+																	handleUpdate(k.id, { name: editName })
+																}
+																className="text-green-600 hover:text-green-900 dark:text-green-400"
+																title={t("common.save")}
+															>
+																<CheckIcon className="size-5" />
+															</button>
+															<button
+																type="button"
+																onClick={() => setEditingId(null)}
+																className="text-red-500 hover:text-red-700 dark:text-red-400"
+																title={t("common.cancel")}
+															>
+																<XMarkIcon className="size-5" />
+															</button>
+														</div>
 													) : (
-														<span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-															Inactive
+														<span className="flex items-center">
+															{k.name}
+															<button
+																type="button"
+																onClick={() => {
+																	setEditingId(k.id);
+																	setEditName(k.name);
+																}}
+																className="ml-2 text-gray-400 hover:text-indigo-500"
+																title={t("common.edit")}
+															>
+																<PencilSquareIcon className="size-4" />
+															</button>
 														</span>
 													)}
 												</td>
+												{/* Key (masked + reveal + copy) */}
+												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
+													<div className="flex items-center gap-2">
+														<span>
+															{revealedIds.has(k.id) ? k.id : maskKey(k.id)}
+														</span>
+														<button
+															type="button"
+															onClick={() => toggleReveal(k.id)}
+															className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+															title={
+																revealedIds.has(k.id) ? "Hide" : "Reveal"
+															}
+														>
+															{revealedIds.has(k.id) ? (
+																<EyeSlashIcon className="size-4" />
+															) : (
+																<EyeIcon className="size-4" />
+															)}
+														</button>
+														<button
+															type="button"
+															onClick={() => {
+																navigator.clipboard.writeText(k.id);
+																toast.success(t("api_keys.copied"));
+															}}
+															className="text-gray-400 hover:text-indigo-500"
+															title="Copy"
+														>
+															<ClipboardDocumentIcon className="size-4" />
+														</button>
+													</div>
+												</td>
+												{/* Created */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
 													{formatDateTime(k.created_at)}
 												</td>
+												{/* Enabled toggle */}
+												<td className="whitespace-nowrap px-3 py-4 text-sm">
+													<label className="inline-flex items-center cursor-pointer">
+														<input
+															type="checkbox"
+															className="sr-only peer"
+															checked={!!k.is_enabled}
+															onChange={(e) =>
+																handleUpdate(k.id, {
+																	isEnabled: e.target.checked ? 1 : 0,
+																})
+															}
+														/>
+														<div className="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600" />
+														<span
+															className={`ml-2 text-xs font-medium ${k.is_enabled ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"}`}
+														>
+															{t(
+																k.is_enabled
+																	? "api_keys.enabled_true"
+																	: "api_keys.enabled_false",
+															)}
+														</span>
+													</label>
+												</td>
+												{/* Actions */}
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
 													<button
 														type="button"

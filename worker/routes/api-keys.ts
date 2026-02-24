@@ -9,6 +9,11 @@ const CreateKeyBody = z.object({
 	name: z.string().min(1, "name is required"),
 });
 
+const UpdateKeyBody = z.object({
+	name: z.string().min(1).optional(),
+	isEnabled: z.number().min(0).max(1).optional(),
+});
+
 const apiKeysRouter = new Hono<AppEnv>();
 
 apiKeysRouter.post("/", async (c) => {
@@ -29,6 +34,30 @@ apiKeysRouter.get("/", async (c) => {
 	const dao = new ApiKeysDao(c.env.DB);
 	const keys = await dao.listKeys(c.get("owner_id"));
 	return c.json({ data: keys });
+});
+
+apiKeysRouter.patch("/:id", async (c) => {
+	const body = parse(
+		UpdateKeyBody,
+		await c.req.json().catch(() => {
+			throw new BadRequestError("Invalid JSON body");
+		}),
+	);
+
+	const dao = new ApiKeysDao(c.env.DB);
+	const success = await dao.updateKey(c.req.param("id"), c.get("owner_id"), {
+		name: body.name,
+		is_enabled: body.isEnabled,
+	});
+	if (!success) {
+		throw new ApiError(
+			"API Key not found",
+			404,
+			"not_found",
+			"api_key_not_found",
+		);
+	}
+	return c.json({ message: "API Key updated" });
 });
 
 apiKeysRouter.delete("/:id", async (c) => {

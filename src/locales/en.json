@@ -43,12 +43,15 @@
 	},
 	"api_keys": {
 		"title": "API Keys",
-		"subtitle": "Downstream client tokens for your users",
+		"subtitle": "Downstream access keys for your clients",
 		"add_new": "Create Key",
 		"name": "Name",
-		"token": "Token",
-		"status": "Status",
-		"created_at": "Created At",
+		"key": "Key",
+		"created_at": "Created",
+		"enabled": "Enabled",
+		"enabled_true": "Enabled",
+		"enabled_false": "Disabled",
+		"copied": "Copied",
 		"no_data": "No API keys yet"
 	},
 	"credentials": {

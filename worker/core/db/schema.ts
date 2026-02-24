@@ -2,7 +2,7 @@ export interface DbApiKey {
 	id: string;
 	owner_id: string;
 	name: string;
-	is_active: number;
+	is_enabled: number;
 	created_at: number;
 }
 

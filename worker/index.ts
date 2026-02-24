@@ -74,7 +74,7 @@ app.use("/v1/*", async (c, next) => {
 	if (!token) throw new AuthenticationError("Missing authorization token");
 
 	const key = await new ApiKeysDao(c.env.DB).getKey(token);
-	if (key?.is_active === 1) {
+	if (key?.is_enabled === 1) {
 		c.set("owner_id", key.owner_id);
 		return next();
 	}

@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
     name TEXT NOT NULL,
-    is_active INTEGER DEFAULT 1,
+    is_enabled INTEGER DEFAULT 1,
     created_at INTEGER NOT NULL
 );
 
