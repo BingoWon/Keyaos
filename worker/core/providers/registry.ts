@@ -192,6 +192,10 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		creditsUrl: "https://openrouter.ai/api/v1/credits",
 		validationUrl: "https://openrouter.ai/api/v1/auth/key",
 		parseModels: parseOpenRouterModels,
+		extraHeaders: {
+			"HTTP-Referer": "https://github.com/BingoWon/Keyaos",
+			"X-Title": "Keyaos",
+		},
 		credentialGuide: {
 			placeholder: "sk-or-v1-...",
 			secretPattern: "^sk-or-v1-[a-f0-9]+$",
