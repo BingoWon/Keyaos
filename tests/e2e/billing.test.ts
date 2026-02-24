@@ -12,20 +12,8 @@
  */
 
 import assert from "node:assert";
-import { execSync } from "node:child_process";
 import { describe, test } from "node:test";
-
-const API_BASE = process.env.API_BASE || "http://localhost:5173";
-const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
-if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
-
-function dbQuery(sql: string): unknown[] {
-	const raw = execSync(
-		`npx wrangler d1 execute keyaos-db --local --command "${sql.replace(/"/g, '\\"')}" --json 2>/dev/null`,
-		{ cwd: process.cwd(), encoding: "utf-8" },
-	);
-	return JSON.parse(raw)[0]?.results ?? [];
-}
+import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils";
 
 function getBalance(ownerId: string): number {
 	const rows = dbQuery(
@@ -48,7 +36,6 @@ describe("Platform billing: cross-user settlement", () => {
 			`Consumer balance must be positive, got ${beforeConsumer}`,
 		);
 
-		// Snapshot ALL wallet balances before the request
 		const allBalances = new Map<string, number>();
 		const wallets = dbQuery("SELECT owner_id, balance FROM wallets") as {
 			owner_id: string;
@@ -86,7 +73,6 @@ describe("Platform billing: cross-user settlement", () => {
 
 		const beforeProvider = allBalances.get(providerId) ?? 0;
 
-		// Wait for async billing via waitUntil
 		await new Promise((r) => setTimeout(r, 3000));
 
 		const afterConsumer = getBalance(consumerId);

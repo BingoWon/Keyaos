@@ -2,17 +2,7 @@
  * Dispatch mechanism e2e tests
  *
  * Verifies that the dispatcher selects credentials based on effective cost
- * (base_price × price_multiplier), preferring lower multipliers.
- *
- * Database state (16 credentials, all < 1.0):
- *   Subscription (0.5): antigravity, gemini-cli, kiro, qwen-code
- *   Non-subscription pairs:
- *     openrouter    0.5 / 0.7
- *     deepinfra     0.5 / 0.7
- *     google-ai-studio 0.5 / 0.7
- *     zenmux        0.6 / 0.8
- *     deepseek      0.6 / 0.8
- *     oaipro        0.6 / 0.8
+ * (base_price x price_multiplier), preferring lower multipliers.
  *
  * Prerequisites:
  * - Local dev server running (pnpm dev)
@@ -20,20 +10,8 @@
  */
 
 import assert from "node:assert";
-import { execSync } from "node:child_process";
 import { describe, test } from "node:test";
-
-const API_BASE = process.env.API_BASE || "http://localhost:5173";
-const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
-if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
-
-function dbQuery(sql: string): unknown[] {
-	const raw = execSync(
-		`npx wrangler d1 execute keyaos-db --local --command "${sql.replace(/"/g, '\\"')}" --json 2>/dev/null`,
-		{ cwd: process.cwd(), encoding: "utf-8" },
-	);
-	return JSON.parse(raw)[0]?.results ?? [];
-}
+import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils";
 
 interface CredRow {
 	id: string;
@@ -74,8 +52,6 @@ async function chat(
 	};
 }
 
-// ─── Test 1: Same provider, lower multiplier wins ───────
-
 describe("Dispatch: same-provider ordering by price_multiplier", () => {
 	test("OpenRouter: 0.5 credential selected over 0.7", async () => {
 		const creds = dbQuery(
@@ -83,11 +59,11 @@ describe("Dispatch: same-provider ordering by price_multiplier", () => {
 		) as CredRow[];
 
 		assert.ok(creds.length >= 2, `Need 2 OpenRouter creds, found ${creds.length}`);
-		const cheapest = creds[0]; // 0.5
+		const cheapest = creds[0];
 
 		const result = await chat("openai/gpt-4o-mini", "openrouter");
 		console.log(
-			`  creds: ${creds.map((c) => `${c.id.slice(-8)}@${c.price_multiplier}`).join(", ")} → selected=${result.credentialId.slice(-8)}`,
+			`  creds: ${creds.map((c) => `${c.id.slice(-8)}@${c.price_multiplier}`).join(", ")} -> selected=${result.credentialId.slice(-8)}`,
 		);
 
 		assert.strictEqual(result.status, 200, `Chat failed: ${result.body}`);
@@ -104,11 +80,11 @@ describe("Dispatch: same-provider ordering by price_multiplier", () => {
 		) as CredRow[];
 
 		assert.ok(creds.length >= 2, `Need 2 DeepSeek creds, found ${creds.length}`);
-		const cheapest = creds[0]; // 0.6
+		const cheapest = creds[0];
 
 		const result = await chat("deepseek/deepseek-chat", "deepseek");
 		console.log(
-			`  creds: ${creds.map((c) => `${c.id.slice(-8)}@${c.price_multiplier}`).join(", ")} → selected=${result.credentialId.slice(-8)}`,
+			`  creds: ${creds.map((c) => `${c.id.slice(-8)}@${c.price_multiplier}`).join(", ")} -> selected=${result.credentialId.slice(-8)}`,
 		);
 
 		assert.strictEqual(result.status, 200, `Chat failed: ${result.body}`);
@@ -120,13 +96,8 @@ describe("Dispatch: same-provider ordering by price_multiplier", () => {
 	});
 });
 
-// ─── Test 2: Cross-provider effective cost comparison ───
-
 describe("Dispatch: cross-provider effective cost", () => {
 	test("openai/gpt-4o-mini: provider with lowest effective cost wins", async () => {
-		// gpt-4o-mini is available on: openrouter(0.5), zenmux(0.6), oaipro(0.6), openai(N/A if no cred)
-		// openrouter base=250 * 0.5 = 125, zenmux base=250 * 0.6 = 150
-		// openrouter should win
 		const result = await chat("openai/gpt-4o-mini");
 		console.log(
 			`  selected provider=${result.provider}, cred=${result.credentialId.slice(-8)}`,
@@ -134,8 +105,6 @@ describe("Dispatch: cross-provider effective cost", () => {
 
 		assert.strictEqual(result.status, 200, `Chat failed: ${result.body}`);
 
-		// With these multipliers, openrouter@0.5 or deepinfra@0.5 should have lowest effective cost
-		// The actual winner depends on base prices in model_pricing
 		const prices = dbQuery(
 			"SELECT provider, input_price FROM model_pricing WHERE model_id = 'openai/gpt-4o-mini' AND is_active = 1 ORDER BY input_price ASC",
 		) as { provider: string; input_price: number }[];
@@ -166,15 +135,12 @@ describe("Dispatch: cross-provider effective cost", () => {
 	});
 });
 
-// ─── Test 3: Ledger records the correct credential ──────
-
 describe("Dispatch: billing correctness", () => {
 	test("Ledger entry matches selected credential", async () => {
 		const result = await chat("openai/gpt-4o-mini", "openrouter");
 		assert.strictEqual(result.status, 200, `Chat failed: ${result.body}`);
 		assert.ok(result.credentialId, "Missing x-credential-id header");
 
-		// Wait for async billing via waitUntil
 		await new Promise((r) => setTimeout(r, 2000));
 
 		const usageRows = dbQuery(
@@ -193,8 +159,6 @@ describe("Dispatch: billing correctness", () => {
 		);
 	});
 });
-
-// ─── Test 4: Basic resilience ───────────────────────────
 
 describe("Dispatch: resilience", () => {
 	test("DeepSeek model responds successfully via dispatch", async () => {

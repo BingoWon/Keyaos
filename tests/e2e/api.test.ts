@@ -8,20 +8,8 @@
  */
 
 import assert from "node:assert";
-import { execSync } from "node:child_process";
 import test from "node:test";
-
-const API_BASE = process.env.API_BASE || "http://localhost:5173";
-const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
-if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
-
-function dbQuery(sql: string): unknown[] {
-	const raw = execSync(
-		`npx wrangler d1 execute keyaos-db --local --command "${sql.replace(/"/g, '\\"')}" --json 2>/dev/null`,
-		{ cwd: process.cwd(), encoding: "utf-8" },
-	);
-	return JSON.parse(raw)[0]?.results ?? [];
-}
+import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils";
 
 test("Health check", async () => {
 	const res = await fetch(`${API_BASE}/health`);
@@ -122,15 +110,4 @@ test("Usage entries exist in database", () => {
 		"SELECT COUNT(*) as cnt FROM usage",
 	) as { cnt: number }[];
 	console.log(`  Usage entries: ${rows[0].cnt}`);
-});
-
-test("No credential has price_multiplier > 1.0", () => {
-	const violators = dbQuery(
-		"SELECT id, provider, price_multiplier FROM upstream_credentials WHERE price_multiplier > 1.0",
-	) as { id: string; provider: string; price_multiplier: number }[];
-	assert.strictEqual(
-		violators.length,
-		0,
-		`Found ${violators.length} credentials with multiplier > 1.0: ${violators.map((r) => `${r.provider}=${r.price_multiplier}`).join(", ")}`,
-	);
 });

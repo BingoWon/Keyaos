@@ -22,6 +22,7 @@ import { useAuth } from "../auth";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { CredentialGuide, ProviderMeta } from "../types/provider";
@@ -788,30 +789,21 @@ export function Credentials() {
 												</td>
 												{/* Enabled */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-													<label className="inline-flex items-center cursor-pointer">
-														<input
-															type="checkbox"
-															className="sr-only peer"
-															checked={cred.isEnabled}
-															onChange={(e) =>
-																handleUpdateSettings(
-																	cred.id,
-																	e.target.checked,
-																	cred.priceMultiplier,
-																)
-															}
-														/>
-														<div className="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600" />
-														<span
-															className={`ml-2 text-xs font-medium ${cred.isEnabled ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"}`}
-														>
-															{t(
-																cred.isEnabled
-																	? "credentials.enabled_true"
-																	: "credentials.enabled_false",
-															)}
-														</span>
-													</label>
+													<ToggleSwitch
+														enabled={cred.isEnabled}
+														onChange={(val) =>
+															handleUpdateSettings(
+																cred.id,
+																val,
+																cred.priceMultiplier,
+															)
+														}
+														label={t(
+															cred.isEnabled
+																? "credentials.enabled_true"
+																: "credentials.enabled_false",
+														)}
+													/>
 												</td>
 												{/* Actions */}
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

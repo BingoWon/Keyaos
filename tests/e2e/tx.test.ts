@@ -6,20 +6,8 @@
  */
 
 import assert from "node:assert";
-import { execSync } from "node:child_process";
 import { test } from "node:test";
-
-const API_BASE = process.env.API_BASE || "http://localhost:5173";
-const KEYAOS_KEY = process.env.KEYAOS_API_KEY;
-if (!KEYAOS_KEY) throw new Error("KEYAOS_API_KEY env var is required");
-
-function dbQuery(sql: string): unknown[] {
-	const raw = execSync(
-		`npx wrangler d1 execute keyaos-db --local --command "${sql.replace(/"/g, '\\"')}" --json 2>/dev/null`,
-		{ cwd: process.cwd(), encoding: "utf-8" },
-	);
-	return JSON.parse(raw)[0]?.results ?? [];
-}
+import { API_BASE, KEYAOS_KEY, dbQuery } from "./utils";
 
 test("Usage entry created after chat completion with correct credential", async () => {
 	const beforeCount = (
@@ -43,7 +31,6 @@ test("Usage entry created after chat completion with correct credential", async 
 	const usedCredId = res.headers.get("x-credential-id");
 	assert.ok(usedCredId, "Missing x-credential-id header");
 
-	// waitUntil fires async — poll until new usage entry appears
 	let entry: { credential_id: string; base_cost: number } | undefined;
 	for (let i = 0; i < 10; i++) {
 		await new Promise((r) => setTimeout(r, 500));

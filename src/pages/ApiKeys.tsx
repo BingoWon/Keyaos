@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
+import { ToggleSwitch } from "../components/ToggleSwitch";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 
@@ -324,28 +325,19 @@ export function ApiKeys() {
 												</td>
 												{/* Enabled toggle */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
-													<label className="inline-flex items-center cursor-pointer">
-														<input
-															type="checkbox"
-															className="sr-only peer"
-															checked={!!k.is_enabled}
-															onChange={(e) =>
-																handleUpdate(k.id, {
-																	isEnabled: e.target.checked ? 1 : 0,
-																})
-															}
-														/>
-														<div className="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600" />
-														<span
-															className={`ml-2 text-xs font-medium ${k.is_enabled ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-400"}`}
-														>
-															{t(
-																k.is_enabled
-																	? "api_keys.enabled_true"
-																	: "api_keys.enabled_false",
-															)}
-														</span>
-													</label>
+													<ToggleSwitch
+														enabled={!!k.is_enabled}
+														onChange={(val) =>
+															handleUpdate(k.id, {
+																isEnabled: val ? 1 : 0,
+															})
+														}
+														label={t(
+															k.is_enabled
+																? "api_keys.enabled_true"
+																: "api_keys.enabled_false",
+														)}
+													/>
 												</td>
 												{/* Actions */}
 												<td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

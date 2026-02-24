@@ -7,16 +7,9 @@
  * Works in Cloudflare Workers (no Node.js Buffer/zlib dependency).
  */
 
-// ─── Request: OpenAI → Kiro ─────────────────────────────
+import { extractText } from "./shared";
 
-function extractText(content: unknown): string {
-	if (typeof content === "string") return content;
-	if (!Array.isArray(content)) return String(content ?? "");
-	return content
-		.filter((p) => p?.type === "text")
-		.map((p) => p.text)
-		.join("");
-}
+// ─── Request: OpenAI → Kiro ─────────────────────────────
 
 interface KiroMessage {
 	userInputMessage?: { content: string; modelId: string; origin: string };

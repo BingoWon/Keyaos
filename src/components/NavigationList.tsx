@@ -9,7 +9,7 @@ import {
 	ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { isPlatform, useAuth } from "../auth";
 import { classNames } from "../utils/classNames";
 import { LanguageSelector } from "./LanguageSelector";
@@ -20,12 +20,11 @@ interface NavigationListProps {
 }
 
 export function NavigationList({ onNavigate }: NavigationListProps) {
-	const location = useLocation();
 	const { t } = useTranslation();
 	const { isAdmin } = useAuth();
 
 	const navigation = [
-		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon },
+		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon, end: true },
 		{ name: t("nav.models"), href: "/dashboard/models", icon: CpuChipIcon },
 		{
 			name: t("nav.credentials"),
@@ -68,37 +67,38 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			<ul className="flex flex-1 flex-col gap-y-7">
 				<li>
 					<ul className="-mx-2 space-y-1">
-						{navigation.map((item) => {
-							const current =
-								item.href === "/dashboard"
-									? location.pathname === "/dashboard"
-									: location.pathname.startsWith(item.href);
-							return (
-								<li key={item.name}>
-									<Link
-										to={item.href}
-										onClick={onNavigate}
-										className={classNames(
-											current
+						{navigation.map((item) => (
+							<li key={item.name}>
+								<NavLink
+									to={item.href}
+									end={"end" in item ? item.end : undefined}
+									onClick={onNavigate}
+									className={({ isActive }) =>
+										classNames(
+											isActive
 												? "bg-gray-50 text-indigo-600 dark:bg-white/5 dark:text-white"
 												: "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
 											"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold",
-										)}
-									>
-										<item.icon
-											aria-hidden="true"
-											className={classNames(
-												current
-													? "text-indigo-600 dark:text-white"
-													: "text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white",
-												"size-6 shrink-0",
-											)}
-										/>
-										{item.name}
-									</Link>
-								</li>
-							);
-						})}
+										)
+									}
+								>
+									{({ isActive }) => (
+										<>
+											<item.icon
+												aria-hidden="true"
+												className={classNames(
+													isActive
+														? "text-indigo-600 dark:text-white"
+														: "text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white",
+													"size-6 shrink-0",
+												)}
+											/>
+											{item.name}
+										</>
+									)}
+								</NavLink>
+							</li>
+						))}
 					</ul>
 				</li>
 				<li className="-mx-6 mt-auto">

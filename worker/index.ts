@@ -12,6 +12,7 @@ import modelsRouter from "./routes/models";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import type { AppEnv, Env } from "./shared/types";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 const CORE_OWNER = "self";
 
@@ -19,7 +20,7 @@ const app = new Hono<AppEnv>();
 
 app.onError((err, c) => {
 	if (err instanceof ApiError) {
-		return c.json(err.toJSON(), err.statusCode as 400);
+		return c.json(err.toJSON(), err.statusCode as ContentfulStatusCode);
 	}
 	console.error("[UNHANDLED]", err);
 	return c.json(
