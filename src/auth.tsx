@@ -4,6 +4,7 @@ import {
 	UserButton,
 	useAuth as useClerkAuth,
 } from "@clerk/clerk-react";
+import { enUS, zhCN } from "@clerk/localizations";
 import { dark } from "@clerk/themes";
 import {
 	createContext,
@@ -13,6 +14,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 
 /** True when Clerk is configured → Platform (multi-tenant) mode */
 export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -128,8 +130,11 @@ function useDarkMode() {
 
 // ─── AuthProvider (auto-selects by env) ─────────────────
 
+const clerkLocales: Record<string, typeof enUS> = { en: enUS, zh: zhCN };
+
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const isDark = useDarkMode();
+	const { i18n } = useTranslation();
 
 	if (isPlatform) {
 		return (
@@ -137,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
 				afterSignOutUrl="/login"
 				signInForceRedirectUrl="/dashboard"
+				localization={clerkLocales[i18n.language] ?? enUS}
 				appearance={{
 					baseTheme: isDark ? dark : undefined,
 					layout: { socialButtonsVariant: "blockButton" },

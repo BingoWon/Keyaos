@@ -74,7 +74,7 @@ export function Data() {
 			{loading ? (
 				<PageLoader />
 			) : rows.length === 0 ? (
-				<p className="text-sm text-gray-500">{t("admin.no_data")}</p>
+				<p className="text-sm text-gray-500 dark:text-gray-400">{t("admin.no_data")}</p>
 			) : (
 				<>
 					<div className="overflow-x-auto shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">

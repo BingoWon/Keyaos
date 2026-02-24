@@ -77,7 +77,7 @@ export function Users() {
 			{loading ? (
 				<PageLoader />
 			) : !users?.length ? (
-				<p className="text-sm text-gray-500">{t("admin.no_users")}</p>
+				<p className="text-sm text-gray-500 dark:text-gray-400">{t("admin.no_users")}</p>
 			) : (
 				<div className="overflow-x-auto shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">
 					<table className="min-w-full divide-y divide-gray-300 dark:divide-white/10">

@@ -11,6 +11,9 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.61.1
         version: 5.61.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@clerk/localizations':
+        specifier: ^3.37.0
+        version: 3.37.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@clerk/themes':
         specifier: ^2.4.55
         version: 2.4.55(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -247,6 +250,10 @@ packages:
     peerDependencies:
       react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
       react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
+
+  '@clerk/localizations@3.37.0':
+    resolution: {integrity: sha512-jiv5rFKGgu6n6Ex2VEJ3GyUSAd3YHlyykT/BUKEXCtoWnGMVZFh2RRIhzT177+YagZyrJq//mU6vO9jagMfaEg==}
+    engines: {node: '>=18.17.0'}
 
   '@clerk/shared@3.47.0':
     resolution: {integrity: sha512-EDWFysptTc58X96MGQIZ3LlcMFKLG+rhIF9kf6n+wnyQDWnfuyA8I8ge7GbjfUXMf00c//A/CGSjg7t/oupUpw==}
@@ -1810,6 +1817,13 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       tslib: 2.8.1
+
+  '@clerk/localizations@3.37.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@clerk/types': 4.101.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+    transitivePeerDependencies:
+      - react
+      - react-dom
 
   '@clerk/shared@3.47.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
