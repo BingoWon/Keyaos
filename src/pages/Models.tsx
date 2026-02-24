@@ -1,3 +1,4 @@
+import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -81,73 +82,125 @@ function ModelCard({
 	group: ModelGroup;
 	providerMap: Map<string, ProviderMeta>;
 }) {
+	const [open, setOpen] = useState(false);
+	const best = group.providers[0];
+	const maxContext = Math.max(...group.providers.map((p) => p.contextLength));
+
 	return (
 		<div className="rounded-lg ring-1 ring-gray-200 dark:ring-white/10 overflow-hidden">
-			<div className="px-4 py-3 sm:px-5 flex items-start justify-between gap-3 bg-gray-50 dark:bg-white/[0.03]">
-				<div className="min-w-0">
+			{/* Collapsed summary — always visible */}
+			<button
+				type="button"
+				onClick={() => setOpen(!open)}
+				className="w-full px-4 py-3 sm:px-5 flex items-center gap-3 bg-gray-50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors text-left"
+			>
+				<ChevronRightIcon
+					className={`size-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`}
+				/>
+				<div className="min-w-0 flex-1">
 					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
 						{group.displayName}
 					</h4>
-					<div className="mt-0.5 flex items-center gap-1.5">
-						<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
-							{group.id}
-						</code>
-						<CopyButton text={group.id} />
-					</div>
+					<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
+						{group.id}
+					</code>
+				</div>
+				{/* Provider logos (stacked) */}
+				<div className="hidden sm:flex items-center -space-x-1.5">
+					{group.providers.slice(0, 5).map((p) => {
+						const meta = providerMap.get(p.provider);
+						return meta ? (
+							<ProviderLogo
+								key={p.provider}
+								src={meta.logoUrl}
+								name={meta.name}
+								size={18}
+							/>
+						) : null;
+					})}
+					{group.providers.length > 5 && (
+						<span className="ml-1 text-xs text-gray-400">
+							+{group.providers.length - 5}
+						</span>
+					)}
+				</div>
+				{/* Summary stats */}
+				<div className="hidden sm:flex items-center gap-4 text-xs font-mono text-gray-500 dark:text-gray-400 shrink-0">
+					<span title="Cheapest input /1M">{formatPrice(best.inputPrice)}</span>
+					<span className="text-gray-300 dark:text-gray-600">/</span>
+					<span title="Cheapest output /1M">
+						{formatPrice(best.outputPrice)}
+					</span>
+					{maxContext > 0 && (
+						<>
+							<span className="text-gray-300 dark:text-gray-600">·</span>
+							<span>{formatContext(maxContext)}</span>
+						</>
+					)}
 				</div>
 				<span className="shrink-0 inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
 					{group.providers.length}
 				</span>
-			</div>
+			</button>
 
-			<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-				<thead>
-					<tr className="text-left text-xs font-medium text-gray-500 dark:text-gray-500">
-						<th className="py-2 pl-4 pr-2 sm:pl-5">Provider</th>
-						<th className="px-2 text-right">Input /1M</th>
-						<th className="px-2 text-right">Output /1M</th>
-						<th className="py-2 pl-2 pr-4 sm:pr-5 text-right">Context</th>
-					</tr>
-				</thead>
-				<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-					{group.providers.map((p, i) => (
-						<tr
-							key={p.provider}
-							className={
-								i === 0 ? "bg-green-50/40 dark:bg-green-500/[0.04]" : undefined
-							}
-						>
-							<td className="py-2 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-								{(() => {
-									const meta = providerMap.get(p.provider);
-									return (
-										<span className="inline-flex items-center gap-1.5">
-											{meta && (
-												<ProviderLogo
-													src={meta.logoUrl}
-													name={meta.name}
-													size={16}
-												/>
-											)}
-											{meta?.name ?? p.provider}
-											<CopyButton text={p.provider} />
-										</span>
-									);
-								})()}
-							</td>
-							<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-								{formatPrice(p.inputPrice)}
-							</td>
-							<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-								{formatPrice(p.outputPrice)}
-							</td>
-							<td className="py-2 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-								{formatContext(p.contextLength)}
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
+			{/* Expanded detail table */}
+			{open && (
+				<>
+					<div className="px-4 sm:px-5 pt-1 pb-1.5 flex items-center gap-1.5">
+						<CopyButton text={group.id} />
+					</div>
+					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+						<thead>
+							<tr className="text-left text-xs font-medium text-gray-500 dark:text-gray-500">
+								<th className="py-2 pl-4 pr-2 sm:pl-5">Provider</th>
+								<th className="px-2 text-right">Input /1M</th>
+								<th className="px-2 text-right">Output /1M</th>
+								<th className="py-2 pl-2 pr-4 sm:pr-5 text-right">Context</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+							{group.providers.map((p, i) => (
+								<tr
+									key={p.provider}
+									className={
+										i === 0
+											? "bg-green-50/40 dark:bg-green-500/[0.04]"
+											: undefined
+									}
+								>
+									<td className="py-2 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
+										{(() => {
+											const meta = providerMap.get(p.provider);
+											return (
+												<span className="inline-flex items-center gap-1.5">
+													{meta && (
+														<ProviderLogo
+															src={meta.logoUrl}
+															name={meta.name}
+															size={16}
+														/>
+													)}
+													{meta?.name ?? p.provider}
+													<CopyButton text={p.provider} />
+												</span>
+											);
+										})()}
+									</td>
+									<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+										{formatPrice(p.inputPrice)}
+									</td>
+									<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+										{formatPrice(p.outputPrice)}
+									</td>
+									<td className="py-2 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+										{formatContext(p.contextLength)}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</>
+			)}
 		</div>
 	);
 }
