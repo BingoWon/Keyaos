@@ -13,6 +13,7 @@ import messagesRouter from "./routes/messages";
 import modelsRouter from "./routes/models";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
+import { log } from "./shared/logger";
 import type { AppEnv, Env } from "./shared/types";
 
 const CORE_OWNER = "self";
@@ -23,7 +24,9 @@ app.onError((err, c) => {
 	if (err instanceof ApiError) {
 		return c.json(err.toJSON(), err.statusCode as ContentfulStatusCode);
 	}
-	console.error("[UNHANDLED]", err);
+	log.error("unhandled", err instanceof Error ? err.message : String(err), {
+		stack: err instanceof Error ? err.stack : undefined,
+	});
 	return c.json(
 		{ error: { message: "Internal server error", type: "server_error" } },
 		500,

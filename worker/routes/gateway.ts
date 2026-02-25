@@ -21,6 +21,7 @@ import {
 	InsufficientCreditsError,
 	NoKeyAvailableError,
 } from "../shared/errors";
+import { requestLogger } from "../shared/logger";
 import type { AppEnv } from "../shared/types";
 
 export interface CompletionRequest {
@@ -42,6 +43,8 @@ export async function executeCompletion(
 ): Promise<CompletionResult> {
 	const consumerId = c.get("owner_id");
 	const isPlatform = !!c.env.CLERK_SECRET_KEY;
+	const requestId = crypto.randomUUID();
+	const rlog = requestLogger(requestId, { model: req.model, consumerId });
 
 	if (isPlatform) {
 		const balance = await new WalletDao(c.env.DB).getBalance(consumerId);
@@ -57,9 +60,12 @@ export async function executeCompletion(
 	);
 	const credDao = new CredentialsDao(c.env.DB);
 
+	rlog.info("gateway", "Dispatching", { candidates: candidates.length });
+
 	let lastError: unknown;
 
-	for (const { credential, provider, modelId, modelPrice } of candidates) {
+	for (let attempt = 0; attempt < candidates.length; attempt++) {
+		const { credential, provider, modelId, modelPrice } = candidates[attempt];
 		const isSub = provider.info.isSubscription ?? false;
 		const upstreamBody = {
 			...req.body,
@@ -68,6 +74,7 @@ export async function executeCompletion(
 		};
 
 		try {
+			const t0 = Date.now();
 			const response = await provider.forwardRequest(
 				credential.secret,
 				upstreamBody,
@@ -75,15 +82,27 @@ export async function executeCompletion(
 
 			if (!response.ok) {
 				await credDao.reportFailure(credential.id, response.status, isSub);
+				rlog.warn("gateway", "Upstream error, retrying", {
+					attempt,
+					provider: provider.info.id,
+					status: response.status,
+				});
 				lastError = new Error(
 					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
 				continue;
 			}
 
-			const requestId = crypto.randomUUID();
+			const latencyMs = Date.now() - t0;
 			const credentialOwnerId = credential.owner_id;
 			const isSelfUse = consumerId === credentialOwnerId;
+
+			rlog.info("gateway", "Upstream OK", {
+				attempt,
+				provider: provider.info.id,
+				credentialId: credential.id,
+				latencyMs,
+			});
 
 			const finalResponse = interceptResponse(response, c.executionCtx, {
 				onUsage: (usage) => {
@@ -118,8 +137,17 @@ export async function executeCompletion(
 									settlement,
 								);
 							}
+
+							rlog.info("billing", "Recorded", {
+								provider: credential.provider,
+								baseCost,
+								inputTokens: usage.prompt_tokens,
+								outputTokens: usage.completion_tokens,
+							});
 						})().catch((err) =>
-							console.error("[BILLING] waitUntil failed:", err),
+							rlog.error("billing", "waitUntil failed", {
+								error: err instanceof Error ? err.message : String(err),
+							}),
 						),
 					);
 				},
@@ -141,10 +169,17 @@ export async function executeCompletion(
 			};
 		} catch (err) {
 			await credDao.reportFailure(credential.id, undefined, isSub);
+			rlog.warn("gateway", "Provider threw, retrying", {
+				attempt,
+				provider: provider.info.id,
+				error: err instanceof Error ? err.message : String(err),
+			});
 			lastError = err;
 		}
 	}
 
-	if (lastError) console.error("[CHAT] All candidates exhausted:", lastError);
+	rlog.error("gateway", "All candidates exhausted", {
+		error: lastError instanceof Error ? lastError.message : String(lastError),
+	});
 	throw new NoKeyAvailableError(req.model);
 }

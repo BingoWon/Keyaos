@@ -5,6 +5,8 @@
  * The monitor stream runs out-of-band without blocking client delivery.
  */
 
+import { log } from "../../shared/logger";
+
 export interface TokenUsage {
 	prompt_tokens: number;
 	completion_tokens: number;
@@ -111,7 +113,9 @@ function interceptSSEStream(
 			}
 			callbacks.onStreamDone?.();
 		} catch (e) {
-			console.error("[STREAM MONITOR] Fatal error:", e);
+			log.error("stream", "Monitor fatal error", {
+				error: e instanceof Error ? e.message : String(e),
+			});
 			callbacks.onStreamError?.(e);
 		}
 	})();

@@ -12,6 +12,7 @@ import {
 	toOpenAIRequest,
 } from "../core/protocols/anthropic";
 import { ApiError, BadRequestError } from "../shared/errors";
+import { log } from "../shared/logger";
 import type { AppEnv } from "../shared/types";
 import { executeCompletion } from "./gateway";
 
@@ -24,7 +25,9 @@ messagesRouter.onError((err, c) => {
 			err.statusCode as 400,
 		);
 	}
-	console.error("[MESSAGES] Unhandled:", err);
+	log.error("messages", err instanceof Error ? err.message : String(err), {
+		stack: err instanceof Error ? err.stack : undefined,
+	});
 	return c.json(
 		{
 			type: "error",

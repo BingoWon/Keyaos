@@ -5,6 +5,7 @@
  * in worker/platform/billing/settlement.ts.
  */
 
+import { log } from "../shared/logger";
 import type { Settlement } from "../shared/types";
 import { CredentialsDao } from "./db/credentials-dao";
 import { UsageDao } from "./db/usage-dao";
@@ -71,6 +72,9 @@ export async function recordUsage(
 
 		await new CredentialsDao(db).deductQuota(credentialId, baseCost);
 	} catch (err) {
-		console.error("[BILLING] Usage record write failed:", err);
+		log.error("billing", "Usage record write failed", {
+			credentialId,
+			error: err instanceof Error ? err.message : String(err),
+		});
 	}
 }

@@ -23,5 +23,9 @@ database_name = "keyaos-db"
 database_id = "YOUR_D1_DATABASE_ID_HERE"      # Replace after: npx wrangler d1 create keyaos-db
 migrations_dir = "migrations"
 
+[observability]
+enabled = true
+head_sampling_rate = 1
+
 [triggers]
 crons = ["*/5 * * * *"]
