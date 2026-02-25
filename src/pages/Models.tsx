@@ -134,8 +134,12 @@ function ModelCard({
 						<Badge variant="brand">{group.providers.length}</Badge>
 					</div>
 					<div className="flex flex-wrap items-center justify-end gap-1.5">
-						<Badge variant="brand">{formatPrice(best.inputPrice)} in</Badge>
-						<Badge variant="accent">{formatPrice(best.outputPrice)} out</Badge>
+						<Badge variant="success">
+							{formatPrice(best.inputPrice)} in
+						</Badge>
+						<Badge variant="accent">
+							{formatPrice(best.outputPrice)} out
+						</Badge>
 						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}
 					</div>
 				</div>

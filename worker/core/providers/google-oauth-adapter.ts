@@ -314,7 +314,7 @@ export const geminiCliAdapter = new GoogleOAuthAdapter({
 export const antigravityAdapter = new GoogleOAuthAdapter({
 	id: "antigravity",
 	name: "Antigravity",
-	logoUrl: "https://api.iconify.design/simple-icons:google.svg",
+	logoUrl: "https://antigravity.google/favicon.ico",
 	clientId: `${AG_CID}.apps.googleusercontent.com`,
 	clientSecret: `GOCSPX${"-"}K58FWR486LdLJ1mLB8sXC4z6qDAf`,
 	baseUrls: [
