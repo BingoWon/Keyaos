@@ -100,44 +100,44 @@ function ModelCard({
 				<ChevronRightIcon
 					className={`mt-0.5 size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
 				/>
-				<div className="min-w-0 flex-1 space-y-2">
-					<div>
-						<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-							{group.displayName}
-						</h4>
-						<span className="flex items-center gap-1 mt-0.5">
-							<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
-								{group.id}
-							</code>
-							<span
-								onClick={(e) => e.stopPropagation()}
-								onKeyDown={(e) => e.stopPropagation()}
-							>
-								<CopyButton text={group.id} />
-							</span>
+				<div className="min-w-0 flex-1">
+					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+						{group.displayName}
+					</h4>
+					<span className="flex items-center gap-1 mt-0.5">
+						<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
+							{group.id}
+						</code>
+						<span
+							onClick={(e) => e.stopPropagation()}
+							onKeyDown={(e) => e.stopPropagation()}
+						>
+							<CopyButton text={group.id} />
 						</span>
+					</span>
+				</div>
+				<div className="shrink-0 flex flex-col items-end gap-2 pt-0.5">
+					<div className="flex items-center gap-1.5">
+						<div className="hidden sm:flex items-center gap-1">
+							{group.providers.slice(0, 5).map((p) => {
+								const meta = providerMap.get(p.provider);
+								return meta ? (
+									<ProviderLogo
+										key={p.provider}
+										src={meta.logoUrl}
+										name={meta.name}
+										size={18}
+									/>
+								) : null;
+							})}
+						</div>
+						<Badge variant="brand">{group.providers.length}</Badge>
 					</div>
-					<div className="flex flex-wrap items-center gap-1.5">
-						<Badge variant="accent">{formatPrice(best.inputPrice)} in</Badge>
+					<div className="flex flex-wrap items-center justify-end gap-1.5">
+						<Badge variant="brand">{formatPrice(best.inputPrice)} in</Badge>
 						<Badge variant="accent">{formatPrice(best.outputPrice)} out</Badge>
 						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}
 					</div>
-				</div>
-				<div className="flex items-center gap-2.5 shrink-0 pt-1">
-					<div className="hidden sm:flex items-center -space-x-1.5">
-						{group.providers.slice(0, 5).map((p) => {
-							const meta = providerMap.get(p.provider);
-							return meta ? (
-								<ProviderLogo
-									key={p.provider}
-									src={meta.logoUrl}
-									name={meta.name}
-									size={18}
-								/>
-							) : null;
-						})}
-					</div>
-					<Badge variant="brand">{group.providers.length}</Badge>
 				</div>
 			</div>
 
@@ -158,7 +158,7 @@ function ModelCard({
 									key={p.provider}
 									className={
 										i === 0
-											? "bg-green-50/40 dark:bg-green-500/[0.04]"
+											? "bg-brand-50/50 dark:bg-brand-500/[0.04]"
 											: undefined
 									}
 								>
