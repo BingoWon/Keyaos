@@ -32,7 +32,7 @@ export function CookieConsent() {
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center p-4 sm:p-6">
-			<div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-xl shadow-black/5 backdrop-blur-xl sm:flex-row sm:items-center sm:gap-5 dark:border-white/10 dark:bg-gray-900/90 dark:shadow-black/20">
+			<div className="flex w-full max-w-3xl flex-col gap-4 rounded-2xl border border-gray-200 bg-white/90 px-6 py-4 shadow-xl shadow-black/5 backdrop-blur-xl sm:flex-row sm:items-center sm:gap-5 dark:border-white/10 dark:bg-gray-900/90 dark:shadow-black/20">
 				<p className="flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
 					{t("cookie.message")}
 				</p>
