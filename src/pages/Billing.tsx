@@ -112,26 +112,8 @@ export function Billing() {
 					{t("billing.top_up")}
 				</h4>
 
-				{/* Preset buttons */}
-				<div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-					{PRESETS.map((cents) => (
-						<button
-							key={cents}
-							type="button"
-							disabled={loading}
-							onClick={() => handleCheckout(cents)}
-							className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-center transition-colors hover:border-brand-500 hover:ring-1 hover:ring-brand-500/30 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-brand-400"
-						>
-							<span className="block text-lg font-semibold text-gray-900 dark:text-white">
-								${(cents / 100).toFixed(0)}
-							</span>
-						</button>
-					))}
-				</div>
-
-				{/* Custom amount */}
-				<div className="mt-3 flex gap-3">
-					<div className="relative flex-1">
+				<div className="mt-3 flex flex-wrap items-center gap-2">
+					<div className="relative w-32">
 						<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
 							$
 						</span>
@@ -151,6 +133,16 @@ export function Billing() {
 					>
 						{t("billing.top_up")}
 					</Button>
+					{PRESETS.map((cents) => (
+						<Button
+							key={cents}
+							variant="secondary"
+							disabled={loading}
+							onClick={() => handleCheckout(cents)}
+						>
+							${(cents / 100).toFixed(0)}
+						</Button>
+					))}
 				</div>
 				<p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
 					{t("billing.rate")}
