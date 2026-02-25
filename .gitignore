@@ -12,4 +12,3 @@ references/
 scripts/
 *.log
 *.pid
-wrangler.toml

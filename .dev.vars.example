@@ -1,0 +1,13 @@
+# Keyaos — Worker Secrets (local development)
+# Copy to .dev.vars and fill in your values.
+# Production secrets: set via `wrangler secret put <NAME>`
+
+# ─── Core (required) ─────────────────────────────────────
+ADMIN_TOKEN=changeme
+
+# ─── Platform (optional — enables multi-tenancy) ─────────
+# PLATFORM_OWNER_ID=user_xxxxx
+# CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+# CLERK_SECRET_KEY=sk_test_xxxxx
+# STRIPE_SECRET_KEY=sk_test_xxxxx
+# STRIPE_WEBHOOK_SECRET=whsec_xxxxx

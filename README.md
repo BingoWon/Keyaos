@@ -39,12 +39,23 @@ npx wrangler d1 create keyaos-db
 
 ### 2. Configure
 
-Copy `wrangler.example.toml` to `wrangler.toml` and fill in:
+Update `wrangler.toml`:
 
 - `database_id` — from the `d1 create` output
-- `ADMIN_TOKEN` — a strong secret for dashboard and API authentication
 
-For Platform mode, additionally configure Clerk and Stripe keys (see `.env.example`).
+Set secrets (never stored in files committed to git):
+
+```bash
+wrangler secret put ADMIN_TOKEN       # Core auth token for dashboard + API
+```
+
+For Platform mode, additionally set Clerk and Stripe secrets:
+
+```bash
+wrangler secret put CLERK_SECRET_KEY
+wrangler secret put STRIPE_SECRET_KEY
+wrangler secret put STRIPE_WEBHOOK_SECRET
+```
 
 ### 3. Deploy
 
@@ -58,7 +69,8 @@ The first time you open the dashboard, models will auto-sync from upstream provi
 ## Local Development
 
 ```bash
-cp .env.example .env.local   # fill in your provider keys
+cp .env.example .env.local   # fill in provider keys + frontend vars
+# Edit .dev.vars with worker secrets (ADMIN_TOKEN, etc.)
 pnpm db:setup:local
 pnpm dev
 ```

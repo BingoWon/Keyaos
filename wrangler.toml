@@ -1,0 +1,30 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "keyaos"
+main = "worker/index.ts"
+compatibility_date = "2025-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── Environment Variables ───────────────────────────────
+# Non-sensitive config goes here. All secrets and per-deployment values
+# (ADMIN_TOKEN, CLERK_*, STRIPE_*, PLATFORM_OWNER_ID) are set via
+# `wrangler secret put <NAME>` and read from .dev.vars locally.
+[vars]
+CNY_USD_RATE = "7"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "keyaos-db"
+database_id = "c52b0c3d-3747-4058-bfaf-6e6e09c4fe43"
+migrations_dir = "migrations"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[triggers]
+crons = ["*/5 * * * *"]
