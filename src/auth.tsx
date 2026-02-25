@@ -97,13 +97,12 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
 	}, [clerk.isSignedIn, clerk.getToken]);
 
 	useEffect(() => {
-		if (!crispEnabled) return;
-		if (user) {
-			const email = user.primaryEmailAddress?.emailAddress;
-			if (email) Crisp.user.setEmail(email);
-			const name = user.fullName || user.firstName;
-			if (name) Crisp.user.setNickname(name);
-		}
+		if (!crispEnabled || !user) return;
+		const email = user.primaryEmailAddress?.emailAddress;
+		if (email) Crisp.user.setEmail(email);
+		const name = user.fullName || user.firstName;
+		if (name) Crisp.user.setNickname(name);
+		Crisp.session.setData({ clerk_user_id: user.id });
 	}, [user]);
 
 	const value = useMemo<AuthContextType>(
