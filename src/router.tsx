@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { createBrowserRouter, Navigate, useNavigate } from "react-router-dom";
 import { AuthGuard, isPlatform, useAuth } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
@@ -35,7 +36,12 @@ const dashboardChildren = [
 
 function LoginRoute() {
 	const { isLoaded, isSignedIn } = useAuth();
-	if (isLoaded && isSignedIn) return <Navigate to="/dashboard" replace />;
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (isLoaded && isSignedIn) navigate("/dashboard", { replace: true });
+	}, [isLoaded, isSignedIn, navigate]);
+
 	return <Login />;
 }
 
