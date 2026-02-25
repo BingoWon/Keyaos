@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { AuthGuard, isPlatform } from "./auth";
+import { AuthGuard, isPlatform, useAuth } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
 import { AdminLayout } from "./pages/admin/AdminLayout";
@@ -33,14 +33,16 @@ const dashboardChildren = [
 	{ path: "guide", element: <Guide /> },
 ];
 
+function LoginRoute() {
+	const { isLoaded, isSignedIn } = useAuth();
+	if (isLoaded && isSignedIn) return <Navigate to="/dashboard" replace />;
+	return <Login />;
+}
+
 export const router = createBrowserRouter([
 	{
 		path: "/login/*",
-		element: (
-			<AuthGuard fallback={<Login />}>
-				<Navigate to="/dashboard" replace />
-			</AuthGuard>
-		),
+		element: <LoginRoute />,
 	},
 	{ path: "/", element: <Landing /> },
 	{
