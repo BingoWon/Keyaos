@@ -1,4 +1,7 @@
 {
+	"brand": {
+		"subtitle": "氪钥枢"
+	},
 	"common": {
 		"loading": "加载中...",
 		"error": "发生错误",
@@ -232,6 +235,6 @@
 	},
 	"guide": {
 		"title": "快速开始",
-		"subtitle": "使用任何 OpenAI 兼容客户端连接 Keyaos"
+		"subtitle": "使用任何 OpenAI 兼容客户端连接氪钥枢"
 	}
 }

@@ -1,4 +1,7 @@
 {
+	"brand": {
+		"subtitle": ""
+	},
 	"common": {
 		"loading": "Loading...",
 		"error": "An error occurred",
