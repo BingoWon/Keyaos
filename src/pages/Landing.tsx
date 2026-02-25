@@ -46,10 +46,10 @@ function Navbar() {
 			<nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
 				<Link
 					to="/"
-					className="flex items-center gap-2.5 font-bold text-gray-900 dark:text-white"
+					className="flex items-center gap-2.5 text-lg font-bold text-gray-900 dark:text-white"
 				>
 					<img src="/logo.png" alt="Keyaos" className="size-7" />
-					<span>{t("landing.brand_name")}</span>
+					{t("landing.brand_name")}
 				</Link>
 
 				<div className="flex items-center gap-1">
@@ -448,7 +448,7 @@ function Footer() {
 				<div className="flex items-center gap-2.5">
 					<img src="/logo.png" alt="Keyaos" className="size-6" />
 					<div>
-						<span className="text-sm font-bold text-gray-900 dark:text-white">
+						<span className="text-base font-bold text-gray-900 dark:text-white">
 							{t("landing.brand_name")}
 						</span>
 						<span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
