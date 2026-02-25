@@ -51,7 +51,8 @@ export function loadCrisp() {
 
 	i18n.on("languageChanged", (lng) => {
 		try {
-			Crisp.setLocale(lng);
+			const c = window as Window & { $crisp?: unknown[][] };
+			c.$crisp?.push(["set", "session:locale", [lng]]);
 		} catch {
 			/* Crisp locale update is best-effort */
 		}
