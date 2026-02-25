@@ -39,3 +39,37 @@
 		color-scheme: dark;
 	}
 }
+
+@keyframes float-slow {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	33% {
+		transform: translate(15px, -20px) scale(1.02);
+	}
+	66% {
+		transform: translate(-10px, 10px) scale(0.98);
+	}
+}
+
+@keyframes float-slow-reverse {
+	0%,
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+	33% {
+		transform: translate(-12px, 15px) scale(0.97);
+	}
+	66% {
+		transform: translate(18px, -8px) scale(1.03);
+	}
+}
+
+@utility animate-float-slow {
+	animation: float-slow 20s ease-in-out infinite;
+}
+
+@utility animate-float-slow-reverse {
+	animation: float-slow-reverse 25s ease-in-out infinite;
+}

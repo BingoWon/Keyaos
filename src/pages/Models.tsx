@@ -104,7 +104,7 @@ function ModelCard({
 					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
 						{group.displayName}
 					</h4>
-					<span className="flex items-center gap-1 mt-0.5">
+					<span className="flex items-center gap-1 mt-1">
 						<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
 							{group.id}
 						</code>
@@ -116,7 +116,7 @@ function ModelCard({
 						</span>
 					</span>
 				</div>
-				<div className="shrink-0 flex flex-col items-end gap-2 pt-0.5">
+				<div className="shrink-0 flex flex-col items-end gap-2">
 					<div className="flex items-center gap-1.5">
 						<div className="hidden sm:flex items-center gap-1">
 							{group.providers.slice(0, 5).map((p) => {

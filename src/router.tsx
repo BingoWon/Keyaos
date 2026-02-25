@@ -11,6 +11,7 @@ import { Credentials } from "./pages/Credentials";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Guide } from "./pages/Guide";
+import { Landing } from "./pages/Landing";
 import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
 import { Models } from "./pages/Models";
@@ -41,7 +42,7 @@ export const router = createBrowserRouter([
 			</AuthGuard>
 		),
 	},
-	{ path: "/", element: <Navigate to="/dashboard" replace /> },
+	{ path: "/", element: <Landing /> },
 	{
 		path: "/dashboard",
 		element: (
