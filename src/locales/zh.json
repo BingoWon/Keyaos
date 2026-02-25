@@ -1,5 +1,6 @@
 {
 	"brand": {
+		"name": "氪钥枢",
 		"subtitle": "氪钥枢"
 	},
 	"common": {
@@ -243,7 +244,6 @@
 		"decline": "拒绝"
 	},
 	"landing": {
-		"brand_name": "氪钥枢",
 		"hero_tagline": "万钥归一",
 		"hero_title": "更智能的 AI 路由网关",
 		"hero_subtitle": "一个端点，所有供应商。氪钥枢自动为每个请求寻找最低价路由——让你不再为 AI 多花一分钱。",

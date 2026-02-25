@@ -18,8 +18,11 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Input } from "./components/ui";
+import { getConsent } from "./lib/analytics";
 
-const crispEnabled = !!import.meta.env.VITE_CRISP_WEBSITE_ID;
+function isCrispActive() {
+	return !!import.meta.env.VITE_CRISP_WEBSITE_ID && getConsent() === "accepted";
+}
 
 /** True when Clerk is configured → Platform (multi-tenant) mode */
 export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -98,7 +101,7 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
 	}, [clerk.isSignedIn, clerk.getToken]);
 
 	useEffect(() => {
-		if (!crispEnabled || !user) return;
+		if (!isCrispActive() || !user) return;
 		const email = user.primaryEmailAddress?.emailAddress;
 		if (email) Crisp.user.setEmail(email);
 		const name = user.fullName || user.firstName;
@@ -113,7 +116,7 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
 			isSignedIn: clerk.isSignedIn ?? false,
 			isAdmin,
 			signOut: () => {
-				if (crispEnabled) Crisp.session.reset();
+				if (isCrispActive()) Crisp.session.reset();
 				clerk.signOut();
 			},
 		}),

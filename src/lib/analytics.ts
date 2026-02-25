@@ -1,13 +1,10 @@
 import { Crisp } from "crisp-sdk-web";
 import i18n from "../locales/i18n";
 
-const GA_ID = "G-0HXS0JNMTT";
 const CONSENT_KEY = "cookie_consent";
 
-export type ConsentStatus = "accepted" | "declined" | null;
-
-export function getConsent(): ConsentStatus {
-	return localStorage.getItem(CONSENT_KEY) as ConsentStatus;
+export function getConsent(): "accepted" | "declined" | null {
+	return localStorage.getItem(CONSENT_KEY) as ReturnType<typeof getConsent>;
 }
 
 export function setConsent(status: "accepted" | "declined") {
@@ -17,11 +14,12 @@ export function setConsent(status: "accepted" | "declined") {
 let gaLoaded = false;
 
 export function loadGA() {
-	if (gaLoaded) return;
+	const gaId = import.meta.env.VITE_GA_ID;
+	if (!gaId || gaLoaded) return;
 	gaLoaded = true;
 
 	const script = document.createElement("script");
-	script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+	script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
 	script.async = true;
 	document.head.appendChild(script);
 
@@ -34,7 +32,7 @@ export function loadGA() {
 		w.dataLayer.push(args);
 	};
 	w.gtag("js", new Date());
-	w.gtag("config", GA_ID);
+	w.gtag("config", gaId);
 }
 
 let crispLoaded = false;

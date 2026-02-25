@@ -49,7 +49,7 @@ function Navbar() {
 					className="flex items-center gap-2.5 text-lg font-bold text-gray-900 dark:text-white"
 				>
 					<img src="/logo.png" alt="Keyaos" className="size-7" />
-					{t("landing.brand_name")}
+					{t("brand.name")}
 				</Link>
 
 				<div className="flex items-center gap-1">
@@ -449,7 +449,7 @@ function Footer() {
 					<img src="/logo.png" alt="Keyaos" className="size-6" />
 					<div>
 						<span className="text-base font-bold text-gray-900 dark:text-white">
-							{t("landing.brand_name")}
+							{t("brand.name")}
 						</span>
 						<span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
 							{t("landing.footer_desc")}

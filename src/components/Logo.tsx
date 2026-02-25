@@ -15,7 +15,7 @@ export function Logo({ size = "sm" }: LogoProps) {
 			<span
 				className={`${textSize} font-bold text-gray-900 dark:text-white tracking-tight`}
 			>
-				{t("landing.brand_name")}
+				{t("brand.name")}
 			</span>
 		</div>
 	);

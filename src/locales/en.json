@@ -1,5 +1,6 @@
 {
 	"brand": {
+		"name": "Keyaos",
 		"subtitle": ""
 	},
 	"common": {
@@ -246,7 +247,6 @@
 		"decline": "Decline"
 	},
 	"landing": {
-		"brand_name": "Keyaos",
 		"hero_tagline": "Order in Chaos",
 		"hero_title": "The AI Gateway That Routes Smarter",
 		"hero_subtitle": "One endpoint, every provider. Keyaos automatically finds the cheapest route for each request — so you never overpay for AI.",
