@@ -3,6 +3,33 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+	/* Brand — Keyaos Purple (logo #7F39AD at 600) */
+	--color-brand-50: #faf5ff;
+	--color-brand-100: #f3e8ff;
+	--color-brand-200: #e9d4ff;
+	--color-brand-300: #d4affe;
+	--color-brand-400: #bb80f6;
+	--color-brand-500: #9e52e0;
+	--color-brand-600: #7f39ad;
+	--color-brand-700: #6b2f92;
+	--color-brand-800: #572677;
+	--color-brand-900: #481f62;
+	--color-brand-950: #2d0f40;
+
+	/* Accent — Keyaos Gold (logo #d09060 at 400) */
+	--color-accent-50: #fff8f0;
+	--color-accent-100: #feecd8;
+	--color-accent-200: #f5d0a8;
+	--color-accent-300: #e8ad78;
+	--color-accent-400: #d09060;
+	--color-accent-500: #b87840;
+	--color-accent-600: #9e6333;
+	--color-accent-700: #844f2a;
+	--color-accent-800: #6d4126;
+	--color-accent-900: #5b3722;
+	--color-accent-950: #311c0e;
+
+	/* Legacy primary — to be migrated to brand */
 	--color-primary-50: #eff6ff;
 	--color-primary-100: #dbeafe;
 	--color-primary-500: #3b82f6;

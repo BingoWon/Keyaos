@@ -9,6 +9,7 @@ import { Users } from "./pages/admin/Users";
 import { Billing } from "./pages/Billing";
 import { Credentials } from "./pages/Credentials";
 import { Dashboard } from "./pages/Dashboard";
+import { DesignSystem } from "./pages/DesignSystem";
 import { Guide } from "./pages/Guide";
 import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
@@ -67,5 +68,6 @@ export const router = createBrowserRouter([
 				},
 			]
 		: []),
+	{ path: "/design", element: <DesignSystem /> },
 	{ path: "*", element: <NotFound /> },
 ]);
