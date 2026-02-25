@@ -39,37 +39,17 @@ export function loadGA() {
 
 let crispLoaded = false;
 
-type CrispWindow = Window & {
-	CRISP_RUNTIME_CONFIG?: { locale: string };
-	$crisp?: unknown[][];
-};
-
-function setCrispLocale(lng: string) {
-	try {
-		(window as CrispWindow).$crisp?.push([
-			"set",
-			"session:locale",
-			[lng],
-		]);
-	} catch {
-		/* best-effort */
-	}
-}
-
 export function loadCrisp() {
 	const crispId = import.meta.env.VITE_CRISP_WEBSITE_ID;
 	if (!crispId || crispLoaded) return;
 	crispLoaded = true;
 
-	(window as CrispWindow).CRISP_RUNTIME_CONFIG = {
-		locale: i18n.language,
+	const w = window as Window & {
+		CRISP_RUNTIME_CONFIG?: { locale: string };
 	};
+	w.CRISP_RUNTIME_CONFIG = { locale: i18n.language };
 
 	Crisp.configure(crispId);
-
-	setCrispLocale(i18n.language);
-
-	i18n.on("languageChanged", setCrispLocale);
 }
 
 export function loadAllAnalytics() {
