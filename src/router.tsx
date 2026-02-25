@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { createBrowserRouter, Navigate, useNavigate } from "react-router-dom";
-import { AuthGuard, isPlatform, useAuth } from "./auth";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { AuthGuard, isPlatform } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
 import { AdminLayout } from "./pages/admin/AdminLayout";
@@ -34,21 +33,10 @@ const dashboardChildren = [
 	{ path: "guide", element: <Guide /> },
 ];
 
-function LoginRoute() {
-	const { isLoaded, isSignedIn } = useAuth();
-	const navigate = useNavigate();
-
-	useEffect(() => {
-		if (isLoaded && isSignedIn) navigate("/dashboard", { replace: true });
-	}, [isLoaded, isSignedIn, navigate]);
-
-	return <Login />;
-}
-
 export const router = createBrowserRouter([
 	{
 		path: "/login/*",
-		element: <LoginRoute />,
+		element: <Login />,
 	},
 	{ path: "/", element: <Landing /> },
 	{
