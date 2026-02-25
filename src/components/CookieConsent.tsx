@@ -6,12 +6,16 @@ import {
 	setConsent,
 } from "../lib/analytics";
 
+const hasAnalytics = !!(
+	import.meta.env.VITE_GA_ID || import.meta.env.VITE_CRISP_WEBSITE_ID
+);
+
 export function CookieConsent() {
 	const { t } = useTranslation();
 	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
-		if (getConsent() === null) {
+		if (hasAnalytics && getConsent() === null) {
 			const timer = setTimeout(() => setVisible(true), 800);
 			return () => clearTimeout(timer);
 		}
