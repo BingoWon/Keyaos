@@ -17,6 +17,7 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { Button, Input } from "./components/ui";
 
 const crispEnabled = !!import.meta.env.VITE_CRISP_WEBSITE_ID;
 
@@ -208,19 +209,15 @@ function CoreLoginForm() {
 			}}
 			className="sm:mx-auto sm:w-full sm:max-w-sm flex flex-col gap-4"
 		>
-			<input
+			<Input
 				type="password"
 				placeholder="Admin Token"
 				value={token}
 				onChange={(e) => setToken(e.target.value)}
-				className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
 			/>
-			<button
-				type="submit"
-				className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-			>
+			<Button type="submit" className="w-full">
 				Sign In
-			</button>
+			</Button>
 		</form>
 	);
 }

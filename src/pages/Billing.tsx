@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
+import { Button, Input } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { formatSignedUSD, formatUSD } from "../utils/format";
 
@@ -92,7 +93,7 @@ export function Billing() {
 			<div className="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-white/5">
 				<div className="px-4 py-5 sm:p-6">
 					<div className="flex items-center gap-4">
-						<div className="rounded-md bg-indigo-500 p-3">
+						<div className="rounded-md bg-brand-500 p-3">
 							<CreditCardIcon className="size-6 text-white" />
 						</div>
 						<div>
@@ -121,7 +122,7 @@ export function Billing() {
 							type="button"
 							disabled={loading}
 							onClick={() => handleCheckout(cents)}
-							className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-center shadow-sm hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 disabled:opacity-50 dark:border-gray-600 dark:bg-white/5 dark:hover:border-indigo-400"
+							className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-center shadow-sm hover:border-brand-500 hover:ring-1 hover:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-white/5 dark:hover:border-brand-400"
 						>
 							<span className="block text-lg font-semibold text-gray-900 dark:text-white">
 								${(cents / 100).toFixed(0)}
@@ -136,24 +137,22 @@ export function Billing() {
 						<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
 							$
 						</span>
-						<input
+						<Input
 							type="number"
 							min="1"
 							step="1"
 							placeholder={t("billing.custom_placeholder")}
 							value={customAmount}
 							onChange={(e) => setCustomAmount(e.target.value)}
-							className="block w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-7 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-white/5 dark:text-white"
+							className="pl-7"
 						/>
 					</div>
-					<button
-						type="button"
+					<Button
 						disabled={loading || customCents < 100}
 						onClick={() => handleCheckout(customCents)}
-						className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
 					>
 						{t("billing.top_up")}
-					</button>
+					</Button>
 				</div>
 				<p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
 					{t("billing.rate")}

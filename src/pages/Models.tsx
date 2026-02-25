@@ -6,6 +6,7 @@ import { useAuth } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { Badge, Button } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ProviderMeta } from "../types/provider";
 
@@ -142,9 +143,7 @@ function ModelCard({
 							) : null;
 						})}
 					</div>
-					<span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
-						{group.providers.length}
-					</span>
+					<Badge variant="brand">{group.providers.length}</Badge>
 				</div>
 			</div>
 
@@ -294,16 +293,11 @@ export function Models() {
 					</p>
 				</div>
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-					<button
-						type="button"
-						onClick={() => handleSync()}
-						disabled={syncing}
-						className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-indigo-500 dark:hover:bg-indigo-400"
-					>
+					<Button onClick={() => handleSync()} disabled={syncing}>
 						{syncing
 							? t("models.syncing", "Syncing...")
 							: t("models.sync_now", "Sync Now")}
-					</button>
+					</Button>
 				</div>
 			</div>
 

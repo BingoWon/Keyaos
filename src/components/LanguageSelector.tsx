@@ -1,9 +1,4 @@
-import {
-	Menu,
-	MenuButton,
-	MenuItem,
-	MenuItems,
-} from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { LanguageIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { classNames } from "../utils/classNames";
@@ -18,7 +13,7 @@ export function LanguageSelector() {
 
 	return (
 		<Menu>
-			<MenuButton className="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+			<MenuButton className="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
 				<span className="sr-only">Change language</span>
 				<LanguageIcon className="h-5 w-5" aria-hidden="true" />
 			</MenuButton>
@@ -38,7 +33,7 @@ export function LanguageSelector() {
 										? "bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white"
 										: "text-gray-700 dark:text-gray-300",
 									i18n.language === lang.code &&
-										"text-indigo-600 dark:text-indigo-400 font-semibold",
+										"text-brand-600 dark:text-brand-400 font-semibold",
 									"group flex w-full items-center px-4 py-2 text-sm",
 								)}
 							>

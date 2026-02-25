@@ -2,6 +2,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../../components/PageLoader";
+import { IconButton } from "../../components/ui";
 import { useFetch } from "../../hooks/useFetch";
 
 const TABLES = [
@@ -61,20 +62,18 @@ export function Data() {
 							</option>
 						))}
 					</select>
-					<button
-						type="button"
-						onClick={refetch}
-						className="rounded p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-					>
-						<ArrowPathIcon className="size-4" />
-					</button>
+					<IconButton label="Refresh" onClick={refetch}>
+						<ArrowPathIcon />
+					</IconButton>
 				</div>
 			</div>
 
 			{loading ? (
 				<PageLoader />
 			) : rows.length === 0 ? (
-				<p className="text-sm text-gray-500 dark:text-gray-400">{t("admin.no_data")}</p>
+				<p className="text-sm text-gray-500 dark:text-gray-400">
+					{t("admin.no_data")}
+				</p>
 			) : (
 				<>
 					<div className="overflow-x-auto shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">

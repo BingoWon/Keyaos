@@ -1,9 +1,4 @@
-import {
-	Menu,
-	MenuButton,
-	MenuItem,
-	MenuItems,
-} from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import {
 	ComputerDesktopIcon,
 	MoonIcon,
@@ -27,7 +22,7 @@ export function ThemeToggle() {
 
 	return (
 		<Menu>
-			<MenuButton className="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+			<MenuButton className="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
 				<span className="sr-only">Toggle theme</span>
 				<CurrentIcon className="h-5 w-5" aria-hidden="true" />
 			</MenuButton>
@@ -48,7 +43,7 @@ export function ThemeToggle() {
 										focus
 											? "bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white"
 											: "text-gray-700 dark:text-gray-300",
-										theme === tValue && "text-indigo-600 dark:text-indigo-400",
+										theme === tValue && "text-brand-600 dark:text-brand-400",
 										"group flex w-full items-center px-4 py-2 text-sm",
 									)}
 								>

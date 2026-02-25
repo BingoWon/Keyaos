@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { PageLoader } from "../../components/PageLoader";
+import { IconButton } from "../../components/ui";
 import { useFetch } from "../../hooks/useFetch";
 import { formatUSD } from "../../utils/format";
 
@@ -73,13 +74,9 @@ export function Overview() {
 						{t("admin.subtitle")}
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={refetch}
-					className="rounded p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-				>
-					<ArrowPathIcon className="size-5" />
-				</button>
+				<IconButton label="Refresh" size="md" onClick={refetch}>
+					<ArrowPathIcon />
+				</IconButton>
 			</div>
 
 			{loading ? (

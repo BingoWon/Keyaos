@@ -1,11 +1,11 @@
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import {
+	ArrowLeftIcon,
 	ChartBarIcon,
 	TableCellsIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
-import { NavLink, Navigate } from "react-router-dom";
+import { Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../auth";
 import { BaseSidebarLayout } from "../../components/BaseSidebarLayout";
 import { LanguageSelector } from "../../components/LanguageSelector";
@@ -16,9 +16,18 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 	const { t } = useTranslation();
 
 	const items = [
-		{ name: t("admin.overview"), href: "/admin", icon: ChartBarIcon, end: true },
+		{
+			name: t("admin.overview"),
+			href: "/admin",
+			icon: ChartBarIcon,
+			end: true,
+		},
 		{ name: t("admin.users"), href: "/admin/users", icon: UserGroupIcon },
-		{ name: t("admin.data_explorer"), href: "/admin/data", icon: TableCellsIcon },
+		{
+			name: t("admin.data_explorer"),
+			href: "/admin/data",
+			icon: TableCellsIcon,
+		},
 	];
 
 	return (
@@ -35,8 +44,8 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 									className={({ isActive }) =>
 										classNames(
 											isActive
-												? "bg-gray-50 text-indigo-600 dark:bg-white/5 dark:text-white"
-												: "text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
+												? "bg-gray-50 text-brand-600 dark:bg-white/5 dark:text-white"
+												: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
 											"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold",
 										)
 									}
@@ -47,8 +56,8 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 												aria-hidden="true"
 												className={classNames(
 													isActive
-														? "text-indigo-600 dark:text-white"
-														: "text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white",
+														? "text-brand-600 dark:text-white"
+														: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
 													"size-6 shrink-0",
 												)}
 											/>
@@ -65,9 +74,9 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 						to="/dashboard"
 						end
 						onClick={onNavigate}
-						className="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+						className="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
 					>
-						<ArrowLeftIcon className="size-6 shrink-0 text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-white" />
+						<ArrowLeftIcon className="size-6 shrink-0 text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white" />
 						{t("nav.dashboard")}
 					</NavLink>
 				</li>

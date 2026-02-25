@@ -9,9 +9,7 @@ export function Logo({ size = "sm" }: LogoProps) {
 	return (
 		<div className="flex items-center gap-x-2">
 			<img src="/logo.png" alt="Keyaos" className={`${imgSize} rounded-xl`} />
-			<span
-				className={`${textSize} font-bold dark:text-white tracking-tight`}
-			>
+			<span className={`${textSize} font-bold dark:text-white tracking-tight`}>
 				Keyaos
 			</span>
 		</div>

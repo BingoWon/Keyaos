@@ -23,6 +23,7 @@ import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { ToggleSwitch } from "../components/ToggleSwitch";
+import { Button } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { CredentialGuide, ProviderMeta } from "../types/provider";
@@ -280,8 +281,7 @@ export function Credentials() {
 					</p>
 				</div>
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-					<button
-						type="button"
+					<Button
 						onClick={() => {
 							const pid = providers[0]?.id ?? "openrouter";
 							const isSub =
@@ -297,11 +297,10 @@ export function Credentials() {
 							setShowPassword(false);
 							setIsAddOpen(true);
 						}}
-						className="inline-flex items-center gap-x-1.5 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
 					>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
 						{t("credentials.add_new")}
-					</button>
+					</Button>
 				</div>
 			</div>
 
@@ -340,7 +339,7 @@ export function Credentials() {
 												}),
 											}));
 										}}
-										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-brand-500 focus:outline-none focus:ring-brand-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									>
 										{providers.map((p) => (
 											<option key={p.id} value={p.id}>
@@ -399,7 +398,7 @@ export function Credentials() {
 												setShowPassword(true);
 											}
 										}}
-										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none"
+										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm font-mono dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none"
 										placeholder={guide?.placeholder ?? "refresh_token or JSON"}
 									/>
 								) : (
@@ -411,7 +410,7 @@ export function Credentials() {
 										onChange={(e) =>
 											setDraft({ ...draft, secret: e.target.value })
 										}
-										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+										className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 										placeholder={guide?.placeholder ?? "sk-..."}
 									/>
 								)}
@@ -461,7 +460,7 @@ export function Credentials() {
 										onChange={(e) =>
 											setDraft({ ...draft, quota: e.target.value })
 										}
-										className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+										className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 										placeholder="10.00"
 									/>
 								</div>
@@ -485,7 +484,7 @@ export function Credentials() {
 										setDraft({ ...draft, priceMultiplier: e.target.value });
 										setPriceMultiplierTouched(true);
 									}}
-									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+									className="mt-1 block w-full rounded-md border-gray-300 py-2 px-3 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white"
 									placeholder="0.8"
 								/>
 								{draft.priceMultiplier && (
@@ -503,23 +502,17 @@ export function Credentials() {
 
 						{/* Row 4: Actions */}
 						<div className="flex justify-end gap-3 pt-1">
-							<button
-								type="button"
+							<Button
+								variant="secondary"
 								onClick={() => {
 									setIsAddOpen(false);
 									setShowPassword(false);
 									setPriceMultiplierTouched(false);
 								}}
-								className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:ring-0 dark:hover:bg-white/20"
 							>
 								{t("common.cancel")}
-							</button>
-							<button
-								type="submit"
-								className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-							>
-								{t("common.save")}
-							</button>
+							</Button>
+							<Button type="submit">{t("common.save")}</Button>
 						</div>
 					</form>
 				</div>
@@ -639,7 +632,7 @@ export function Credentials() {
 																navigator.clipboard.writeText(cred.secretHint);
 																toast.success("Copied to clipboard");
 															}}
-															className="text-gray-400 hover:text-indigo-500"
+															className="text-gray-400 hover:text-brand-500"
 															title="Copy hint"
 														>
 															<ClipboardDocumentIcon className="size-4" />
@@ -679,7 +672,7 @@ export function Credentials() {
 														<span
 															className={`font-mono flex items-center ${
 																isSubscription(cred)
-																	? "text-indigo-500 dark:text-indigo-400"
+																	? "text-brand-500 dark:text-brand-400"
 																	: cred.quota == null
 																		? "text-gray-400 dark:text-gray-500"
 																		: cred.quota > 0
@@ -693,7 +686,7 @@ export function Credentials() {
 																	type="button"
 																	disabled={refreshingQuotaId === cred.id}
 																	onClick={() => handleRefreshQuota(cred.id)}
-																	className="ml-2 text-gray-400 hover:text-indigo-500 disabled:opacity-50"
+																	className="ml-2 text-gray-400 hover:text-brand-500 disabled:opacity-50"
 																	title={t("credentials.refresh_quota")}
 																>
 																	<ArrowPathIcon
@@ -708,7 +701,7 @@ export function Credentials() {
 																		setEditingId(cred.id);
 																		setEditQuota((cred.quota ?? 0).toString());
 																	}}
-																	className="ml-2 text-gray-400 hover:text-indigo-500"
+																	className="ml-2 text-gray-400 hover:text-brand-500"
 																	title={t("common.edit")}
 																>
 																	<PencilSquareIcon className="size-4" />
@@ -771,7 +764,7 @@ export function Credentials() {
 																		cred.priceMultiplier.toString(),
 																	);
 																}}
-																className="ml-2 text-gray-400 hover:text-indigo-500"
+																className="ml-2 text-gray-400 hover:text-brand-500"
 																title={t("common.edit")}
 															>
 																<PencilSquareIcon className="size-4" />
@@ -858,11 +851,11 @@ function GuidancePanel({
 	if (!steps.length || (!isOAuth && steps.length <= 1)) return null;
 
 	return (
-		<div className="rounded-md border border-indigo-100 bg-indigo-50/50 dark:border-indigo-500/20 dark:bg-indigo-500/5">
+		<div className="rounded-md border border-brand-100 bg-brand-50/50 dark:border-brand-500/20 dark:bg-brand-500/5">
 			<button
 				type="button"
 				onClick={onToggle}
-				className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-md transition-colors"
+				className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-brand-700 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-500/10 rounded-md transition-colors"
 			>
 				<span className="flex items-center gap-1.5">
 					<InformationCircleIcon className="size-4" />
@@ -883,7 +876,7 @@ function GuidancePanel({
 								key={step}
 								className="flex gap-2 text-sm text-gray-700 dark:text-gray-300"
 							>
-								<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-medium text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+								<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-medium text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
 									{idx + 1}
 								</span>
 								<span>
@@ -926,7 +919,7 @@ function LinkifiedText({ text }: { text: string }) {
 						href={part}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 underline"
+						className="text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300 underline"
 					>
 						{part}
 					</a>
