@@ -237,6 +237,11 @@
 		"title": "快速开始",
 		"subtitle": "使用任何 OpenAI 兼容客户端连接氪钥枢"
 	},
+	"cookie": {
+		"message": "我们使用 Cookie 进行访问分析和客户支持，以提升您的体验。",
+		"accept": "接受",
+		"decline": "拒绝"
+	},
 	"landing": {
 		"brand_name": "氪钥枢",
 		"hero_tagline": "万钥归一",

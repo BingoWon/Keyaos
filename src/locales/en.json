@@ -240,6 +240,11 @@
 		"title": "Quick Start",
 		"subtitle": "Connect to Keyaos using any OpenAI-compatible client"
 	},
+	"cookie": {
+		"message": "We use cookies for analytics and customer support to improve your experience.",
+		"accept": "Accept",
+		"decline": "Decline"
+	},
 	"landing": {
 		"brand_name": "Keyaos",
 		"hero_tagline": "Order in Chaos",
