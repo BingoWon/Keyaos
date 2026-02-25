@@ -1,7 +1,15 @@
-import type { ReactNode } from "react";
+import {
+	ArrowPathIcon,
+	EllipsisVerticalIcon,
+	PencilSquareIcon,
+	TrashIcon,
+	XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { type ReactNode, useState } from "react";
 import toast from "react-hot-toast";
 import { ThemeToggle } from "../components/ThemeToggle";
-import { Badge, Button, Card, Input } from "../components/ui";
+import { ToggleSwitch } from "../components/ToggleSwitch";
+import { Badge, Button, Card, IconButton, Input } from "../components/ui";
 
 /* ── Color data ──────────────────────────────────────────── */
 
@@ -135,6 +143,17 @@ function SubLabel({ children }: { children: ReactNode }) {
 	);
 }
 
+function ToggleShowcase() {
+	const [a, setA] = useState(true);
+	const [b, setB] = useState(false);
+	return (
+		<div className="flex flex-wrap items-center gap-6">
+			<ToggleSwitch enabled={a} onChange={setA} label="Enabled" />
+			<ToggleSwitch enabled={b} onChange={setB} label="Auto-sync" />
+		</div>
+	);
+}
+
 /* ── Page ────────────────────────────────────────────────── */
 
 export function DesignSystem() {
@@ -189,6 +208,46 @@ export function DesignSystem() {
 					<div className="space-y-10">
 						<ColorScale name="Brand Purple" prefix="brand" colors={brand} />
 						<ColorScale name="Accent Gold" prefix="accent" colors={accent} />
+					</div>
+				</Section>
+
+				{/* Gradients */}
+				<Section
+					title="Gradients"
+					desc="Surface treatments and brand gradients for dark UI."
+				>
+					<div className="grid gap-4 md:grid-cols-2">
+						<div className="overflow-hidden rounded-xl border border-white/10">
+							<div
+								className="h-32"
+								style={{
+									background: [
+										"radial-gradient(circle at 25% 20%, rgba(127,57,173,0.25), transparent 55%)",
+										"radial-gradient(circle at 80% 75%, rgba(208,144,96,0.18), transparent 55%)",
+										"linear-gradient(180deg, rgba(27,7,54,0.92), rgba(18,4,33,0.78))",
+									].join(", "),
+								}}
+							/>
+							<div className="bg-gray-950 px-4 py-3">
+								<p className="text-xs font-medium text-gray-300">
+									Surface Gradient
+								</p>
+								<p className="mt-0.5 font-mono text-[10px] text-gray-500">
+									brand + accent radial on dark surface
+								</p>
+							</div>
+						</div>
+						<div className="overflow-hidden rounded-xl border border-white/10">
+							<div className="h-32 bg-gradient-to-br from-brand-600 via-brand-500 to-accent-400" />
+							<div className="bg-gray-950 px-4 py-3">
+								<p className="text-xs font-medium text-gray-300">
+									Brand Gradient
+								</p>
+								<p className="mt-0.5 font-mono text-[10px] text-gray-500">
+									to-br from-brand-600 via-brand-500 to-accent-400
+								</p>
+							</div>
+						</div>
 					</div>
 				</Section>
 
@@ -314,6 +373,75 @@ export function DesignSystem() {
 					</Card>
 				</Section>
 
+				{/* Icon Buttons */}
+				<Section
+					title="Icon Buttons"
+					desc="Compact buttons for toolbars and table actions."
+				>
+					<Card>
+						<div className="space-y-6">
+							<div>
+								<SubLabel>Ghost (default)</SubLabel>
+								<div className="flex items-center gap-2">
+									<IconButton label="Edit">
+										<PencilSquareIcon />
+									</IconButton>
+									<IconButton label="Delete">
+										<TrashIcon />
+									</IconButton>
+									<IconButton label="Refresh">
+										<ArrowPathIcon />
+									</IconButton>
+									<IconButton label="More">
+										<EllipsisVerticalIcon />
+									</IconButton>
+									<IconButton label="Close">
+										<XMarkIcon />
+									</IconButton>
+								</div>
+							</div>
+							<div>
+								<SubLabel>Subtle (with hover background)</SubLabel>
+								<div className="flex items-center gap-2">
+									<IconButton variant="subtle" label="Edit">
+										<PencilSquareIcon />
+									</IconButton>
+									<IconButton variant="subtle" label="Delete">
+										<TrashIcon />
+									</IconButton>
+									<IconButton variant="subtle" label="Refresh">
+										<ArrowPathIcon />
+									</IconButton>
+								</div>
+							</div>
+							<div>
+								<SubLabel>Sizes</SubLabel>
+								<div className="flex items-center gap-3">
+									<div className="flex items-center gap-1">
+										<IconButton size="sm" label="Small edit">
+											<PencilSquareIcon />
+										</IconButton>
+										<span className="ml-1 text-xs text-gray-400">sm</span>
+									</div>
+									<div className="flex items-center gap-1">
+										<IconButton size="md" variant="subtle" label="Medium edit">
+											<PencilSquareIcon />
+										</IconButton>
+										<span className="ml-1 text-xs text-gray-400">md</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</Card>
+				</Section>
+
+				{/* Toggle */}
+				<Section title="Toggle" desc="On/off switch with brand color.">
+					<Card>
+						<ToggleShowcase />
+					</Card>
+				</Section>
+
 				{/* Cards */}
 				<Section
 					title="Cards"
@@ -348,9 +476,9 @@ export function DesignSystem() {
 				{/* Brand Gradient */}
 				<Section
 					title="Brand Gradient"
-					desc="Signature gradient for hero sections and emphasis."
+					desc="Signature diagonal gradient for hero sections and emphasis."
 				>
-					<div className="overflow-hidden rounded-2xl bg-gradient-to-r from-brand-600 via-brand-500 to-accent-400 px-8 py-14 text-center">
+					<div className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-500 to-accent-400 px-8 py-14 text-center">
 						<p className="text-sm font-medium uppercase tracking-wide text-white/70">
 							AI API Gateway
 						</p>
