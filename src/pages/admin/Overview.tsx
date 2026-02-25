@@ -86,7 +86,7 @@ export function Overview() {
 					{cards.map((c) => (
 						<div
 							key={c.name}
-							className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow dark:bg-white/5"
+							className="rounded-xl border border-gray-200 bg-white px-4 py-5 dark:border-white/10 dark:bg-white/5"
 						>
 							<dt className="flex items-center gap-2 truncate text-sm font-medium text-gray-500 dark:text-gray-400">
 								<c.icon className="size-4 shrink-0" />

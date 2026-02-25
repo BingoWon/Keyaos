@@ -22,7 +22,7 @@ export function NotFound() {
 				<div className="mt-10 flex items-center justify-center gap-x-6">
 					<Link
 						to="/"
-						className="rounded-md bg-brand-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+						className="rounded-lg bg-brand-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50"
 					>
 						{t("common.go_home", "Go back home")}
 					</Link>

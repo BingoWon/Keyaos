@@ -89,47 +89,41 @@ function ModelCard({
 	const maxContext = Math.max(...group.providers.map((p) => p.contextLength));
 
 	return (
-		<div className="rounded-lg ring-1 ring-gray-200 dark:ring-white/10 overflow-hidden">
+		<div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden transition-shadow hover:shadow-sm">
 			<div
 				role="button"
 				tabIndex={0}
 				onClick={() => setOpen(!open)}
 				onKeyDown={(e) => e.key === "Enter" && setOpen(!open)}
-				className="w-full px-4 py-3 sm:px-5 flex items-center gap-3 bg-gray-50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer select-none"
+				className="w-full px-4 py-3.5 sm:px-5 flex items-start gap-3 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer select-none"
 			>
 				<ChevronRightIcon
-					className={`size-4 shrink-0 text-gray-400 transition-transform ${open ? "rotate-90" : ""}`}
+					className={`mt-0.5 size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
 				/>
-				{/* Name + model ID + copy */}
-				<div className="min-w-0 flex-1">
-					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-						{group.displayName}
-					</h4>
-					<span className="flex items-center gap-1 mt-0.5">
-						<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
-							{group.id}
-						</code>
-						<span onClick={(e) => e.stopPropagation()}>
-							<CopyButton text={group.id} />
+				<div className="min-w-0 flex-1 space-y-2">
+					<div>
+						<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+							{group.displayName}
+						</h4>
+						<span className="flex items-center gap-1 mt-0.5">
+							<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
+								{group.id}
+							</code>
+							<span
+								onClick={(e) => e.stopPropagation()}
+								onKeyDown={(e) => e.stopPropagation()}
+							>
+								<CopyButton text={group.id} />
+							</span>
 						</span>
-					</span>
+					</div>
+					<div className="flex flex-wrap items-center gap-1.5">
+						<Badge variant="accent">{formatPrice(best.inputPrice)} in</Badge>
+						<Badge variant="accent">{formatPrice(best.outputPrice)} out</Badge>
+						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}
+					</div>
 				</div>
-				{/* Price + context */}
-				<div className="hidden sm:flex items-center gap-3 text-xs font-mono text-gray-500 dark:text-gray-400 shrink-0">
-					<span title="Cheapest input /1M">{formatPrice(best.inputPrice)}</span>
-					<span className="text-gray-300 dark:text-gray-600">/</span>
-					<span title="Cheapest output /1M">
-						{formatPrice(best.outputPrice)}
-					</span>
-					{maxContext > 0 && (
-						<>
-							<span className="text-gray-300 dark:text-gray-600">·</span>
-							<span>{formatContext(maxContext)}</span>
-						</>
-					)}
-				</div>
-				{/* Provider logos + count (grouped) */}
-				<div className="flex items-center gap-2 shrink-0">
+				<div className="flex items-center gap-2.5 shrink-0 pt-1">
 					<div className="hidden sm:flex items-center -space-x-1.5">
 						{group.providers.slice(0, 5).map((p) => {
 							const meta = providerMap.get(p.provider);
@@ -148,56 +142,58 @@ function ModelCard({
 			</div>
 
 			{open && (
-				<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-					<thead>
-						<tr className="text-left text-xs font-medium text-gray-500 dark:text-gray-500">
-							<th className="py-2 pl-4 pr-2 sm:pl-5">Provider</th>
-							<th className="px-2 text-right">Input /1M</th>
-							<th className="px-2 text-right">Output /1M</th>
-							<th className="py-2 pl-2 pr-4 sm:pr-5 text-right">Context</th>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-						{group.providers.map((p, i) => (
-							<tr
-								key={p.provider}
-								className={
-									i === 0
-										? "bg-green-50/40 dark:bg-green-500/[0.04]"
-										: undefined
-								}
-							>
-								<td className="py-2 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-									{(() => {
-										const meta = providerMap.get(p.provider);
-										return (
-											<span className="inline-flex items-center gap-1.5">
-												{meta && (
-													<ProviderLogo
-														src={meta.logoUrl}
-														name={meta.name}
-														size={16}
-													/>
-												)}
-												{meta?.name ?? p.provider}
-												<CopyButton text={p.provider} />
-											</span>
-										);
-									})()}
-								</td>
-								<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-									{formatPrice(p.inputPrice)}
-								</td>
-								<td className="px-2 py-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-									{formatPrice(p.outputPrice)}
-								</td>
-								<td className="py-2 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-									{formatContext(p.contextLength)}
-								</td>
+				<div className="border-t border-gray-100 dark:border-white/5">
+					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+						<thead>
+							<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+								<th className="py-2.5 pl-4 pr-2 sm:pl-5">Provider</th>
+								<th className="px-2 text-right">Input /1M</th>
+								<th className="px-2 text-right">Output /1M</th>
+								<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">Context</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+							{group.providers.map((p, i) => (
+								<tr
+									key={p.provider}
+									className={
+										i === 0
+											? "bg-green-50/40 dark:bg-green-500/[0.04]"
+											: undefined
+									}
+								>
+									<td className="py-2.5 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
+										{(() => {
+											const meta = providerMap.get(p.provider);
+											return (
+												<span className="inline-flex items-center gap-1.5">
+													{meta && (
+														<ProviderLogo
+															src={meta.logoUrl}
+															name={meta.name}
+															size={16}
+														/>
+													)}
+													{meta?.name ?? p.provider}
+													<CopyButton text={p.provider} />
+												</span>
+											);
+										})()}
+									</td>
+									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+										{formatPrice(p.inputPrice)}
+									</td>
+									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+										{formatPrice(p.outputPrice)}
+									</td>
+									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+										{formatContext(p.contextLength)}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			)}
 		</div>
 	);
@@ -275,7 +271,7 @@ export function Models() {
 
 	if (error) {
 		return (
-			<div className="p-4 text-sm text-red-500 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+			<div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-500/20 dark:bg-red-900/20 dark:text-red-400">
 				Failed to load models: {error.message}
 			</div>
 		);

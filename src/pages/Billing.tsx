@@ -90,20 +90,18 @@ export function Billing() {
 			</div>
 
 			{/* Balance Card */}
-			<div className="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-white/5">
-				<div className="px-4 py-5 sm:p-6">
-					<div className="flex items-center gap-4">
-						<div className="rounded-md bg-brand-500 p-3">
-							<CreditCardIcon className="size-6 text-white" />
-						</div>
-						<div>
-							<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-								{t("billing.balance")}
-							</p>
-							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-								{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
-							</p>
-						</div>
+			<div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+				<div className="flex items-center gap-4">
+					<div className="rounded-lg bg-brand-500/10 p-3 dark:bg-brand-500/15">
+						<CreditCardIcon className="size-6 text-brand-500" />
+					</div>
+					<div>
+						<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+							{t("billing.balance")}
+						</p>
+						<p className="text-3xl font-semibold text-gray-900 dark:text-white">
+							{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
+						</p>
 					</div>
 				</div>
 			</div>
@@ -122,7 +120,7 @@ export function Billing() {
 							type="button"
 							disabled={loading}
 							onClick={() => handleCheckout(cents)}
-							className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-center shadow-sm hover:border-brand-500 hover:ring-1 hover:ring-brand-500 disabled:opacity-50 dark:border-gray-600 dark:bg-white/5 dark:hover:border-brand-400"
+							className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-center transition-colors hover:border-brand-500 hover:ring-1 hover:ring-brand-500/30 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-brand-400"
 						>
 							<span className="block text-lg font-semibold text-gray-900 dark:text-white">
 								${(cents / 100).toFixed(0)}
@@ -173,7 +171,7 @@ export function Billing() {
 						{t("billing.no_data")}
 					</p>
 				) : (
-					<div className="mt-3 overflow-hidden rounded-lg border border-gray-200 dark:border-white/10">
+					<div className="mt-3 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
 						<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
 							<thead className="bg-gray-50 dark:bg-white/5">
 								<tr>

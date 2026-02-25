@@ -7,12 +7,12 @@ interface HealthBadgeProps {
 }
 
 const HEALTH_VARIANTS: Record<HealthStatus, string> = {
-	ok: "bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400",
+	ok: "border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-400/10 dark:text-green-400",
 	degraded:
-		"bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-500",
+		"border-yellow-200 bg-yellow-50 text-yellow-800 dark:border-yellow-500/20 dark:bg-yellow-400/10 dark:text-yellow-500",
 	cooldown:
-		"bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-400",
-	dead: "bg-red-50 text-red-700 ring-red-600/10 dark:bg-red-400/10 dark:text-red-400",
+		"border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-400/10 dark:text-blue-400",
+	dead: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-400/10 dark:text-red-400",
 };
 
 export function HealthBadge({ status }: HealthBadgeProps) {
@@ -20,7 +20,7 @@ export function HealthBadge({ status }: HealthBadgeProps) {
 
 	return (
 		<span
-			className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${HEALTH_VARIANTS[status]}`}
+			className={`inline-flex items-center rounded-lg border px-2 py-1 text-xs font-medium ${HEALTH_VARIANTS[status]}`}
 		>
 			{t(`credentials.status_${status}`)}
 		</span>

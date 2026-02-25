@@ -78,8 +78,8 @@ export function Users() {
 					{t("admin.no_users")}
 				</p>
 			) : (
-				<div className="overflow-x-auto shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">
-					<table className="min-w-full divide-y divide-gray-300 dark:divide-white/10">
+				<div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-white/10">
+					<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
 						<thead className="bg-gray-50 dark:bg-white/5">
 							<tr>
 								<th className="py-3 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 dark:text-white sm:pl-6">
@@ -129,14 +129,14 @@ export function Users() {
 													placeholder={t("admin.amount_placeholder")}
 													value={amount}
 													onChange={(e) => setAmount(e.target.value)}
-													className="w-24 rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+													className="w-24 rounded-lg border border-gray-200 px-2 py-1 text-xs focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
 												/>
 												<input
 													type="text"
 													placeholder={t("admin.reason_placeholder")}
 													value={reason}
 													onChange={(e) => setReason(e.target.value)}
-													className="w-32 rounded border border-gray-300 px-2 py-1 text-xs dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+													className="w-32 rounded-lg border border-gray-200 px-2 py-1 text-xs focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
 												/>
 												<Button
 													size="sm"

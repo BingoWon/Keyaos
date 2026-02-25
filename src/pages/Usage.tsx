@@ -58,7 +58,7 @@ export function Usage() {
 
 	if (error) {
 		return (
-			<div className="p-4 text-sm text-red-500 bg-red-50 rounded-lg dark:bg-red-900/20 dark:text-red-400">
+			<div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-500/20 dark:bg-red-900/20 dark:text-red-400">
 				Failed to load usage: {error.message}
 			</div>
 		);
@@ -82,8 +82,8 @@ export function Usage() {
 					{t("usage.no_data")}
 				</p>
 			) : (
-				<div className="mt-5 overflow-hidden shadow ring-1 ring-black/5 rounded-lg dark:ring-white/10">
-					<table className="min-w-full divide-y divide-gray-300 dark:divide-white/10">
+				<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+					<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
 						<thead className="bg-gray-50 dark:bg-white/5">
 							<tr>
 								<th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">

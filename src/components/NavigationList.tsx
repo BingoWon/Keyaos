@@ -78,7 +78,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 											isActive
 												? "bg-gray-50 text-brand-600 dark:bg-white/5 dark:text-white"
 												: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-											"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold",
+											"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
 										)
 									}
 								>

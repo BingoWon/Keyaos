@@ -46,7 +46,7 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 											isActive
 												? "bg-gray-50 text-brand-600 dark:bg-white/5 dark:text-white"
 												: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-											"group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold",
+											"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
 										)
 									}
 								>
@@ -74,7 +74,7 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 						to="/dashboard"
 						end
 						onClick={onNavigate}
-						className="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+						className="group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
 					>
 						<ArrowLeftIcon className="size-6 shrink-0 text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white" />
 						{t("nav.dashboard")}
