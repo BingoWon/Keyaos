@@ -49,7 +49,7 @@ function Navbar() {
 					className="flex items-center gap-2.5 font-bold text-gray-900 dark:text-white"
 				>
 					<img src="/logo.png" alt="Keyaos" className="size-7" />
-					<span>Keyaos</span>
+					<span>{t("landing.brand_name")}</span>
 				</Link>
 
 				<div className="flex items-center gap-1">
@@ -449,7 +449,7 @@ function Footer() {
 					<img src="/logo.png" alt="Keyaos" className="size-6" />
 					<div>
 						<span className="text-sm font-bold text-gray-900 dark:text-white">
-							Keyaos
+							{t("landing.brand_name")}
 						</span>
 						<span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
 							{t("landing.footer_desc")}
@@ -458,13 +458,10 @@ function Footer() {
 				</div>
 				<div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
 					<Link
-						to="/dashboard"
+						to="/dashboard/guide"
 						className="transition-colors hover:text-brand-500"
 					>
-						{t("landing.footer_product")}
-					</Link>
-					<Link to="/design" className="transition-colors hover:text-brand-500">
-						Design
+						{t("landing.footer_docs")}
 					</Link>
 					<a
 						href={GITHUB_URL}
