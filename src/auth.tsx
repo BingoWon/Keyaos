@@ -160,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			<ClerkProvider
 				publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
 				afterSignOutUrl="/login"
+				afterSignInUrl="/dashboard"
 				localization={clerkLocales[i18n.language] ?? enUS}
 				appearance={{
 					baseTheme: isDark ? dark : undefined,
