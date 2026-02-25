@@ -1,5 +1,11 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
-import { AuthGuard, isPlatform } from "./auth";
+import { useEffect } from "react";
+import {
+	createBrowserRouter,
+	Navigate,
+	useLocation,
+	useNavigate,
+} from "react-router-dom";
+import { AuthGuard, isPlatform, useAuth } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
 import { AdminLayout } from "./pages/admin/AdminLayout";
@@ -33,10 +39,24 @@ const dashboardChildren = [
 	{ path: "guide", element: <Guide /> },
 ];
 
+function LoginRoute() {
+	const { isLoaded, isSignedIn } = useAuth();
+	const { pathname } = useLocation();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (isLoaded && isSignedIn && pathname === "/login") {
+			navigate("/dashboard", { replace: true });
+		}
+	}, [isLoaded, isSignedIn, pathname, navigate]);
+
+	return <Login />;
+}
+
 export const router = createBrowserRouter([
 	{
 		path: "/login/*",
-		element: <Login />,
+		element: <LoginRoute />,
 	},
 	{ path: "/", element: <Landing /> },
 	{
