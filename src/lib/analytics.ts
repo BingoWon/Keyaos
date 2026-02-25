@@ -50,7 +50,11 @@ export function loadCrisp() {
 	Crisp.configure(crispId);
 
 	i18n.on("languageChanged", (lng) => {
-		Crisp.setLocale(lng);
+		try {
+			Crisp.setLocale(lng);
+		} catch {
+			/* Crisp locale update is best-effort */
+		}
 	});
 }
 
