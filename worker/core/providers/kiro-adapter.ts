@@ -48,16 +48,19 @@ const tokenCache = new Map<string, CachedToken>();
 
 // ─── Helpers ────────────────────────────────────────────
 
-function machineId(): string {
-	const bytes = new Uint8Array(32);
-	crypto.getRandomValues(bytes);
-	return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+let cachedMachineId: string | null = null;
+
+function getMachineId(): string {
+	if (!cachedMachineId) {
+		const bytes = new Uint8Array(32);
+		crypto.getRandomValues(bytes);
+		cachedMachineId = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+	}
+	return cachedMachineId;
 }
 
-const MACHINE_ID = machineId();
-
 function buildHeaders(accessToken: string): Record<string, string> {
-	const xAmz = `aws-sdk-js/1.0.27 KiroIDE-${KIRO_VERSION}-${MACHINE_ID}`;
+	const xAmz = `aws-sdk-js/1.0.27 KiroIDE-${KIRO_VERSION}-${getMachineId()}`;
 	return {
 		"Content-Type": "application/json",
 		"x-amzn-codewhisperer-optout": "true",
@@ -99,7 +102,7 @@ export class KiroAdapter implements ProviderAdapter {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
-				"User-Agent": `KiroIDE-${KIRO_VERSION}-${MACHINE_ID}`,
+				"User-Agent": `KiroIDE-${KIRO_VERSION}-${getMachineId()}`,
 			},
 			body: JSON.stringify({ refreshToken }),
 		});
