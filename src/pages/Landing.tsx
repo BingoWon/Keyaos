@@ -480,9 +480,27 @@ function Footer() {
 	);
 }
 
+const JSON_LD = {
+	"@context": "https://schema.org",
+	"@type": "SoftwareApplication",
+	name: "Keyaos",
+	url: "https://keyaos.com",
+	applicationCategory: "DeveloperApplication",
+	operatingSystem: "Web",
+	description:
+		"Open-source AI API gateway that routes every request to the cheapest healthy provider.",
+	offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+	license: "https://opensource.org/licenses/MIT",
+};
+
 export function Landing() {
 	return (
 		<div className="min-h-screen bg-white dark:bg-gray-950">
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+			/>
 			<Navbar />
 			<Hero />
 			<ProviderStrip />

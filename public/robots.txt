@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /login
+Disallow: /api/
+Disallow: /v1/
+
+Sitemap: https://keyaos.com/sitemap.xml
