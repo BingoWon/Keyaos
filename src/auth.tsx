@@ -3,9 +3,11 @@ import {
 	SignIn,
 	UserButton,
 	useAuth as useClerkAuth,
+	useUser,
 } from "@clerk/clerk-react";
 import { enUS, zhCN } from "@clerk/localizations";
 import { dark } from "@clerk/themes";
+import { Crisp } from "crisp-sdk-web";
 import {
 	createContext,
 	type ReactNode,
@@ -15,6 +17,8 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+
+const crispEnabled = !!import.meta.env.VITE_CRISP_WEBSITE_ID;
 
 /** True when Clerk is configured → Platform (multi-tenant) mode */
 export const isPlatform = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -72,6 +76,7 @@ function CoreAuthProvider({ children }: { children: ReactNode }) {
 
 function ClerkAuthBridge({ children }: { children: ReactNode }) {
 	const clerk = useClerkAuth();
+	const { user } = useUser();
 	const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
 	useEffect(() => {
@@ -91,6 +96,16 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
 		});
 	}, [clerk.isSignedIn, clerk.getToken]);
 
+	useEffect(() => {
+		if (!crispEnabled) return;
+		if (user) {
+			const email = user.primaryEmailAddress?.emailAddress;
+			if (email) Crisp.user.setEmail(email);
+			const name = user.fullName || user.firstName;
+			if (name) Crisp.user.setNickname(name);
+		}
+	}, [user]);
+
 	const value = useMemo<AuthContextType>(
 		() => ({
 			getToken: () => clerk.getToken(),
@@ -98,6 +113,7 @@ function ClerkAuthBridge({ children }: { children: ReactNode }) {
 			isSignedIn: clerk.isSignedIn ?? false,
 			isAdmin,
 			signOut: () => {
+				if (crispEnabled) Crisp.session.reset();
 				clerk.signOut();
 			},
 		}),

@@ -431,6 +431,13 @@ Kiro 使用 AWS 社交认证（GitHub/Google），无需 `client_id`/`client_sec
 - 用户管理：查看所有用户余额与消耗，发放/扣除 Credits（`credit_adjustments` 表审计追踪，`AdminDao.adjustCredits` 复用 `WalletDao.credit()`）。
 - 数据浏览：只读查询任意 D1 表，分页浏览，默认按时间倒序。
 
-### 方向五：平台前端架构扩充
+### 方向五：客服集成 ✅ 已完成
+- **Crisp** 异步聊天 widget，适合独立维护者（非即时客服，异步响应）。
+- `crisp-sdk-web` NPM 集成，`VITE_CRISP_WEBSITE_ID` 环境变量控制开关。
+- 未配置 Website ID 时完全无副作用（不加载任何外部资源）。
+- Platform 模式下自动同步 Clerk 用户身份（email + 昵称）至 Crisp 会话。
+- 用户登出时 `Crisp.session.reset()` 清除会话，防止身份混淆。
+
+### 方向六：平台前端架构扩充
 - **Landing Page**: 面向消费者的 SEO 官网。
 - **User Console**: Dashboard 的企业增强版，增加财务看板和授权管理。
