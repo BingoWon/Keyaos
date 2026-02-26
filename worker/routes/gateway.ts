@@ -126,6 +126,7 @@ export async function executeCompletion(
 								baseCost,
 								inputTokens: usage.prompt_tokens,
 								outputTokens: usage.completion_tokens,
+								priceMultiplier: credential.price_multiplier,
 								settlement,
 							});
 

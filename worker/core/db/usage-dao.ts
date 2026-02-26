@@ -13,8 +13,8 @@ export class UsageDao {
 				`INSERT INTO usage (
 					id, consumer_id, credential_id, credential_owner_id, provider, model,
 					input_tokens, output_tokens, base_cost,
-					consumer_charged, provider_earned, platform_fee, created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					consumer_charged, provider_earned, platform_fee, price_multiplier, created_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
@@ -29,6 +29,7 @@ export class UsageDao {
 				tx.consumer_charged,
 				tx.provider_earned,
 				tx.platform_fee,
+				tx.price_multiplier,
 				Date.now(),
 			)
 			.run();

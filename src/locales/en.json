@@ -18,6 +18,7 @@
 	"nav": {
 		"dashboard": "Dashboard",
 		"models": "Models",
+		"providers": "Providers",
 		"credentials": "Credentials",
 		"api_keys": "API Keys",
 		"usage": "Usage",
@@ -155,6 +156,17 @@
 		"output_price": "Output Price",
 		"context": "Context",
 		"no_data": "No pricing data available yet."
+	},
+	"providers": {
+		"title": "Providers",
+		"subtitle": "Upstream provider pricing and transaction trends",
+		"models_count": "models",
+		"auto": "Auto",
+		"no_data": "No provider data available yet."
+	},
+	"chart": {
+		"price_trend": "Price Trend",
+		"no_data": "No transaction data yet"
 	},
 	"usage": {
 		"title": "Usage",

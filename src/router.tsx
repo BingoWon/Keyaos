@@ -22,11 +22,13 @@ import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
 import { Models } from "./pages/Models";
 import { NotFound } from "./pages/NotFound";
+import { Providers } from "./pages/Providers";
 import { Usage } from "./pages/Usage";
 
 const dashboardChildren = [
 	{ index: true, element: <Dashboard /> },
 	{ path: "models", element: <Models /> },
+	{ path: "providers", element: <Providers /> },
 	{ path: "api-keys", element: <ApiKeys /> },
 	{ path: "credentials", element: <Credentials /> },
 	{ path: "usage", element: <Usage /> },

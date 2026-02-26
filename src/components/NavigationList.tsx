@@ -1,5 +1,6 @@
 import {
 	BookOpenIcon,
+	BuildingOfficeIcon,
 	CpuChipIcon,
 	CreditCardIcon,
 	HomeIcon,
@@ -26,6 +27,11 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const navigation = [
 		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon, end: true },
 		{ name: t("nav.models"), href: "/dashboard/models", icon: CpuChipIcon },
+		{
+			name: t("nav.providers"),
+			href: "/dashboard/providers",
+			icon: BuildingOfficeIcon,
+		},
 		{
 			name: t("nav.credentials"),
 			href: "/dashboard/credentials",

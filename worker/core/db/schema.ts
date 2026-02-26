@@ -47,5 +47,18 @@ export interface DbUsageEntry {
 	consumer_charged: number;
 	provider_earned: number;
 	platform_fee: number;
+	price_multiplier: number;
 	created_at: number;
+}
+
+export interface DbPriceCandle {
+	dimension: "model" | "provider";
+	dimension_value: string;
+	interval_start: number;
+	open_price: number;
+	high_price: number;
+	low_price: number;
+	close_price: number;
+	volume: number;
+	total_tokens: number;
 }

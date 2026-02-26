@@ -20,6 +20,7 @@ export interface BillingParams {
 	baseCost: number;
 	inputTokens: number;
 	outputTokens: number;
+	priceMultiplier: number;
 	settlement: Settlement;
 }
 
@@ -50,6 +51,7 @@ export async function recordUsage(
 		baseCost,
 		inputTokens,
 		outputTokens,
+		priceMultiplier,
 		settlement,
 	} = params;
 
@@ -68,6 +70,7 @@ export async function recordUsage(
 			consumer_charged: settlement.consumerCharged,
 			provider_earned: settlement.providerEarned,
 			platform_fee: settlement.platformFee,
+			price_multiplier: priceMultiplier,
 		});
 
 		await new CredentialsDao(db).deductQuota(credentialId, baseCost);

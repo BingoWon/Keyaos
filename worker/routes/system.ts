@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { CandleDao } from "../core/db/candle-dao";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { UsageDao } from "../core/db/usage-dao";
 import { getAllProviders } from "../core/providers/registry";
@@ -127,6 +128,35 @@ systemRouter.get("/ledger", async (c) => {
 		}>();
 
 	return c.json({ data: res.results || [] });
+});
+
+/** Price candle data for charts */
+systemRouter.get("/candles/:dimension/:value", async (c) => {
+	const dimension = c.req.param("dimension") as "model" | "provider";
+	if (dimension !== "model" && dimension !== "provider") {
+		return c.json(
+			{ error: { message: "Invalid dimension", type: "invalid_request_error" } },
+			400,
+		);
+	}
+	const value = decodeURIComponent(c.req.param("value"));
+	const hours = Math.min(Number(c.req.query("hours")) || 24, 168);
+	const since = Date.now() - hours * 60 * 60 * 1000;
+
+	const dao = new CandleDao(c.env.DB);
+	const candles = await dao.getCandles(dimension, value, since);
+
+	return c.json({
+		data: candles.map((cd) => ({
+			time: cd.interval_start,
+			open: cd.open_price,
+			high: cd.high_price,
+			low: cd.low_price,
+			close: cd.close_price,
+			volume: cd.volume,
+			totalTokens: cd.total_tokens,
+		})),
+	});
 });
 
 export default systemRouter;

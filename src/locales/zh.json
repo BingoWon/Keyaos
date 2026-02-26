@@ -18,6 +18,7 @@
 	"nav": {
 		"dashboard": "控制台",
 		"models": "模型",
+		"providers": "供应商",
 		"credentials": "上游凭证",
 		"api_keys": "API 密钥",
 		"usage": "使用记录",
@@ -152,6 +153,17 @@
 		"output_price": "输出定价",
 		"context": "上下文长度",
 		"no_data": "暂无定价数据。"
+	},
+	"providers": {
+		"title": "供应商",
+		"subtitle": "上游供应商定价与成交趋势",
+		"models_count": "个模型",
+		"auto": "自动",
+		"no_data": "暂无供应商数据。"
+	},
+	"chart": {
+		"price_trend": "价格走势",
+		"no_data": "暂无成交数据"
 	},
 	"usage": {
 		"title": "使用记录",

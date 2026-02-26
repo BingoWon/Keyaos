@@ -2,6 +2,7 @@ import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { CandleDao } from "./core/db/candle-dao";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
 import adminRouter from "./platform/routes/admin";
@@ -179,8 +180,13 @@ export default {
 		ctx: ExecutionContext,
 	): Promise<void> {
 		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
+		const intervalMs = 5 * 60 * 1000;
 		ctx.waitUntil(
-			Promise.all([syncAllModels(env.DB, rate), syncAutoCredits(env.DB, rate)]),
+			Promise.all([
+				syncAllModels(env.DB, rate),
+				syncAutoCredits(env.DB, rate),
+				new CandleDao(env.DB).aggregate(Date.now() - intervalMs),
+			]),
 		);
 	},
 };
