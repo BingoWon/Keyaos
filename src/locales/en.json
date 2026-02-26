@@ -41,10 +41,16 @@
 	},
 	"dashboard": {
 		"title": "Overview",
-		"total_credentials": "Total Credentials",
+		"models_count": "Models",
+		"providers_count": "Providers",
 		"active_credentials": "Active Credentials",
 		"total_quota": "Total Quota",
-		"wallet_balance": "Wallet Balance"
+		"wallet_balance": "Wallet Balance",
+		"providers_title": "Providers",
+		"top_models": "Top Models",
+		"view_all": "View All",
+		"recent_activity": "Recent Activity",
+		"no_activity": "No activity yet"
 	},
 	"api_keys": {
 		"title": "API Keys",

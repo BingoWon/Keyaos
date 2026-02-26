@@ -41,10 +41,16 @@
 	},
 	"dashboard": {
 		"title": "概览",
-		"total_credentials": "凭证总数",
+		"models_count": "模型",
+		"providers_count": "供应商",
 		"active_credentials": "活跃凭证",
 		"total_quota": "总配额",
-		"wallet_balance": "钱包余额"
+		"wallet_balance": "钱包余额",
+		"providers_title": "供应商",
+		"top_models": "热门模型",
+		"view_all": "查看全部",
+		"recent_activity": "最近活动",
+		"no_activity": "暂无活动记录"
 	},
 	"api_keys": {
 		"title": "API 密钥",
