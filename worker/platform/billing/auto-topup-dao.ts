@@ -9,8 +9,12 @@ export interface AutoTopUpConfig {
 	paused_reason: string | null;
 }
 
-const COOLDOWN_MS = 5 * 60 * 1000;
 const MAX_FAILURES = 3;
+const BACKOFF_MS = [0, 60 * 60 * 1000, 24 * 60 * 60 * 1000] as const;
+
+function getCooldownMs(failures: number): number {
+	return BACKOFF_MS[Math.min(failures, BACKOFF_MS.length - 1)];
+}
 
 export class AutoTopUpDao {
 	constructor(private db: D1Database) {}
@@ -86,35 +90,43 @@ export class AutoTopUpDao {
 			.run();
 	}
 
-	/** Check if the cooldown window has elapsed since last trigger */
 	canTrigger(config: AutoTopUpConfig): boolean {
 		if (!config.enabled || !config.payment_method_id || config.paused_reason)
 			return false;
+		const cooldown = getCooldownMs(config.consecutive_failures);
 		if (
 			config.last_triggered_at &&
-			Date.now() - config.last_triggered_at < COOLDOWN_MS
+			Date.now() - config.last_triggered_at < cooldown
 		)
 			return false;
 		return true;
 	}
 
-	/** Atomically claim the trigger slot (prevents concurrent triggers) */
 	async claimTrigger(ownerId: string): Promise<boolean> {
-		const cutoff = Date.now() - COOLDOWN_MS;
+		const now = Date.now();
 		const res = await this.db
 			.prepare(
 				`UPDATE auto_topup_config
 				 SET last_triggered_at = ?
 				 WHERE owner_id = ? AND enabled = 1 AND payment_method_id IS NOT NULL
 				   AND paused_reason IS NULL
-				   AND (last_triggered_at IS NULL OR last_triggered_at < ?)`,
+				   AND (last_triggered_at IS NULL OR (
+				     (consecutive_failures = 0 AND last_triggered_at < ?) OR
+				     (consecutive_failures = 1 AND last_triggered_at < ?) OR
+				     (consecutive_failures >= 2 AND last_triggered_at < ?)
+				   ))`,
 			)
-			.bind(Date.now(), ownerId, cutoff)
+			.bind(
+				now,
+				ownerId,
+				now - BACKOFF_MS[0],
+				now - BACKOFF_MS[1],
+				now - BACKOFF_MS[2],
+			)
 			.run();
 		return (res.meta?.changes ?? 0) > 0;
 	}
 
-	/** Find all users eligible for auto top-up (cron sweep) */
 	async findEligible(): Promise<
 		{
 			owner_id: string;
@@ -125,7 +137,7 @@ export class AutoTopUpDao {
 			stripe_customer_id: string;
 		}[]
 	> {
-		const cutoff = Date.now() - COOLDOWN_MS;
+		const now = Date.now();
 		const res = await this.db
 			.prepare(
 				`SELECT c.owner_id, c.threshold, c.amount_cents, c.payment_method_id,
@@ -137,9 +149,13 @@ export class AutoTopUpDao {
 				   AND c.paused_reason IS NULL
 				   AND w.stripe_customer_id IS NOT NULL
 				   AND w.balance < c.threshold
-				   AND (c.last_triggered_at IS NULL OR c.last_triggered_at < ?)`,
+				   AND (c.last_triggered_at IS NULL OR (
+				     (c.consecutive_failures = 0 AND c.last_triggered_at < ?) OR
+				     (c.consecutive_failures = 1 AND c.last_triggered_at < ?) OR
+				     (c.consecutive_failures >= 2 AND c.last_triggered_at < ?)
+				   ))`,
 			)
-			.bind(cutoff)
+			.bind(now - BACKOFF_MS[0], now - BACKOFF_MS[1], now - BACKOFF_MS[2])
 			.all<{
 				owner_id: string;
 				threshold: number;

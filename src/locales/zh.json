@@ -222,6 +222,7 @@
 		"status": "状态",
 		"status_completed": "已完成",
 		"status_pending": "待支付",
+		"status_failed": "失败",
 		"status_canceled": "已取消",
 		"status_expired": "已过期",
 		"auto_topup": "自动充值",
@@ -230,6 +231,7 @@
 		"auto_topup_amount": "充值金额",
 		"auto_topup_no_card": "请先完成一次手动充值以保存支付方式。",
 		"auto_topup_paused": "自动充值已暂停：{{reason}}",
+		"auto_topup_failing": "连续失败 {{count}} 次 — 下次重试在 {{delay}} 后",
 		"auto_topup_saved": "自动充值设置已保存"
 	},
 	"admin": {

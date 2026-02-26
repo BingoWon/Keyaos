@@ -49,7 +49,7 @@ export class PaymentsDao {
 	async isFinal(sessionId: string): Promise<boolean> {
 		const row = await this.db
 			.prepare(
-				"SELECT 1 FROM payments WHERE stripe_session_id = ? AND status IN ('completed', 'expired', 'canceled')",
+				"SELECT 1 FROM payments WHERE stripe_session_id = ? AND status IN ('completed', 'expired', 'canceled', 'failed')",
 			)
 			.bind(sessionId)
 			.first();

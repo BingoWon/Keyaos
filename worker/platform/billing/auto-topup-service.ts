@@ -5,7 +5,9 @@
  *   1. claimTrigger() atomically sets last_triggered_at (prevents concurrent fires)
  *   2. Create off-session PaymentIntent via Stripe
  *   3. On success: create payment record, credit wallet, reset failures
- *   4. On failure: increment failures, auto-pause after 3 consecutive
+ *   4. On failure: create failed payment record, increment failures
+ *
+ * Progressive backoff: immediate → 1h → 24h → pause (3 strikes)
  */
 
 import { log } from "../../shared/logger";
@@ -40,9 +42,11 @@ export async function triggerAutoTopUp(
 			ownerId,
 		});
 
+		const payments = new PaymentsDao(db);
+
 		if (pi.status === "succeeded") {
 			const credits = centsToCredits(config.amount_cents);
-			await new PaymentsDao(db).create({
+			await payments.create({
 				owner_id: ownerId,
 				type: "auto",
 				stripe_session_id: pi.id,
@@ -54,6 +58,14 @@ export async function triggerAutoTopUp(
 			await dao.recordSuccess(ownerId);
 			log.info("auto-topup", `Charged $${credits} for ${ownerId}`);
 		} else {
+			await payments.create({
+				owner_id: ownerId,
+				type: "auto",
+				stripe_session_id: pi.id,
+				amount_cents: config.amount_cents,
+				credits: 0,
+				status: "failed",
+			});
 			await dao.recordFailure(ownerId, pi.status);
 			log.warn("auto-topup", `Payment ${pi.status} for ${ownerId}`);
 		}

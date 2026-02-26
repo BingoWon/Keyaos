@@ -225,6 +225,7 @@
 		"status": "Status",
 		"status_completed": "Completed",
 		"status_pending": "Pending",
+		"status_failed": "Failed",
 		"status_canceled": "Canceled",
 		"status_expired": "Expired",
 		"auto_topup": "Auto Top-Up",
@@ -233,6 +234,7 @@
 		"auto_topup_amount": "Top-up amount",
 		"auto_topup_no_card": "Complete a manual payment first to save your card.",
 		"auto_topup_paused": "Auto Top-Up paused: {{reason}}",
+		"auto_topup_failing": "{{count}} consecutive failure(s) — next retry in {{delay}}",
 		"auto_topup_saved": "Auto Top-Up settings saved"
 	},
 	"admin": {

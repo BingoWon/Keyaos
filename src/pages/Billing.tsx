@@ -306,6 +306,17 @@ export function Billing() {
 						</div>
 					)}
 
+					{!autoConfig?.pausedReason &&
+						(autoConfig?.consecutiveFailures ?? 0) > 0 && (
+							<div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+								<ExclamationTriangleIcon className="size-4 shrink-0" />
+								{t("billing.auto_topup_failing", {
+									count: autoConfig?.consecutiveFailures,
+									delay: autoConfig?.consecutiveFailures === 1 ? "1h" : "24h",
+								})}
+							</div>
+						)}
+
 					{autoLoading ? (
 						<div className="mt-4">
 							<PageLoader />
@@ -451,7 +462,9 @@ export function Billing() {
 														? "text-green-600 dark:text-green-400"
 														: p.status === "pending"
 															? "text-yellow-600 dark:text-yellow-400"
-															: "text-gray-400 dark:text-gray-500"
+															: p.status === "failed"
+																? "text-red-600 dark:text-red-400"
+																: "text-gray-400 dark:text-gray-500"
 												}
 											>
 												{t(`billing.status_${p.status}`)}
