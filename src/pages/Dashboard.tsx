@@ -90,7 +90,11 @@ function aggregateTopModels(
 			bestInputPrice: g.bestInput,
 			bestPlatformInputPrice: g.bestPlatformInput,
 		}))
-		.sort((a, b) => b.providerCount - a.providerCount)
+		.sort(
+			(a, b) =>
+				b.providerCount - a.providerCount ||
+				b.id.localeCompare(a.id, undefined, { numeric: true }),
+		)
 		.slice(0, limit);
 }
 

@@ -24,6 +24,7 @@ interface ProviderModel {
 interface ProviderGroup {
 	provider: ProviderMeta;
 	models: ProviderModel[];
+	bestMultiplier?: number;
 }
 
 function ProviderCard({ group }: { group: ProviderGroup }) {
@@ -53,9 +54,14 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 						{group.provider.id}
 					</span>
 				</div>
-				<Badge variant="brand">
-					{group.models.length} {t("providers.models_count")}
-				</Badge>
+				<div className="shrink-0 flex items-center gap-1.5">
+					{group.bestMultiplier != null && group.bestMultiplier < 1 && (
+						<Badge variant="success">×{group.bestMultiplier.toFixed(3)}</Badge>
+					)}
+					<Badge variant="brand">
+						{group.models.length} {t("providers.models_count")}
+					</Badge>
+				</div>
 			</button>
 
 			{open && (
@@ -148,7 +154,17 @@ export function Providers() {
 		}
 
 		for (const g of byProvider.values()) {
-			g.models.sort((a, b) => b.inputPrice - a.inputPrice);
+			g.models.sort(
+				(a, b) =>
+					b.inputPrice - a.inputPrice ||
+					b.id.localeCompare(a.id, undefined, { numeric: true }),
+			);
+			const sample = g.models.find(
+				(m) => m.platformInputPrice != null && m.inputPrice > 0,
+			);
+			if (sample?.platformInputPrice != null) {
+				g.bestMultiplier = sample.platformInputPrice / sample.inputPrice;
+			}
 		}
 
 		return [...byProvider.values()].sort(
