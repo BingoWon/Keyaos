@@ -26,11 +26,6 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
 
-	const cheapest = group.models.reduce(
-		(min, m) => (m.inputPrice < min ? m.inputPrice : min),
-		Number.POSITIVE_INFINITY,
-	);
-
 	return (
 		<div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden transition-shadow hover:shadow-sm">
 			<button
@@ -54,17 +49,9 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 						{group.provider.id}
 					</span>
 				</div>
-				<div className="shrink-0 flex items-center gap-2">
-					<Badge variant="brand">
+				<Badge variant="brand">
 						{group.models.length} {t("providers.models_count")}
 					</Badge>
-					{cheapest < Number.POSITIVE_INFINITY && (
-						<Badge variant="success">{formatPrice(cheapest)} min</Badge>
-					)}
-					{group.provider.supportsAutoCredits && (
-						<Badge variant="accent">{t("providers.auto")}</Badge>
-					)}
-				</div>
 			</button>
 
 		{open && (
