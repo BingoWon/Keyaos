@@ -31,9 +31,9 @@ export class AutoTopUpDao {
 				`INSERT INTO auto_topup_config (owner_id, enabled, threshold, amount_cents)
 				 VALUES (?, ?, ?, ?)
 				 ON CONFLICT(owner_id) DO UPDATE SET
-					enabled = COALESCE(excluded.enabled, auto_topup_config.enabled),
-					threshold = COALESCE(excluded.threshold, auto_topup_config.threshold),
-					amount_cents = COALESCE(excluded.amount_cents, auto_topup_config.amount_cents),
+					enabled = excluded.enabled,
+					threshold = excluded.threshold,
+					amount_cents = excluded.amount_cents,
 					paused_reason = CASE WHEN excluded.enabled = 1 THEN NULL ELSE auto_topup_config.paused_reason END,
 					consecutive_failures = CASE WHEN excluded.enabled = 1 THEN 0 ELSE auto_topup_config.consecutive_failures END`,
 			)

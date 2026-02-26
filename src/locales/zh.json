@@ -196,6 +196,7 @@
 		"api_spend": "API 消费",
 		"credential_earn": "共享收益",
 		"top_up": "充值",
+		"auto_topup": "自动充值",
 		"grant": "赠与",
 		"revoke": "扣除",
 		"admin_adjustment": "管理员调整",

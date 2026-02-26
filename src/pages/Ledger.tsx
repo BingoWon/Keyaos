@@ -1,5 +1,6 @@
 import {
 	ArrowDownTrayIcon,
+	ArrowPathIcon,
 	ArrowUpTrayIcon,
 	BanknotesIcon,
 	CreditCardIcon,
@@ -46,6 +47,12 @@ const CATEGORY_CONFIG: Record<
 		colorClass: "text-blue-700 dark:text-blue-400",
 		bgClass: "bg-blue-50 dark:bg-blue-900/30",
 		labelKey: "ledger.top_up",
+	},
+	auto_topup: {
+		icon: ArrowPathIcon,
+		colorClass: "text-violet-700 dark:text-violet-400",
+		bgClass: "bg-violet-50 dark:bg-violet-900/30",
+		labelKey: "ledger.auto_topup",
 	},
 	grant: {
 		icon: BanknotesIcon,

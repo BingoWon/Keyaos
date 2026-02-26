@@ -96,8 +96,8 @@ systemRouter.get("/ledger", async (c) => {
 
 				SELECT
 					id, 'top_up' AS type,
-					'top_up' AS category,
-					'Stripe' AS description,
+					CASE WHEN type = 'auto' THEN 'auto_topup' ELSE 'top_up' END AS category,
+					CASE WHEN type = 'auto' THEN 'Auto Top-Up' ELSE 'Stripe' END AS description,
 					credits AS amount,
 					created_at
 				FROM payments

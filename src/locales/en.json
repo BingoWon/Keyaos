@@ -199,6 +199,7 @@
 		"api_spend": "API Spend",
 		"credential_earn": "Earned",
 		"top_up": "Top Up",
+		"auto_topup": "Auto Top-Up",
 		"grant": "Grant",
 		"revoke": "Revoke",
 		"admin_adjustment": "Admin adjustment",
