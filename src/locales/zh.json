@@ -16,7 +16,7 @@
 		"actions": "操作"
 	},
 	"nav": {
-		"dashboard": "仪表盘",
+		"dashboard": "控制台",
 		"models": "模型",
 		"credentials": "上游凭证",
 		"api_keys": "API 密钥",
@@ -249,6 +249,7 @@
 		"hero_subtitle": "一个端点，所有供应商。氪钥枢自动为每个请求寻找最低价路由——让你不再为 AI 多花一分钱。",
 		"cta_start": "立即开始",
 		"cta_signin": "登录",
+		"cta_signup": "注册",
 		"cta_dashboard": "进入控制台",
 		"cta_github": "在 GitHub 上 Star",
 		"providers_label": "路由接入领先 AI 供应商",

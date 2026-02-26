@@ -252,6 +252,7 @@
 		"hero_subtitle": "One endpoint, every provider. Keyaos automatically finds the cheapest route for each request — so you never overpay for AI.",
 		"cta_start": "Get Started",
 		"cta_signin": "Sign In",
+		"cta_signup": "Sign Up",
 		"cta_dashboard": "Go to Dashboard",
 		"cta_github": "Star on GitHub",
 		"providers_label": "Routing across leading AI providers",
