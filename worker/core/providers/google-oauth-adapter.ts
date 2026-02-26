@@ -155,9 +155,13 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 	// ─── ProviderAdapter interface ──────────────────────
 
 	normalizeSecret(raw: string): string {
-		const trimmed = raw.trim();
+		let trimmed = raw.trim();
 
 		if (trimmed.startsWith("{")) {
+			// Strip trailing junk after closing brace (e.g. zsh's PROMPT_EOL_MARK "%")
+			const lastBrace = trimmed.lastIndexOf("}");
+			if (lastBrace !== -1) trimmed = trimmed.slice(0, lastBrace + 1);
+
 			let parsed: Record<string, unknown>;
 			try {
 				parsed = JSON.parse(trimmed);
@@ -325,7 +329,7 @@ export const antigravityAdapter = new GoogleOAuthAdapter({
 	userAgent: "antigravity",
 	models: antigravityModels,
 	credentialHint: "~/.antigravity_tools/accounts/<uuid>.json",
-	credentialCommand: "cat ~/.antigravity_tools/accounts/*.json",
+	credentialCommand: "ls ~/.antigravity_tools/accounts/",
 	extractRefreshToken: (json) => {
 		const token = json.token as Record<string, unknown> | undefined;
 		return (token?.refresh_token ?? json.refresh_token) as string | undefined;

@@ -142,7 +142,8 @@
 			],
 			"antigravity": [
 				"Open Antigravity IDE and sign in with Google",
-				"Run: cat ~/.antigravity_tools/accounts/*.json",
+				"Run the command above to find your credential file",
+				"Run: cat ~/.antigravity_tools/accounts/<filename> (replace with the actual filename)",
 				"Paste the file contents or just the refresh_token value"
 			],
 			"kiro": [

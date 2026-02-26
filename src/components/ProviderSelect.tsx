@@ -45,7 +45,7 @@ export function ProviderSelect({
 			</button>
 
 			{open && (
-				<ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-white/10 dark:bg-gray-800">
+				<ul className="absolute z-20 mt-1 max-h-[70vh] w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-white/10 dark:bg-gray-800">
 					{providers.map((p) => (
 						<li key={p.id}>
 							<button
