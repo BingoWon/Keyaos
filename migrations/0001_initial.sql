@@ -61,20 +61,36 @@ CREATE TABLE IF NOT EXISTS usage (
     consumer_charged REAL NOT NULL DEFAULT 0,
     provider_earned REAL NOT NULL DEFAULT 0,
     platform_fee REAL NOT NULL DEFAULT 0,
+    price_multiplier REAL NOT NULL DEFAULT 1.0,
     created_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_usage_consumer ON usage(consumer_id);
 CREATE INDEX IF NOT EXISTS idx_usage_credential_owner ON usage(credential_owner_id);
+CREATE INDEX IF NOT EXISTS idx_usage_created ON usage(created_at);
 
--- 5. [Platform] User wallets
+-- 5. Pre-aggregated OHLC candle data for price trend charts
+CREATE TABLE IF NOT EXISTS price_candles (
+    dimension TEXT NOT NULL,
+    dimension_value TEXT NOT NULL,
+    interval_start INTEGER NOT NULL,
+    open_price REAL NOT NULL,
+    high_price REAL NOT NULL,
+    low_price REAL NOT NULL,
+    close_price REAL NOT NULL,
+    volume INTEGER NOT NULL,
+    total_tokens INTEGER NOT NULL,
+    PRIMARY KEY (dimension, dimension_value, interval_start)
+);
+
+-- 6. [Platform] User wallets
 CREATE TABLE IF NOT EXISTS wallets (
     owner_id TEXT PRIMARY KEY,
     balance REAL NOT NULL DEFAULT 0,
     updated_at INTEGER NOT NULL
 );
 
--- 6. [Platform] Payment records
+-- 7. [Platform] Payment records
 CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
@@ -87,7 +103,7 @@ CREATE TABLE IF NOT EXISTS payments (
 
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_id);
 
--- 7. [Platform] Admin credit adjustments (audit trail for grants/revokes)
+-- 8. [Platform] Admin credit adjustments (audit trail for grants/revokes)
 CREATE TABLE IF NOT EXISTS credit_adjustments (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
