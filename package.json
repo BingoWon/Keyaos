@@ -7,7 +7,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"deploy": "wrangler deploy",
+		"deploy": "wrangler d1 migrations apply keyaos-db --remote && wrangler deploy",
 		"test": "vitest run",
 		"test:api": "node --env-file=.env.local --experimental-strip-types --no-warnings --test tests/e2e/**/*.test.ts",
 		"lint": "biome check .",
