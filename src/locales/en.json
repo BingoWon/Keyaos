@@ -242,7 +242,7 @@
 		"subtitle": "Connect to Keyaos using any OpenAI-compatible client"
 	},
 	"cookie": {
-		"message": "We use cookies for analytics and customer support to improve your experience.",
+		"message": "We use cookies for analytics to improve your experience.",
 		"accept": "Accept",
 		"decline": "Decline"
 	},

@@ -1,21 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-	getConsent,
-	loadAllAnalytics,
-	setConsent,
-} from "../lib/analytics";
-
-const hasAnalytics = !!(
-	import.meta.env.VITE_GA_ID || import.meta.env.VITE_CRISP_WEBSITE_ID
-);
+import { getConsent, hasGA, loadGA, setConsent } from "../lib/analytics";
 
 export function CookieConsent() {
 	const { t } = useTranslation();
 	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
-		if (hasAnalytics && getConsent() === null) {
+		if (hasGA && getConsent() === null) {
 			const timer = setTimeout(() => setVisible(true), 800);
 			return () => clearTimeout(timer);
 		}
@@ -23,7 +15,7 @@ export function CookieConsent() {
 
 	const accept = useCallback(() => {
 		setConsent("accepted");
-		loadAllAnalytics();
+		loadGA();
 		setVisible(false);
 	}, []);
 

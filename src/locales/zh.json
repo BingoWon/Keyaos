@@ -239,7 +239,7 @@
 		"subtitle": "使用任何 OpenAI 兼容客户端连接氪钥枢"
 	},
 	"cookie": {
-		"message": "我们使用 Cookie 进行访问分析和客户支持，以提升您的体验。",
+		"message": "我们使用 Cookie 进行访问分析，以提升您的体验。",
 		"accept": "接受",
 		"decline": "拒绝"
 	},
