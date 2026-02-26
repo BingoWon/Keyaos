@@ -4,6 +4,7 @@ import {
 	CreditCardIcon,
 	ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import { Icon } from "@iconify/react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -191,17 +192,27 @@ export function Billing() {
 			<div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
 				{/* Buy Credits */}
 				<div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
-					<div className="flex items-center gap-3">
-						<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
-							<BanknotesIcon className="size-5 text-brand-500" />
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
+								<BanknotesIcon className="size-5 text-brand-500" />
+							</div>
+							<div>
+								<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+									{t("billing.buy_credits")}
+								</h4>
+								<p className="text-xs text-gray-500 dark:text-gray-400">
+									{t("billing.buy_credits_desc")}
+								</p>
+							</div>
 						</div>
-						<div>
-							<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-								{t("billing.buy_credits")}
-							</h4>
-							<p className="text-xs text-gray-500 dark:text-gray-400">
-								{t("billing.buy_credits_desc")}
-							</p>
+						<div className="flex items-center gap-1.5">
+							<Icon icon="logos:visa" height={18} />
+							<Icon icon="logos:mastercard" height={18} />
+							<Icon icon="logos:amex" height={18} />
+							<Icon icon="logos:jcb" height={18} />
+							<Icon icon="logos:unionpay" height={18} />
+							<Icon icon="simple-icons:alipay" height={18} color="#1677FF" />
 						</div>
 					</div>
 
