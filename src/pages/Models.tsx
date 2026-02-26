@@ -5,11 +5,11 @@ import { CopyButton } from "../components/CopyButton";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge } from "../components/ui";
+import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatContext, formatPrice } from "../utils/format";
+import { formatContext } from "../utils/format";
 
 interface ModelGroup {
 	id: string;
@@ -114,31 +114,17 @@ function ModelCard({
 					</div>
 					<div className="flex flex-wrap items-center justify-end gap-1.5">
 						<Badge variant="success">
-							{best.platformInputPrice != null &&
-							best.platformInputPrice < best.inputPrice ? (
-								<>
-									<span className="line-through opacity-40">
-										{formatPrice(best.inputPrice)}
-									</span>{" "}
-									{formatPrice(best.platformInputPrice)}
-								</>
-							) : (
-								formatPrice(best.inputPrice)
-							)}{" "}
+							<DualPrice
+								original={best.inputPrice}
+								platform={best.platformInputPrice}
+							/>{" "}
 							in
 						</Badge>
 						<Badge variant="accent">
-							{best.platformOutputPrice != null &&
-							best.platformOutputPrice < best.outputPrice ? (
-								<>
-									<span className="line-through opacity-40">
-										{formatPrice(best.outputPrice)}
-									</span>{" "}
-									{formatPrice(best.platformOutputPrice)}
-								</>
-							) : (
-								formatPrice(best.outputPrice)
-							)}{" "}
+							<DualPrice
+								original={best.outputPrice}
+								platform={best.platformOutputPrice}
+							/>{" "}
 							out
 						</Badge>
 						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}
@@ -191,38 +177,16 @@ function ModelCard({
 										})()}
 									</td>
 									<td className="px-2 py-2.5 text-sm font-mono text-right">
-										{p.platformInputPrice != null &&
-										p.platformInputPrice < p.inputPrice ? (
-											<>
-												<span className="text-gray-400 line-through dark:text-gray-500">
-													{formatPrice(p.inputPrice)}
-												</span>{" "}
-												<span className="font-semibold text-brand-600 dark:text-brand-400">
-													{formatPrice(p.platformInputPrice)}
-												</span>
-											</>
-										) : (
-											<span className="text-gray-600 dark:text-gray-400">
-												{formatPrice(p.inputPrice)}
-											</span>
-										)}
+										<DualPrice
+											original={p.inputPrice}
+											platform={p.platformInputPrice}
+										/>
 									</td>
 									<td className="px-2 py-2.5 text-sm font-mono text-right">
-										{p.platformOutputPrice != null &&
-										p.platformOutputPrice < p.outputPrice ? (
-											<>
-												<span className="text-gray-400 line-through dark:text-gray-500">
-													{formatPrice(p.outputPrice)}
-												</span>{" "}
-												<span className="font-semibold text-brand-600 dark:text-brand-400">
-													{formatPrice(p.platformOutputPrice)}
-												</span>
-											</>
-										) : (
-											<span className="text-gray-600 dark:text-gray-400">
-												{formatPrice(p.outputPrice)}
-											</span>
-										)}
+										<DualPrice
+											original={p.outputPrice}
+											platform={p.platformOutputPrice}
+										/>
 									</td>
 									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										{formatContext(p.contextLength)}

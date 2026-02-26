@@ -76,15 +76,6 @@ export class PricingDao {
 		return res.results || [];
 	}
 
-	async getActivePricing(): Promise<DbModelPricing[]> {
-		const res = await this.db
-			.prepare(
-				"SELECT * FROM model_pricing WHERE is_active = 1 ORDER BY model_id, input_price ASC",
-			)
-			.all<DbModelPricing>();
-		return res.results || [];
-	}
-
 	async getActivePricingWithBestMultiplier(): Promise<
 		(DbModelPricing & { best_multiplier: number | null })[]
 	> {

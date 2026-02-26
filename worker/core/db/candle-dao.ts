@@ -148,30 +148,32 @@ export class CandleDao {
 		const [modelQuotes, providerQuotes] = await Promise.all([
 			this.db
 				.prepare(
-					`SELECT mp.model_id AS dv, MIN(mp.input_price * c.price_multiplier) AS qp
+					`SELECT mp.model_id AS val, MIN(mp.input_price * c.price_multiplier) AS price
 					 FROM model_pricing mp
 					 JOIN upstream_credentials c ON c.provider = mp.provider
 					 WHERE mp.is_active = 1 AND c.is_enabled = 1
 					   AND c.health_status NOT IN ('dead') AND mp.input_price > 0
 					 GROUP BY mp.model_id`,
 				)
-				.all<{ dv: string; qp: number }>(),
+				.all<{ val: string; price: number }>(),
 			this.db
 				.prepare(
-					`SELECT c.provider AS dv, MIN(c.price_multiplier) AS qp
+					`SELECT c.provider AS val, MIN(c.price_multiplier) AS price
 					 FROM upstream_credentials c
 					 WHERE c.is_enabled = 1 AND c.health_status NOT IN ('dead')
 					 GROUP BY c.provider`,
 				)
-				.all<{ dv: string; qp: number }>(),
+				.all<{ val: string; price: number }>(),
 		]);
 
 		const quotes: { dim: string; val: string; price: number }[] = [];
 		for (const q of modelQuotes.results || []) {
-			if (q.qp > 0) quotes.push({ dim: "model", val: q.dv, price: q.qp });
+			if (q.price > 0)
+				quotes.push({ dim: "model", val: q.val, price: q.price });
 		}
 		for (const q of providerQuotes.results || []) {
-			if (q.qp > 0) quotes.push({ dim: "provider", val: q.dv, price: q.qp });
+			if (q.price > 0)
+				quotes.push({ dim: "provider", val: q.val, price: q.price });
 		}
 
 		if (quotes.length === 0) return;

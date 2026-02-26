@@ -10,7 +10,8 @@ modelsRouter.get("/", async (c) => {
 	const all = await dao.getActivePricingWithBestMultiplier();
 
 	const data = all.map((m) => {
-		const entry: Record<string, unknown> = {
+		const mul = m.best_multiplier;
+		return {
 			id: m.model_id,
 			object: "model" as const,
 			created: Math.floor(m.refreshed_at / 1000),
@@ -18,15 +19,13 @@ modelsRouter.get("/", async (c) => {
 			...(m.name && { name: m.name }),
 			input_price: m.input_price,
 			output_price: m.output_price,
+			...(mul != null &&
+				mul < 1 && {
+					platform_input_price: m.input_price * mul,
+					platform_output_price: m.output_price * mul,
+				}),
 			context_length: m.context_length,
 		};
-
-		if (m.best_multiplier != null && m.best_multiplier < 1) {
-			entry.platform_input_price = m.input_price * m.best_multiplier;
-			entry.platform_output_price = m.output_price * m.best_multiplier;
-		}
-
-		return entry;
 	});
 
 	return c.json({ object: "list", data });
