@@ -52,6 +52,7 @@ export async function createCheckoutSession(opts: {
 		"line_items[0][price_data][product_data][name]": "Keyaos Credits",
 		"line_items[0][price_data][unit_amount]": String(opts.amountCents),
 		"line_items[0][quantity]": "1",
+		expires_at: String(Math.floor(Date.now() / 1000) + 30 * 60),
 		success_url: opts.successUrl,
 		cancel_url: opts.cancelUrl,
 		"metadata[owner_id]": opts.ownerId,

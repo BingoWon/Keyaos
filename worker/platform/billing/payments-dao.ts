@@ -56,6 +56,16 @@ export class PaymentsDao {
 		return !!row;
 	}
 
+	async expireUserPending(ownerId: string): Promise<number> {
+		const res = await this.db
+			.prepare(
+				"UPDATE payments SET status = 'expired' WHERE owner_id = ? AND status = 'pending'",
+			)
+			.bind(ownerId)
+			.run();
+		return res.meta?.changes ?? 0;
+	}
+
 	async getHistory(ownerId: string, limit = 50): Promise<DbPayment[]> {
 		const res = await this.db
 			.prepare(

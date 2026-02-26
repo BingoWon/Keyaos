@@ -84,6 +84,12 @@ export function Billing() {
 		} else if (searchParams.get("canceled") === "true") {
 			toast(t("billing.canceled"), { icon: "↩" });
 			setSearchParams({}, { replace: true });
+			getToken().then((token) =>
+				fetch("/api/billing/cancel-pending", {
+					method: "POST",
+					headers: { Authorization: `Bearer ${token}` },
+				}).then(() => refetchHistory()),
+			);
 		}
 	}, [
 		searchParams,
@@ -91,6 +97,7 @@ export function Billing() {
 		refetchWallet,
 		refetchHistory,
 		refetchAuto,
+		getToken,
 		t,
 	]);
 
@@ -207,9 +214,9 @@ export function Billing() {
 							</div>
 						</div>
 						<div className="flex items-center gap-1.5">
-							<Icon icon="logos:visa" height={18} />
+							<Icon icon="logos:visaelectron" height={18} />
 							<Icon icon="logos:mastercard" height={18} />
-							<Icon icon="logos:amex" height={18} />
+							<Icon icon="logos:amex-digital" height={18} />
 							<Icon icon="logos:jcb" height={18} />
 							<Icon icon="logos:unionpay" height={18} />
 							<Icon icon="simple-icons:alipay" height={18} color="#1677FF" />
