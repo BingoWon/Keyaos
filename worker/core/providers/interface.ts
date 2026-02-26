@@ -4,7 +4,7 @@ export interface CredentialGuide {
 	placeholder: string;
 	secretPattern?: string;
 	filePath?: string;
-	command?: string;
+	command?: string | string[];
 }
 
 export interface ProviderInfo {

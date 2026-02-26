@@ -872,9 +872,17 @@ function GuidancePanel({
 						))}
 					</ol>
 
-					{guide.command && (
-						<CopyableCommand command={guide.command} onCopy={copyToClipboard} />
-					)}
+					{guide.command &&
+						(Array.isArray(guide.command)
+							? guide.command
+							: [guide.command]
+						).map((cmd) => (
+							<CopyableCommand
+								key={cmd}
+								command={cmd}
+								onCopy={copyToClipboard}
+							/>
+						))}
 
 					{guide.filePath && (
 						<div className="flex items-center justify-between gap-2">

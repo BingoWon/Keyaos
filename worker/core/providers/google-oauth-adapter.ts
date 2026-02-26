@@ -42,7 +42,7 @@ export interface GoogleOAuthConfig {
 	userAgent?: string;
 	models: ModelEntry[];
 	credentialHint: string;
-	credentialCommand?: string;
+	credentialCommand?: string | string[];
 	extractRefreshToken?: (json: Record<string, unknown>) => string | undefined;
 	augmentRequest?: (base: Record<string, unknown>) => Record<string, unknown>;
 }
@@ -329,7 +329,10 @@ export const antigravityAdapter = new GoogleOAuthAdapter({
 	userAgent: "antigravity",
 	models: antigravityModels,
 	credentialHint: "~/.antigravity_tools/accounts/<uuid>.json",
-	credentialCommand: "ls ~/.antigravity_tools/accounts/",
+	credentialCommand: [
+		"ls ~/.antigravity_tools/accounts/",
+		"cat ~/.antigravity_tools/accounts/<filename>",
+	],
 	extractRefreshToken: (json) => {
 		const token = json.token as Record<string, unknown> | undefined;
 		return (token?.refresh_token ?? json.refresh_token) as string | undefined;
