@@ -225,7 +225,7 @@ export function Billing() {
 
 					<div className="mt-4 space-y-3">
 						<div className="flex items-center gap-2">
-							<div className="relative w-full max-w-40">
+							<div className="relative w-full max-w-50">
 								<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
 									$
 								</span>
@@ -449,9 +449,9 @@ export function Billing() {
 												className={
 													p.status === "completed"
 														? "text-green-600 dark:text-green-400"
-														: p.status === "expired"
-															? "text-gray-400 dark:text-gray-500"
-															: "text-yellow-600 dark:text-yellow-400"
+														: p.status === "pending"
+															? "text-yellow-600 dark:text-yellow-400"
+															: "text-gray-400 dark:text-gray-500"
 												}
 											>
 												{t(`billing.status_${p.status}`)}

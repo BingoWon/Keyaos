@@ -222,6 +222,7 @@
 		"status": "状态",
 		"status_completed": "已完成",
 		"status_pending": "待支付",
+		"status_canceled": "已取消",
 		"status_expired": "已过期",
 		"auto_topup": "自动充值",
 		"auto_topup_desc": "余额低于阈值时自动充值。",

@@ -79,8 +79,8 @@ billing.get("/history", async (c) => {
 // ─── POST /cancel-pending ────────────────────────────────
 billing.post("/cancel-pending", async (c) => {
 	const ownerId = c.get("owner_id");
-	const expired = await new PaymentsDao(c.env.DB).expireUserPending(ownerId);
-	return c.json({ ok: true, expired });
+	const canceled = await new PaymentsDao(c.env.DB).cancelUserPending(ownerId);
+	return c.json({ ok: true, canceled });
 });
 
 // ─── Auto Top-Up Config ─────────────────────────────────

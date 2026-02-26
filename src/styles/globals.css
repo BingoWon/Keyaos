@@ -38,6 +38,12 @@
 	.dark {
 		color-scheme: dark;
 	}
+
+	button,
+	[role="button"],
+	summary {
+		cursor: pointer;
+	}
 }
 
 @keyframes float-slow {

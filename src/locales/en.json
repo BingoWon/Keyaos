@@ -225,6 +225,7 @@
 		"status": "Status",
 		"status_completed": "Completed",
 		"status_pending": "Pending",
+		"status_canceled": "Canceled",
 		"status_expired": "Expired",
 		"auto_topup": "Auto Top-Up",
 		"auto_topup_desc": "Automatically add credits when your balance drops below a threshold.",

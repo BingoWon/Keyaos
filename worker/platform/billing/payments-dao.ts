@@ -35,7 +35,7 @@ export class PaymentsDao {
 
 	async transition(
 		sessionId: string,
-		to: "completed" | "expired",
+		to: "completed" | "expired" | "canceled",
 	): Promise<boolean> {
 		const res = await this.db
 			.prepare(
@@ -49,17 +49,17 @@ export class PaymentsDao {
 	async isFinal(sessionId: string): Promise<boolean> {
 		const row = await this.db
 			.prepare(
-				"SELECT 1 FROM payments WHERE stripe_session_id = ? AND status IN ('completed', 'expired')",
+				"SELECT 1 FROM payments WHERE stripe_session_id = ? AND status IN ('completed', 'expired', 'canceled')",
 			)
 			.bind(sessionId)
 			.first();
 		return !!row;
 	}
 
-	async expireUserPending(ownerId: string): Promise<number> {
+	async cancelUserPending(ownerId: string): Promise<number> {
 		const res = await this.db
 			.prepare(
-				"UPDATE payments SET status = 'expired' WHERE owner_id = ? AND status = 'pending'",
+				"UPDATE payments SET status = 'canceled' WHERE owner_id = ? AND status = 'pending'",
 			)
 			.bind(ownerId)
 			.run();
