@@ -109,6 +109,13 @@ export function PriceChart({
 			borderUpColor: "#22c55e",
 			wickDownColor: "#ef4444",
 			wickUpColor: "#22c55e",
+			priceFormat:
+				dimension === "provider"
+					? {
+							type: "custom" as const,
+							formatter: (p: number) => `×${p.toFixed(3)}`,
+						}
+					: { type: "price" as const, precision: 4, minMove: 0.0001 },
 		});
 
 		chartRef.current = chart;
@@ -149,7 +156,7 @@ export function PriceChart({
 			chartRef.current = null;
 			seriesRef.current = null;
 		};
-	}, []);
+	}, [dimension]);
 
 	// Update series data when candles change (no chart recreation)
 	useEffect(() => {

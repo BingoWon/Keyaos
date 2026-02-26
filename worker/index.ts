@@ -176,21 +176,29 @@ export default {
 	fetch: app.fetch,
 
 	async scheduled(
-		_event: ScheduledEvent,
+		event: ScheduledEvent,
 		env: Env,
 		ctx: ExecutionContext,
 	): Promise<void> {
-		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
-		const intervalMs = 5 * 60 * 1000;
 		const candleDao = new CandleDao(env.DB);
-		ctx.waitUntil(
-			Promise.all([
-				syncAllModels(env.DB, rate),
-				syncAutoCredits(env.DB, rate),
-				candleDao.aggregate(Date.now() - intervalMs),
-				candleDao.pruneOldCandles(),
-				sweepAutoTopUp(env.DB, env.STRIPE_SECRET_KEY),
-			]),
-		);
+
+		if (event.cron === "*/1 * * * *") {
+			ctx.waitUntil(
+				Promise.all([
+					candleDao.aggregate(Date.now() - 60_000),
+					candleDao.generateQuotedCandles(),
+					sweepAutoTopUp(env.DB, env.STRIPE_SECRET_KEY),
+				]),
+			);
+		} else {
+			const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
+			ctx.waitUntil(
+				Promise.all([
+					syncAllModels(env.DB, rate),
+					syncAutoCredits(env.DB, rate),
+					candleDao.pruneOldCandles(),
+				]),
+			);
+		}
 	},
 };

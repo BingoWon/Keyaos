@@ -11,15 +11,19 @@ import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
 import { formatContext, formatPrice } from "../utils/format";
 
+interface ProviderModel {
+	id: string;
+	name: string;
+	inputPrice: number;
+	outputPrice: number;
+	platformInputPrice?: number;
+	platformOutputPrice?: number;
+	contextLength: number;
+}
+
 interface ProviderGroup {
 	provider: ProviderMeta;
-	models: {
-		id: string;
-		name: string;
-		inputPrice: number;
-		outputPrice: number;
-		contextLength: number;
-	}[];
+	models: ProviderModel[];
 }
 
 function ProviderCard({ group }: { group: ProviderGroup }) {
@@ -59,6 +63,7 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 					<PriceChart
 						dimension="provider"
 						value={group.provider.id}
+						title={t("chart.multiplier_trend")}
 						className="m-3 border-0 shadow-none"
 					/>
 					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
@@ -83,11 +88,39 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 											<CopyButton text={m.id} />
 										</span>
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatPrice(m.inputPrice)}
+									<td className="px-2 py-2.5 text-sm font-mono text-right">
+										{m.platformInputPrice != null &&
+										m.platformInputPrice < m.inputPrice ? (
+											<>
+												<span className="text-gray-400 line-through dark:text-gray-500">
+													{formatPrice(m.inputPrice)}
+												</span>{" "}
+												<span className="font-semibold text-brand-600 dark:text-brand-400">
+													{formatPrice(m.platformInputPrice)}
+												</span>
+											</>
+										) : (
+											<span className="text-gray-600 dark:text-gray-400">
+												{formatPrice(m.inputPrice)}
+											</span>
+										)}
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatPrice(m.outputPrice)}
+									<td className="px-2 py-2.5 text-sm font-mono text-right">
+										{m.platformOutputPrice != null &&
+										m.platformOutputPrice < m.outputPrice ? (
+											<>
+												<span className="text-gray-400 line-through dark:text-gray-500">
+													{formatPrice(m.outputPrice)}
+												</span>{" "}
+												<span className="font-semibold text-brand-600 dark:text-brand-400">
+													{formatPrice(m.platformOutputPrice)}
+												</span>
+											</>
+										) : (
+											<span className="text-gray-600 dark:text-gray-400">
+												{formatPrice(m.outputPrice)}
+											</span>
+										)}
 									</td>
 									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										{m.contextLength > 0 ? formatContext(m.contextLength) : "—"}
@@ -130,6 +163,8 @@ export function Providers() {
 				name: m.name ?? m.id,
 				inputPrice: m.input_price ?? 0,
 				outputPrice: m.output_price ?? 0,
+				platformInputPrice: m.platform_input_price,
+				platformOutputPrice: m.platform_output_price,
 				contextLength: m.context_length ?? 0,
 			});
 		}

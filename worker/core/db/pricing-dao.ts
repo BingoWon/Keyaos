@@ -84,4 +84,23 @@ export class PricingDao {
 			.all<DbModelPricing>();
 		return res.results || [];
 	}
+
+	async getActivePricingWithBestMultiplier(): Promise<
+		(DbModelPricing & { best_multiplier: number | null })[]
+	> {
+		const res = await this.db
+			.prepare(
+				`SELECT mp.*, MIN(c.price_multiplier) AS best_multiplier
+				 FROM model_pricing mp
+				 LEFT JOIN upstream_credentials c
+				   ON c.provider = mp.provider
+				   AND c.is_enabled = 1
+				   AND c.health_status NOT IN ('dead')
+				 WHERE mp.is_active = 1
+				 GROUP BY mp.id
+				 ORDER BY mp.model_id, mp.input_price ASC`,
+			)
+			.all<DbModelPricing & { best_multiplier: number | null }>();
+		return res.results || [];
+	}
 }

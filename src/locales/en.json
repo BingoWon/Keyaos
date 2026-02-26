@@ -172,6 +172,7 @@
 	},
 	"chart": {
 		"price_trend": "Price Trend",
+		"multiplier_trend": "Multiplier Trend",
 		"no_data": "No transaction data yet"
 	},
 	"usage": {

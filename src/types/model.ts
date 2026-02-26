@@ -4,5 +4,7 @@ export interface ModelEntry {
 	name?: string;
 	input_price?: number;
 	output_price?: number;
+	platform_input_price?: number;
+	platform_output_price?: number;
 	context_length?: number;
 }

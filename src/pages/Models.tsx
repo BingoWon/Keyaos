@@ -21,6 +21,8 @@ interface ProviderRow {
 	provider: string;
 	inputPrice: number;
 	outputPrice: number;
+	platformInputPrice?: number;
+	platformOutputPrice?: number;
 	contextLength: number;
 }
 
@@ -40,6 +42,8 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 			provider: e.owned_by,
 			inputPrice: e.input_price ?? 0,
 			outputPrice: e.output_price ?? 0,
+			platformInputPrice: e.platform_input_price,
+			platformOutputPrice: e.platform_output_price,
 			contextLength: e.context_length ?? 0,
 		});
 	}
@@ -109,8 +113,34 @@ function ModelCard({
 						<Badge variant="brand">{group.providers.length}</Badge>
 					</div>
 					<div className="flex flex-wrap items-center justify-end gap-1.5">
-						<Badge variant="success">{formatPrice(best.inputPrice)} in</Badge>
-						<Badge variant="accent">{formatPrice(best.outputPrice)} out</Badge>
+						<Badge variant="success">
+							{best.platformInputPrice != null &&
+							best.platformInputPrice < best.inputPrice ? (
+								<>
+									<span className="line-through opacity-40">
+										{formatPrice(best.inputPrice)}
+									</span>{" "}
+									{formatPrice(best.platformInputPrice)}
+								</>
+							) : (
+								formatPrice(best.inputPrice)
+							)}{" "}
+							in
+						</Badge>
+						<Badge variant="accent">
+							{best.platformOutputPrice != null &&
+							best.platformOutputPrice < best.outputPrice ? (
+								<>
+									<span className="line-through opacity-40">
+										{formatPrice(best.outputPrice)}
+									</span>{" "}
+									{formatPrice(best.platformOutputPrice)}
+								</>
+							) : (
+								formatPrice(best.outputPrice)
+							)}{" "}
+							out
+						</Badge>
 						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}
 					</div>
 				</div>
@@ -160,11 +190,39 @@ function ModelCard({
 											);
 										})()}
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatPrice(p.inputPrice)}
+									<td className="px-2 py-2.5 text-sm font-mono text-right">
+										{p.platformInputPrice != null &&
+										p.platformInputPrice < p.inputPrice ? (
+											<>
+												<span className="text-gray-400 line-through dark:text-gray-500">
+													{formatPrice(p.inputPrice)}
+												</span>{" "}
+												<span className="font-semibold text-brand-600 dark:text-brand-400">
+													{formatPrice(p.platformInputPrice)}
+												</span>
+											</>
+										) : (
+											<span className="text-gray-600 dark:text-gray-400">
+												{formatPrice(p.inputPrice)}
+											</span>
+										)}
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatPrice(p.outputPrice)}
+									<td className="px-2 py-2.5 text-sm font-mono text-right">
+										{p.platformOutputPrice != null &&
+										p.platformOutputPrice < p.outputPrice ? (
+											<>
+												<span className="text-gray-400 line-through dark:text-gray-500">
+													{formatPrice(p.outputPrice)}
+												</span>{" "}
+												<span className="font-semibold text-brand-600 dark:text-brand-400">
+													{formatPrice(p.platformOutputPrice)}
+												</span>
+											</>
+										) : (
+											<span className="text-gray-600 dark:text-gray-400">
+												{formatPrice(p.outputPrice)}
+											</span>
+										)}
 									</td>
 									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										{formatContext(p.contextLength)}

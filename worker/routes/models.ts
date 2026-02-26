@@ -7,18 +7,27 @@ const modelsRouter = new Hono<AppEnv>();
 
 modelsRouter.get("/", async (c) => {
 	const dao = new PricingDao(c.env.DB);
-	const all = await dao.getActivePricing();
+	const all = await dao.getActivePricingWithBestMultiplier();
 
-	const data = all.map((m) => ({
-		id: m.model_id,
-		object: "model" as const,
-		created: Math.floor(m.refreshed_at / 1000),
-		owned_by: m.provider,
-		...(m.name && { name: m.name }),
-		input_price: m.input_price,
-		output_price: m.output_price,
-		context_length: m.context_length,
-	}));
+	const data = all.map((m) => {
+		const entry: Record<string, unknown> = {
+			id: m.model_id,
+			object: "model" as const,
+			created: Math.floor(m.refreshed_at / 1000),
+			owned_by: m.provider,
+			...(m.name && { name: m.name }),
+			input_price: m.input_price,
+			output_price: m.output_price,
+			context_length: m.context_length,
+		};
+
+		if (m.best_multiplier != null && m.best_multiplier < 1) {
+			entry.platform_input_price = m.input_price * m.best_multiplier;
+			entry.platform_output_price = m.output_price * m.best_multiplier;
+		}
+
+		return entry;
+	});
 
 	return c.json({ object: "list", data });
 });

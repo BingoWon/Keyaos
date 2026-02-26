@@ -144,9 +144,10 @@ systemRouter.get("/candles/:dimension/:value", async (c) => {
 	const value = decodeURIComponent(c.req.param("value"));
 	const hours = Math.min(Number(c.req.query("hours")) || 24, 168);
 	const since = Date.now() - hours * 60 * 60 * 1000;
+	const limit = hours * 60;
 
 	const dao = new CandleDao(c.env.DB);
-	const candles = await dao.getCandles(dimension, value, since);
+	const candles = await dao.getCandles(dimension, value, since, limit);
 
 	return c.json({
 		data: candles.map((cd) => ({
