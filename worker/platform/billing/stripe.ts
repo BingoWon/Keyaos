@@ -35,7 +35,7 @@ export async function createCheckoutSession(opts: {
 	const res = await fetch(`${STRIPE_API}/checkout/sessions`, {
 		method: "POST",
 		headers: {
-			Authorization: `Basic ${btoa(opts.secretKey + ":")}`,
+			Authorization: `Basic ${btoa(`${opts.secretKey}:`)}`,
 			"Content-Type": "application/x-www-form-urlencoded",
 		},
 		body,

@@ -12,7 +12,12 @@ import { formatPrice } from "../utils/format";
 
 interface ProviderGroup {
 	provider: ProviderMeta;
-	models: { id: string; name: string; inputPrice: number; outputPrice: number }[];
+	models: {
+		id: string;
+		name: string;
+		inputPrice: number;
+		outputPrice: number;
+	}[];
 }
 
 function ProviderCard({ group }: { group: ProviderGroup }) {
@@ -26,12 +31,10 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 
 	return (
 		<div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden transition-shadow hover:shadow-sm">
-			<div
-				role="button"
-				tabIndex={0}
+			<button
+				type="button"
 				onClick={() => setOpen(!open)}
-				onKeyDown={(e) => e.key === "Enter" && setOpen(!open)}
-				className="w-full px-4 py-3.5 sm:px-5 flex items-center gap-3 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer select-none"
+				className="w-full px-4 py-3.5 sm:px-5 flex items-center gap-3 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer select-none text-left"
 			>
 				<ChevronRightIcon
 					className={`size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
@@ -60,7 +63,7 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 						<Badge variant="accent">{t("providers.auto")}</Badge>
 					)}
 				</div>
-			</div>
+			</button>
 
 			{open && (
 				<div className="border-t border-gray-100 dark:border-white/5">

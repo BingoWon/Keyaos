@@ -162,9 +162,7 @@ function Hero() {
 						to={authed ? "/dashboard" : "/login"}
 						className="group inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:bg-brand-600 hover:shadow-brand-500/35 dark:hover:bg-brand-400"
 					>
-						{authed
-							? t("landing.cta_dashboard")
-							: t("landing.cta_start")}
+						{authed ? t("landing.cta_dashboard") : t("landing.cta_start")}
 						<ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
 					</Link>
 					<a
@@ -458,9 +456,7 @@ function FinalCTA() {
 							to={authed ? "/dashboard" : "/login"}
 							className="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-600 shadow-lg transition-colors hover:bg-white/90"
 						>
-							{authed
-								? t("landing.cta_dashboard")
-								: t("landing.cta_start")}
+							{authed ? t("landing.cta_dashboard") : t("landing.cta_start")}
 							<ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
 						</Link>
 						<a

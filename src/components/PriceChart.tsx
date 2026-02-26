@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
 	type CandlestickData,
+	CandlestickSeries,
 	ColorType,
 	CrosshairMode,
-	type IChartApi,
-	type ICandlestickSeriesApi,
-	type Time,
 	createChart,
+	type IChartApi,
+	type ISeriesApi,
+	type Time,
 } from "lightweight-charts";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFetch } from "../hooks/useFetch";
 
 interface Candle {
@@ -66,7 +67,7 @@ export function PriceChart({
 	const { t } = useTranslation();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
-	const seriesRef = useRef<ICandlestickSeriesApi<Time> | null>(null);
+	const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 	const [hours, setHours] = useState<number>(24);
 
 	const url = `/api/candles/${dimension}/${encodeURIComponent(value)}?hours=${hours}`;
@@ -100,7 +101,7 @@ export function PriceChart({
 			},
 		});
 
-		const series = chart.addCandlestickSeries({
+		const series = chart.addSeries(CandlestickSeries, {
 			upColor: "#22c55e",
 			downColor: "#ef4444",
 			borderDownColor: "#ef4444",

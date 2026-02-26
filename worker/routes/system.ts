@@ -135,7 +135,9 @@ systemRouter.get("/candles/:dimension/:value", async (c) => {
 	const dimension = c.req.param("dimension") as "model" | "provider";
 	if (dimension !== "model" && dimension !== "provider") {
 		return c.json(
-			{ error: { message: "Invalid dimension", type: "invalid_request_error" } },
+			{
+				error: { message: "Invalid dimension", type: "invalid_request_error" },
+			},
 			400,
 		);
 	}

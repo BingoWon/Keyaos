@@ -112,7 +112,7 @@ credentialsRouter.post("/", async (c) => {
 			quota = toQuota(upstream.remaining, provider.info.currency, cnyRate);
 		}
 	} else {
-		quota = body.quota!;
+		quota = body.quota ?? null;
 		quotaSource = "manual";
 	}
 

@@ -48,8 +48,7 @@ export class CandleDao {
 		>();
 
 		for (const row of rows.results) {
-			const interval =
-				Math.floor(row.created_at / INTERVAL_MS) * INTERVAL_MS;
+			const interval = Math.floor(row.created_at / INTERVAL_MS) * INTERVAL_MS;
 			const totalTokens = row.input_tokens + row.output_tokens;
 			const pricePerM =
 				totalTokens > 0 ? (row.base_cost / totalTokens) * 1_000_000 : 0;
@@ -99,7 +98,17 @@ export class CandleDao {
 		);
 
 		const batch = [...buckets.values()].map((b) =>
-			stmt.bind(b.dim, b.val, b.ts, b.open, b.high, b.low, b.close, b.volume, b.totalTokens),
+			stmt.bind(
+				b.dim,
+				b.val,
+				b.ts,
+				b.open,
+				b.high,
+				b.low,
+				b.close,
+				b.volume,
+				b.totalTokens,
+			),
 		);
 
 		await this.db.batch(batch);

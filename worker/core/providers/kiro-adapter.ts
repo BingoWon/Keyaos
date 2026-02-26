@@ -54,7 +54,9 @@ function getMachineId(): string {
 	if (!cachedMachineId) {
 		const bytes = new Uint8Array(32);
 		crypto.getRandomValues(bytes);
-		cachedMachineId = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+		cachedMachineId = Array.from(bytes, (b) =>
+			b.toString(16).padStart(2, "0"),
+		).join("");
 	}
 	return cachedMachineId;
 }
