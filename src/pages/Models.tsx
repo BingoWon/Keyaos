@@ -7,16 +7,9 @@ import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Badge } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
+import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-
-interface ModelEntry {
-	id: string;
-	owned_by: string;
-	name?: string;
-	input_price?: number;
-	output_price?: number;
-	context_length?: number;
-}
+import { formatContext, formatPrice } from "../utils/format";
 
 interface ModelGroup {
 	id: string;
@@ -29,20 +22,6 @@ interface ProviderRow {
 	inputPrice: number;
 	outputPrice: number;
 	contextLength: number;
-}
-
-function formatPrice(price: number) {
-	if (price === 0) return "Free";
-	const usd = price / 100;
-	if (usd >= 0.01) return `$${usd.toFixed(2)}`;
-	return `$${Number(usd.toPrecision(3))}`;
-}
-
-function formatContext(len: number) {
-	if (len >= 1_000_000)
-		return `${(len / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
-	if (len >= 1000) return `${(len / 1000).toFixed(0)}K`;
-	return len.toString();
 }
 
 function aggregateModels(entries: ModelEntry[]): ModelGroup[] {

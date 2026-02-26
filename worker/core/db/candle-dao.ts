@@ -1,6 +1,7 @@
 import type { DbPriceCandle } from "./schema";
 
 const INTERVAL_MS = 5 * 60 * 1000;
+const RETENTION_DAYS = 30;
 
 export class CandleDao {
 	constructor(private db: D1Database) {}
@@ -34,6 +35,9 @@ export class CandleDao {
 		const buckets = new Map<
 			string,
 			{
+				dim: string;
+				val: string;
+				ts: number;
 				open: number;
 				high: number;
 				low: number;
@@ -55,7 +59,7 @@ export class CandleDao {
 				["model", row.model],
 				["provider", row.provider],
 			] as const) {
-				const key = `${dim}|${val}|${interval}`;
+				const key = `${dim}\0${val}\0${interval}`;
 				const b = buckets.get(key);
 				if (b) {
 					b.high = Math.max(b.high, pricePerM);
@@ -65,6 +69,9 @@ export class CandleDao {
 					b.totalTokens += totalTokens;
 				} else {
 					buckets.set(key, {
+						dim,
+						val,
+						ts: interval,
 						open: pricePerM,
 						high: pricePerM,
 						low: pricePerM,
@@ -83,29 +90,27 @@ export class CandleDao {
 				(dimension, dimension_value, interval_start, open_price, high_price, low_price, close_price, volume, total_tokens)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 			 ON CONFLICT (dimension, dimension_value, interval_start) DO UPDATE SET
-				high_price = MAX(price_candles.high_price, excluded.high_price),
-				low_price  = MIN(price_candles.low_price, excluded.low_price),
+				open_price  = excluded.open_price,
+				high_price  = excluded.high_price,
+				low_price   = excluded.low_price,
 				close_price = excluded.close_price,
-				volume = price_candles.volume + excluded.volume,
-				total_tokens = price_candles.total_tokens + excluded.total_tokens`,
+				volume      = excluded.volume,
+				total_tokens = excluded.total_tokens`,
 		);
 
-		const batch = [...buckets.entries()].map(([key, b]) => {
-			const [dim, val, ts] = key.split("|");
-			return stmt.bind(
-				dim,
-				val,
-				Number(ts),
-				b.open,
-				b.high,
-				b.low,
-				b.close,
-				b.volume,
-				b.totalTokens,
-			);
-		});
+		const batch = [...buckets.values()].map((b) =>
+			stmt.bind(b.dim, b.val, b.ts, b.open, b.high, b.low, b.close, b.volume, b.totalTokens),
+		);
 
 		await this.db.batch(batch);
+	}
+
+	async pruneOldCandles(): Promise<void> {
+		const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
+		await this.db
+			.prepare("DELETE FROM price_candles WHERE interval_start < ?")
+			.bind(cutoff)
+			.run();
 	}
 
 	async getCandles(

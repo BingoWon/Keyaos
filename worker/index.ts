@@ -181,11 +181,13 @@ export default {
 	): Promise<void> {
 		const rate = Number.parseFloat(env.CNY_USD_RATE || "7");
 		const intervalMs = 5 * 60 * 1000;
+		const candleDao = new CandleDao(env.DB);
 		ctx.waitUntil(
 			Promise.all([
 				syncAllModels(env.DB, rate),
 				syncAutoCredits(env.DB, rate),
-				new CandleDao(env.DB).aggregate(Date.now() - intervalMs),
+				candleDao.aggregate(Date.now() - intervalMs),
+				candleDao.pruneOldCandles(),
 			]),
 		);
 	},

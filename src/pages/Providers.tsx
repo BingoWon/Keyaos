@@ -6,26 +6,13 @@ import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Badge } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
+import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-
-interface ModelEntry {
-	id: string;
-	owned_by: string;
-	name?: string;
-	input_price?: number;
-	output_price?: number;
-}
+import { formatPrice } from "../utils/format";
 
 interface ProviderGroup {
 	provider: ProviderMeta;
 	models: { id: string; name: string; inputPrice: number; outputPrice: number }[];
-}
-
-function formatPrice(price: number) {
-	if (price === 0) return "Free";
-	const usd = price / 100;
-	if (usd >= 0.01) return `$${usd.toFixed(2)}`;
-	return `$${Number(usd.toPrecision(3))}`;
 }
 
 function ProviderCard({ group }: { group: ProviderGroup }) {

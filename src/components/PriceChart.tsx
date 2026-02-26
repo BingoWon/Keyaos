@@ -5,10 +5,11 @@ import {
 	ColorType,
 	CrosshairMode,
 	type IChartApi,
+	type ICandlestickSeriesApi,
 	type Time,
 	createChart,
 } from "lightweight-charts";
-import { useAuth } from "../auth";
+import { useFetch } from "../hooks/useFetch";
 
 interface Candle {
 	time: number;
@@ -34,6 +35,28 @@ function formatHours(h: number): string {
 	return `${h / 24}d`;
 }
 
+function isDarkMode(): boolean {
+	return document.documentElement.classList.contains("dark");
+}
+
+function getThemeColors(dark: boolean) {
+	return {
+		textColor: dark ? "#9ca3af" : "#6b7280",
+		gridColor: dark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+		borderColor: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+	};
+}
+
+function toCandlestickData(candles: Candle[]): CandlestickData<Time>[] {
+	return candles.map((c) => ({
+		time: (c.time / 1000) as Time,
+		open: c.open,
+		high: c.high,
+		low: c.low,
+		close: c.close,
+	}));
+}
+
 export function PriceChart({
 	dimension,
 	value,
@@ -41,66 +64,41 @@ export function PriceChart({
 	className = "",
 }: PriceChartProps) {
 	const { t } = useTranslation();
-	const { getToken } = useAuth();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
+	const seriesRef = useRef<ICandlestickSeriesApi<Time> | null>(null);
 	const [hours, setHours] = useState<number>(24);
-	const [candles, setCandles] = useState<Candle[]>([]);
-	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		let cancelled = false;
-		(async () => {
-			setLoading(true);
-			try {
-				const token = await getToken();
-				const res = await fetch(
-					`/api/candles/${dimension}/${encodeURIComponent(value)}?hours=${hours}`,
-					{ headers: { Authorization: `Bearer ${token}` } },
-				);
-				if (!res.ok) throw new Error(`HTTP ${res.status}`);
-				const json = await res.json();
-				if (!cancelled) setCandles(json.data ?? []);
-			} catch {
-				if (!cancelled) setCandles([]);
-			} finally {
-				if (!cancelled) setLoading(false);
-			}
-		})();
-		return () => {
-			cancelled = true;
-		};
-	}, [dimension, value, hours, getToken]);
+	const url = `/api/candles/${dimension}/${encodeURIComponent(value)}?hours=${hours}`;
+	const { data: candles, loading } = useFetch<Candle[]>(url);
 
+	// Create chart once on mount
 	useEffect(() => {
 		if (!containerRef.current) return;
 
-		const isDark = document.documentElement.classList.contains("dark");
+		const dark = isDarkMode();
+		const colors = getThemeColors(dark);
 
 		const chart = createChart(containerRef.current, {
 			width: containerRef.current.clientWidth,
 			height: 280,
 			layout: {
 				background: { type: ColorType.Solid, color: "transparent" },
-				textColor: isDark ? "#9ca3af" : "#6b7280",
+				textColor: colors.textColor,
 				fontSize: 11,
 			},
 			grid: {
-				vertLines: { color: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" },
-				horzLines: { color: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" },
+				vertLines: { color: colors.gridColor },
+				horzLines: { color: colors.gridColor },
 			},
 			crosshair: { mode: CrosshairMode.Normal },
-			rightPriceScale: {
-				borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-			},
+			rightPriceScale: { borderColor: colors.borderColor },
 			timeScale: {
-				borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+				borderColor: colors.borderColor,
 				timeVisible: true,
 				secondsVisible: false,
 			},
 		});
-
-		chartRef.current = chart;
 
 		const series = chart.addCandlestickSeries({
 			upColor: "#22c55e",
@@ -111,29 +109,55 @@ export function PriceChart({
 			wickUpColor: "#22c55e",
 		});
 
-		const data: CandlestickData<Time>[] = candles.map((c) => ({
-			time: (c.time / 1000) as Time,
-			open: c.open,
-			high: c.high,
-			low: c.low,
-			close: c.close,
-		}));
+		chartRef.current = chart;
+		seriesRef.current = series;
 
-		series.setData(data);
-		chart.timeScale().fitContent();
-
-		const observer = new ResizeObserver((entries) => {
+		const resizeObserver = new ResizeObserver((entries) => {
 			const entry = entries[0];
 			if (entry) chart.applyOptions({ width: entry.contentRect.width });
 		});
-		observer.observe(containerRef.current);
+		resizeObserver.observe(containerRef.current);
+
+		// React to dark/light theme changes via class mutation on <html>
+		const themeObserver = new MutationObserver(() => {
+			const d = isDarkMode();
+			const c = getThemeColors(d);
+			chart.applyOptions({
+				layout: {
+					background: { type: ColorType.Solid, color: "transparent" },
+					textColor: c.textColor,
+				},
+				grid: {
+					vertLines: { color: c.gridColor },
+					horzLines: { color: c.gridColor },
+				},
+				rightPriceScale: { borderColor: c.borderColor },
+				timeScale: { borderColor: c.borderColor },
+			});
+		});
+		themeObserver.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["class"],
+		});
 
 		return () => {
-			observer.disconnect();
+			themeObserver.disconnect();
+			resizeObserver.disconnect();
 			chart.remove();
 			chartRef.current = null;
+			seriesRef.current = null;
 		};
+	}, []);
+
+	// Update series data when candles change (no chart recreation)
+	useEffect(() => {
+		if (!seriesRef.current || !candles) return;
+		const data = toCandlestickData(candles);
+		seriesRef.current.setData(data);
+		chartRef.current?.timeScale().fitContent();
 	}, [candles]);
+
+	const hasData = candles && candles.length > 0;
 
 	return (
 		<div
@@ -160,17 +184,12 @@ export function PriceChart({
 					))}
 				</div>
 			</div>
-			<div className="p-3">
-				{loading ? (
-					<div className="flex items-center justify-center h-[280px] text-sm text-gray-400">
-						{t("common.loading")}
+			<div className="p-3 relative">
+				<div ref={containerRef} className="h-[280px]" />
+				{(loading || !hasData) && (
+					<div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400 dark:text-gray-500 bg-white/80 dark:bg-gray-900/80">
+						{loading ? t("common.loading") : t("chart.no_data")}
 					</div>
-				) : candles.length === 0 ? (
-					<div className="flex items-center justify-center h-[280px] text-sm text-gray-400 dark:text-gray-500">
-						{t("chart.no_data")}
-					</div>
-				) : (
-					<div ref={containerRef} />
 				)}
 			</div>
 		</div>
