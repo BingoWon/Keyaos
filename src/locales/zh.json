@@ -151,11 +151,7 @@
 		"input_price": "输入定价",
 		"output_price": "输出定价",
 		"context": "上下文长度",
-		"no_data": "暂无定价数据，请先运行同步。",
-		"sync_now": "同步",
-		"syncing": "同步中...",
-		"sync_success": "同步完成",
-		"sync_failed": "同步失败"
+		"no_data": "暂无定价数据。"
 	},
 	"usage": {
 		"title": "使用记录",

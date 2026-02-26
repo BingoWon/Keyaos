@@ -154,11 +154,7 @@
 		"input_price": "Input Price",
 		"output_price": "Output Price",
 		"context": "Context",
-		"no_data": "No pricing data yet. Run sync first.",
-		"sync_now": "Sync Now",
-		"syncing": "Syncing...",
-		"sync_success": "Sync completed",
-		"sync_failed": "Sync failed"
+		"no_data": "No pricing data available yet."
 	},
 	"usage": {
 		"title": "Usage",

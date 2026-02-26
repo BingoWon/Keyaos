@@ -1,12 +1,10 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import toast from "react-hot-toast";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge, Button } from "../components/ui";
+import { Badge } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ProviderMeta } from "../types/provider";
 
@@ -205,15 +203,8 @@ function ModelCard({
 
 export function Models() {
 	const { t } = useTranslation();
-	const { getToken } = useAuth();
-	const {
-		data: raw,
-		loading,
-		error,
-		refetch,
-	} = useFetch<ModelEntry[]>("/v1/models");
+	const { data: raw, loading, error } = useFetch<ModelEntry[]>("/v1/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
-	const [syncing, setSyncing] = useState(false);
 
 	const providerMap = useMemo(() => {
 		const m = new Map<string, ProviderMeta>();
@@ -222,56 +213,6 @@ export function Models() {
 	}, [providersData]);
 
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
-
-	const handleSync = useCallback(
-		async (silent = false) => {
-			setSyncing(true);
-			let tid: string | undefined;
-			if (!silent) {
-				tid = toast.loading(t("models.syncing", "Syncing..."));
-			}
-			try {
-				const token = await getToken();
-				const res = await fetch("/api/models/sync", {
-					method: "POST",
-					headers: { Authorization: `Bearer ${token}` },
-				});
-				if (res.ok) {
-					if (!silent) {
-						toast.success(t("models.sync_success", "Sync completed"), {
-							id: tid,
-						});
-					}
-					refetch();
-				} else {
-					throw new Error(res.statusText);
-				}
-			} catch (_err) {
-				if (!silent) {
-					toast.error(t("models.sync_failed", "Sync failed"), {
-						id: tid,
-					});
-				}
-			} finally {
-				setSyncing(false);
-			}
-		},
-		[t, getToken, refetch],
-	);
-
-	const hasSynced = useRef(false);
-	useEffect(() => {
-		if (
-			!loading &&
-			!error &&
-			(!raw || raw.length === 0) &&
-			!hasSynced.current &&
-			!syncing
-		) {
-			hasSynced.current = true;
-			handleSync(true);
-		}
-	}, [raw, loading, error, syncing, handleSync]);
 
 	if (error) {
 		return (
@@ -283,22 +224,13 @@ export function Models() {
 
 	return (
 		<div>
-			<div className="sm:flex sm:items-center">
-				<div className="sm:flex-auto">
-					<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-						{t("models.title")}
-					</h3>
-					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-						{t("models.subtitle")}
-					</p>
-				</div>
-				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-					<Button onClick={() => handleSync()} disabled={syncing}>
-						{syncing
-							? t("models.syncing", "Syncing...")
-							: t("models.sync_now", "Sync Now")}
-					</Button>
-				</div>
+			<div>
+				<h3 className="text-base font-semibold text-gray-900 dark:text-white">
+					{t("models.title")}
+				</h3>
+				<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+					{t("models.subtitle")}
+				</p>
 			</div>
 
 			{loading ? (
