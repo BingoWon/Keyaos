@@ -1,6 +1,7 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CopyButton } from "../components/CopyButton";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -8,7 +9,7 @@ import { Badge } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatPrice } from "../utils/format";
+import { formatContext, formatPrice } from "../utils/format";
 
 interface ProviderGroup {
 	provider: ProviderMeta;
@@ -17,6 +18,7 @@ interface ProviderGroup {
 		name: string;
 		inputPrice: number;
 		outputPrice: number;
+		contextLength: number;
 	}[];
 }
 
@@ -79,8 +81,9 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 								{t("models.model")}
 							</th>
 							<th className="px-2 text-right">Input /1M</th>
+							<th className="px-2 text-right">Output /1M</th>
 							<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
-								Output /1M
+								Context
 							</th>
 						</tr>
 					</thead>
@@ -88,20 +91,21 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 						{group.models.map((m) => (
 							<tr key={m.id}>
 								<td className="py-2.5 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-									<div>
-										<span className="font-medium">{m.name || m.id}</span>
-										{m.name && (
-											<code className="ml-1.5 text-xs text-gray-400">
-												{m.id}
-											</code>
-										)}
-									</div>
+									<span className="inline-flex items-center gap-1">
+										<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
+											{m.id}
+										</code>
+										<CopyButton text={m.id} />
+									</span>
 								</td>
 								<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 									{formatPrice(m.inputPrice)}
 								</td>
-								<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 									{formatPrice(m.outputPrice)}
+								</td>
+								<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+									{m.contextLength > 0 ? formatContext(m.contextLength) : "—"}
 								</td>
 							</tr>
 						))}
@@ -141,6 +145,7 @@ export function Providers() {
 				name: m.name ?? m.id,
 				inputPrice: m.input_price ?? 0,
 				outputPrice: m.output_price ?? 0,
+				contextLength: m.context_length ?? 0,
 			});
 		}
 

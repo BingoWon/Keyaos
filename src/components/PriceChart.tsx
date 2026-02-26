@@ -84,6 +84,7 @@ export function PriceChart({
 			width: containerRef.current.clientWidth,
 			height: 280,
 			layout: {
+				attributionLogo: false,
 				background: { type: ColorType.Solid, color: "transparent" },
 				textColor: colors.textColor,
 				fontSize: 11,
