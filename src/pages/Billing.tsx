@@ -1,5 +1,6 @@
 import {
 	ArrowPathIcon,
+	BanknotesIcon,
 	CreditCardIcon,
 	ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
@@ -118,35 +119,41 @@ export function Billing() {
 		[getToken],
 	);
 
-	const handleAutoSave = useCallback(async () => {
-		setAutoSaving(true);
-		try {
-			const token = await getToken();
-			const res = await fetch("/api/billing/auto-topup", {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify({
-					enabled: autoEnabled,
-					threshold: Number.parseFloat(autoThreshold),
-					amountCents: Math.round(Number.parseFloat(autoAmount) * 100),
-				}),
-			});
-			const json = await res.json();
-			if (json.ok) {
-				toast.success(t("billing.auto_topup_saved"));
-				refetchAuto();
-			} else {
-				toast.error(json.error?.message ?? "Failed");
+	const handleAutoSave = useCallback(
+		async (enabledOverride?: boolean) => {
+			const enabled = enabledOverride ?? autoEnabled;
+			setAutoSaving(true);
+			try {
+				const token = await getToken();
+				const res = await fetch("/api/billing/auto-topup", {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${token}`,
+					},
+					body: JSON.stringify({
+						enabled,
+						threshold: Number.parseFloat(autoThreshold),
+						amountCents: Math.round(Number.parseFloat(autoAmount) * 100),
+					}),
+				});
+				const json = await res.json();
+				if (json.ok) {
+					toast.success(t("billing.auto_topup_saved"));
+					refetchAuto();
+				} else {
+					if (enabledOverride !== undefined) setAutoEnabled(!enabled);
+					toast.error(json.error?.message ?? "Failed");
+				}
+			} catch {
+				if (enabledOverride !== undefined) setAutoEnabled(!enabled);
+				toast.error("Network error");
+			} finally {
+				setAutoSaving(false);
 			}
-		} catch {
-			toast.error("Network error");
-		} finally {
-			setAutoSaving(false);
-		}
-	}, [getToken, autoEnabled, autoThreshold, autoAmount, refetchAuto, t]);
+		},
+		[getToken, autoEnabled, autoThreshold, autoAmount, refetchAuto, t],
+	);
 
 	const customCents = Math.round(Number.parseFloat(customAmount || "0") * 100);
 
@@ -186,7 +193,7 @@ export function Billing() {
 				<div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center gap-3">
 						<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
-							<CreditCardIcon className="size-5 text-brand-500" />
+							<BanknotesIcon className="size-5 text-brand-500" />
 						</div>
 						<div>
 							<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -261,8 +268,12 @@ export function Billing() {
 								type="checkbox"
 								className="peer sr-only"
 								checked={autoEnabled}
-								disabled={autoLoading || !autoConfig?.hasCard}
-								onChange={(e) => setAutoEnabled(e.target.checked)}
+								disabled={autoLoading || autoSaving || !autoConfig?.hasCard}
+								onChange={(e) => {
+									const v = e.target.checked;
+									setAutoEnabled(v);
+									handleAutoSave(v);
+								}}
 							/>
 							<div className="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-brand-500 peer-checked:after:translate-x-full peer-disabled:opacity-50 dark:bg-gray-700 dark:after:bg-gray-300 dark:peer-checked:after:bg-white" />
 						</label>
@@ -286,84 +297,84 @@ export function Billing() {
 							{t("billing.auto_topup_no_card")}
 						</p>
 					) : (
-						<div className="mt-4 space-y-3">
-							<div>
-								<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-									{t("billing.auto_topup_threshold")}
-								</span>
-								<div className="mt-1.5 flex items-center gap-2">
-									<div className="relative w-24">
-										<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-											$
-										</span>
-										<Input
-											type="number"
-											min="1"
-											step="1"
-											value={autoThreshold}
-											onChange={(e) => setAutoThreshold(e.target.value)}
-											className="pl-7"
-										/>
+						<div className="mt-4 space-y-4">
+							<div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:divide-x sm:divide-gray-200 sm:dark:divide-white/10">
+								<div className="sm:pr-4">
+									<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+										{t("billing.auto_topup_threshold")}
+									</span>
+									<div className="mt-1.5 flex flex-wrap items-center gap-2">
+										<div className="relative w-24">
+											<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+												$
+											</span>
+											<Input
+												type="number"
+												min="1"
+												step="1"
+												value={autoThreshold}
+												onChange={(e) => setAutoThreshold(e.target.value)}
+												className="pl-7"
+											/>
+										</div>
+										{THRESHOLD_PRESETS.map((v) => (
+											<button
+												key={v}
+												type="button"
+												onClick={() => setAutoThreshold(String(v))}
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+													autoThreshold === String(v)
+														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+												}`}
+											>
+												${v}
+											</button>
+										))}
 									</div>
-									{THRESHOLD_PRESETS.map((v) => (
-										<button
-											key={v}
-											type="button"
-											onClick={() => setAutoThreshold(String(v))}
-											className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-												autoThreshold === String(v)
-													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-											}`}
-										>
-											${v}
-										</button>
-									))}
+								</div>
+								<div className="sm:pl-4">
+									<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+										{t("billing.auto_topup_amount")}
+									</span>
+									<div className="mt-1.5 flex flex-wrap items-center gap-2">
+										<div className="relative w-24">
+											<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+												$
+											</span>
+											<Input
+												type="number"
+												min="5"
+												step="1"
+												value={autoAmount}
+												onChange={(e) => setAutoAmount(e.target.value)}
+												className="pl-7"
+											/>
+										</div>
+										{TOPUP_PRESETS.map((v) => (
+											<button
+												key={v}
+												type="button"
+												onClick={() => setAutoAmount(String(v))}
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+													autoAmount === String(v)
+														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+												}`}
+											>
+												${v}
+											</button>
+										))}
+									</div>
 								</div>
 							</div>
-							<div>
-								<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-									{t("billing.auto_topup_amount")}
-								</span>
-								<div className="mt-1.5 flex items-center gap-2">
-									<div className="relative w-24">
-										<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-											$
-										</span>
-										<Input
-											type="number"
-											min="5"
-											step="1"
-											value={autoAmount}
-											onChange={(e) => setAutoAmount(e.target.value)}
-											className="pl-7"
-										/>
-									</div>
-									{TOPUP_PRESETS.map((v) => (
-										<button
-											key={v}
-											type="button"
-											onClick={() => setAutoAmount(String(v))}
-											className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-												autoAmount === String(v)
-													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-											}`}
-										>
-											${v}
-										</button>
-									))}
-								</div>
-							</div>
-							<div className="pt-1">
-								<Button
-									disabled={autoSaving}
-									onClick={handleAutoSave}
-									size="sm"
-								>
-									{t("common.save")}
-								</Button>
-							</div>
+							<Button
+								disabled={autoSaving}
+								onClick={() => handleAutoSave()}
+								size="sm"
+							>
+								{t("common.save")}
+							</Button>
 						</div>
 					)}
 				</div>
