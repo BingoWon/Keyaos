@@ -1,7 +1,11 @@
 import { Hono } from "hono";
+import { CandleDao } from "../../core/db/candle-dao";
+import { syncAllModels, syncAutoCredits } from "../../core/sync/sync-service";
 import { BadRequestError } from "../../shared/errors";
+import { log } from "../../shared/logger";
 import type { AppEnv } from "../../shared/types";
 import { AdminDao } from "../billing/admin-dao";
+import { sweepAutoTopUp } from "../billing/auto-topup-service";
 
 const admin = new Hono<AppEnv>();
 
@@ -66,6 +70,21 @@ admin.get("/table/:name", async (c) => {
 			err instanceof Error ? err.message : "Invalid table",
 		);
 	}
+});
+
+admin.post("/cron", async (c) => {
+	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
+	const intervalMs = 5 * 60 * 1000;
+	const candleDao = new CandleDao(c.env.DB);
+	await Promise.all([
+		syncAllModels(c.env.DB, rate),
+		syncAutoCredits(c.env.DB, rate),
+		candleDao.aggregate(Date.now() - intervalMs),
+		candleDao.pruneOldCandles(),
+		sweepAutoTopUp(c.env.DB, c.env.STRIPE_SECRET_KEY),
+	]);
+	log.info("admin", "Manual cron triggered");
+	return c.json({ ok: true });
 });
 
 export default admin;
