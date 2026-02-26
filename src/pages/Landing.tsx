@@ -85,7 +85,7 @@ function Navbar() {
 								to="/dashboard"
 								className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm shadow-brand-500/20 transition-colors hover:bg-brand-600 dark:hover:bg-brand-400"
 							>
-								{t("landing.cta_dashboard")}
+								{t("nav.dashboard")}
 							</Link>
 							{isPlatform && <UserButton />}
 						</>
