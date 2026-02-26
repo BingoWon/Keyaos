@@ -204,9 +204,10 @@
 	},
 	"billing": {
 		"title": "充值",
-		"subtitle": "通过 Stripe 充值平台额度",
+		"subtitle": "管理你的平台额度余额",
 		"balance": "Credits 余额",
-		"top_up": "充值",
+		"buy_credits": "购买额度",
+		"buy_credits_desc": "通过 Stripe 一次性购买。",
 		"rate": "$1 USD = $1 Credits",
 		"custom_placeholder": "自定义金额",
 		"success": "支付成功 — 额度已到账！",

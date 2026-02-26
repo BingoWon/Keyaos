@@ -207,9 +207,10 @@
 	},
 	"billing": {
 		"title": "Billing",
-		"subtitle": "Top up your credits balance via Stripe",
+		"subtitle": "Purchase and manage your platform credits",
 		"balance": "Credits Balance",
-		"top_up": "Top Up",
+		"buy_credits": "Buy Credits",
+		"buy_credits_desc": "One-time purchase via Stripe checkout.",
 		"rate": "$1 USD = $1 Credits",
 		"custom_placeholder": "Custom amount",
 		"success": "Payment successful — credits added!",

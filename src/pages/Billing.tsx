@@ -180,52 +180,68 @@ export function Billing() {
 				</div>
 			</div>
 
-			{/* Top Up */}
-			<div className="mt-6">
-				<h4 className="text-sm font-medium text-gray-900 dark:text-white">
-					{t("billing.top_up")}
-				</h4>
-
-				<div className="mt-3 flex flex-wrap items-center gap-2">
-					<div className="relative w-32">
-						<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-							$
-						</span>
-						<Input
-							type="number"
-							min="1"
-							step="1"
-							placeholder={t("billing.custom_placeholder")}
-							value={customAmount}
-							onChange={(e) => setCustomAmount(e.target.value)}
-							className="pl-7"
-						/>
+			{/* Buy Credits + Auto Top-Up */}
+			<div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+				{/* Buy Credits */}
+				<div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+					<div className="flex items-center gap-3">
+						<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
+							<CreditCardIcon className="size-5 text-brand-500" />
+						</div>
+						<div>
+							<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+								{t("billing.buy_credits")}
+							</h4>
+							<p className="text-xs text-gray-500 dark:text-gray-400">
+								{t("billing.buy_credits_desc")}
+							</p>
+						</div>
 					</div>
-					<Button
-						disabled={loading || customCents < 100}
-						onClick={() => handleCheckout(customCents)}
-					>
-						{t("billing.top_up")}
-					</Button>
-					{PRESETS.map((cents) => (
-						<Button
-							key={cents}
-							variant="secondary"
-							disabled={loading}
-							onClick={() => handleCheckout(cents)}
-						>
-							${(cents / 100).toFixed(0)}
-						</Button>
-					))}
-				</div>
-				<p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-					{t("billing.rate")}
-				</p>
-			</div>
 
-			{/* Auto Top-Up */}
-			{!autoLoading && (
-				<div className="mt-8 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+					<div className="mt-4 space-y-3">
+						<div className="flex items-center gap-2">
+							<div className="relative w-full max-w-40">
+								<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+									$
+								</span>
+								<Input
+									type="number"
+									min="1"
+									step="1"
+									placeholder={t("billing.custom_placeholder")}
+									value={customAmount}
+									onChange={(e) => setCustomAmount(e.target.value)}
+									className="pl-7"
+								/>
+							</div>
+							<Button
+								disabled={loading || customCents < 100}
+								onClick={() => handleCheckout(customCents)}
+							>
+								{t("billing.buy_credits")}
+							</Button>
+						</div>
+						<div className="flex flex-wrap gap-2">
+							{PRESETS.map((cents) => (
+								<button
+									key={cents}
+									type="button"
+									disabled={loading}
+									onClick={() => handleCheckout(cents)}
+									className="rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-brand-500/30 hover:bg-brand-500/10 hover:text-brand-600 disabled:opacity-50 dark:border-white/10 dark:text-gray-400 dark:hover:border-brand-500/30 dark:hover:bg-brand-500/15 dark:hover:text-brand-400"
+								>
+									${(cents / 100).toFixed(0)}
+								</button>
+							))}
+						</div>
+						<p className="text-xs text-gray-400 dark:text-gray-500">
+							{t("billing.rate")}
+						</p>
+					</div>
+				</div>
+
+				{/* Auto Top-Up */}
+				<div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
@@ -245,7 +261,7 @@ export function Billing() {
 								type="checkbox"
 								className="peer sr-only"
 								checked={autoEnabled}
-								disabled={!autoConfig?.hasCard}
+								disabled={autoLoading || !autoConfig?.hasCard}
 								onChange={(e) => setAutoEnabled(e.target.checked)}
 							/>
 							<div className="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-brand-500 peer-checked:after:translate-x-full peer-disabled:opacity-50 dark:bg-gray-700 dark:after:bg-gray-300 dark:peer-checked:after:bg-white" />
@@ -261,13 +277,15 @@ export function Billing() {
 						</div>
 					)}
 
-					{!autoConfig?.hasCard && (
+					{autoLoading ? (
+						<div className="mt-4">
+							<PageLoader />
+						</div>
+					) : !autoConfig?.hasCard ? (
 						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
 							{t("billing.auto_topup_no_card")}
 						</p>
-					)}
-
-					{autoConfig?.hasCard && (
+					) : (
 						<div className="mt-4 space-y-3">
 							<div>
 								<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -349,7 +367,7 @@ export function Billing() {
 						</div>
 					)}
 				</div>
-			)}
+			</div>
 
 			{/* History */}
 			<div className="mt-8">
