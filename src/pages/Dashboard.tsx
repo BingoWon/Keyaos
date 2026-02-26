@@ -11,12 +11,12 @@ import { Link } from "react-router-dom";
 import { isPlatform } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge } from "../components/ui";
+import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatPrice, formatSignedUSD, formatUSD } from "../utils/format";
+import { formatSignedUSD, formatUSD } from "../utils/format";
 
 interface Stats {
 	total: number;
@@ -41,6 +41,7 @@ interface ModelGroup {
 	displayName: string;
 	providerCount: number;
 	bestInputPrice: number;
+	bestPlatformInputPrice?: number;
 }
 
 interface ProviderGroup {
@@ -54,7 +55,12 @@ function aggregateTopModels(
 ): ModelGroup[] {
 	const groups = new Map<
 		string,
-		{ name: string; providers: Set<string>; bestInput: number }
+		{
+			name: string;
+			providers: Set<string>;
+			bestInput: number;
+			bestPlatformInput?: number;
+		}
 	>();
 	for (const e of entries) {
 		let g = groups.get(e.id);
@@ -63,12 +69,18 @@ function aggregateTopModels(
 				name: e.name || e.id,
 				providers: new Set(),
 				bestInput: e.input_price ?? 0,
+				bestPlatformInput: e.platform_input_price,
 			};
 			groups.set(e.id, g);
 		}
 		g.providers.add(e.owned_by);
 		const ip = e.input_price ?? 0;
 		if (ip < g.bestInput) g.bestInput = ip;
+		const pip = e.platform_input_price;
+		if (pip != null) {
+			g.bestPlatformInput =
+				g.bestPlatformInput != null ? Math.min(g.bestPlatformInput, pip) : pip;
+		}
 	}
 	return [...groups.entries()]
 		.map(([id, g]) => ({
@@ -76,6 +88,7 @@ function aggregateTopModels(
 			displayName: g.name,
 			providerCount: g.providers.size,
 			bestInputPrice: g.bestInput,
+			bestPlatformInputPrice: g.bestPlatformInput,
 		}))
 		.sort((a, b) => b.providerCount - a.providerCount)
 		.slice(0, limit);
@@ -284,7 +297,10 @@ export function Dashboard() {
 								<div className="shrink-0 flex items-center gap-1.5">
 									<Badge variant="brand">{m.providerCount}</Badge>
 									<Badge variant="success">
-										{formatPrice(m.bestInputPrice)}
+										<DualPrice
+											original={m.bestInputPrice}
+											platform={m.bestPlatformInputPrice}
+										/>
 									</Badge>
 								</div>
 							</Link>

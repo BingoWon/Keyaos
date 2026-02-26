@@ -176,13 +176,13 @@ function ModelCard({
 											);
 										})()}
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right">
+									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice
 											original={p.inputPrice}
 											platform={p.platformInputPrice}
 										/>
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right">
+									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice
 											original={p.outputPrice}
 											platform={p.platformOutputPrice}

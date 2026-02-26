@@ -88,13 +88,13 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 											<CopyButton text={m.id} />
 										</span>
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right">
+									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice
 											original={m.inputPrice}
 											platform={m.platformInputPrice}
 										/>
 									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right">
+									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice
 											original={m.outputPrice}
 											platform={m.platformOutputPrice}

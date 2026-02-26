@@ -9,18 +9,10 @@ export function DualPrice({ original, platform }: DualPriceProps) {
 	if (platform != null && platform < original) {
 		return (
 			<>
-				<span className="text-gray-400 line-through dark:text-gray-500">
-					{formatPrice(original)}
-				</span>{" "}
-				<span className="font-semibold text-brand-600 dark:text-brand-400">
-					{formatPrice(platform)}
-				</span>
+				<span className="line-through opacity-40">{formatPrice(original)}</span>{" "}
+				<span className="font-semibold">{formatPrice(platform)}</span>
 			</>
 		);
 	}
-	return (
-		<span className="text-gray-600 dark:text-gray-400">
-			{formatPrice(original)}
-		</span>
-	);
+	return <>{formatPrice(original)}</>;
 }
