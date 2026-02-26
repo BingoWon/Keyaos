@@ -148,7 +148,7 @@ export function Providers() {
 		}
 
 		for (const g of byProvider.values()) {
-			g.models.sort((a, b) => a.inputPrice - b.inputPrice);
+			g.models.sort((a, b) => b.inputPrice - a.inputPrice);
 		}
 
 		return [...byProvider.values()].sort(

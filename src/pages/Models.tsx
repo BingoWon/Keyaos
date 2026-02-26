@@ -117,14 +117,14 @@ function ModelCard({
 							<DualPrice
 								original={best.inputPrice}
 								platform={best.platformInputPrice}
-							/>{" "}
+							/>
 							in
 						</Badge>
 						<Badge variant="accent">
 							<DualPrice
 								original={best.outputPrice}
 								platform={best.platformOutputPrice}
-							/>{" "}
+							/>
 							out
 						</Badge>
 						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}

@@ -22,8 +22,9 @@ import { useAuth } from "../auth";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { ProviderSelect } from "../components/ProviderSelect";
 import { ToggleSwitch } from "../components/ToggleSwitch";
-import { Button } from "../components/ui";
+import { Button, Input } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { CredentialGuide, ProviderMeta } from "../types/provider";
@@ -308,46 +309,31 @@ export function Credentials() {
 				<div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-white/10 dark:bg-white/5">
 					<form onSubmit={handleAdd} className="space-y-4">
 						{/* Row 1: Provider selector */}
-						<div className="flex items-end gap-4">
-							<div className="w-full sm:w-64">
-								<label
-									htmlFor="provider"
-									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-								>
-									{t("credentials.provider")}
-								</label>
-								<div className="mt-1 flex items-center gap-2">
-									{selectedProvider && (
-										<ProviderLogo
-											src={selectedProvider.logoUrl}
-											name={selectedProvider.name}
-										/>
-									)}
-									<select
-										id="provider"
-										value={draft.provider}
-										onChange={(e) => {
-											const newId = e.target.value;
-											const isSub =
-												providers.find((p) => p.id === newId)?.isSubscription ??
-												false;
-											setDraft((d) => ({
-												...d,
-												provider: newId,
-												...(!priceMultiplierTouched && {
-													priceMultiplier: isSub ? "0.5" : "0.8",
-												}),
-											}));
-										}}
-										className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
-									>
-										{providers.map((p) => (
-											<option key={p.id} value={p.id}>
-												{p.name}
-											</option>
-										))}
-									</select>
-								</div>
+						<div className="w-full sm:w-64">
+							<label
+								htmlFor="provider"
+								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+							>
+								{t("credentials.provider")}
+							</label>
+							<div className="mt-1">
+								<ProviderSelect
+									id="provider"
+									providers={providers}
+									value={draft.provider}
+									onChange={(newId) => {
+										const isSub =
+											providers.find((p) => p.id === newId)?.isSubscription ??
+											false;
+										setDraft((d) => ({
+											...d,
+											provider: newId,
+											...(!priceMultiplierTouched && {
+												priceMultiplier: isSub ? "0.5" : "0.8",
+											}),
+										}));
+									}}
+								/>
 							</div>
 						</div>
 
@@ -398,11 +384,11 @@ export function Credentials() {
 												setShowPassword(true);
 											}
 										}}
-										className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 font-mono text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white resize-none"
+										className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 font-mono text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 resize-none"
 										placeholder={guide?.placeholder ?? "refresh_token or JSON"}
 									/>
 								) : (
-									<input
+									<Input
 										type={showPassword ? "text" : "password"}
 										id="secret"
 										required
@@ -410,7 +396,7 @@ export function Credentials() {
 										onChange={(e) =>
 											setDraft({ ...draft, secret: e.target.value })
 										}
-										className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+										className="pr-10"
 										placeholder={guide?.placeholder ?? "sk-..."}
 									/>
 								)}
@@ -451,7 +437,7 @@ export function Credentials() {
 									>
 										{t("credentials.quota")}
 									</label>
-									<input
+									<Input
 										type="number"
 										id="quota"
 										min="0"
@@ -460,7 +446,7 @@ export function Credentials() {
 										onChange={(e) =>
 											setDraft({ ...draft, quota: e.target.value })
 										}
-										className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+										className="mt-1"
 										placeholder="10.00"
 									/>
 								</div>
@@ -472,7 +458,7 @@ export function Credentials() {
 								>
 									{t("credentials.price_multiplier")}
 								</label>
-								<input
+								<Input
 									type="number"
 									id="priceMultiplier"
 									min="0.01"
@@ -484,7 +470,7 @@ export function Credentials() {
 										setDraft({ ...draft, priceMultiplier: e.target.value });
 										setPriceMultiplierTouched(true);
 									}}
-									className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+									className="mt-1"
 									placeholder="0.8"
 								/>
 								{draft.priceMultiplier && (
@@ -649,7 +635,7 @@ export function Credentials() {
 																step="0.01"
 																value={editQuota}
 																onChange={(e) => setEditQuota(e.target.value)}
-																className="w-20 rounded-lg border border-gray-200 py-1 px-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+																className="w-20 rounded-lg border border-gray-200 bg-white py-1 px-2 text-sm text-gray-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
 															/>
 															<button
 																type="button"
@@ -727,7 +713,7 @@ export function Credentials() {
 																onChange={(e) =>
 																	setEditPriceMultiplier(e.target.value)
 																}
-																className="w-16 rounded-lg border border-gray-200 py-1 px-1 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+																className="w-16 rounded-lg border border-gray-200 bg-white py-1 px-1 text-sm text-gray-900 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
 															/>
 															<button
 																type="button"
