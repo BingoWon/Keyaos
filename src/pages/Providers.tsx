@@ -65,50 +65,50 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 				</div>
 			</button>
 
-			{open && (
-				<div className="border-t border-gray-100 dark:border-white/5">
-					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-						<thead>
-							<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
-								<th className="py-2.5 pl-4 pr-2 sm:pl-5">
-									{t("models.model")}
-								</th>
-								<th className="px-2 text-right">Input /1M</th>
-								<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
-									Output /1M
-								</th>
+		{open && (
+			<div className="border-t border-gray-100 dark:border-white/5">
+				<PriceChart
+					dimension="provider"
+					value={group.provider.id}
+					className="m-3 border-0 shadow-none"
+				/>
+				<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+					<thead>
+						<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+							<th className="py-2.5 pl-4 pr-2 sm:pl-5">
+								{t("models.model")}
+							</th>
+							<th className="px-2 text-right">Input /1M</th>
+							<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+								Output /1M
+							</th>
+						</tr>
+					</thead>
+					<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+						{group.models.map((m) => (
+							<tr key={m.id}>
+								<td className="py-2.5 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
+									<div>
+										<span className="font-medium">{m.name || m.id}</span>
+										{m.name && (
+											<code className="ml-1.5 text-xs text-gray-400">
+												{m.id}
+											</code>
+										)}
+									</div>
+								</td>
+								<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+									{formatPrice(m.inputPrice)}
+								</td>
+								<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+									{formatPrice(m.outputPrice)}
+								</td>
 							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-							{group.models.map((m) => (
-								<tr key={m.id}>
-									<td className="py-2.5 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-										<div>
-											<span className="font-medium">{m.name || m.id}</span>
-											{m.name && (
-												<code className="ml-1.5 text-xs text-gray-400">
-													{m.id}
-												</code>
-											)}
-										</div>
-									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatPrice(m.inputPrice)}
-									</td>
-									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatPrice(m.outputPrice)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-					<PriceChart
-						dimension="provider"
-						value={group.provider.id}
-						className="m-3 border-0 shadow-none"
-					/>
-				</div>
-			)}
+						))}
+					</tbody>
+				</table>
+			</div>
+		)}
 		</div>
 	);
 }
