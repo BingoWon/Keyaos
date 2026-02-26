@@ -32,7 +32,7 @@ export function CookieConsent() {
 				<p className="flex-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
 					{t("cookie.message")}
 				</p>
-				<div className="flex shrink-0 gap-2">
+				<div className="flex shrink-0 gap-2 self-end sm:self-auto">
 					<button
 						type="button"
 						onClick={decline}

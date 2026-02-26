@@ -1,3 +1,4 @@
+import { UserButton } from "@clerk/clerk-react";
 import {
 	ArrowRightIcon,
 	ArrowTopRightOnSquareIcon,
@@ -15,6 +16,7 @@ import {
 import type { ComponentType, SVGProps } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { isPlatform, useAuth } from "../auth";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { ThemeToggle } from "../components/ThemeToggle";
 
@@ -41,6 +43,9 @@ type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
 function Navbar() {
 	const { t } = useTranslation();
+	const { isLoaded, isSignedIn } = useAuth();
+	const authed = isLoaded && isSignedIn;
+
 	return (
 		<header className="fixed inset-x-0 top-0 z-50 backdrop-blur-lg bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/50 dark:border-white/5">
 			<nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
@@ -64,12 +69,36 @@ function Navbar() {
 						GitHub
 						<ArrowTopRightOnSquareIcon className="size-3.5" />
 					</a>
-					<Link
-						to="/login"
-						className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm shadow-brand-500/20 transition-colors hover:bg-brand-600 dark:hover:bg-brand-400"
-					>
-						{t("landing.cta_start")}
-					</Link>
+					{authed ? (
+						<>
+							<Link
+								to="/dashboard"
+								className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm shadow-brand-500/20 transition-colors hover:bg-brand-600 dark:hover:bg-brand-400"
+							>
+								{t("nav.dashboard")}
+							</Link>
+							{isPlatform && (
+								<div className="ml-1">
+									<UserButton />
+								</div>
+							)}
+						</>
+					) : (
+						<>
+							<Link
+								to="/login"
+								className="ml-1 hidden items-center px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:text-gray-900 sm:inline-flex dark:text-gray-400 dark:hover:text-white"
+							>
+								{t("landing.cta_signin")}
+							</Link>
+							<Link
+								to="/login"
+								className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm shadow-brand-500/20 transition-colors hover:bg-brand-600 dark:hover:bg-brand-400"
+							>
+								{t("landing.cta_start")}
+							</Link>
+						</>
+					)}
 				</div>
 			</nav>
 		</header>
@@ -78,6 +107,9 @@ function Navbar() {
 
 function Hero() {
 	const { t } = useTranslation();
+	const { isLoaded, isSignedIn } = useAuth();
+	const authed = isLoaded && isSignedIn;
+
 	return (
 		<section className="relative isolate overflow-hidden pt-14">
 			{/* Grid pattern */}
@@ -121,10 +153,12 @@ function Hero() {
 				{/* CTAs */}
 				<div className="mt-10 flex flex-wrap items-center justify-center gap-4">
 					<Link
-						to="/login"
+						to={authed ? "/dashboard" : "/login"}
 						className="group inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:bg-brand-600 hover:shadow-brand-500/35 dark:hover:bg-brand-400"
 					>
-						{t("landing.cta_start")}
+						{authed
+							? t("landing.cta_dashboard")
+							: t("landing.cta_start")}
 						<ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
 					</Link>
 					<a
@@ -397,6 +431,9 @@ function CodeExample() {
 
 function FinalCTA() {
 	const { t } = useTranslation();
+	const { isLoaded, isSignedIn } = useAuth();
+	const authed = isLoaded && isSignedIn;
+
 	return (
 		<section className="py-24 sm:py-32">
 			<div className="mx-auto max-w-6xl px-6">
@@ -419,10 +456,12 @@ function FinalCTA() {
 					</p>
 					<div className="mt-10 flex flex-wrap items-center justify-center gap-4">
 						<Link
-							to="/login"
+							to={authed ? "/dashboard" : "/login"}
 							className="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-600 shadow-lg transition-colors hover:bg-white/90"
 						>
-							{t("landing.cta_start")}
+							{authed
+								? t("landing.cta_dashboard")
+								: t("landing.cta_start")}
 							<ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
 						</Link>
 						<a
