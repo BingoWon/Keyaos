@@ -39,6 +39,7 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 		const inputUsdPerM = Number.parseFloat(pricing.prompt) * 1_000_000;
 		const outputUsdPerM = Number.parseFloat(pricing.completion) * 1_000_000;
 		if (Number.isNaN(inputUsdPerM) || Number.isNaN(outputUsdPerM)) continue;
+		if (inputUsdPerM < 0 || outputUsdPerM < 0) continue;
 
 		results.push({
 			id: `openrouter:${id}`,

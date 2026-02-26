@@ -43,6 +43,7 @@ export async function dispatchAll(
 
 	for (const offering of offerings) {
 		if (providers?.length && !providers.includes(offering.provider)) continue;
+		if (offering.input_price < 0 || offering.output_price < 0) continue;
 		const provider = getProvider(offering.provider);
 		if (!provider) continue;
 
