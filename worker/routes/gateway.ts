@@ -12,6 +12,7 @@ import { calculateBaseCost, recordUsage } from "../core/billing";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
+import { triggerAutoTopUp } from "../platform/billing/auto-topup-service";
 import {
 	calculateSettlement,
 	settleWallets,
@@ -137,6 +138,13 @@ export async function executeCompletion(
 									credentialOwnerId,
 									settlement,
 								);
+								if (c.env.STRIPE_SECRET_KEY) {
+									await triggerAutoTopUp(
+										c.env.DB,
+										c.env.STRIPE_SECRET_KEY,
+										consumerId,
+									);
+								}
 							}
 
 							rlog.info("billing", "Recorded", {

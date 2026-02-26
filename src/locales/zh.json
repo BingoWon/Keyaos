@@ -214,10 +214,20 @@
 		"no_data": "暂无充值记录",
 		"time": "时间",
 		"amount": "金额",
+		"type": "类型",
+		"type_manual": "手动",
+		"type_auto": "自动",
 		"status": "状态",
 		"status_completed": "已完成",
 		"status_pending": "待支付",
-		"status_expired": "已过期"
+		"status_expired": "已过期",
+		"auto_topup": "自动充值",
+		"auto_topup_desc": "余额低于阈值时自动充值。",
+		"auto_topup_threshold": "余额低于时触发",
+		"auto_topup_amount": "充值金额",
+		"auto_topup_no_card": "请先完成一次手动充值以保存支付方式。",
+		"auto_topup_paused": "自动充值已暂停：{{reason}}",
+		"auto_topup_saved": "自动充值设置已保存"
 	},
 	"admin": {
 		"title": "管理后台",

@@ -1,20 +1,44 @@
 /**
- * Stripe Checkout integration via raw fetch — zero external dependencies.
+ * Stripe integration via raw fetch — zero external dependencies.
  *
- * Only two interactions:
- *   1. Create a Checkout Session (server-side redirect)
+ * Capabilities:
+ *   1. Create a Checkout Session (with setup_future_usage for card-saving)
  *   2. Verify webhook signature + parse event
+ *   3. Create/retrieve Stripe Customers
+ *   4. Off-session PaymentIntents (auto top-up)
  */
 
 const STRIPE_API = "https://api.stripe.com/v1";
+
+function stripeHeaders(secretKey: string) {
+	return {
+		Authorization: `Basic ${btoa(`${secretKey}:`)}`,
+		"Content-Type": "application/x-www-form-urlencoded",
+	};
+}
 
 /** $1 USD = $1 Credits (1:1) */
 export function centsToCredits(cents: number): number {
 	return cents / 100;
 }
 
+export async function createCustomer(
+	secretKey: string,
+	ownerId: string,
+): Promise<string> {
+	const res = await fetch(`${STRIPE_API}/customers`, {
+		method: "POST",
+		headers: stripeHeaders(secretKey),
+		body: new URLSearchParams({ "metadata[owner_id]": ownerId }),
+	});
+	if (!res.ok) throw new Error(`Stripe Customer error: ${res.status}`);
+	const customer = (await res.json()) as { id: string };
+	return customer.id;
+}
+
 export async function createCheckoutSession(opts: {
 	secretKey: string;
+	customerId: string;
 	ownerId: string;
 	amountCents: number;
 	successUrl: string;
@@ -22,6 +46,8 @@ export async function createCheckoutSession(opts: {
 }): Promise<{ url: string; sessionId: string }> {
 	const body = new URLSearchParams({
 		mode: "payment",
+		customer: opts.customerId,
+		"payment_intent_data[setup_future_usage]": "off_session",
 		"line_items[0][price_data][currency]": "usd",
 		"line_items[0][price_data][product_data][name]": "Keyaos Credits",
 		"line_items[0][price_data][unit_amount]": String(opts.amountCents),
@@ -34,10 +60,7 @@ export async function createCheckoutSession(opts: {
 
 	const res = await fetch(`${STRIPE_API}/checkout/sessions`, {
 		method: "POST",
-		headers: {
-			Authorization: `Basic ${btoa(`${opts.secretKey}:`)}`,
-			"Content-Type": "application/x-www-form-urlencoded",
-		},
+		headers: stripeHeaders(opts.secretKey),
 		body,
 	});
 
@@ -48,6 +71,50 @@ export async function createCheckoutSession(opts: {
 
 	const session = (await res.json()) as { id: string; url: string };
 	return { url: session.url, sessionId: session.id };
+}
+
+export async function getPaymentIntent(
+	secretKey: string,
+	piId: string,
+): Promise<{ id: string; payment_method: string | null }> {
+	const res = await fetch(`${STRIPE_API}/payment_intents/${piId}`, {
+		headers: stripeHeaders(secretKey),
+	});
+	if (!res.ok) throw new Error(`Stripe PI fetch error: ${res.status}`);
+	return (await res.json()) as { id: string; payment_method: string | null };
+}
+
+export async function createOffSessionPayment(opts: {
+	secretKey: string;
+	customerId: string;
+	paymentMethodId: string;
+	amountCents: number;
+	ownerId: string;
+}): Promise<{ id: string; status: string }> {
+	const res = await fetch(`${STRIPE_API}/payment_intents`, {
+		method: "POST",
+		headers: stripeHeaders(opts.secretKey),
+		body: new URLSearchParams({
+			amount: String(opts.amountCents),
+			currency: "usd",
+			customer: opts.customerId,
+			payment_method: opts.paymentMethodId,
+			off_session: "true",
+			confirm: "true",
+			"metadata[owner_id]": opts.ownerId,
+			"metadata[type]": "auto_topup",
+			"metadata[credits]": String(centsToCredits(opts.amountCents)),
+		}),
+	});
+	const pi = (await res.json()) as {
+		id: string;
+		status: string;
+		error?: unknown;
+	};
+	if (!res.ok && !pi.status) {
+		throw new Error(`Stripe off-session error: ${res.status}`);
+	}
+	return { id: pi.id, status: pi.status };
 }
 
 // Webhook signature verification using Web Crypto API (CF Workers native)
@@ -99,6 +166,7 @@ export interface StripeCheckoutEvent {
 		object: {
 			id: string;
 			payment_status: string;
+			payment_intent: string;
 			amount_total: number;
 			metadata: { owner_id: string; credits: string };
 		};

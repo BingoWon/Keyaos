@@ -1,15 +1,30 @@
-import { CreditCardIcon } from "@heroicons/react/24/outline";
+import {
+	ArrowPathIcon,
+	CreditCardIcon,
+	ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
-import { Button, Input } from "../components/ui";
+import { Badge, Button, Input } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { formatSignedUSD, formatUSD } from "../utils/format";
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
+const THRESHOLD_PRESETS = [5, 10, 25] as const;
+const TOPUP_PRESETS = [10, 20, 50] as const;
+
+interface AutoTopUpConfig {
+	enabled: boolean;
+	threshold?: number;
+	amountCents?: number;
+	hasCard: boolean;
+	consecutiveFailures?: number;
+	pausedReason?: string | null;
+}
 
 export function Billing() {
 	const { t } = useTranslation();
@@ -27,26 +42,55 @@ export function Billing() {
 	} = useFetch<
 		{
 			id: string;
+			type: string;
 			amount_cents: number;
 			credits: number;
 			status: string;
 			created_at: number;
 		}[]
 	>("/api/billing/history");
+	const {
+		data: autoConfig,
+		loading: autoLoading,
+		refetch: refetchAuto,
+	} = useFetch<AutoTopUpConfig>("/api/billing/auto-topup");
+
 	const [loading, setLoading] = useState(false);
 	const [customAmount, setCustomAmount] = useState("");
+
+	const [autoEnabled, setAutoEnabled] = useState(false);
+	const [autoThreshold, setAutoThreshold] = useState("5");
+	const [autoAmount, setAutoAmount] = useState("10");
+	const [autoSaving, setAutoSaving] = useState(false);
+
+	useEffect(() => {
+		if (autoConfig) {
+			setAutoEnabled(autoConfig.enabled);
+			if (autoConfig.threshold) setAutoThreshold(String(autoConfig.threshold));
+			if (autoConfig.amountCents)
+				setAutoAmount(String(autoConfig.amountCents / 100));
+		}
+	}, [autoConfig]);
 
 	useEffect(() => {
 		if (searchParams.get("success") === "true") {
 			toast.success(t("billing.success"));
 			refetchWallet();
 			refetchHistory();
+			refetchAuto();
 			setSearchParams({}, { replace: true });
 		} else if (searchParams.get("canceled") === "true") {
 			toast(t("billing.canceled"), { icon: "↩" });
 			setSearchParams({}, { replace: true });
 		}
-	}, [searchParams, setSearchParams, refetchWallet, refetchHistory, t]);
+	}, [
+		searchParams,
+		setSearchParams,
+		refetchWallet,
+		refetchHistory,
+		refetchAuto,
+		t,
+	]);
 
 	const handleCheckout = useCallback(
 		async (amountCents: number) => {
@@ -73,6 +117,36 @@ export function Billing() {
 		},
 		[getToken],
 	);
+
+	const handleAutoSave = useCallback(async () => {
+		setAutoSaving(true);
+		try {
+			const token = await getToken();
+			const res = await fetch("/api/billing/auto-topup", {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					enabled: autoEnabled,
+					threshold: Number.parseFloat(autoThreshold),
+					amountCents: Math.round(Number.parseFloat(autoAmount) * 100),
+				}),
+			});
+			const json = await res.json();
+			if (json.ok) {
+				toast.success(t("billing.auto_topup_saved"));
+				refetchAuto();
+			} else {
+				toast.error(json.error?.message ?? "Failed");
+			}
+		} catch {
+			toast.error("Network error");
+		} finally {
+			setAutoSaving(false);
+		}
+	}, [getToken, autoEnabled, autoThreshold, autoAmount, refetchAuto, t]);
 
 	const customCents = Math.round(Number.parseFloat(customAmount || "0") * 100);
 
@@ -149,6 +223,134 @@ export function Billing() {
 				</p>
 			</div>
 
+			{/* Auto Top-Up */}
+			{!autoLoading && (
+				<div className="mt-8 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
+								<ArrowPathIcon className="size-5 text-brand-500" />
+							</div>
+							<div>
+								<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+									{t("billing.auto_topup")}
+								</h4>
+								<p className="text-xs text-gray-500 dark:text-gray-400">
+									{t("billing.auto_topup_desc")}
+								</p>
+							</div>
+						</div>
+						<label className="relative inline-flex cursor-pointer items-center">
+							<input
+								type="checkbox"
+								className="peer sr-only"
+								checked={autoEnabled}
+								disabled={!autoConfig?.hasCard}
+								onChange={(e) => setAutoEnabled(e.target.checked)}
+							/>
+							<div className="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-brand-500 peer-checked:after:translate-x-full peer-disabled:opacity-50 dark:bg-gray-700 dark:after:bg-gray-300 dark:peer-checked:after:bg-white" />
+						</label>
+					</div>
+
+					{autoConfig?.pausedReason && (
+						<div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+							<ExclamationTriangleIcon className="size-4 shrink-0" />
+							{t("billing.auto_topup_paused", {
+								reason: autoConfig.pausedReason,
+							})}
+						</div>
+					)}
+
+					{!autoConfig?.hasCard && (
+						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+							{t("billing.auto_topup_no_card")}
+						</p>
+					)}
+
+					{autoConfig?.hasCard && (
+						<div className="mt-4 space-y-3">
+							<div>
+								<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+									{t("billing.auto_topup_threshold")}
+								</span>
+								<div className="mt-1.5 flex items-center gap-2">
+									<div className="relative w-24">
+										<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+											$
+										</span>
+										<Input
+											type="number"
+											min="1"
+											step="1"
+											value={autoThreshold}
+											onChange={(e) => setAutoThreshold(e.target.value)}
+											className="pl-7"
+										/>
+									</div>
+									{THRESHOLD_PRESETS.map((v) => (
+										<button
+											key={v}
+											type="button"
+											onClick={() => setAutoThreshold(String(v))}
+											className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+												autoThreshold === String(v)
+													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+											}`}
+										>
+											${v}
+										</button>
+									))}
+								</div>
+							</div>
+							<div>
+								<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+									{t("billing.auto_topup_amount")}
+								</span>
+								<div className="mt-1.5 flex items-center gap-2">
+									<div className="relative w-24">
+										<span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+											$
+										</span>
+										<Input
+											type="number"
+											min="5"
+											step="1"
+											value={autoAmount}
+											onChange={(e) => setAutoAmount(e.target.value)}
+											className="pl-7"
+										/>
+									</div>
+									{TOPUP_PRESETS.map((v) => (
+										<button
+											key={v}
+											type="button"
+											onClick={() => setAutoAmount(String(v))}
+											className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+												autoAmount === String(v)
+													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+											}`}
+										>
+											${v}
+										</button>
+									))}
+								</div>
+							</div>
+							<div className="pt-1">
+								<Button
+									disabled={autoSaving}
+									onClick={handleAutoSave}
+									size="sm"
+								>
+									{t("common.save")}
+								</Button>
+							</div>
+						</div>
+					)}
+				</div>
+			)}
+
 			{/* History */}
 			<div className="mt-8">
 				<h4 className="text-sm font-medium text-gray-900 dark:text-white">
@@ -174,6 +376,9 @@ export function Billing() {
 										{t("billing.amount")}
 									</th>
 									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+										{t("billing.type")}
+									</th>
+									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
 										{t("billing.status")}
 									</th>
 								</tr>
@@ -186,6 +391,11 @@ export function Billing() {
 										</td>
 										<td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
 											{formatSignedUSD(p.credits)}
+										</td>
+										<td className="whitespace-nowrap px-4 py-3 text-sm">
+											<Badge variant={p.type === "auto" ? "accent" : "brand"}>
+												{t(`billing.type_${p.type || "manual"}`)}
+											</Badge>
 										</td>
 										<td className="whitespace-nowrap px-4 py-3 text-sm">
 											<span

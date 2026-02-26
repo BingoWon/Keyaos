@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS price_candles (
 CREATE TABLE IF NOT EXISTS wallets (
     owner_id TEXT PRIMARY KEY,
     balance REAL NOT NULL DEFAULT 0,
+    stripe_customer_id TEXT,
     updated_at INTEGER NOT NULL
 );
 
@@ -94,6 +95,7 @@ CREATE TABLE IF NOT EXISTS wallets (
 CREATE TABLE IF NOT EXISTS payments (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT 'manual',
     stripe_session_id TEXT NOT NULL UNIQUE,
     amount_cents INTEGER NOT NULL,
     credits REAL NOT NULL,
@@ -103,7 +105,19 @@ CREATE TABLE IF NOT EXISTS payments (
 
 CREATE INDEX IF NOT EXISTS idx_payments_owner ON payments(owner_id);
 
--- 8. [Platform] Admin credit adjustments (audit trail for grants/revokes)
+-- 8. [Platform] Auto top-up configuration
+CREATE TABLE IF NOT EXISTS auto_topup_config (
+    owner_id TEXT PRIMARY KEY,
+    enabled INTEGER NOT NULL DEFAULT 0,
+    threshold REAL NOT NULL DEFAULT 5.0,
+    amount_cents INTEGER NOT NULL DEFAULT 1000,
+    payment_method_id TEXT,
+    consecutive_failures INTEGER NOT NULL DEFAULT 0,
+    last_triggered_at INTEGER,
+    paused_reason TEXT
+);
+
+-- 9. [Platform] Admin credit adjustments (audit trail for grants/revokes)
 CREATE TABLE IF NOT EXISTS credit_adjustments (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,

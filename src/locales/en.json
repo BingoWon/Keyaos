@@ -217,10 +217,20 @@
 		"no_data": "No payments yet",
 		"time": "Time",
 		"amount": "Amount",
+		"type": "Type",
+		"type_manual": "Manual",
+		"type_auto": "Auto",
 		"status": "Status",
 		"status_completed": "Completed",
 		"status_pending": "Pending",
-		"status_expired": "Expired"
+		"status_expired": "Expired",
+		"auto_topup": "Auto Top-Up",
+		"auto_topup_desc": "Automatically add credits when your balance drops below a threshold.",
+		"auto_topup_threshold": "Trigger when balance below",
+		"auto_topup_amount": "Top-up amount",
+		"auto_topup_no_card": "Complete a manual payment first to save your card.",
+		"auto_topup_paused": "Auto Top-Up paused: {{reason}}",
+		"auto_topup_saved": "Auto Top-Up settings saved"
 	},
 	"admin": {
 		"title": "Admin",

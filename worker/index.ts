@@ -5,6 +5,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { ApiKeysDao } from "./core/db/api-keys-dao";
 import { CandleDao } from "./core/db/candle-dao";
 import { syncAllModels, syncAutoCredits } from "./core/sync/sync-service";
+import { sweepAutoTopUp } from "./platform/billing/auto-topup-service";
 import adminRouter from "./platform/routes/admin";
 import billingRouter, { webhookRouter } from "./platform/routes/billing";
 import apiKeysRouter from "./routes/api-keys";
@@ -188,6 +189,7 @@ export default {
 				syncAutoCredits(env.DB, rate),
 				candleDao.aggregate(Date.now() - intervalMs),
 				candleDao.pruneOldCandles(),
+				sweepAutoTopUp(env.DB, env.STRIPE_SECRET_KEY),
 			]),
 		);
 	},

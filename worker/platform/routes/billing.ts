@@ -1,10 +1,14 @@
 import { Hono } from "hono";
 import { BadRequestError } from "../../shared/errors";
+import { log } from "../../shared/logger";
 import type { AppEnv } from "../../shared/types";
+import { AutoTopUpDao } from "../billing/auto-topup-dao";
 import { PaymentsDao } from "../billing/payments-dao";
 import {
 	centsToCredits,
 	createCheckoutSession,
+	createCustomer,
+	getPaymentIntent,
 	type StripeCheckoutEvent,
 	verifyWebhookSignature,
 } from "../billing/stripe";
@@ -33,11 +37,20 @@ billing.post("/checkout", async (c) => {
 		throw new BadRequestError("Amount must be at least 100 cents ($1)");
 	}
 
-	const origin = new URL(c.req.url).origin;
 	const ownerId = c.get("owner_id");
+	const wallets = new WalletDao(c.env.DB);
+	const origin = new URL(c.req.url).origin;
+
+	let wallet = await wallets.get(ownerId);
+	if (!wallet?.stripe_customer_id) {
+		const customerId = await createCustomer(c.env.STRIPE_SECRET_KEY, ownerId);
+		await wallets.ensureStripeCustomer(ownerId, customerId);
+		wallet = await wallets.get(ownerId);
+	}
 
 	const { url, sessionId } = await createCheckoutSession({
 		secretKey: c.env.STRIPE_SECRET_KEY,
+		customerId: wallet?.stripe_customer_id as string,
 		ownerId,
 		amountCents: amount,
 		successUrl: `${origin}/dashboard/billing?success=true`,
@@ -46,6 +59,7 @@ billing.post("/checkout", async (c) => {
 
 	await new PaymentsDao(c.env.DB).create({
 		owner_id: ownerId,
+		type: "manual",
 		stripe_session_id: sessionId,
 		amount_cents: amount,
 		credits: centsToCredits(amount),
@@ -60,6 +74,52 @@ billing.get("/history", async (c) => {
 	const ownerId = c.get("owner_id");
 	const history = await new PaymentsDao(c.env.DB).getHistory(ownerId);
 	return c.json({ data: history });
+});
+
+// ─── Auto Top-Up Config ─────────────────────────────────
+billing.get("/auto-topup", async (c) => {
+	const config = await new AutoTopUpDao(c.env.DB).getConfig(c.get("owner_id"));
+	if (!config) return c.json({ enabled: false, hasCard: false });
+	return c.json({
+		enabled: !!config.enabled,
+		threshold: config.threshold,
+		amountCents: config.amount_cents,
+		hasCard: !!config.payment_method_id,
+		consecutiveFailures: config.consecutive_failures,
+		pausedReason: config.paused_reason,
+	});
+});
+
+billing.put("/auto-topup", async (c) => {
+	const ownerId = c.get("owner_id");
+	const body = await c.req.json<{
+		enabled: boolean;
+		threshold?: number;
+		amountCents?: number;
+	}>();
+
+	if (body.enabled) {
+		const config = await new AutoTopUpDao(c.env.DB).getConfig(ownerId);
+		if (!config?.payment_method_id) {
+			throw new BadRequestError(
+				"No saved payment method. Complete a payment first.",
+			);
+		}
+		if (body.threshold !== undefined && body.threshold < 1) {
+			throw new BadRequestError("Threshold must be at least $1");
+		}
+		if (body.amountCents !== undefined && body.amountCents < 500) {
+			throw new BadRequestError("Top-up amount must be at least $5");
+		}
+	}
+
+	await new AutoTopUpDao(c.env.DB).upsertConfig(ownerId, {
+		enabled: body.enabled ? 1 : 0,
+		threshold: body.threshold,
+		amount_cents: body.amountCents,
+	});
+
+	return c.json({ ok: true });
 });
 
 export default billing;
@@ -101,6 +161,28 @@ webhookRouter.post("/stripe", async (c) => {
 
 	if (await paymentsDao.transition(session.id, "completed")) {
 		await new WalletDao(c.env.DB).credit(owner_id, credits);
+
+		// Extract and save payment method for future auto top-up
+		if (c.env.STRIPE_SECRET_KEY && session.payment_intent) {
+			try {
+				const pi = await getPaymentIntent(
+					c.env.STRIPE_SECRET_KEY,
+					session.payment_intent,
+				);
+				if (pi.payment_method) {
+					await new AutoTopUpDao(c.env.DB).savePaymentMethod(
+						owner_id,
+						pi.payment_method,
+					);
+				}
+			} catch (err) {
+				log.warn(
+					"webhook",
+					`Failed to extract PM: ${err instanceof Error ? err.message : String(err)}`,
+				);
+			}
+		}
+
 		return c.json({ received: true, credited: credits });
 	}
 

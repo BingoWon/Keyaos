@@ -1,6 +1,7 @@
 export interface DbPayment {
 	id: string;
 	owner_id: string;
+	type: "manual" | "auto";
 	stripe_session_id: string;
 	amount_cents: number;
 	credits: number;
@@ -15,12 +16,13 @@ export class PaymentsDao {
 		const id = `pay_${crypto.randomUUID()}`;
 		await this.db
 			.prepare(
-				`INSERT INTO payments (id, owner_id, stripe_session_id, amount_cents, credits, status, created_at)
-				 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+				`INSERT INTO payments (id, owner_id, type, stripe_session_id, amount_cents, credits, status, created_at)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
 				p.owner_id,
+				p.type,
 				p.stripe_session_id,
 				p.amount_cents,
 				p.credits,
