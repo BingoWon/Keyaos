@@ -1,0 +1,55 @@
+# Introduction
+
+Keyaos (钥枢) is an **AI API routing gateway** that unifies fragmented API credits across multiple providers into a single, intelligent endpoint.
+
+## What is Keyaos?
+
+Keyaos is **not** a model provider — it doesn't run any AI inference. It is a pure **resource orchestration layer**: receive requests, pick the cheapest available upstream credential, forward the request, and return the result.
+
+## Core Capabilities
+
+### Unified API Endpoint
+
+Connect once, access all models. Keyaos provides both **OpenAI** and **Anthropic** compatible endpoints:
+
+| Protocol | Endpoint | SDK Support |
+|----------|----------|-------------|
+| OpenAI | `POST /v1/chat/completions` | OpenAI SDK, LangChain, LiteLLM |
+| Anthropic | `POST /v1/messages` | Anthropic SDK (with reasoning→thinking) |
+
+### Smart Lowest-Cost Routing
+
+Every request is routed to the cheapest available provider + credential combination. The routing engine:
+
+- Queries real-time pricing from all connected providers
+- Compares effective cost across all credential × provider pairs
+- Automatically fails over to the next cheapest option on errors
+- Ensures zero added latency — billing and health checks are fully async
+
+### Credentials Sharing Marketplace
+
+Got idle API credits sitting unused? Share them on Keyaos and earn platform credits:
+
+- Share credentials from OpenAI, Anthropic, Google, and more
+- Set your own price multiplier
+- Earn credits whenever your credentials are used
+- Withdraw shared keys at any time
+
+### Zero Deposit Fees
+
+When you top up, **100% of your payment converts to credits**. No surcharges, no hidden fees.
+
+## Architecture at a Glance
+
+```
+Your App → Keyaos Gateway → [Cheapest Provider]
+              ↓
+        Smart Routing
+        · Real-time pricing
+        · Health-aware failover
+        · Zero-latency streaming
+```
+
+## Open Source
+
+Keyaos is **source-available** under the [Business Source License (BSL)](https://github.com/BingoWon/Keyaos/blob/main/LICENSE). The full source code is available on [GitHub](https://github.com/BingoWon/Keyaos) for review, audit, and self-deployment.

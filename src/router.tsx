@@ -16,9 +16,16 @@ import { Billing } from "./pages/Billing";
 import { Byok } from "./pages/Byok";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
+import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";
+import AuthenticationMdx from "./pages/docs/authentication.mdx";
 import ContactMdx from "./pages/docs/contact.mdx";
+import CredentialsSharingMdx from "./pages/docs/credentials-sharing.mdx";
 import { DocsLayout } from "./pages/docs/DocsLayout";
+import ErrorCodesMdx from "./pages/docs/error-codes.mdx";
+import IntroductionMdx from "./pages/docs/introduction.mdx";
 import { MdxPage } from "./pages/docs/MdxPage";
+import ModelsRoutingMdx from "./pages/docs/models-routing.mdx";
+import OpenaiApiMdx from "./pages/docs/openai-api.mdx";
 import PricingMdx from "./pages/docs/pricing.mdx";
 import PrivacyMdx from "./pages/docs/privacy.mdx";
 import QuickstartMdx from "./pages/docs/quickstart.mdx";
@@ -97,9 +104,31 @@ export const router = createBrowserRouter([
 		path: "/docs",
 		element: <DocsLayout />,
 		children: [
-			{ index: true, element: <Navigate to="/docs/quickstart" replace /> },
+			{ index: true, element: <Navigate to="/docs/introduction" replace /> },
+			{
+				path: "introduction",
+				element: <MdxPage Component={IntroductionMdx} />,
+			},
 			{ path: "quickstart", element: <MdxPage Component={QuickstartMdx} /> },
+			{
+				path: "models-routing",
+				element: <MdxPage Component={ModelsRoutingMdx} />,
+			},
+			{
+				path: "credentials-sharing",
+				element: <MdxPage Component={CredentialsSharingMdx} />,
+			},
 			{ path: "pricing", element: <MdxPage Component={PricingMdx} /> },
+			{
+				path: "authentication",
+				element: <MdxPage Component={AuthenticationMdx} />,
+			},
+			{ path: "openai-api", element: <MdxPage Component={OpenaiApiMdx} /> },
+			{
+				path: "anthropic-api",
+				element: <MdxPage Component={AnthropicApiMdx} />,
+			},
+			{ path: "error-codes", element: <MdxPage Component={ErrorCodesMdx} /> },
 			{ path: "privacy", element: <MdxPage Component={PrivacyMdx} /> },
 			{ path: "terms", element: <MdxPage Component={TermsMdx} /> },
 			{ path: "contact", element: <MdxPage Component={ContactMdx} /> },

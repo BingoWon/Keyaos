@@ -1,0 +1,67 @@
+# Models & Routing
+
+Keyaos aggregates models from multiple upstream providers and automatically routes each request to the cheapest available option.
+
+## Supported Models
+
+Models are synced automatically every 5 minutes from all connected providers. You can view the full list on the [Models page](/dashboard/models) in your dashboard.
+
+Currently supported model families include:
+
+| Family | Example Models |
+|--------|---------------|
+| OpenAI | `openai/gpt-4o`, `openai/gpt-4o-mini`, `openai/o3-mini` |
+| Anthropic | `anthropic/claude-sonnet-4`, `anthropic/claude-haiku-4.5` |
+| Google | `google/gemini-2.5-pro`, `google/gemini-2.5-flash` |
+| DeepSeek | `deepseek/deepseek-chat`, `deepseek/deepseek-reasoner` |
+| Meta | `meta-llama/llama-4-maverick` |
+
+> Model availability depends on your connected upstream credentials and their current health status.
+
+## How Routing Works
+
+When you send a request, the dispatcher executes this pipeline:
+
+1. **Price lookup** — Query `model_pricing` for all providers that carry the requested model
+2. **Credential match** — Find all enabled, healthy credentials for each provider
+3. **Effective cost** — Calculate `base_price × price_multiplier` for each combination
+4. **Global sort** — Rank all candidates by effective cost, regardless of provider
+5. **Execute** — Try the cheapest; on failure, automatically retry the next candidate
+
+This means a credential with a low `price_multiplier` on an expensive provider can beat a credential on a cheap provider — the system always finds the **global minimum**.
+
+## Provider Filtering
+
+You can restrict routing to specific providers by adding the `provider` field to your request:
+
+```json
+{
+  "model": "openai/gpt-4o",
+  "provider": "openrouter",
+  "messages": [{ "role": "user", "content": "Hello" }]
+}
+```
+
+Multiple providers:
+
+```json
+{
+  "model": "openai/gpt-4o",
+  "provider": ["openrouter", "oaipro"],
+  "messages": [{ "role": "user", "content": "Hello" }]
+}
+```
+
+Omit `provider` to let the system choose from all available providers.
+
+## Health-Aware Failover
+
+Each credential has a health status:
+
+| Status | Meaning | Routing |
+|--------|---------|---------|
+| `ok` | Last request succeeded | Highest priority |
+| `degraded` | Received 5xx / 429 | Still included, lower priority |
+| `dead` | Received 401 / 402 / quota exhausted | Excluded |
+
+Dead credentials are automatically revived when their upstream quota is replenished (checked every 5 minutes).

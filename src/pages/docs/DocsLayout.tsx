@@ -8,17 +8,33 @@ import {
 	Bars3Icon,
 	BookOpenIcon,
 	ChatBubbleLeftRightIcon,
+	CheckIcon,
+	ClipboardDocumentIcon,
+	CodeBracketIcon,
 	CurrencyDollarIcon,
 	DocumentTextIcon,
+	ExclamationTriangleIcon,
+	FingerPrintIcon,
+	GlobeAltIcon,
+	KeyIcon,
+	LinkIcon,
 	ShieldCheckIcon,
+	SparklesIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
 import {
 	BookOpenIcon as BookOpenIconSolid,
 	ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
+	CodeBracketIcon as CodeBracketIconSolid,
 	CurrencyDollarIcon as CurrencyDollarIconSolid,
 	DocumentTextIcon as DocumentTextIconSolid,
+	ExclamationTriangleIcon as ExclamationTriangleIconSolid,
+	FingerPrintIcon as FingerPrintIconSolid,
+	GlobeAltIcon as GlobeAltIconSolid,
+	KeyIcon as KeyIconSolid,
+	LinkIcon as LinkIconSolid,
 	ShieldCheckIcon as ShieldCheckIconSolid,
+	SparklesIcon as SparklesIconSolid,
 } from "@heroicons/react/24/solid";
 import type { ComponentType, SVGProps } from "react";
 import { useState } from "react";
@@ -47,6 +63,42 @@ function GitHubIcon({ className }: { className?: string }) {
 	);
 }
 
+/* ── Page Copy Button ──────────────────────────────────── */
+
+function PageCopyButton() {
+	const [copied, setCopied] = useState(false);
+
+	const handleCopy = async () => {
+		const content = document.querySelector<HTMLElement>("[data-docs-content]");
+		if (!content) return;
+		await navigator.clipboard.writeText(content.innerText);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
+	return (
+		<button
+			type="button"
+			onClick={handleCopy}
+			className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700 dark:border-white/10 dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-white"
+		>
+			{copied ? (
+				<>
+					<CheckIcon className="size-3.5 text-green-500" />
+					<span>Copied</span>
+				</>
+			) : (
+				<>
+					<ClipboardDocumentIcon className="size-3.5" />
+					<span>Copy page</span>
+				</>
+			)}
+		</button>
+	);
+}
+
+/* ── Sidebar ───────────────────────────────────────────── */
+
 interface NavItem {
 	name: string;
 	href: string;
@@ -74,7 +126,7 @@ function Sidebar({
 						<h3 className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
 							{section.label}
 						</h3>
-						<ul className="space-y-1">
+						<ul className="space-y-0.5">
 							{section.items.map((item) => (
 								<li key={item.href}>
 									<NavLink
@@ -86,7 +138,7 @@ function Sidebar({
 												isActive
 													? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
 													: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-												"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
+												"group flex gap-x-3 rounded-lg px-2 py-1.5 text-[13px] font-medium",
 											)
 										}
 									>
@@ -100,7 +152,7 @@ function Sidebar({
 															isActive
 																? "text-brand-600 dark:text-brand-300"
 																: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
-															"size-5 shrink-0",
+															"size-4 shrink-0",
 														)}
 													/>
 													{item.name}
@@ -122,13 +174,26 @@ function Sidebar({
 	);
 }
 
+/* ── Layout ────────────────────────────────────────────── */
+
 export function DocsLayout() {
 	const { t } = useTranslation();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const navSections: NavSection[] = [
 		{
-			label: t("docs.section_getting_started"),
+			label: t("docs.section_about"),
+			items: [
+				{
+					name: t("docs.nav_introduction"),
+					href: "/docs/introduction",
+					icon: SparklesIcon,
+					activeIcon: SparklesIconSolid,
+				},
+			],
+		},
+		{
+			label: t("docs.section_user_guide"),
 			items: [
 				{
 					name: t("docs.nav_quickstart"),
@@ -137,10 +202,51 @@ export function DocsLayout() {
 					activeIcon: BookOpenIconSolid,
 				},
 				{
+					name: t("docs.nav_models_routing"),
+					href: "/docs/models-routing",
+					icon: GlobeAltIcon,
+					activeIcon: GlobeAltIconSolid,
+				},
+				{
+					name: t("docs.nav_credentials_sharing"),
+					href: "/docs/credentials-sharing",
+					icon: LinkIcon,
+					activeIcon: LinkIconSolid,
+				},
+				{
 					name: t("docs.nav_pricing"),
 					href: "/docs/pricing",
 					icon: CurrencyDollarIcon,
 					activeIcon: CurrencyDollarIconSolid,
+				},
+			],
+		},
+		{
+			label: t("docs.section_api_reference"),
+			items: [
+				{
+					name: t("docs.nav_authentication"),
+					href: "/docs/authentication",
+					icon: KeyIcon,
+					activeIcon: KeyIconSolid,
+				},
+				{
+					name: t("docs.nav_openai_api"),
+					href: "/docs/openai-api",
+					icon: CodeBracketIcon,
+					activeIcon: CodeBracketIconSolid,
+				},
+				{
+					name: t("docs.nav_anthropic_api"),
+					href: "/docs/anthropic-api",
+					icon: FingerPrintIcon,
+					activeIcon: FingerPrintIconSolid,
+				},
+				{
+					name: t("docs.nav_error_codes"),
+					href: "/docs/error-codes",
+					icon: ExclamationTriangleIcon,
+					activeIcon: ExclamationTriangleIconSolid,
 				},
 			],
 		},
@@ -198,7 +304,7 @@ export function DocsLayout() {
 								</button>
 							</div>
 						</TransitionChild>
-						<div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10">
+						<div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-5 pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10">
 							<div className="flex h-16 shrink-0 items-center">
 								<Link to="/" className="flex items-center gap-2.5">
 									<img src="/logo.png" alt="Keyaos" className="size-7" />
@@ -217,8 +323,8 @@ export function DocsLayout() {
 			</Dialog>
 
 			{/* Desktop sidebar */}
-			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 dark:border-white/10 dark:bg-black/10">
+			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-60 lg:flex-col">
+				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-5 dark:border-white/10 dark:bg-black/10">
 					<div className="flex h-16 shrink-0 items-center justify-between">
 						<Link to="/" className="flex items-center gap-2.5">
 							<img src="/logo.png" alt="Keyaos" className="size-7" />
@@ -255,15 +361,21 @@ export function DocsLayout() {
 				</div>
 			</div>
 
-			{/* Content area: main + TOC */}
-			<main className="lg:pl-64 dark:bg-gray-900 min-h-screen">
+			{/* Content area */}
+			<main className="lg:pl-60 dark:bg-gray-900 min-h-screen">
 				<div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-					<div className="lg:grid lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_240px]">
-						{/* Article content */}
+					<div className="lg:grid lg:grid-cols-[minmax(0,1fr)_200px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_220px]">
 						<div className="max-w-3xl">
-							<Outlet context={mdxComponents} />
+							{/* Page copy button */}
+							<div className="mb-6 flex justify-end">
+								<PageCopyButton />
+							</div>
+							{/* MDX content */}
+							<div data-docs-content>
+								<Outlet context={mdxComponents} />
+							</div>
 						</div>
-						{/* Right TOC — desktop only */}
+						{/* TOC */}
 						<aside className="hidden lg:block">
 							<div className="sticky top-10">
 								<TableOfContents />

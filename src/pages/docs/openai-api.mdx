@@ -1,0 +1,96 @@
+# OpenAI Compatible API
+
+Keyaos provides a fully OpenAI-compatible API. Point any OpenAI SDK or library at your gateway and it works out of the box.
+
+## Base URL
+
+```
+https://your-gateway.workers.dev/v1
+```
+
+## Endpoints
+
+### POST /v1/chat/completions
+
+Create a chat completion. Supports streaming and non-streaming modes.
+
+**Request:**
+
+```json
+{
+  "model": "openai/gpt-4o",
+  "messages": [
+    { "role": "system", "content": "You are a helpful assistant." },
+    { "role": "user", "content": "What is Keyaos?" }
+  ],
+  "stream": true,
+  "temperature": 0.7
+}
+```
+
+**Response (non-streaming):**
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "model": "openai/gpt-4o",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Keyaos is an AI API routing gateway..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 42,
+    "total_tokens": 67
+  }
+}
+```
+
+**Streaming:** When `stream: true`, the response is delivered as Server-Sent Events (SSE), with each chunk following the OpenAI delta format. Keyaos uses `Response.body.tee()` for zero-latency streaming — you see tokens as fast as the upstream sends them.
+
+### GET /v1/models
+
+List all currently available models with pricing information.
+
+**Response:**
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "openai/gpt-4o",
+      "object": "model",
+      "owned_by": "openai"
+    },
+    {
+      "id": "anthropic/claude-sonnet-4",
+      "object": "model",
+      "owned_by": "anthropic"
+    }
+  ]
+}
+```
+
+## Keyaos Extensions
+
+### Provider Filtering
+
+Use the `provider` field (not part of the OpenAI spec) to restrict routing to specific upstream providers:
+
+```json
+{
+  "model": "openai/gpt-4o",
+  "provider": "openrouter",
+  "messages": [{ "role": "user", "content": "Hello" }]
+}
+```
+
+This field is silently ignored by standard OpenAI SDKs if passed as an extra body parameter.

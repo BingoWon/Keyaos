@@ -1,0 +1,111 @@
+# Anthropic Compatible API
+
+Keyaos provides a fully Anthropic Messages API-compatible endpoint. Point any Anthropic SDK at your gateway and it works seamlessly.
+
+## Base URL
+
+```
+https://your-gateway.workers.dev
+```
+
+> Note: The Anthropic SDK does **not** append `/v1` automatically like the OpenAI SDK. Set the base URL to the root domain.
+
+## Endpoints
+
+### POST /v1/messages
+
+Create a message. Supports text, tool use, images, streaming, and extended thinking.
+
+**Request:**
+
+```json
+{
+  "model": "anthropic/claude-sonnet-4",
+  "max_tokens": 1024,
+  "messages": [
+    { "role": "user", "content": "Explain quantum computing in one paragraph." }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "msg_abc123",
+  "type": "message",
+  "role": "assistant",
+  "model": "anthropic/claude-sonnet-4",
+  "content": [
+    {
+      "type": "text",
+      "text": "Quantum computing harnesses quantum mechanical phenomena..."
+    }
+  ],
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 15,
+    "output_tokens": 87
+  }
+}
+```
+
+## Extended Thinking
+
+When using models that support reasoning (e.g., `anthropic/claude-sonnet-4`), Keyaos automatically converts the upstream `reasoning` blocks to Anthropic's `thinking` format:
+
+```json
+{
+  "model": "anthropic/claude-sonnet-4",
+  "max_tokens": 8192,
+  "thinking": {
+    "type": "enabled",
+    "budget_tokens": 4096
+  },
+  "messages": [
+    { "role": "user", "content": "What is 27 * 453?" }
+  ]
+}
+```
+
+The response will include `thinking` content blocks alongside the final text output.
+
+## Streaming
+
+Set `stream: true` for Server-Sent Events delivery:
+
+```json
+{
+  "model": "anthropic/claude-sonnet-4",
+  "max_tokens": 1024,
+  "stream": true,
+  "messages": [
+    { "role": "user", "content": "Hello" }
+  ]
+}
+```
+
+Events follow the Anthropic streaming format: `message_start`, `content_block_start`, `content_block_delta`, `content_block_stop`, `message_delta`, `message_stop`.
+
+## Protocol Translation
+
+Under the hood, Keyaos translates between Anthropic Messages format and OpenAI Chat Completions format:
+
+| Direction | What Happens |
+|-----------|-------------|
+| Request → Upstream | Anthropic Messages → OpenAI format → Upstream provider |
+| Upstream → Response | Provider response → OpenAI format → Anthropic Messages |
+
+This means you get access to **all providers** through the Anthropic SDK — not just Anthropic models. A request for `openai/gpt-4o` via `/v1/messages` works transparently.
+
+## Authentication
+
+The Anthropic endpoint supports both authentication styles:
+
+```bash
+# Anthropic style (recommended for Anthropic SDK)
+curl -H "x-api-key: key-xxxxxxxx" ...
+
+# Bearer style (also works)
+curl -H "Authorization: Bearer key-xxxxxxxx" ...
+```

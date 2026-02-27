@@ -1,0 +1,99 @@
+# Authentication
+
+All API requests require authentication. Keyaos supports two authentication methods to be compatible with both OpenAI and Anthropic SDKs.
+
+## API Keys
+
+Generate your API key from the [API Keys page](/dashboard/api-keys) in your dashboard. Keys use the format:
+
+```
+key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+## Authentication Methods
+
+### Bearer Token (OpenAI style)
+
+Used by the OpenAI SDK and most third-party libraries:
+
+```
+Authorization: Bearer key-xxxxxxxx
+```
+
+### API Key Header (Anthropic style)
+
+Used by the Anthropic SDK:
+
+```
+x-api-key: key-xxxxxxxx
+```
+
+> Both methods work on **all** endpoints. Use whichever your SDK expects.
+
+## SDK Configuration
+
+### OpenAI SDK (Python)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="key-xxxxxxxx",
+    base_url="https://your-gateway.workers.dev/v1",
+)
+```
+
+### OpenAI SDK (Node.js)
+
+```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: "key-xxxxxxxx",
+  baseURL: "https://your-gateway.workers.dev/v1",
+});
+```
+
+### Anthropic SDK (Python)
+
+```python
+import anthropic
+
+client = anthropic.Anthropic(
+    api_key="key-xxxxxxxx",
+    base_url="https://your-gateway.workers.dev",
+)
+```
+
+### Anthropic SDK (Node.js)
+
+```typescript
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  apiKey: "key-xxxxxxxx",
+  baseURL: "https://your-gateway.workers.dev",
+});
+```
+
+### cURL
+
+```bash
+# OpenAI endpoint
+curl https://your-gateway.workers.dev/v1/chat/completions \
+  -H "Authorization: Bearer key-xxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"openai/gpt-4o-mini","messages":[{"role":"user","content":"Hi"}]}'
+
+# Anthropic endpoint
+curl https://your-gateway.workers.dev/v1/messages \
+  -H "x-api-key: key-xxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"anthropic/claude-sonnet-4","max_tokens":1024,"messages":[{"role":"user","content":"Hi"}]}'
+```
+
+## Security Best Practices
+
+- **Never expose keys in client-side code** — always call from your backend
+- **Rotate keys regularly** — generate a new key and revoke the old one
+- **Use environment variables** — store keys in `.env` files, not in source code
