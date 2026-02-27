@@ -265,8 +265,8 @@ export class KiroAdapter implements ProviderAdapter {
 			input_price: dollarsToCentsPerM(m.input_usd),
 			output_price: dollarsToCentsPerM(m.output_usd),
 			context_length: m.context_length,
-			input_modalities: '["text"]',
-			output_modalities: '["text"]',
+			input_modalities: null,
+			output_modalities: null,
 			is_active: 1,
 		}));
 	}

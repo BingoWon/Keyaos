@@ -24,8 +24,8 @@ modelsRouter.get("/", async (c) => {
 				platform_output_price: m.output_price * mul,
 			}),
 			context_length: m.context_length,
-			input_modalities: JSON.parse(m.input_modalities),
-			output_modalities: JSON.parse(m.output_modalities),
+			input_modalities: m.input_modalities ? JSON.parse(m.input_modalities) : null,
+			output_modalities: m.output_modalities ? JSON.parse(m.output_modalities) : null,
 		};
 	});
 

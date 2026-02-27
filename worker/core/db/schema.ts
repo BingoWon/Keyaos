@@ -32,8 +32,8 @@ export interface DbModelPricing {
 	input_price: number;
 	output_price: number;
 	context_length: number | null;
-	input_modalities: string; // JSON array, e.g. '["text","image"]'
-	output_modalities: string; // JSON array, e.g. '["text"]'
+	input_modalities: string | null; // JSON array or null if unknown
+	output_modalities: string | null; // JSON array or null if unknown
 	is_active: number;
 	refreshed_at: number;
 }

@@ -25,10 +25,8 @@ import {
 
 // ─── Helpers ────────────────────────────────────────────────
 
-const DEFAULT_MODALITIES = '["text"]';
-
-function serializeModalities(arr: unknown): string {
-	if (!Array.isArray(arr) || arr.length === 0) return DEFAULT_MODALITIES;
+function serializeModalities(arr: unknown): string | null {
+	if (!Array.isArray(arr) || arr.length === 0) return null;
 	return JSON.stringify(arr.filter((x): x is string => typeof x === "string").sort());
 }
 
@@ -120,8 +118,8 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			input_price: dollarsToCentsPerM(pricing.input_tokens),
 			output_price: dollarsToCentsPerM(pricing.output_tokens),
 			context_length: (metadata?.context_length as number) || null,
-			input_modalities: DEFAULT_MODALITIES,
-			output_modalities: DEFAULT_MODALITIES,
+			input_modalities: null,
+			output_modalities: null,
 			is_active: 1,
 		});
 	}
@@ -150,8 +148,8 @@ function parseStaticUsdModels(
 		input_price: dollarsToCentsPerM(m.input_usd),
 		output_price: dollarsToCentsPerM(m.output_usd),
 		context_length: m.context_length,
-		input_modalities: DEFAULT_MODALITIES,
-		output_modalities: DEFAULT_MODALITIES,
+		input_modalities: null,
+		output_modalities: null,
 		is_active: 1,
 	}));
 }
