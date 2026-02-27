@@ -6,5 +6,5 @@ import { mdxComponents } from "./MdxComponents";
  * Usage in router: `element: <MdxPage component={lazy(() => import("./quickstart.mdx"))} />`
  */
 export function MdxPage({ Component }: { Component: ComponentType }) {
-    return <Component components={mdxComponents} />;
+	return <Component components={mdxComponents} />;
 }
