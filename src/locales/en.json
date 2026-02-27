@@ -181,8 +181,8 @@
 	"usage": {
 		"title": "Usage",
 		"subtitle": "Detailed API request logs — showing earnings from shared keys and costs from API calls",
-		"promo_title": "🛡️ Zero logging. Your prompts are strictly yours.",
-		"promo_desc": "Your prompts and completions are never logged, never stored, and never seen by us. Don't trust our word? <GithubLink>Audit our 100% source-available engine on GitHub</GithubLink>.",
+		"promo_title": "🛡️ Total privacy for your prompts",
+		"promo_desc": "We show your request metadata here for transparency. But your actual prompts and completions are never logged, stored, or visible to us. <GithubLink>Audit our 100% source-available engine on GitHub</GithubLink>.",
 		"time": "Time",
 		"direction": "Type",
 		"model": "Model",
@@ -214,6 +214,8 @@
 	"billing": {
 		"title": "Billing",
 		"subtitle": "Purchase and manage your platform credits",
+		"promo_title": "💎 Zero fees. 100% value.",
+		"promo_desc": "We absorb all Stripe payment gateway fees. Unlike the <OpenRouterLink>5.5% fee charged by OpenRouter</OpenRouterLink>, when you buy $10.00 here, you get exactly 10.00 Credits. No markup, no hidden costs.",
 		"balance": "Credits Balance",
 		"buy_credits": "Buy Credits",
 		"buy_credits_desc": "One-time purchase via Stripe checkout.",
