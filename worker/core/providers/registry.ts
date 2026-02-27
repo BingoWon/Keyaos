@@ -27,7 +27,9 @@ import {
 
 function serializeModalities(arr: unknown): string | null {
 	if (!Array.isArray(arr) || arr.length === 0) return null;
-	return JSON.stringify(arr.filter((x): x is string => typeof x === "string").sort());
+	return JSON.stringify(
+		arr.filter((x): x is string => typeof x === "string").sort(),
+	);
 }
 
 // ─── Dynamic parsers (parse upstream API response) ──────────

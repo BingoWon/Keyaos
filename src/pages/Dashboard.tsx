@@ -101,7 +101,9 @@ function aggregateTopModels(
 		}
 		if (pop != null) {
 			g.bestPlatformOutput =
-				g.bestPlatformOutput != null ? Math.min(g.bestPlatformOutput, pop) : pop;
+				g.bestPlatformOutput != null
+					? Math.min(g.bestPlatformOutput, pop)
+					: pop;
 		}
 		g.maxContext = Math.max(g.maxContext, e.context_length ?? 0);
 		// Merge modalities (union)
@@ -224,13 +226,13 @@ export function Dashboard() {
 		},
 		...(isPlatform
 			? [
-				{
-					name: t("dashboard.wallet_balance"),
-					stat: wallet ? formatUSD(wallet.balance) : "-",
-					icon: CreditCardIcon,
-					href: "/dashboard/billing",
-				},
-			]
+					{
+						name: t("dashboard.wallet_balance"),
+						stat: wallet ? formatUSD(wallet.balance) : "-",
+						icon: CreditCardIcon,
+						href: "/dashboard/billing",
+					},
+				]
 			: []),
 	];
 
@@ -321,7 +323,10 @@ export function Dashboard() {
 					<table className="min-w-full">
 						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
 							{topModels.map((m) => (
-								<tr key={m.id} className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors">
+								<tr
+									key={m.id}
+									className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
+								>
 									<td className="py-3 pl-5 pr-2">
 										<Link to="/dashboard/models">
 											<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
@@ -334,13 +339,22 @@ export function Dashboard() {
 											{m.providerIds.slice(0, 5).map((pid) => {
 												const meta = providerMap.get(pid);
 												return meta ? (
-													<ProviderLogo key={pid} src={meta.logoUrl} name={meta.name} size={18} />
+													<ProviderLogo
+														key={pid}
+														src={meta.logoUrl}
+														name={meta.name}
+														size={18}
+													/>
 												) : null;
 											})}
 										</span>
 									</td>
 									<td className="px-2 py-3">
-										<ModalityBadges input={m.inputModalities} output={m.outputModalities} size={14} />
+										<ModalityBadges
+											input={m.inputModalities}
+											output={m.outputModalities}
+											size={14}
+										/>
 									</td>
 									<td className="px-2 py-3">
 										<span className="inline-flex items-center gap-1">
@@ -361,7 +375,9 @@ export function Dashboard() {
 										</span>
 									</td>
 									<td className="py-3 pl-2 pr-5 text-right">
-										{m.maxContext > 0 && <Badge>{formatContext(m.maxContext)} ctx</Badge>}
+										{m.maxContext > 0 && (
+											<Badge>{formatContext(m.maxContext)} ctx</Badge>
+										)}
 									</td>
 								</tr>
 							))}
@@ -408,12 +424,13 @@ export function Dashboard() {
 										{tx.provider}
 									</td>
 									<td
-										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${tx.netCredits > 0
-											? "text-green-600 dark:text-green-400"
-											: tx.netCredits < 0
-												? "text-red-600 dark:text-red-400"
-												: "text-gray-400 dark:text-gray-500"
-											}`}
+										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${
+											tx.netCredits > 0
+												? "text-green-600 dark:text-green-400"
+												: tx.netCredits < 0
+													? "text-red-600 dark:text-red-400"
+													: "text-gray-400 dark:text-gray-500"
+										}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>

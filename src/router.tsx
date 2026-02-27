@@ -18,10 +18,9 @@ import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
 import { DocsLayout } from "./pages/docs/DocsLayout";
 import { MdxPage } from "./pages/docs/MdxPage";
-import QuickstartMdx from "./pages/docs/quickstart.mdx";
 import PricingMdx from "./pages/docs/pricing.mdx";
 import PrivacyMdx from "./pages/docs/privacy.mdx";
-import { Guide } from "./pages/Guide";
+import QuickstartMdx from "./pages/docs/quickstart.mdx";
 import { Landing } from "./pages/Landing";
 import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
@@ -39,11 +38,10 @@ const dashboardChildren = [
 	{ path: "usage", element: <Usage /> },
 	...(isPlatform
 		? [
-			{ path: "ledger", element: <Ledger /> },
-			{ path: "billing", element: <Billing /> },
-		]
+				{ path: "ledger", element: <Ledger /> },
+				{ path: "billing", element: <Billing /> },
+			]
 		: []),
-	{ path: "guide", element: <Guide /> },
 ];
 
 function LoginRoute() {
@@ -77,20 +75,20 @@ export const router = createBrowserRouter([
 	},
 	...(isPlatform
 		? [
-			{
-				path: "/admin",
-				element: (
-					<AuthGuard fallback={<Navigate to="/login" replace />}>
-						<AdminLayout />
-					</AuthGuard>
-				),
-				children: [
-					{ index: true, element: <Overview /> },
-					{ path: "users", element: <Users /> },
-					{ path: "data", element: <Data /> },
-				],
-			},
-		]
+				{
+					path: "/admin",
+					element: (
+						<AuthGuard fallback={<Navigate to="/login" replace />}>
+							<AdminLayout />
+						</AuthGuard>
+					),
+					children: [
+						{ index: true, element: <Overview /> },
+						{ path: "users", element: <Users /> },
+						{ path: "data", element: <Data /> },
+					],
+				},
+			]
 		: []),
 	{ path: "/design", element: <DesignSystem /> },
 	{

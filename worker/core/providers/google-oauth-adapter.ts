@@ -127,7 +127,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 				const json = (await res.json()) as Record<string, string>;
 				const projectId = json.cloudaicompanionProject ?? json.billingProject;
 				if (projectId) return { baseUrl, projectId };
-			} catch { }
+			} catch {}
 		}
 		throw new Error(`All ${this.cfg.id} base URLs failed`);
 	}
@@ -202,7 +202,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 						body: "{}",
 					});
 					if (res.ok) return true;
-				} catch { }
+				} catch {}
 			}
 			return false;
 		} catch {

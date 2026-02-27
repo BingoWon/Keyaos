@@ -126,7 +126,10 @@ function ModelCard({
 						<Badge variant="brand">{group.providers.length}</Badge>
 					</div>
 					<div className="flex flex-wrap items-center justify-end gap-1.5">
-						<ModalityBadges input={group.inputModalities} output={group.outputModalities} />
+						<ModalityBadges
+							input={group.inputModalities}
+							output={group.outputModalities}
+						/>
 						<Badge variant="success">
 							<DualPrice
 								original={best.inputPrice}

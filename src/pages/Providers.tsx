@@ -101,10 +101,10 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 										</span>
 									</td>
 									<td className="px-2 py-2.5">
-										<ModalityCell modalities={m.inputModalities}  />
+										<ModalityCell modalities={m.inputModalities} />
 									</td>
 									<td className="px-2 py-2.5">
-										<ModalityCell modalities={m.outputModalities}  />
+										<ModalityCell modalities={m.outputModalities} />
 									</td>
 									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice

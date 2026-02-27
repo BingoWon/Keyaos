@@ -24,15 +24,11 @@ interface PlatformOverview {
 	registeredUsers: number;
 }
 
-function SyncButton({
-	label,
-	endpoint,
-}: {
-	label: string;
-	endpoint: string;
-}) {
+function SyncButton({ label, endpoint }: { label: string; endpoint: string }) {
 	const { getToken } = useAuth();
-	const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+	const [state, setState] = useState<"idle" | "loading" | "done" | "error">(
+		"idle",
+	);
 	const [elapsed, setElapsed] = useState(0);
 
 	const run = useCallback(async () => {
@@ -61,8 +57,16 @@ function SyncButton({
 			disabled={state === "loading"}
 			className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
 		>
-			<ArrowPathIcon className={`size-3.5 ${state === "loading" ? "animate-spin" : ""}`} />
-			{state === "loading" ? "Syncing…" : state === "done" ? `✓ ${elapsed}ms` : state === "error" ? "✗ Failed" : label}
+			<ArrowPathIcon
+				className={`size-3.5 ${state === "loading" ? "animate-spin" : ""}`}
+			/>
+			{state === "loading"
+				? "Syncing…"
+				: state === "done"
+					? `✓ ${elapsed}ms`
+					: state === "error"
+						? "✗ Failed"
+						: label}
 		</button>
 	);
 }
@@ -75,37 +79,37 @@ export function Overview() {
 
 	const cards = data
 		? [
-			{
-				name: t("admin.total_revenue"),
-				value: formatUSD(data.totalRevenue),
-				icon: BanknotesIcon,
-			},
-			{
-				name: t("admin.total_consumption"),
-				value: formatUSD(data.totalConsumption),
-				icon: CreditCardIcon,
-			},
-			{
-				name: t("admin.service_fees"),
-				value: formatUSD(data.totalServiceFees),
-				icon: ChartBarIcon,
-			},
-			{
-				name: t("admin.total_requests"),
-				value: data.totalRequests.toLocaleString(),
-				icon: TableCellsIcon,
-			},
-			{
-				name: t("admin.active_credentials"),
-				value: data.activeCredentials.toString(),
-				icon: ServerStackIcon,
-			},
-			{
-				name: t("admin.registered_users"),
-				value: data.registeredUsers.toString(),
-				icon: UserGroupIcon,
-			},
-		]
+				{
+					name: t("admin.total_revenue"),
+					value: formatUSD(data.totalRevenue),
+					icon: BanknotesIcon,
+				},
+				{
+					name: t("admin.total_consumption"),
+					value: formatUSD(data.totalConsumption),
+					icon: CreditCardIcon,
+				},
+				{
+					name: t("admin.service_fees"),
+					value: formatUSD(data.totalServiceFees),
+					icon: ChartBarIcon,
+				},
+				{
+					name: t("admin.total_requests"),
+					value: data.totalRequests.toLocaleString(),
+					icon: TableCellsIcon,
+				},
+				{
+					name: t("admin.active_credentials"),
+					value: data.activeCredentials.toString(),
+					icon: ServerStackIcon,
+				},
+				{
+					name: t("admin.registered_users"),
+					value: data.registeredUsers.toString(),
+					icon: UserGroupIcon,
+				},
+			]
 		: [];
 
 	return (
@@ -151,4 +155,3 @@ export function Overview() {
 		</div>
 	);
 }
-

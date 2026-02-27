@@ -37,8 +37,19 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const { isAdmin } = useAuth();
 
 	const navigation = [
-		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon, activeIcon: HomeIconSolid, end: true },
-		{ name: t("nav.models"), href: "/dashboard/models", icon: CpuChipIcon, activeIcon: CpuChipIconSolid },
+		{
+			name: t("nav.dashboard"),
+			href: "/dashboard",
+			icon: HomeIcon,
+			activeIcon: HomeIconSolid,
+			end: true,
+		},
+		{
+			name: t("nav.models"),
+			href: "/dashboard/models",
+			icon: CpuChipIcon,
+			activeIcon: CpuChipIconSolid,
+		},
 		{
 			name: t("nav.providers"),
 			href: "/dashboard/providers",
@@ -51,7 +62,12 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			icon: ServerStackIcon,
 			activeIcon: ServerStackIconSolid,
 		},
-		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon, activeIcon: KeyIconSolid },
+		{
+			name: t("nav.api_keys"),
+			href: "/dashboard/api-keys",
+			icon: KeyIcon,
+			activeIcon: KeyIconSolid,
+		},
 		{
 			name: t("nav.usage"),
 			href: "/dashboard/usage",
@@ -60,29 +76,29 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		},
 		...(isPlatform
 			? [
-				{
-					name: t("nav.ledger"),
-					href: "/dashboard/ledger",
-					icon: DocumentCurrencyDollarIcon,
-					activeIcon: DocumentCurrencyDollarIconSolid,
-				},
-				{
-					name: t("nav.billing"),
-					href: "/dashboard/billing",
-					icon: CreditCardIcon,
-					activeIcon: CreditCardIconSolid,
-				},
-			]
+					{
+						name: t("nav.ledger"),
+						href: "/dashboard/ledger",
+						icon: DocumentCurrencyDollarIcon,
+						activeIcon: DocumentCurrencyDollarIconSolid,
+					},
+					{
+						name: t("nav.billing"),
+						href: "/dashboard/billing",
+						icon: CreditCardIcon,
+						activeIcon: CreditCardIconSolid,
+					},
+				]
 			: []),
 		...(isAdmin === true
 			? [
-				{
-					name: t("nav.admin"),
-					href: "/admin",
-					icon: ShieldCheckIcon,
-					activeIcon: ShieldCheckIconSolid,
-				},
-			]
+					{
+						name: t("nav.admin"),
+						href: "/admin",
+						icon: ShieldCheckIcon,
+						activeIcon: ShieldCheckIconSolid,
+					},
+				]
 			: []),
 	];
 

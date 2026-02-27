@@ -186,6 +186,7 @@ export function Billing() {
 						i18nKey="billing.promo_desc"
 						components={{
 							OpenRouterLink: (
+								// biome-ignore lint/a11y/useAnchorContent: Trans injects children at runtime
 								<a
 									href="https://openrouter.ai/docs/faq#pricing-and-fees"
 									target="_blank"
@@ -371,10 +372,11 @@ export function Billing() {
 												key={v}
 												type="button"
 												onClick={() => setAutoThreshold(String(v))}
-												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${autoThreshold === String(v)
-													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-													}`}
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+													autoThreshold === String(v)
+														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+												}`}
 											>
 												${v}
 											</button>
@@ -404,10 +406,11 @@ export function Billing() {
 												key={v}
 												type="button"
 												onClick={() => setAutoAmount(String(v))}
-												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${autoAmount === String(v)
-													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-													}`}
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+													autoAmount === String(v)
+														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+												}`}
 											>
 												${v}
 											</button>

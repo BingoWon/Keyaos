@@ -4,8 +4,8 @@ import {
 	ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 import { Trans, useTranslation } from "react-i18next";
-import { PromoBanner } from "../components/ui";
 import { PageLoader } from "../components/PageLoader";
+import { PromoBanner } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { formatSignedUSD } from "../utils/format";
@@ -81,6 +81,7 @@ export function Usage() {
 						i18nKey="usage.promo_desc"
 						components={{
 							GithubLink: (
+								// biome-ignore lint/a11y/useAnchorContent: Trans injects children at runtime
 								<a
 									href="https://github.com/BingoWon/Keyaos"
 									target="_blank"
@@ -151,12 +152,13 @@ export function Usage() {
 										{tx.outputTokens.toLocaleString()}
 									</td>
 									<td
-										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${tx.netCredits > 0
-											? "text-green-600 dark:text-green-400"
-											: tx.netCredits < 0
-												? "text-red-600 dark:text-red-400"
-												: "text-gray-400 dark:text-gray-500"
-											}`}
+										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${
+											tx.netCredits > 0
+												? "text-green-600 dark:text-green-400"
+												: tx.netCredits < 0
+													? "text-red-600 dark:text-red-400"
+													: "text-gray-400 dark:text-gray-500"
+										}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>

@@ -1,7 +1,7 @@
 import type { DbModelPricing } from "./schema";
 
 export class PricingDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async upsertPricing(
 		models: Omit<DbModelPricing, "refreshed_at">[],
