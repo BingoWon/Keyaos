@@ -214,7 +214,7 @@
 	"billing": {
 		"title": "Billing",
 		"subtitle": "Purchase and manage your platform credits",
-		"promo_title": "💎 Zero fees. 100% value.",
+		"promo_title": "💎 No deposit fees. Ever.",
 		"promo_desc": "We absorb all Stripe payment gateway fees. Unlike the <OpenRouterLink>5.5% fee charged by OpenRouter</OpenRouterLink>, when you buy $10.00 here, you get exactly 10.00 Credits. No markup, no hidden costs.",
 		"balance": "Credits Balance",
 		"buy_credits": "Buy Credits",

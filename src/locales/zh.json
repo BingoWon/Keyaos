@@ -211,7 +211,7 @@
 	"billing": {
 		"title": "充值",
 		"subtitle": "管理你的平台额度余额",
-		"promo_title": "💎 零手续费，全额到账",
+		"promo_title": "💎 充值零扣费，分文不少",
 		"promo_desc": "Stripe 的支付网关费用由我们全额承担。不同于 <OpenRouterLink>OpenRouter 加收的 5.5% 手续费</OpenRouterLink>，在这里充值 $10.00，您将获得完整的 10.00 Credits。没有任何加价和隐藏成本。",
 		"balance": "Credits 余额",
 		"buy_credits": "购买额度",
