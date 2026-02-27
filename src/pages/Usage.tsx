@@ -3,7 +3,8 @@ import {
 	ArrowPathIcon,
 	ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { PromoBanner } from "../components/ui";
 import { PageLoader } from "../components/PageLoader";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
@@ -73,6 +74,25 @@ export function Usage() {
 				{t("usage.subtitle")}
 			</p>
 
+			<PromoBanner
+				title={t("usage.promo_title")}
+				description={
+					<Trans
+						i18nKey="usage.promo_desc"
+						components={{
+							GithubLink: (
+								<a
+									href="https://github.com/BingoWon/Keyaos"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="font-semibold text-brand-800 hover:text-brand-900 dark:text-brand-200 dark:hover:text-white underline underline-offset-4 decoration-brand-500/30 hover:decoration-brand-500 transition-colors"
+								/>
+							),
+						}}
+					/>
+				}
+			/>
+
 			{loading ? (
 				<div className="mt-5">
 					<PageLoader />
@@ -131,13 +151,12 @@ export function Usage() {
 										{tx.outputTokens.toLocaleString()}
 									</td>
 									<td
-										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${
-											tx.netCredits > 0
+										className={`whitespace-nowrap px-3 py-4 text-sm text-right font-medium sm:pr-6 ${tx.netCredits > 0
 												? "text-green-600 dark:text-green-400"
 												: tx.netCredits < 0
 													? "text-red-600 dark:text-red-400"
 													: "text-gray-400 dark:text-gray-500"
-										}`}
+											}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>
