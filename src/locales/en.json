@@ -310,7 +310,7 @@
 		"feat_streaming_title": "Zero-Latency Streaming",
 		"feat_streaming_desc": "SSE responses flow from upstream to client with zero buffering. No gateway overhead.",
 		"feat_opensource_title": "Fully Auditable",
-		"feat_opensource_desc": "MIT licensed. Inspect every line, fork it, self-host it. No black boxes, no vendor lock-in.",
+		"feat_opensource_desc": "BSL licensed, every line of code published on GitHub. Inspect it, fork it, self-host it. No black boxes, no vendor lock-in.",
 		"feat_edge_title": "Edge-Native",
 		"feat_edge_desc": "Built on Cloudflare Workers + D1. Deploys globally with sub-millisecond cold starts.",
 		"code_title": "Drop-In Compatible",

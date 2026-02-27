@@ -522,9 +522,9 @@ const JSON_LD = {
 	applicationCategory: "DeveloperApplication",
 	operatingSystem: "Web",
 	description:
-		"Open-source AI API gateway that routes every request to the cheapest healthy provider.",
+		"Source-available AI API gateway that routes every request to the cheapest healthy provider.",
 	offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-	license: "https://opensource.org/licenses/MIT",
+	license: `${GITHUB_URL}/blob/main/LICENSE`,
 };
 
 export function Landing() {

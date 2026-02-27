@@ -309,7 +309,7 @@
 		"feat_streaming_title": "零延迟流式传输",
 		"feat_streaming_desc": "SSE 响应从上游直达客户端，零缓冲。感受不到网关的存在。",
 		"feat_opensource_title": "源码完全开放",
-		"feat_opensource_desc": "MIT 协议，可审查每一行代码，fork、自部署。无黑箱，无厂商锁定。",
+		"feat_opensource_desc": "BSL 协议，所有代码发布在 GitHub。可审查每一行，fork、自部署。无黑箱，无厂商锁定。",
 		"feat_edge_title": "边缘原生",
 		"feat_edge_desc": "完全构建于 Cloudflare Workers + D1，全球部署，亚毫秒级冷启动。",
 		"code_title": "无缝替换",
