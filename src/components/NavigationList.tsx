@@ -1,14 +1,26 @@
 import {
-	BookOpenIcon,
 	BuildingOfficeIcon,
 	CpuChipIcon,
 	CreditCardIcon,
+	DocumentCurrencyDollarIcon,
 	HomeIcon,
 	KeyIcon,
 	ListBulletIcon,
 	ServerStackIcon,
 	ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+
+import {
+	BuildingOfficeIcon as BuildingOfficeIconSolid,
+	CpuChipIcon as CpuChipIconSolid,
+	CreditCardIcon as CreditCardIconSolid,
+	DocumentCurrencyDollarIcon as DocumentCurrencyDollarIconSolid,
+	HomeIcon as HomeIconSolid,
+	KeyIcon as KeyIconSolid,
+	ListBulletIcon as ListBulletIconSolid,
+	ServerStackIcon as ServerStackIconSolid,
+	ShieldCheckIcon as ShieldCheckIconSolid,
+} from "@heroicons/react/24/solid";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { isPlatform, useAuth } from "../auth";
@@ -25,35 +37,40 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const { isAdmin } = useAuth();
 
 	const navigation = [
-		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon, end: true },
-		{ name: t("nav.models"), href: "/dashboard/models", icon: CpuChipIcon },
+		{ name: t("nav.dashboard"), href: "/dashboard", icon: HomeIcon, activeIcon: HomeIconSolid, end: true },
+		{ name: t("nav.models"), href: "/dashboard/models", icon: CpuChipIcon, activeIcon: CpuChipIconSolid },
 		{
 			name: t("nav.providers"),
 			href: "/dashboard/providers",
 			icon: BuildingOfficeIcon,
+			activeIcon: BuildingOfficeIconSolid,
 		},
 		{
 			name: t("nav.byok"),
 			href: "/dashboard/byok",
 			icon: ServerStackIcon,
+			activeIcon: ServerStackIconSolid,
 		},
-		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },
+		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon, activeIcon: KeyIconSolid },
 		{
 			name: t("nav.usage"),
 			href: "/dashboard/usage",
 			icon: ListBulletIcon,
+			activeIcon: ListBulletIconSolid,
 		},
 		...(isPlatform
 			? [
 				{
 					name: t("nav.ledger"),
 					href: "/dashboard/ledger",
-					icon: BookOpenIcon,
+					icon: DocumentCurrencyDollarIcon,
+					activeIcon: DocumentCurrencyDollarIconSolid,
 				},
 				{
 					name: t("nav.billing"),
 					href: "/dashboard/billing",
 					icon: CreditCardIcon,
+					activeIcon: CreditCardIconSolid,
 				},
 			]
 			: []),
@@ -63,6 +80,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 					name: t("nav.admin"),
 					href: "/admin",
 					icon: ShieldCheckIcon,
+					activeIcon: ShieldCheckIconSolid,
 				},
 			]
 			: []),
@@ -88,20 +106,23 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 										)
 									}
 								>
-									{({ isActive }) => (
-										<>
-											<item.icon
-												aria-hidden="true"
-												className={classNames(
-													isActive
-														? "text-brand-600 dark:text-brand-300"
-														: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
-													"size-6 shrink-0",
-												)}
-											/>
-											{item.name}
-										</>
-									)}
+									{({ isActive }) => {
+										const Icon = isActive ? item.activeIcon : item.icon;
+										return (
+											<>
+												<Icon
+													aria-hidden="true"
+													className={classNames(
+														isActive
+															? "text-brand-600 dark:text-brand-300"
+															: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
+														"size-6 shrink-0",
+													)}
+												/>
+												{item.name}
+											</>
+										);
+									}}
 								</NavLink>
 							</li>
 						))}

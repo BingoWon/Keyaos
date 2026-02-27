@@ -17,7 +17,7 @@ import {
 import type React from "react";
 import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
 import { PageLoader } from "../components/PageLoader";
@@ -272,6 +272,32 @@ export function Byok() {
 
 	return (
 		<div>
+			{/* Promo Banner */}
+			<div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 to-white p-5 sm:p-6 border border-brand-100 shadow-sm dark:from-brand-500/10 dark:to-transparent dark:border-brand-500/20">
+				<div className="flex items-start">
+					<div className="flex-1">
+						<h2 className="text-base sm:text-lg font-semibold text-brand-900 dark:text-brand-100">
+							{t("credentials.promo_title")}
+						</h2>
+						<p className="mt-2 text-sm leading-relaxed text-brand-700 dark:text-brand-300">
+							<Trans
+								i18nKey="credentials.promo_desc"
+								components={{
+									OpenRouterLink: (
+										<a
+											href="https://openrouter.ai/announcements/bring-your-own-api-keys"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="font-semibold underline underline-offset-2 decoration-brand-500/30 hover:decoration-brand-500 transition-colors"
+										/>
+									),
+								}}
+							/>
+						</p>
+					</div>
+				</div>
+			</div>
+
 			<div className="sm:flex sm:items-center">
 				<div className="sm:flex-auto">
 					<h1 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -416,8 +442,8 @@ export function Byok() {
 							{secretHint.type && (
 								<p
 									className={`mt-1.5 flex items-center gap-1 text-xs ${secretHint.type === "json"
-											? "text-green-600 dark:text-green-400"
-											: "text-amber-600 dark:text-amber-400"
+										? "text-green-600 dark:text-green-400"
+										: "text-amber-600 dark:text-amber-400"
 										}`}
 								>
 									<InformationCircleIcon className="size-4 shrink-0" />
@@ -656,12 +682,12 @@ export function Byok() {
 													) : (
 														<span
 															className={`font-mono flex items-center ${isSubscription(cred)
-																	? "text-brand-500 dark:text-brand-400"
-																	: cred.quota == null
-																		? "text-gray-400 dark:text-gray-500"
-																		: cred.quota > 0
-																			? "text-green-600 dark:text-green-400"
-																			: "text-red-500 dark:text-red-400"
+																? "text-brand-500 dark:text-brand-400"
+																: cred.quota == null
+																	? "text-gray-400 dark:text-gray-500"
+																	: cred.quota > 0
+																		? "text-green-600 dark:text-green-400"
+																		: "text-red-500 dark:text-red-400"
 																}`}
 														>
 															{formatQuota(cred)}
