@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { classNames } from "../../utils/classNames";
 
 interface TocItem {
@@ -11,38 +12,46 @@ export function TableOfContents() {
 	const [items, setItems] = useState<TocItem[]>([]);
 	const [activeId, setActiveId] = useState<string>("");
 	const observerRef = useRef<IntersectionObserver | null>(null);
+	const { pathname } = useLocation();
 
-	// Extract headings from DOM after MDX renders
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname triggers re-extraction on navigation
 	useEffect(() => {
-		const headings = document.querySelectorAll<HTMLElement>(
-			"main h2[id], main h3[id]",
-		);
-		const tocItems: TocItem[] = Array.from(headings).map((h) => ({
-			id: h.id,
-			text: h.textContent ?? "",
-			level: h.tagName === "H2" ? 2 : 3,
-		}));
-		setItems(tocItems);
+		// Small delay to let MDX content render into the DOM
+		const timer = setTimeout(() => {
+			const headings = document.querySelectorAll<HTMLElement>(
+				"[data-docs-content] h2[id], [data-docs-content] h3[id]",
+			);
+			const tocItems: TocItem[] = Array.from(headings).map((h) => ({
+				id: h.id,
+				text: h.textContent ?? "",
+				level: h.tagName === "H2" ? 2 : 3,
+			}));
+			setItems(tocItems);
+			setActiveId("");
 
-		// IntersectionObserver for scroll-active highlighting
-		observerRef.current?.disconnect();
-		observerRef.current = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					if (entry.isIntersecting) {
-						setActiveId(entry.target.id);
+			// IntersectionObserver for scroll-active highlighting
+			observerRef.current?.disconnect();
+			observerRef.current = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						if (entry.isIntersecting) {
+							setActiveId(entry.target.id);
+						}
 					}
-				}
-			},
-			{ rootMargin: "-80px 0px -60% 0px", threshold: 0.1 },
-		);
+				},
+				{ rootMargin: "-80px 0px -60% 0px", threshold: 0.1 },
+			);
 
-		for (const h of headings) {
-			observerRef.current.observe(h);
-		}
+			for (const h of headings) {
+				observerRef.current.observe(h);
+			}
+		}, 100);
 
-		return () => observerRef.current?.disconnect();
-	}, []);
+		return () => {
+			clearTimeout(timer);
+			observerRef.current?.disconnect();
+		};
+	}, [pathname]);
 
 	if (items.length === 0) return null;
 

@@ -251,7 +251,7 @@ export function DocsLayout() {
 			],
 		},
 		{
-			label: t("docs.section_help_center"),
+			label: t("docs.section_support"),
 			items: [
 				{
 					name: t("docs.nav_privacy"),
@@ -377,7 +377,7 @@ export function DocsLayout() {
 						</div>
 						{/* TOC */}
 						<aside className="hidden lg:block">
-							<div className="sticky top-10">
+							<div className="sticky top-24">
 								<TableOfContents />
 							</div>
 						</aside>
