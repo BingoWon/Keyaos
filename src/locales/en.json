@@ -182,7 +182,7 @@
 		"title": "Usage",
 		"subtitle": "Detailed API request logs — showing earnings from shared keys and costs from API calls",
 		"promo_title": "🛡️ Zero logging. Your prompts are strictly yours.",
-		"promo_desc": "We log only basic metadata (timestamps, models, tokens) to calculate billing. Your prompts and completions are never logged, never stored, and never seen by us. Don't trust our word? <GithubLink>Audit our open-source engine on GitHub</GithubLink>.",
+		"promo_desc": "Your prompts and completions are never logged, never stored, and never seen by us. Don't trust our word? <GithubLink>Audit our 100% open-source engine on GitHub</GithubLink>.",
 		"time": "Time",
 		"direction": "Type",
 		"model": "Model",
