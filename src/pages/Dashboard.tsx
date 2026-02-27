@@ -214,13 +214,13 @@ export function Dashboard() {
 			name: t("dashboard.active_credentials"),
 			stat: stats ? stats.total - stats.dead : "-",
 			icon: DocumentCheckIcon,
-			href: "/dashboard/credentials",
+			href: "/dashboard/byok",
 		},
 		{
 			name: t("dashboard.total_quota"),
 			stat: stats ? formatUSD(stats.totalQuota) : "-",
 			icon: CurrencyDollarIcon,
-			href: "/dashboard/credentials",
+			href: "/dashboard/byok",
 		},
 		...(isPlatform
 			? [

@@ -33,8 +33,8 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			icon: BuildingOfficeIcon,
 		},
 		{
-			name: t("nav.credentials"),
-			href: "/dashboard/credentials",
+			name: t("nav.byok"),
+			href: "/dashboard/byok",
 			icon: ServerStackIcon,
 		},
 		{ name: t("nav.api_keys"), href: "/dashboard/api-keys", icon: KeyIcon },
@@ -45,26 +45,26 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		},
 		...(isPlatform
 			? [
-					{
-						name: t("nav.ledger"),
-						href: "/dashboard/ledger",
-						icon: BookOpenIcon,
-					},
-					{
-						name: t("nav.billing"),
-						href: "/dashboard/billing",
-						icon: CreditCardIcon,
-					},
-				]
+				{
+					name: t("nav.ledger"),
+					href: "/dashboard/ledger",
+					icon: BookOpenIcon,
+				},
+				{
+					name: t("nav.billing"),
+					href: "/dashboard/billing",
+					icon: CreditCardIcon,
+				},
+			]
 			: []),
 		...(isAdmin === true
 			? [
-					{
-						name: t("nav.admin"),
-						href: "/admin",
-						icon: ShieldCheckIcon,
-					},
-				]
+				{
+					name: t("nav.admin"),
+					href: "/admin",
+					icon: ShieldCheckIcon,
+				},
+			]
 			: []),
 	];
 

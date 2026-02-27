@@ -44,7 +44,7 @@ interface CredentialInfo {
 	earnings: number;
 }
 
-export function Credentials() {
+export function Byok() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
 	const formatDateTime = useFormatDateTime();
@@ -415,11 +415,10 @@ export function Credentials() {
 							{/* Smart format detection hint */}
 							{secretHint.type && (
 								<p
-									className={`mt-1.5 flex items-center gap-1 text-xs ${
-										secretHint.type === "json"
+									className={`mt-1.5 flex items-center gap-1 text-xs ${secretHint.type === "json"
 											? "text-green-600 dark:text-green-400"
 											: "text-amber-600 dark:text-amber-400"
-									}`}
+										}`}
 								>
 									<InformationCircleIcon className="size-4 shrink-0" />
 									{secretHint.message}
@@ -656,15 +655,14 @@ export function Credentials() {
 														</div>
 													) : (
 														<span
-															className={`font-mono flex items-center ${
-																isSubscription(cred)
+															className={`font-mono flex items-center ${isSubscription(cred)
 																	? "text-brand-500 dark:text-brand-400"
 																	: cred.quota == null
 																		? "text-gray-400 dark:text-gray-500"
 																		: cred.quota > 0
 																			? "text-green-600 dark:text-green-400"
 																			: "text-red-500 dark:text-red-400"
-															}`}
+																}`}
 														>
 															{formatQuota(cred)}
 															{cred.quotaSource === "auto" && (

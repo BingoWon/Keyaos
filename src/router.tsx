@@ -13,7 +13,7 @@ import { Data } from "./pages/admin/Data";
 import { Overview } from "./pages/admin/Overview";
 import { Users } from "./pages/admin/Users";
 import { Billing } from "./pages/Billing";
-import { Credentials } from "./pages/Credentials";
+import { Byok } from "./pages/Byok";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
 import { Guide } from "./pages/Guide";
@@ -30,13 +30,13 @@ const dashboardChildren = [
 	{ path: "models", element: <Models /> },
 	{ path: "providers", element: <Providers /> },
 	{ path: "api-keys", element: <ApiKeys /> },
-	{ path: "credentials", element: <Credentials /> },
+	{ path: "byok", element: <Byok /> },
 	{ path: "usage", element: <Usage /> },
 	...(isPlatform
 		? [
-				{ path: "ledger", element: <Ledger /> },
-				{ path: "billing", element: <Billing /> },
-			]
+			{ path: "ledger", element: <Ledger /> },
+			{ path: "billing", element: <Billing /> },
+		]
 		: []),
 	{ path: "guide", element: <Guide /> },
 ];
@@ -72,20 +72,20 @@ export const router = createBrowserRouter([
 	},
 	...(isPlatform
 		? [
-				{
-					path: "/admin",
-					element: (
-						<AuthGuard fallback={<Navigate to="/login" replace />}>
-							<AdminLayout />
-						</AuthGuard>
-					),
-					children: [
-						{ index: true, element: <Overview /> },
-						{ path: "users", element: <Users /> },
-						{ path: "data", element: <Data /> },
-					],
-				},
-			]
+			{
+				path: "/admin",
+				element: (
+					<AuthGuard fallback={<Navigate to="/login" replace />}>
+						<AdminLayout />
+					</AuthGuard>
+				),
+				children: [
+					{ index: true, element: <Overview /> },
+					{ path: "users", element: <Users /> },
+					{ path: "data", element: <Data /> },
+				],
+			},
+		]
 		: []),
 	{ path: "/design", element: <DesignSystem /> },
 	{ path: "*", element: <NotFound /> },
