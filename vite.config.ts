@@ -9,8 +9,8 @@ export default defineConfig({
 	plugins: [
 		cloudflare(),
 		tailwindcss(),
-		mdx({ remarkPlugins: [remarkGfm] }),
-		react({ include: /\.(jsx|tsx|mdx)$/ }),
+		{ enforce: "pre", ...mdx({ remarkPlugins: [remarkGfm] }) },
+		react(),
 	],
 	resolve: {
 		alias: {
