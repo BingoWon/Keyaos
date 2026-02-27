@@ -1,0 +1,52 @@
+# Privacy
+
+Keyaos is designed with a strict privacy-by-default architecture. Your data safety is not a feature toggle — it's how the system is built.
+
+## What We Log
+
+For billing and transparency, we record basic **request metadata** only:
+
+- Timestamp
+- Model name
+- Provider used
+- Input / output token counts
+- Credit cost or earnings
+
+This metadata is visible on your [Usage](/dashboard/usage) page.
+
+## What We Never Log
+
+**Your prompts and completions are never logged, stored, or visible to us** — even when errors occur. There is no opt-in, no toggle, no exception. The routing engine processes your request payload in memory and forwards it directly to the upstream provider. Nothing is written to disk or database.
+
+This applies equally to:
+
+- Direct API calls
+- Self-use (BYOK) routing
+- Cross-user routing
+
+## Source-Available Engine
+
+Keyaos is licensed under the [Business Source License (BSL)](https://github.com/BingoWon/Keyaos/blob/main/LICENSE). Every line of the routing engine is published on GitHub:
+
+**[github.com/BingoWon/Keyaos](https://github.com/BingoWon/Keyaos)**
+
+You can inspect, audit, fork, and self-host the entire system. No black boxes.
+
+## Architecture
+
+The routing engine runs on [Cloudflare Workers](https://workers.cloudflare.com/), processing requests at the edge closest to you. Request payloads are handled in-memory within the Worker's isolate and are never persisted.
+
+The database (Cloudflare D1) stores only:
+
+- User accounts and settings
+- Credential metadata (encrypted secrets, quota, health status)
+- Billing records (ledger entries, payment history)
+- Request metadata (the usage log described above)
+
+## Data Residency
+
+Cloudflare Workers execute globally at the nearest edge location. Cloudflare D1 data is stored in the region configured during deployment.
+
+## Contact
+
+If you have privacy concerns or questions, [open an issue on GitHub](https://github.com/BingoWon/Keyaos/issues) or reach out through the in-app chat.

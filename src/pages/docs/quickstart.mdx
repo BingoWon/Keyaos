@@ -1,0 +1,73 @@
+# Quick Start
+
+Get up and running with Keyaos in under two minutes.
+
+## Base URL
+
+Point your existing OpenAI or Anthropic SDK to your Keyaos gateway:
+
+```
+https://your-gateway.workers.dev/v1
+```
+
+## Authentication
+
+Use your **API Key** from the [API Keys](/dashboard/api-keys) page:
+
+```
+Authorization: Bearer key-xxxxxxxx
+```
+
+## cURL Example
+
+```bash
+curl https://your-gateway.workers.dev/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "model": "deepseek-chat",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+## Python (OpenAI SDK)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://your-gateway.workers.dev/v1",
+    api_key="YOUR_API_KEY",
+)
+
+response = client.chat.completions.create(
+    model="google/gemini-2.5-flash",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(response.choices[0].message.content)
+```
+
+## Node.js (OpenAI SDK)
+
+```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://your-gateway.workers.dev/v1",
+  apiKey: "YOUR_API_KEY",
+});
+
+const response = await client.chat.completions.create({
+  model: "google/gemini-2.5-flash",
+  messages: [{ role: "user", content: "Hello!" }],
+});
+console.log(response.choices[0].message.content);
+```
+
+## Supported Models
+
+Keyaos routes to the cheapest healthy provider for any given model. Visit the [Models](/dashboard/models) page to see all available models and their real-time pricing.
+
+## BYOK (Bring Your Own Key)
+
+Add your own upstream API keys on the [BYOK](/dashboard/byok) page. When a request matches a model supported by your key, it routes directly — **completely free**, with zero platform fees.

@@ -8,7 +8,7 @@ dist/
 .DS_Store
 .wrangler/
 coverage/
-docs/
+/docs/
 references/
 scripts/
 *.log
