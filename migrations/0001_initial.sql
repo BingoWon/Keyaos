@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     input_price REAL NOT NULL DEFAULT 0.0,
     output_price REAL NOT NULL DEFAULT 0.0,
     context_length INTEGER,
+    input_modalities TEXT NOT NULL DEFAULT '["text"]',
+    output_modalities TEXT NOT NULL DEFAULT '["text"]',
     is_active INTEGER DEFAULT 1,
     refreshed_at INTEGER NOT NULL
 );
