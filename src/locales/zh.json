@@ -68,8 +68,8 @@
 	"credentials": {
 		"title": "自有密钥 (Bring Your Own Key)",
 		"subtitle": "管理你的上游供应商 API 密钥和 OAuth 令牌",
-		"promo_title": "🚀 零路由费，用你的专属密钥",
-		"promo_desc": "相比 <OpenRouterLink>OpenRouter 收取 5% 的自带密钥服务费</OpenRouterLink>，氪钥枢承诺 100% 永久免费。不抽成，无隐形费用。",
+		"promo_title": "🚀 零“过路费”的自带密钥直连",
+		"promo_desc": "当请求路由至你自己的密钥时，氪钥枢绝不收取任何费用。与其为你的自有密钥向 <OpenRouterLink>OpenRouter 缴纳 5% 的“过路费”</OpenRouterLink>，不如享受 100% 的原价直连。没有层层加收，只有纯粹的技术极客精神。",
 		"add_new": "添加密钥",
 		"provider": "供应商",
 		"secret": "密钥",
@@ -209,6 +209,8 @@
 	"billing": {
 		"title": "充值",
 		"subtitle": "管理你的平台额度余额",
+		"promo_title": "💎 零手续费，全额到账",
+		"promo_desc": "Stripe 的支付网关费用由我们全额承担。不同于 <OpenRouterLink>OpenRouter 加收的 5.5% 手续费</OpenRouterLink>，在这里充值 $10.00，您将获得完整的 10.00 Credits。没有任何加价和隐藏成本。",
 		"balance": "Credits 余额",
 		"buy_credits": "购买额度",
 		"buy_credits_desc": "通过 Stripe 一次性购买。",

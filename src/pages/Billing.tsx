@@ -7,7 +7,7 @@ import {
 import { Icon } from "@iconify/react";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
@@ -175,6 +175,32 @@ export function Billing() {
 					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 						{t("billing.subtitle")}
 					</p>
+				</div>
+			</div>
+
+			{/* Promo Banner */}
+			<div className="mt-6 overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-white p-5 sm:p-5 border border-gray-200 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] dark:from-white/5 dark:to-transparent dark:border-white/10">
+				<div className="flex items-start">
+					<div className="flex-1">
+						<h2 className="text-[15px] font-semibold text-gray-900 dark:text-white">
+							{t("billing.promo_title")}
+						</h2>
+						<p className="mt-1.5 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+							<Trans
+								i18nKey="billing.promo_desc"
+								components={{
+									OpenRouterLink: (
+										<a
+											href="https://openrouter.ai/docs/faq#pricing-and-fees"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="font-semibold text-gray-900 hover:text-brand-600 dark:text-gray-200 dark:hover:text-brand-400 underline underline-offset-4 decoration-gray-300 hover:decoration-brand-500 transition-colors"
+										/>
+									),
+								}}
+							/>
+						</p>
+					</div>
 				</div>
 			</div>
 
@@ -351,11 +377,10 @@ export function Billing() {
 												key={v}
 												type="button"
 												onClick={() => setAutoThreshold(String(v))}
-												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-													autoThreshold === String(v)
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${autoThreshold === String(v)
 														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
 														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-												}`}
+													}`}
 											>
 												${v}
 											</button>
@@ -385,11 +410,10 @@ export function Billing() {
 												key={v}
 												type="button"
 												onClick={() => setAutoAmount(String(v))}
-												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-													autoAmount === String(v)
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${autoAmount === String(v)
 														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
 														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-												}`}
+													}`}
 											>
 												${v}
 											</button>

@@ -68,8 +68,8 @@
 	"credentials": {
 		"title": "Bring Your Own Key",
 		"subtitle": "Manage your upstream provider API keys and OAuth tokens",
-		"promo_title": "🚀 Route your own keys for exactly $0.00",
-		"promo_desc": "While <OpenRouterLink>OpenRouter charges 5%</OpenRouterLink> to use your own keys, Keyaos is proudly 100% free. No markup, no hidden fees.",
+		"promo_title": "🚀 Zero routing fees for your own keys.",
+		"promo_desc": "When our engine routes a request to your own API key, Keyaos takes $0.00. Unlike <OpenRouterLink>OpenRouter's 5% BYOK markup</OpenRouterLink>, self-matched routing is proudly 100% free forever. No toll booths, just raw upstream cost.",
 		"add_new": "Add Key",
 		"provider": "Provider",
 		"secret": "Secret",

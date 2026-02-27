@@ -272,32 +272,6 @@ export function Byok() {
 
 	return (
 		<div>
-			{/* Promo Banner */}
-			<div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-50 to-white p-5 sm:p-6 border border-brand-100 shadow-sm dark:from-brand-500/10 dark:to-transparent dark:border-brand-500/20">
-				<div className="flex items-start">
-					<div className="flex-1">
-						<h2 className="text-base sm:text-lg font-semibold text-brand-900 dark:text-brand-100">
-							{t("credentials.promo_title")}
-						</h2>
-						<p className="mt-2 text-sm leading-relaxed text-brand-700 dark:text-brand-300">
-							<Trans
-								i18nKey="credentials.promo_desc"
-								components={{
-									OpenRouterLink: (
-										<a
-											href="https://openrouter.ai/announcements/bring-your-own-api-keys"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="font-semibold underline underline-offset-2 decoration-brand-500/30 hover:decoration-brand-500 transition-colors"
-										/>
-									),
-								}}
-							/>
-						</p>
-					</div>
-				</div>
-			</div>
-
 			<div className="sm:flex sm:items-center">
 				<div className="sm:flex-auto">
 					<h1 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -328,6 +302,32 @@ export function Byok() {
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
 						{t("credentials.add_new")}
 					</Button>
+				</div>
+			</div>
+
+			{/* Promo Banner */}
+			<div className="mt-6 overflow-hidden rounded-xl bg-gradient-to-br from-brand-50 to-white p-5 sm:p-5 border border-brand-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] dark:from-brand-500/10 dark:to-transparent dark:border-brand-500/20">
+				<div className="flex items-start">
+					<div className="flex-1">
+						<h2 className="text-[15px] font-semibold text-brand-900 dark:text-brand-100">
+							{t("credentials.promo_title")}
+						</h2>
+						<p className="mt-1.5 text-sm leading-relaxed text-brand-700 dark:text-brand-300">
+							<Trans
+								i18nKey="credentials.promo_desc"
+								components={{
+									OpenRouterLink: (
+										<a
+											href="https://openrouter.ai/announcements/bring-your-own-api-keys"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="font-semibold text-brand-800 hover:text-brand-900 dark:text-brand-200 dark:hover:text-white underline underline-offset-4 decoration-brand-500/30 hover:decoration-brand-500 transition-colors"
+										/>
+									),
+								}}
+							/>
+						</p>
+					</div>
 				</div>
 			</div>
 
