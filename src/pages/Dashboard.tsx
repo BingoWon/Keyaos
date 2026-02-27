@@ -8,7 +8,9 @@ import {
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import type { Modality } from "../../worker/core/db/schema";
 import { isPlatform } from "../auth";
+import { ModalityBadges } from "../components/ModalityIcons";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Badge, DualPrice } from "../components/ui";
@@ -16,7 +18,7 @@ import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatSignedUSD, formatUSD } from "../utils/format";
+import { formatContext, formatSignedUSD, formatUSD } from "../utils/format";
 
 interface Stats {
 	total: number;
@@ -38,10 +40,14 @@ interface UsageEntry {
 
 interface ModelGroup {
 	id: string;
-	displayName: string;
 	providerCount: number;
 	bestInputPrice: number;
+	bestOutputPrice: number;
 	bestPlatformInputPrice?: number;
+	bestPlatformOutputPrice?: number;
+	maxContext: number;
+	inputModalities: Modality[];
+	outputModalities: Modality[];
 }
 
 interface ProviderGroup {
@@ -56,39 +62,70 @@ function aggregateTopModels(
 	const groups = new Map<
 		string,
 		{
-			name: string;
 			providers: Set<string>;
 			bestInput: number;
+			bestOutput: number;
 			bestPlatformInput?: number;
+			bestPlatformOutput?: number;
+			maxContext: number;
+			inputModalities: Modality[];
+			outputModalities: Modality[];
 		}
 	>();
 	for (const e of entries) {
 		let g = groups.get(e.id);
 		if (!g) {
 			g = {
-				name: e.name || e.id,
 				providers: new Set(),
 				bestInput: e.input_price ?? 0,
+				bestOutput: e.output_price ?? 0,
 				bestPlatformInput: e.platform_input_price,
+				bestPlatformOutput: e.platform_output_price,
+				maxContext: e.context_length ?? 0,
+				inputModalities: e.input_modalities ?? ["text"],
+				outputModalities: e.output_modalities ?? ["text"],
 			};
 			groups.set(e.id, g);
 		}
 		g.providers.add(e.owned_by);
 		const ip = e.input_price ?? 0;
+		const op = e.output_price ?? 0;
 		if (ip < g.bestInput) g.bestInput = ip;
+		if (op < g.bestOutput) g.bestOutput = op;
 		const pip = e.platform_input_price;
+		const pop = e.platform_output_price;
 		if (pip != null) {
 			g.bestPlatformInput =
 				g.bestPlatformInput != null ? Math.min(g.bestPlatformInput, pip) : pip;
+		}
+		if (pop != null) {
+			g.bestPlatformOutput =
+				g.bestPlatformOutput != null ? Math.min(g.bestPlatformOutput, pop) : pop;
+		}
+		g.maxContext = Math.max(g.maxContext, e.context_length ?? 0);
+		// Merge modalities (union)
+		if (e.input_modalities) {
+			for (const m of e.input_modalities) {
+				if (!g.inputModalities.includes(m)) g.inputModalities.push(m);
+			}
+		}
+		if (e.output_modalities) {
+			for (const m of e.output_modalities) {
+				if (!g.outputModalities.includes(m)) g.outputModalities.push(m);
+			}
 		}
 	}
 	return [...groups.entries()]
 		.map(([id, g]) => ({
 			id,
-			displayName: g.name,
 			providerCount: g.providers.size,
 			bestInputPrice: g.bestInput,
+			bestOutputPrice: g.bestOutput,
 			bestPlatformInputPrice: g.bestPlatformInput,
+			bestPlatformOutputPrice: g.bestPlatformOutput,
+			maxContext: g.maxContext,
+			inputModalities: g.inputModalities,
+			outputModalities: g.outputModalities,
 		}))
 		.sort(
 			(a, b) =>
@@ -189,13 +226,13 @@ export function Dashboard() {
 		},
 		...(isPlatform
 			? [
-					{
-						name: t("dashboard.wallet_balance"),
-						stat: wallet ? formatUSD(wallet.balance) : "-",
-						icon: CreditCardIcon,
-						href: "/dashboard/billing",
-					},
-				]
+				{
+					name: t("dashboard.wallet_balance"),
+					stat: wallet ? formatUSD(wallet.balance) : "-",
+					icon: CreditCardIcon,
+					href: "/dashboard/billing",
+				},
+			]
 			: []),
 	];
 
@@ -290,22 +327,27 @@ export function Dashboard() {
 								to="/dashboard/models"
 								className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
 							>
-								<div className="min-w-0 flex-1">
-									<p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-										{m.displayName}
-									</p>
-									<code className="text-xs font-mono text-gray-400 dark:text-gray-500 truncate">
-										{m.id}
-									</code>
-								</div>
-								<div className="shrink-0 flex items-center gap-1.5">
+								<code className="min-w-0 flex-1 text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
+									{m.id}
+								</code>
+								<div className="shrink-0 flex flex-wrap items-center justify-end gap-1.5">
+									<ModalityBadges input={m.inputModalities} output={m.outputModalities} size={14} />
 									<Badge variant="brand">{m.providerCount}</Badge>
 									<Badge variant="success">
 										<DualPrice
 											original={m.bestInputPrice}
 											platform={m.bestPlatformInputPrice}
 										/>
+										in
 									</Badge>
+									<Badge variant="accent">
+										<DualPrice
+											original={m.bestOutputPrice}
+											platform={m.bestPlatformOutputPrice}
+										/>
+										out
+									</Badge>
+									{m.maxContext > 0 && <Badge>{formatContext(m.maxContext)} ctx</Badge>}
 								</div>
 							</Link>
 						))}
@@ -351,13 +393,12 @@ export function Dashboard() {
 										{tx.provider}
 									</td>
 									<td
-										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${
-											tx.netCredits > 0
+										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${tx.netCredits > 0
 												? "text-green-600 dark:text-green-400"
 												: tx.netCredits < 0
 													? "text-red-600 dark:text-red-400"
 													: "text-gray-400 dark:text-gray-500"
-										}`}
+											}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>

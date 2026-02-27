@@ -15,54 +15,47 @@ function TextIcon({ size }: { size: number }) {
 }
 
 const ICON_MAP: Record<Modality, React.FC<{ className?: string; style?: React.CSSProperties }>> = {
-    text: ({ style }) => <TextIcon size={style?.width as number ?? 14} />,
+    text: ({ style }) => <TextIcon size={(style?.width as number) ?? 16} />,
     image: PhotoIcon,
     file: DocumentArrowUpIcon,
     audio: MicrophoneIcon,
     video: VideoCameraIcon,
 };
 
-const LABEL_MAP: Record<Modality, string> = {
-    text: "text",
-    image: "image",
-    file: "file",
-    audio: "audio",
-    video: "video",
-};
-
 function ModalityDot({
     modality,
     size,
-    muted = false,
 }: {
     modality: Modality;
     size: number;
-    muted?: boolean;
 }) {
     const IconComp = ICON_MAP[modality];
     return (
-        <span title={LABEL_MAP[modality]} className="inline-flex">
+        <span className="group/tip relative inline-flex">
             <IconComp
-                className={`shrink-0 ${muted ? "text-gray-300 dark:text-gray-600" : ""}`}
+                className="shrink-0"
                 style={{ width: size, height: size }}
             />
+            <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover/tip:opacity-100 dark:bg-gray-700">
+                {modality}
+            </span>
         </span>
     );
 }
 
-function renderRow(modalities: Modality[], size: number, muted = false) {
+function renderRow(modalities: Modality[], size: number) {
     return MODALITY_ORDER
         .filter((m) => modalities.includes(m))
-        .map((m) => <ModalityDot key={m} modality={m} size={size} muted={muted} />);
+        .map((m) => <ModalityDot key={m} modality={m} size={size} />);
 }
 
-// ─── Inline badges (for Models page collapsed cards) ────
+// ─── Inline badges (for Models page / Dashboard cards) ──
 
-/** Compact Input/Output badge pair. Hidden when both are text-only. */
+/** Compact Input→Output badge pair. Hidden when both are text-only. */
 export function ModalityBadges({
     input,
     output,
-    size = 13,
+    size = 16,
 }: {
     input?: Modality[];
     output?: Modality[];
@@ -77,11 +70,11 @@ export function ModalityBadges({
 
     return (
         <span className="inline-flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
-            <span className="inline-flex items-center gap-px" title="Input modalities">
+            <span className="inline-flex items-center gap-0.5">
                 {renderRow(inp, size)}
             </span>
             <span className="text-[10px] text-gray-300 dark:text-gray-600 select-none">→</span>
-            <span className="inline-flex items-center gap-px" title="Output modalities">
+            <span className="inline-flex items-center gap-0.5">
                 {renderRow(out, size)}
             </span>
         </span>
@@ -93,7 +86,7 @@ export function ModalityBadges({
 /** Render a single modality cell for table columns. Shows sorted icons. */
 export function ModalityCell({
     modalities,
-    size = 14,
+    size = 16,
 }: {
     modalities?: Modality[];
     size?: number;
