@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { PricingDao } from "../core/db/pricing-dao";
-import { syncAllModels, syncAutoCredits } from "../core/sync/sync-service";
 import type { AppEnv } from "../shared/types";
 
 const modelsRouter = new Hono<AppEnv>();
@@ -33,20 +32,5 @@ modelsRouter.get("/", async (c) => {
 	return c.json({ object: "list", data });
 });
 
-modelsRouter.post("/sync", async (c) => {
-	const ownerId = c.get("owner_id");
-	const platformOwnerId = c.env.PLATFORM_OWNER_ID;
-	if (platformOwnerId && ownerId !== platformOwnerId) {
-		return c.json(
-			{ error: { message: "Forbidden", type: "authorization_error" } },
-			403,
-		);
-	}
-
-	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-	await syncAllModels(c.env.DB, rate);
-	await syncAutoCredits(c.env.DB, rate);
-	return c.json({ message: "Sync completed" });
-});
-
 export default modelsRouter;
+

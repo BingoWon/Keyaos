@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { CandleDao } from "../../core/db/candle-dao";
+import { syncAllModels, syncAutoCredits } from "../../core/sync/sync-service";
 import { BadRequestError } from "../../shared/errors";
 import type { AppEnv } from "../../shared/types";
 import { AdminDao } from "../billing/admin-dao";
@@ -66,6 +68,25 @@ admin.get("/table/:name", async (c) => {
 			err instanceof Error ? err.message : "Invalid table",
 		);
 	}
+});
+
+// ─── Manual cron triggers ───────────────────────────────
+
+admin.post("/sync-models", async (c) => {
+	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
+	const start = Date.now();
+	await syncAllModels(c.env.DB, rate);
+	await syncAutoCredits(c.env.DB, rate);
+	await new CandleDao(c.env.DB).pruneOldCandles();
+	return c.json({ message: "Models synced", elapsed: Date.now() - start });
+});
+
+admin.post("/sync-candles", async (c) => {
+	const dao = new CandleDao(c.env.DB);
+	const start = Date.now();
+	await dao.aggregate(Date.now() - 60_000);
+	await dao.generateQuotedCandles();
+	return c.json({ message: "Candles aggregated", elapsed: Date.now() - start });
 });
 
 export default admin;

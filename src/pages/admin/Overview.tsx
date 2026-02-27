@@ -7,7 +7,9 @@ import {
 	TableCellsIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/outline";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../auth";
 import { PageLoader } from "../../components/PageLoader";
 import { IconButton } from "../../components/ui";
 import { useFetch } from "../../hooks/useFetch";
@@ -22,6 +24,48 @@ interface PlatformOverview {
 	registeredUsers: number;
 }
 
+function SyncButton({
+	label,
+	endpoint,
+}: {
+	label: string;
+	endpoint: string;
+}) {
+	const { token } = useAuth();
+	const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+	const [elapsed, setElapsed] = useState(0);
+
+	const run = useCallback(async () => {
+		setState("loading");
+		try {
+			const res = await fetch(endpoint, {
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			if (!res.ok) throw new Error(`${res.status}`);
+			const json = (await res.json()) as { elapsed?: number };
+			setElapsed(json.elapsed ?? 0);
+			setState("done");
+			setTimeout(() => setState("idle"), 3000);
+		} catch {
+			setState("error");
+			setTimeout(() => setState("idle"), 3000);
+		}
+	}, [endpoint, token]);
+
+	return (
+		<button
+			type="button"
+			onClick={run}
+			disabled={state === "loading"}
+			className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10"
+		>
+			<ArrowPathIcon className={`size-3.5 ${state === "loading" ? "animate-spin" : ""}`} />
+			{state === "loading" ? "Syncing…" : state === "done" ? `✓ ${elapsed}ms` : state === "error" ? "✗ Failed" : label}
+		</button>
+	);
+}
+
 export function Overview() {
 	const { t } = useTranslation();
 	const { data, loading, refetch } = useFetch<PlatformOverview>(
@@ -30,37 +74,37 @@ export function Overview() {
 
 	const cards = data
 		? [
-				{
-					name: t("admin.total_revenue"),
-					value: formatUSD(data.totalRevenue),
-					icon: BanknotesIcon,
-				},
-				{
-					name: t("admin.total_consumption"),
-					value: formatUSD(data.totalConsumption),
-					icon: CreditCardIcon,
-				},
-				{
-					name: t("admin.service_fees"),
-					value: formatUSD(data.totalServiceFees),
-					icon: ChartBarIcon,
-				},
-				{
-					name: t("admin.total_requests"),
-					value: data.totalRequests.toLocaleString(),
-					icon: TableCellsIcon,
-				},
-				{
-					name: t("admin.active_credentials"),
-					value: data.activeCredentials.toString(),
-					icon: ServerStackIcon,
-				},
-				{
-					name: t("admin.registered_users"),
-					value: data.registeredUsers.toString(),
-					icon: UserGroupIcon,
-				},
-			]
+			{
+				name: t("admin.total_revenue"),
+				value: formatUSD(data.totalRevenue),
+				icon: BanknotesIcon,
+			},
+			{
+				name: t("admin.total_consumption"),
+				value: formatUSD(data.totalConsumption),
+				icon: CreditCardIcon,
+			},
+			{
+				name: t("admin.service_fees"),
+				value: formatUSD(data.totalServiceFees),
+				icon: ChartBarIcon,
+			},
+			{
+				name: t("admin.total_requests"),
+				value: data.totalRequests.toLocaleString(),
+				icon: TableCellsIcon,
+			},
+			{
+				name: t("admin.active_credentials"),
+				value: data.activeCredentials.toString(),
+				icon: ServerStackIcon,
+			},
+			{
+				name: t("admin.registered_users"),
+				value: data.registeredUsers.toString(),
+				icon: UserGroupIcon,
+			},
+		]
 		: [];
 
 	return (
@@ -74,9 +118,13 @@ export function Overview() {
 						{t("admin.subtitle")}
 					</p>
 				</div>
-				<IconButton label="Refresh" size="md" onClick={refetch}>
-					<ArrowPathIcon />
-				</IconButton>
+				<div className="flex items-center gap-2">
+					<SyncButton label="Sync Models" endpoint="/api/admin/sync-models" />
+					<SyncButton label="Sync Candles" endpoint="/api/admin/sync-candles" />
+					<IconButton label="Refresh" size="md" onClick={refetch}>
+						<ArrowPathIcon />
+					</IconButton>
+				</div>
 			</div>
 
 			{loading ? (
@@ -102,3 +150,4 @@ export function Overview() {
 		</div>
 	);
 }
+
