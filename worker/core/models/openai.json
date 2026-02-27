@@ -4,112 +4,56 @@
 		"name": "OpenAI: GPT-5 Nano",
 		"input_usd": 0.05,
 		"output_usd": 0.4,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-4.1-nano",
 		"name": "OpenAI: GPT-4.1 Nano",
 		"input_usd": 0.1,
 		"output_usd": 0.4,
-		"context_length": 1047576,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1047576
 	},
 	{
 		"id": "openai/gpt-4o-mini",
 		"name": "OpenAI: GPT-4o-mini",
 		"input_usd": 0.15,
 		"output_usd": 0.6,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-4o-mini-2024-07-18",
 		"name": "OpenAI: GPT-4o-mini (2024-07-18)",
 		"input_usd": 0.15,
 		"output_usd": 0.6,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-4o-mini-search-preview",
 		"name": "OpenAI: GPT-4o-mini Search Preview",
 		"input_usd": 0.15,
 		"output_usd": 0.6,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-5-mini",
 		"name": "OpenAI: GPT-5 Mini",
 		"input_usd": 0.25,
 		"output_usd": 2,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5.1-codex-mini",
 		"name": "OpenAI: GPT-5.1-Codex-Mini",
 		"input_usd": 0.25,
 		"output_usd": 2,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-4.1-mini",
 		"name": "OpenAI: GPT-4.1 Mini",
 		"input_usd": 0.4,
 		"output_usd": 1.6,
-		"context_length": 1047576,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1047576
 	},
 	{
 		"id": "openai/gpt-3.5-turbo",
@@ -123,113 +67,56 @@
 		"name": "OpenAI: GPT Audio Mini",
 		"input_usd": 0.6,
 		"output_usd": 2.4,
-		"context_length": 128000,
-		"input_modalities": [
-			"audio",
-			"text"
-		],
-		"output_modalities": [
-			"audio",
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/o3-mini",
 		"name": "OpenAI: o3 Mini",
 		"input_usd": 1.1,
 		"output_usd": 4.4,
-		"context_length": 200000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 200000
 	},
 	{
 		"id": "openai/o4-mini",
 		"name": "OpenAI: o4 Mini",
 		"input_usd": 1.1,
 		"output_usd": 4.4,
-		"context_length": 200000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 200000
 	},
 	{
 		"id": "openai/gpt-5",
 		"name": "OpenAI: GPT-5",
 		"input_usd": 1.25,
 		"output_usd": 10,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5-codex",
 		"name": "OpenAI: GPT-5 Codex",
 		"input_usd": 1.25,
 		"output_usd": 10,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5.1",
 		"name": "OpenAI: GPT-5.1",
 		"input_usd": 1.25,
 		"output_usd": 10,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5.1-codex",
 		"name": "OpenAI: GPT-5.1-Codex",
 		"input_usd": 1.25,
 		"output_usd": 10,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5.1-codex-max",
 		"name": "OpenAI: GPT-5.1-Codex-Max",
 		"input_usd": 1.25,
 		"output_usd": 10,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-3.5-turbo-instruct",
@@ -243,142 +130,70 @@
 		"name": "OpenAI: GPT-5.2",
 		"input_usd": 1.75,
 		"output_usd": 14,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-5.2-codex",
 		"name": "OpenAI: GPT-5.2-Codex",
 		"input_usd": 1.75,
 		"output_usd": 14,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/gpt-4.1",
 		"name": "OpenAI: GPT-4.1",
 		"input_usd": 2,
 		"output_usd": 8,
-		"context_length": 1047576,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1047576
 	},
 	{
 		"id": "openai/o3",
 		"name": "OpenAI: o3",
 		"input_usd": 2,
 		"output_usd": 8,
-		"context_length": 200000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 200000
 	},
 	{
 		"id": "openai/gpt-4o",
 		"name": "OpenAI: GPT-4o",
 		"input_usd": 2.5,
 		"output_usd": 10,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-4o-2024-08-06",
 		"name": "OpenAI: GPT-4o (2024-08-06)",
 		"input_usd": 2.5,
 		"output_usd": 10,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-4o-2024-11-20",
 		"name": "OpenAI: GPT-4o (2024-11-20)",
 		"input_usd": 2.5,
 		"output_usd": 10,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-4o-audio-preview",
 		"name": "OpenAI: GPT-4o Audio",
 		"input_usd": 2.5,
 		"output_usd": 10,
-		"context_length": 128000,
-		"input_modalities": [
-			"audio",
-			"text"
-		],
-		"output_modalities": [
-			"audio",
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-4o-search-preview",
 		"name": "OpenAI: GPT-4o Search Preview",
 		"input_usd": 2.5,
 		"output_usd": 10,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-audio",
 		"name": "OpenAI: GPT Audio",
 		"input_usd": 2.5,
 		"output_usd": 10,
-		"context_length": 128000,
-		"input_modalities": [
-			"audio",
-			"text"
-		],
-		"output_modalities": [
-			"audio",
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-3.5-turbo-16k",
@@ -392,55 +207,27 @@
 		"name": "OpenAI: GPT-4o (2024-05-13)",
 		"input_usd": 5,
 		"output_usd": 15,
-		"context_length": 128000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 128000
 	},
 	{
 		"id": "openai/gpt-5-pro",
 		"name": "OpenAI: GPT-5 Pro",
 		"input_usd": 15,
 		"output_usd": 120,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	},
 	{
 		"id": "openai/o1",
 		"name": "OpenAI: o1",
 		"input_usd": 15,
 		"output_usd": 60,
-		"context_length": 200000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 200000
 	},
 	{
 		"id": "openai/gpt-5.2-pro",
 		"name": "OpenAI: GPT-5.2 Pro",
 		"input_usd": 21,
 		"output_usd": 168,
-		"context_length": 400000,
-		"input_modalities": [
-			"image",
-			"text"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 400000
 	}
 ]

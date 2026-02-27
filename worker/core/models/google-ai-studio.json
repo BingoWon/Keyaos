@@ -4,118 +4,48 @@
 		"name": "Gemini 2.5 Pro",
 		"input_usd": 1.25,
 		"output_usd": 10.0,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	},
 	{
 		"id": "google/gemini-2.5-flash",
 		"name": "Gemini 2.5 Flash",
 		"input_usd": 0.15,
 		"output_usd": 0.6,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	},
 	{
 		"id": "google/gemini-2.5-flash-lite",
 		"name": "Gemini 2.5 Flash Lite",
 		"input_usd": 0.075,
 		"output_usd": 0.3,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	},
 	{
 		"id": "google/gemini-2.0-flash",
 		"name": "Gemini 2.0 Flash",
 		"input_usd": 0.1,
 		"output_usd": 0.4,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	},
 	{
 		"id": "google/gemini-2.0-flash-lite",
 		"name": "Gemini 2.0 Flash Lite",
 		"input_usd": 0.075,
 		"output_usd": 0.3,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	},
 	{
 		"id": "google/gemini-3-pro-preview",
 		"name": "Gemini 3 Pro Preview",
 		"input_usd": 1.25,
 		"output_usd": 10.0,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	},
 	{
 		"id": "google/gemini-3-flash-preview",
 		"name": "Gemini 3 Flash Preview",
 		"input_usd": 0.15,
 		"output_usd": 0.6,
-		"context_length": 1048576,
-		"input_modalities": [
-			"audio",
-			"file",
-			"image",
-			"text",
-			"video"
-		],
-		"output_modalities": [
-			"text"
-		]
+		"context_length": 1048576
 	}
 ]
