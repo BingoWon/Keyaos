@@ -3,6 +3,12 @@
 		"name": "氪钥枢",
 		"subtitle": "氪钥枢"
 	},
+	"docs": {
+		"title": "文档",
+		"nav_quickstart": "快速开始",
+		"nav_pricing": "计费说明",
+		"nav_privacy": "隐私政策"
+	},
 	"common": {
 		"loading": "加载中...",
 		"error": "发生错误",

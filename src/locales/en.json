@@ -3,6 +3,12 @@
 		"name": "Keyaos",
 		"subtitle": ""
 	},
+	"docs": {
+		"title": "Docs",
+		"nav_quickstart": "Quick Start",
+		"nav_pricing": "Pricing",
+		"nav_privacy": "Privacy"
+	},
 	"common": {
 		"loading": "Loading...",
 		"error": "An error occurred",

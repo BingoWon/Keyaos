@@ -16,6 +16,11 @@ import { Billing } from "./pages/Billing";
 import { Byok } from "./pages/Byok";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
+import { DocsLayout } from "./pages/docs/DocsLayout";
+import { MdxPage } from "./pages/docs/MdxPage";
+import QuickstartMdx from "./pages/docs/quickstart.mdx";
+import PricingMdx from "./pages/docs/pricing.mdx";
+import PrivacyMdx from "./pages/docs/privacy.mdx";
 import { Guide } from "./pages/Guide";
 import { Landing } from "./pages/Landing";
 import { Ledger } from "./pages/Ledger";
@@ -88,5 +93,15 @@ export const router = createBrowserRouter([
 		]
 		: []),
 	{ path: "/design", element: <DesignSystem /> },
+	{
+		path: "/docs",
+		element: <DocsLayout />,
+		children: [
+			{ index: true, element: <Navigate to="/docs/quickstart" replace /> },
+			{ path: "quickstart", element: <MdxPage Component={QuickstartMdx} /> },
+			{ path: "pricing", element: <MdxPage Component={PricingMdx} /> },
+			{ path: "privacy", element: <MdxPage Component={PrivacyMdx} /> },
+		],
+	},
 	{ path: "*", element: <NotFound /> },
 ]);

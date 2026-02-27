@@ -492,7 +492,7 @@ function Footer() {
 				</div>
 				<div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
 					<Link
-						to="/dashboard/guide"
+						to="/docs"
 						className="transition-colors hover:text-brand-500"
 					>
 						{t("landing.footer_docs")}
