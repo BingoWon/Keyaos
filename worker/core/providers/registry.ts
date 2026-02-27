@@ -136,8 +136,6 @@ interface StaticModelEntry {
 	input_usd: number;
 	output_usd: number;
 	context_length: number | null;
-	input_modalities?: string[];
-	output_modalities?: string[];
 }
 
 function parseStaticUsdModels(
@@ -152,8 +150,8 @@ function parseStaticUsdModels(
 		input_price: dollarsToCentsPerM(m.input_usd),
 		output_price: dollarsToCentsPerM(m.output_usd),
 		context_length: m.context_length,
-		input_modalities: serializeModalities(m.input_modalities || ["text"]),
-		output_modalities: serializeModalities(m.output_modalities || ["text"]),
+		input_modalities: DEFAULT_MODALITIES,
+		output_modalities: DEFAULT_MODALITIES,
 		is_active: 1,
 	}));
 }

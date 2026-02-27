@@ -1,6 +1,6 @@
 import {
+    ArrowRightIcon,
     ChatBubbleLeftIcon,
-    DocumentTextIcon,
     PaperClipIcon,
     PhotoIcon,
     SpeakerWaveIcon,
@@ -14,14 +14,6 @@ const ICON_MAP: Record<Modality, React.FC<{ className?: string }>> = {
     audio: SpeakerWaveIcon,
     video: VideoCameraIcon,
     file: PaperClipIcon,
-};
-
-const LABEL_MAP: Record<Modality, string> = {
-    text: "Text",
-    image: "Image",
-    audio: "Audio",
-    video: "Video",
-    file: "File",
 };
 
 /** Compact modality icon strip — hidden when text-only (the default). */
@@ -52,7 +44,7 @@ export function ModalityIcons({
             })}
             {extraOutput.length > 0 && (
                 <>
-                    <DocumentTextIcon className="shrink-0 text-gray-300 dark:text-gray-600" style={{ width: size - 2, height: size - 2 }} />
+                    <ArrowRightIcon className="shrink-0 text-gray-300 dark:text-gray-600" style={{ width: size - 2, height: size - 2 }} />
                     {extraOutput.map((m) => {
                         const Icon = ICON_MAP[m];
                         return <Icon key={`out-${m}`} className="shrink-0 text-blue-400 dark:text-blue-500" style={{ width: size, height: size }} />;
