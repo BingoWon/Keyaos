@@ -1,9 +1,8 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
-import { ModalityBadges } from "../components/ModalityIcons";
+import { ModalityBadges } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -12,6 +11,7 @@ import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
 import { formatContext } from "../utils/format";
+import { mergeModalities } from "../utils/modalities";
 
 interface ModelGroup {
 	id: string;
@@ -49,16 +49,8 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 			group.displayName = e.name;
 		}
 		// Merge modalities (take union across providers)
-		if (e.input_modalities) {
-			for (const m of e.input_modalities) {
-				if (!group.inputModalities.includes(m)) group.inputModalities.push(m);
-			}
-		}
-		if (e.output_modalities) {
-			for (const m of e.output_modalities) {
-				if (!group.outputModalities.includes(m)) group.outputModalities.push(m);
-			}
-		}
+		mergeModalities(group.inputModalities, e.input_modalities);
+		mergeModalities(group.outputModalities, e.output_modalities);
 		group.providers.push({
 			provider: e.owned_by,
 			inputPrice: e.input_price ?? 0,

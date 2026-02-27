@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
-import { ModalityCell } from "../components/ModalityIcons";
+import { ModalityCell } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -101,10 +101,10 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 										</span>
 									</td>
 									<td className="px-2 py-2.5">
-										<ModalityCell modalities={m.inputModalities} size={13} />
+										<ModalityCell modalities={m.inputModalities}  />
 									</td>
 									<td className="px-2 py-2.5">
-										<ModalityCell modalities={m.outputModalities} size={13} />
+										<ModalityCell modalities={m.outputModalities}  />
 									</td>
 									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice

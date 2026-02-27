@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import type { Modality } from "../../worker/core/db/schema";
 import { isPlatform } from "../auth";
-import { ModalityBadges } from "../components/ModalityIcons";
+import { ModalityBadges } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Badge, DualPrice } from "../components/ui";
@@ -19,6 +19,7 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
 import { formatContext, formatSignedUSD, formatUSD } from "../utils/format";
+import { mergeModalities } from "../utils/modalities";
 
 interface Stats {
 	total: number;
@@ -104,16 +105,8 @@ function aggregateTopModels(
 		}
 		g.maxContext = Math.max(g.maxContext, e.context_length ?? 0);
 		// Merge modalities (union)
-		if (e.input_modalities) {
-			for (const m of e.input_modalities) {
-				if (!g.inputModalities.includes(m)) g.inputModalities.push(m);
-			}
-		}
-		if (e.output_modalities) {
-			for (const m of e.output_modalities) {
-				if (!g.outputModalities.includes(m)) g.outputModalities.push(m);
-			}
-		}
+		mergeModalities(g.inputModalities, e.input_modalities);
+		mergeModalities(g.outputModalities, e.output_modalities);
 	}
 	return [...groups.entries()]
 		.map(([id, g]) => ({
