@@ -54,6 +54,8 @@ function defaultParseModels(
 			input_price: 0,
 			output_price: 0,
 			context_length: (m.context_length as number) || null,
+			input_modalities: '["text"]',
+			output_modalities: '["text"]',
 			is_active: 1,
 		}));
 }

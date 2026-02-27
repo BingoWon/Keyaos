@@ -22,6 +22,8 @@ export interface DbCredential {
 	added_at: number;
 }
 
+export type Modality = "text" | "image" | "audio" | "video" | "file";
+
 export interface DbModelPricing {
 	id: string;
 	provider: string;
@@ -30,6 +32,8 @@ export interface DbModelPricing {
 	input_price: number;
 	output_price: number;
 	context_length: number | null;
+	input_modalities: string; // JSON array, e.g. '["text","image"]'
+	output_modalities: string; // JSON array, e.g. '["text"]'
 	is_active: number;
 	refreshed_at: number;
 }

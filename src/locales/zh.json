@@ -139,8 +139,8 @@
 			],
 			"antigravity": [
 				"打开 Antigravity IDE 并登录 Google 账号",
-				"运行上方命令查看凭证文件名",
-				"执行：cat ~/.antigravity_tools/accounts/<文件名>（替换为实际文件名）",
+				"使用下方第一条命令查看凭证文件名",
+				"将第二条命令中的 <文件名> 替换为实际文件名后执行",
 				"粘贴文件内容或仅粘贴 refresh_token 的值"
 			],
 			"kiro": [

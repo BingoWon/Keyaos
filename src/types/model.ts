@@ -1,3 +1,5 @@
+import type { Modality } from "../../worker/core/db/schema";
+
 export interface ModelEntry {
 	id: string;
 	owned_by: string;
@@ -7,4 +9,6 @@ export interface ModelEntry {
 	platform_input_price?: number;
 	platform_output_price?: number;
 	context_length?: number;
+	input_modalities?: Modality[];
+	output_modalities?: Modality[];
 }

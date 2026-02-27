@@ -1,7 +1,9 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
+import { ModalityIcons } from "../components/ModalityIcons";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -15,6 +17,8 @@ interface ModelGroup {
 	id: string;
 	displayName: string;
 	providers: ProviderRow[];
+	inputModalities: Modality[];
+	outputModalities: Modality[];
 }
 
 interface ProviderRow {
@@ -32,11 +36,28 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 	for (const e of entries) {
 		let group = groups.get(e.id);
 		if (!group) {
-			group = { id: e.id, displayName: e.name || e.id, providers: [] };
+			group = {
+				id: e.id,
+				displayName: e.name || e.id,
+				providers: [],
+				inputModalities: e.input_modalities ?? ["text"],
+				outputModalities: e.output_modalities ?? ["text"],
+			};
 			groups.set(e.id, group);
 		}
 		if (e.name && group.displayName === group.id) {
 			group.displayName = e.name;
+		}
+		// Merge modalities (take union across providers)
+		if (e.input_modalities) {
+			for (const m of e.input_modalities) {
+				if (!group.inputModalities.includes(m)) group.inputModalities.push(m);
+			}
+		}
+		if (e.output_modalities) {
+			for (const m of e.output_modalities) {
+				if (!group.outputModalities.includes(m)) group.outputModalities.push(m);
+			}
 		}
 		group.providers.push({
 			provider: e.owned_by,
@@ -81,9 +102,12 @@ function ModelCard({
 					className={`mt-0.5 size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
 				/>
 				<div className="min-w-0 flex-1">
-					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-						{group.displayName}
-					</h4>
+					<span className="flex items-center gap-1.5">
+						<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+							{group.displayName}
+						</h4>
+						<ModalityIcons input={group.inputModalities} output={group.outputModalities} />
+					</span>
 					<span className="flex items-center gap-1 mt-1">
 						<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
 							{group.id}

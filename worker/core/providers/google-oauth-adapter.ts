@@ -30,6 +30,8 @@ interface ModelEntry {
 	input_usd: number;
 	output_usd: number;
 	context_length: number;
+	input_modalities?: string[];
+	output_modalities?: string[];
 }
 
 export interface GoogleOAuthConfig {
@@ -127,7 +129,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 				const json = (await res.json()) as Record<string, string>;
 				const projectId = json.cloudaicompanionProject ?? json.billingProject;
 				if (projectId) return { baseUrl, projectId };
-			} catch {}
+			} catch { }
 		}
 		throw new Error(`All ${this.cfg.id} base URLs failed`);
 	}
@@ -202,7 +204,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 						body: "{}",
 					});
 					if (res.ok) return true;
-				} catch {}
+				} catch { }
 			}
 			return false;
 		} catch {
@@ -281,6 +283,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 	}
 
 	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
+		const def = '["text"]';
 		return this.cfg.models.map((m) => ({
 			id: `${this.cfg.id}:${m.id}`,
 			provider: this.cfg.id,
@@ -289,6 +292,8 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			input_price: dollarsToCentsPerM(m.input_usd),
 			output_price: dollarsToCentsPerM(m.output_usd),
 			context_length: m.context_length,
+			input_modalities: m.input_modalities ? JSON.stringify(m.input_modalities.sort()) : def,
+			output_modalities: m.output_modalities ? JSON.stringify(m.output_modalities.sort()) : def,
 			is_active: 1,
 		}));
 	}

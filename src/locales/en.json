@@ -142,8 +142,8 @@
 			],
 			"antigravity": [
 				"Open Antigravity IDE and sign in with Google",
-				"Run the command above to find your credential file",
-				"Run: cat ~/.antigravity_tools/accounts/<filename> (replace with the actual filename)",
+				"Use the first command below to find your credential filename",
+				"Replace <filename> in the second command and run it",
 				"Paste the file contents or just the refresh_token value"
 			],
 			"kiro": [

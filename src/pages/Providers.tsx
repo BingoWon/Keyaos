@@ -1,7 +1,9 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
+import { ModalityIcons } from "../components/ModalityIcons";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -19,6 +21,8 @@ interface ProviderModel {
 	platformInputPrice?: number;
 	platformOutputPrice?: number;
 	contextLength: number;
+	inputModalities: Modality[];
+	outputModalities: Modality[];
 }
 
 interface ProviderGroup {
@@ -91,6 +95,7 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 											<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
 												{m.id}
 											</code>
+											<ModalityIcons input={m.inputModalities} output={m.outputModalities} size={12} />
 											<CopyButton text={m.id} />
 										</span>
 									</td>
@@ -150,6 +155,8 @@ export function Providers() {
 				platformInputPrice: m.platform_input_price,
 				platformOutputPrice: m.platform_output_price,
 				contextLength: m.context_length ?? 0,
+				inputModalities: m.input_modalities ?? ["text"],
+				outputModalities: m.output_modalities ?? ["text"],
 			});
 		}
 

@@ -21,10 +21,12 @@ modelsRouter.get("/", async (c) => {
 			output_price: m.output_price,
 			...(mul != null &&
 				mul < 1 && {
-					platform_input_price: m.input_price * mul,
-					platform_output_price: m.output_price * mul,
-				}),
+				platform_input_price: m.input_price * mul,
+				platform_output_price: m.output_price * mul,
+			}),
 			context_length: m.context_length,
+			input_modalities: JSON.parse(m.input_modalities),
+			output_modalities: JSON.parse(m.output_modalities),
 		};
 	});
 

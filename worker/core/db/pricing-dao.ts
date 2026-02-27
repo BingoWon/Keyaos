@@ -1,20 +1,22 @@
 import type { DbModelPricing } from "./schema";
 
 export class PricingDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async upsertPricing(
 		models: Omit<DbModelPricing, "refreshed_at">[],
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, is_active, refreshed_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, refreshed_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   name = excluded.name,
 			   input_price = excluded.input_price,
 			   output_price = excluded.output_price,
 			   context_length = excluded.context_length,
+			   input_modalities = excluded.input_modalities,
+			   output_modalities = excluded.output_modalities,
 			   is_active = 1,
 			   refreshed_at = excluded.refreshed_at`,
 		);
@@ -28,6 +30,8 @@ export class PricingDao {
 				m.input_price,
 				m.output_price,
 				m.context_length,
+				m.input_modalities,
+				m.output_modalities,
 				now,
 			),
 		);

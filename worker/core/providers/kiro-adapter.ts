@@ -34,6 +34,8 @@ interface ModelEntry {
 	input_usd: number;
 	output_usd: number;
 	context_length: number;
+	input_modalities?: string[];
+	output_modalities?: string[];
 }
 
 // ─── Token cache ────────────────────────────────────────
@@ -257,6 +259,7 @@ export class KiroAdapter implements ProviderAdapter {
 	}
 
 	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
+		const def = '["text"]';
 		return (kiroModels as ModelEntry[]).map((m) => ({
 			id: `kiro:${m.id}`,
 			provider: "kiro",
@@ -265,6 +268,8 @@ export class KiroAdapter implements ProviderAdapter {
 			input_price: dollarsToCentsPerM(m.input_usd),
 			output_price: dollarsToCentsPerM(m.output_usd),
 			context_length: m.context_length,
+			input_modalities: m.input_modalities ? JSON.stringify(m.input_modalities.sort()) : def,
+			output_modalities: m.output_modalities ? JSON.stringify(m.output_modalities.sort()) : def,
 			is_active: 1,
 		}));
 	}

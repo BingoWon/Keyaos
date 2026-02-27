@@ -23,6 +23,15 @@ import {
 	type OpenAICompatibleConfig,
 } from "./openai-compatible";
 
+// ─── Helpers ────────────────────────────────────────────────
+
+const DEFAULT_MODALITIES = '["text"]';
+
+function serializeModalities(arr: unknown): string {
+	if (!Array.isArray(arr) || arr.length === 0) return DEFAULT_MODALITIES;
+	return JSON.stringify(arr.filter((x): x is string => typeof x === "string").sort());
+}
+
 // ─── Dynamic parsers (parse upstream API response) ──────────
 
 /** OpenRouter: pricing.prompt/completion are USD per token (strings) */
@@ -41,6 +50,7 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 		if (Number.isNaN(inputUsdPerM) || Number.isNaN(outputUsdPerM)) continue;
 		if (inputUsdPerM < 0 || outputUsdPerM < 0) continue;
 
+		const arch = m.architecture as Record<string, unknown> | undefined;
 		results.push({
 			id: `openrouter:${id}`,
 			provider: "openrouter",
@@ -49,6 +59,8 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			input_price: dollarsToCentsPerM(inputUsdPerM),
 			output_price: dollarsToCentsPerM(outputUsdPerM),
 			context_length: (m.context_length as number) || null,
+			input_modalities: serializeModalities(arch?.input_modalities),
+			output_modalities: serializeModalities(arch?.output_modalities),
 			is_active: 1,
 		});
 	}
@@ -78,6 +90,8 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			input_price: dollarsToCentsPerM(promptArr[0].value),
 			output_price: dollarsToCentsPerM(compArr[0].value),
 			context_length: (m.context_length as number) || null,
+			input_modalities: serializeModalities(m.input_modalities),
+			output_modalities: serializeModalities(m.output_modalities),
 			is_active: 1,
 		});
 	}
@@ -106,6 +120,8 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			input_price: dollarsToCentsPerM(pricing.input_tokens),
 			output_price: dollarsToCentsPerM(pricing.output_tokens),
 			context_length: (metadata?.context_length as number) || null,
+			input_modalities: DEFAULT_MODALITIES,
+			output_modalities: DEFAULT_MODALITIES,
 			is_active: 1,
 		});
 	}
@@ -120,6 +136,8 @@ interface StaticModelEntry {
 	input_usd: number;
 	output_usd: number;
 	context_length: number | null;
+	input_modalities?: string[];
+	output_modalities?: string[];
 }
 
 function parseStaticUsdModels(
@@ -134,6 +152,8 @@ function parseStaticUsdModels(
 		input_price: dollarsToCentsPerM(m.input_usd),
 		output_price: dollarsToCentsPerM(m.output_usd),
 		context_length: m.context_length,
+		input_modalities: serializeModalities(m.input_modalities || ["text"]),
+		output_modalities: serializeModalities(m.output_modalities || ["text"]),
 		is_active: 1,
 	}));
 }
