@@ -40,7 +40,7 @@ interface UsageEntry {
 
 interface ModelGroup {
 	id: string;
-	providerCount: number;
+	providerIds: string[];
 	bestInputPrice: number;
 	bestOutputPrice: number;
 	bestPlatformInputPrice?: number;
@@ -118,7 +118,7 @@ function aggregateTopModels(
 	return [...groups.entries()]
 		.map(([id, g]) => ({
 			id,
-			providerCount: g.providers.size,
+			providerIds: [...g.providers],
 			bestInputPrice: g.bestInput,
 			bestOutputPrice: g.bestOutput,
 			bestPlatformInputPrice: g.bestPlatformInput,
@@ -129,7 +129,7 @@ function aggregateTopModels(
 		}))
 		.sort(
 			(a, b) =>
-				b.providerCount - a.providerCount ||
+				b.providerIds.length - a.providerIds.length ||
 				b.id.localeCompare(a.id, undefined, { numeric: true }),
 		)
 		.slice(0, limit);
@@ -182,6 +182,11 @@ export function Dashboard() {
 	const providerGroups = useMemo(
 		() => aggregateProviders(rawModels ?? [], providersData ?? []),
 		[rawModels, providersData],
+	);
+
+	const providerMap = useMemo(
+		() => new Map((providersData ?? []).map((m) => [m.id, m])),
+		[providersData],
 	);
 
 	const loading = statsLoading || modelsLoading;
@@ -320,38 +325,55 @@ export function Dashboard() {
 							{t("dashboard.view_all")}
 						</Link>
 					</div>
-					<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-						{topModels.map((m) => (
-							<Link
-								key={m.id}
-								to="/dashboard/models"
-								className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors"
-							>
-								<code className="min-w-0 flex-1 text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
-									{m.id}
-								</code>
-								<div className="shrink-0 flex flex-wrap items-center justify-end gap-1.5">
-									<ModalityBadges input={m.inputModalities} output={m.outputModalities} size={14} />
-									<Badge variant="brand">{m.providerCount}</Badge>
-									<Badge variant="success">
-										<DualPrice
-											original={m.bestInputPrice}
-											platform={m.bestPlatformInputPrice}
-										/>
-										in
-									</Badge>
-									<Badge variant="accent">
-										<DualPrice
-											original={m.bestOutputPrice}
-											platform={m.bestPlatformOutputPrice}
-										/>
-										out
-									</Badge>
-									{m.maxContext > 0 && <Badge>{formatContext(m.maxContext)} ctx</Badge>}
-								</div>
-							</Link>
-						))}
-					</div>
+					<table className="min-w-full">
+						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+							{topModels.map((m) => (
+								<tr key={m.id} className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors">
+									<td className="py-3 pl-5 pr-2">
+										<Link to="/dashboard/models">
+											<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
+												{m.id}
+											</code>
+										</Link>
+									</td>
+									<td className="px-2 py-3">
+										<span className="inline-flex items-center gap-1">
+											{m.providerIds.slice(0, 5).map((pid) => {
+												const meta = providerMap.get(pid);
+												return meta ? (
+													<ProviderLogo key={pid} src={meta.logoUrl} name={meta.name} size={18} />
+												) : null;
+											})}
+										</span>
+									</td>
+									<td className="px-2 py-3">
+										<ModalityBadges input={m.inputModalities} output={m.outputModalities} size={14} />
+									</td>
+									<td className="px-2 py-3">
+										<span className="inline-flex items-center gap-1">
+											<Badge variant="success">
+												<DualPrice
+													original={m.bestInputPrice}
+													platform={m.bestPlatformInputPrice}
+												/>
+												in
+											</Badge>
+											<Badge variant="accent">
+												<DualPrice
+													original={m.bestOutputPrice}
+													platform={m.bestPlatformOutputPrice}
+												/>
+												out
+											</Badge>
+										</span>
+									</td>
+									<td className="py-3 pl-2 pr-5 text-right">
+										{m.maxContext > 0 && <Badge>{formatContext(m.maxContext)} ctx</Badge>}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</div>
 			)}
 
@@ -394,10 +416,10 @@ export function Dashboard() {
 									</td>
 									<td
 										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${tx.netCredits > 0
-												? "text-green-600 dark:text-green-400"
-												: tx.netCredits < 0
-													? "text-red-600 dark:text-red-400"
-													: "text-gray-400 dark:text-gray-500"
+											? "text-green-600 dark:text-green-400"
+											: tx.netCredits < 0
+												? "text-red-600 dark:text-red-400"
+												: "text-gray-400 dark:text-gray-500"
 											}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
