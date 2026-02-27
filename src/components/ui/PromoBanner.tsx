@@ -7,13 +7,28 @@ interface PromoBannerProps {
 
 export function PromoBanner({ title, description }: PromoBannerProps) {
     return (
-        <div className="mt-4 rounded-xl border border-brand-200/60 bg-gradient-to-br from-brand-50 via-brand-50/60 to-accent-50/50 px-4 py-3 dark:border-brand-500/15 dark:from-brand-500/[0.08] dark:via-brand-500/[0.04] dark:to-accent-500/[0.04]">
-            <h2 className="text-[15px] font-semibold text-brand-900 dark:text-brand-100">
-                {title}
-            </h2>
-            <p className="mt-1 text-[13px] leading-relaxed text-brand-700/90 dark:text-brand-300/90">
-                {description}
-            </p>
+        <div className="relative mt-4 overflow-hidden rounded-xl px-4 py-3">
+            {/* Light: Brand Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-500 to-accent-400 dark:hidden" />
+            {/* Dark: Surface Gradient */}
+            <div
+                className="absolute inset-0 hidden dark:block"
+                style={{
+                    background: [
+                        "radial-gradient(circle at 25% 20%, rgba(127,57,173,0.25), transparent 55%)",
+                        "radial-gradient(circle at 80% 75%, rgba(208,144,96,0.18), transparent 55%)",
+                        "linear-gradient(180deg, rgba(27,7,54,0.92), rgba(18,4,33,0.78))",
+                    ].join(", "),
+                }}
+            />
+            <div className="relative">
+                <h2 className="text-[15px] font-semibold text-white">
+                    {title}
+                </h2>
+                <p className="mt-1 text-[13px] leading-relaxed text-white/80">
+                    {description}
+                </p>
+            </div>
         </div>
     );
 }

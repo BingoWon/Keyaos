@@ -190,7 +190,7 @@ export function Billing() {
 									href="https://openrouter.ai/docs/faq#pricing-and-fees"
 									target="_blank"
 									rel="noopener noreferrer"
-									className="font-semibold text-brand-800 hover:text-brand-900 dark:text-brand-200 dark:hover:text-white underline underline-offset-4 decoration-brand-500/30 hover:decoration-brand-500 transition-colors"
+									className="font-semibold text-white hover:text-white/90 underline underline-offset-4 decoration-white/40 hover:decoration-white/80 transition-colors"
 								/>
 							),
 						}}
