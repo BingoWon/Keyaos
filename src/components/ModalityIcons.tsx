@@ -1,26 +1,68 @@
 import {
-    ArrowRightIcon,
-    ChatBubbleLeftIcon,
-    PaperClipIcon,
+    DocumentArrowUpIcon,
+    MicrophoneIcon,
     PhotoIcon,
-    SpeakerWaveIcon,
     VideoCameraIcon,
 } from "@heroicons/react/20/solid";
+import { Icon } from "@iconify/react";
 import type { Modality } from "../../worker/core/db/schema";
 
-const ICON_MAP: Record<Modality, React.FC<{ className?: string }>> = {
-    text: ChatBubbleLeftIcon,
+/** Canonical display order */
+const MODALITY_ORDER: Modality[] = ["text", "image", "file", "audio", "video"];
+
+function TextIcon({ size }: { size: number }) {
+    return <Icon icon="solar:text-square-bold" width={size} height={size} />;
+}
+
+const ICON_MAP: Record<Modality, React.FC<{ className?: string; style?: React.CSSProperties }>> = {
+    text: ({ style }) => <TextIcon size={style?.width as number ?? 14} />,
     image: PhotoIcon,
-    audio: SpeakerWaveIcon,
+    file: DocumentArrowUpIcon,
+    audio: MicrophoneIcon,
     video: VideoCameraIcon,
-    file: PaperClipIcon,
 };
 
-/** Compact modality icon strip — hidden when text-only (the default). */
-export function ModalityIcons({
+const LABEL_MAP: Record<Modality, string> = {
+    text: "text",
+    image: "image",
+    file: "file",
+    audio: "audio",
+    video: "video",
+};
+
+function ModalityDot({
+    modality,
+    size,
+    muted = false,
+}: {
+    modality: Modality;
+    size: number;
+    muted?: boolean;
+}) {
+    const IconComp = ICON_MAP[modality];
+    return (
+        <span title={LABEL_MAP[modality]} className="inline-flex">
+            <IconComp
+                className={`shrink-0 ${muted ? "text-gray-300 dark:text-gray-600" : ""}`}
+                style={{ width: size, height: size }}
+            />
+        </span>
+    );
+}
+
+function renderRow(modalities: Modality[], size: number, muted = false) {
+    return MODALITY_ORDER
+        .filter((m) => modalities.includes(m))
+        .map((m) => <ModalityDot key={m} modality={m} size={size} muted={muted} />);
+}
+
+// ─── Inline badges (for Models page collapsed cards) ────
+
+/** Compact Input/Output badge pair. Hidden when both are text-only. */
+export function ModalityBadges({
     input,
     output,
-    size = 14,
+    size = 13,
 }: {
     input?: Modality[];
     output?: Modality[];
@@ -33,24 +75,33 @@ export function ModalityIcons({
         inp.length === 1 && inp[0] === "text" && out.length === 1 && out[0] === "text";
     if (isDefault) return null;
 
-    const extraInput = inp.filter((m) => m !== "text");
-    const extraOutput = out.filter((m) => m !== "text");
-
     return (
-        <span className="inline-flex items-center gap-0.5 text-gray-400 dark:text-gray-500" title={`In: ${inp.join(", ")} → Out: ${out.join(", ")}`}>
-            {extraInput.map((m) => {
-                const Icon = ICON_MAP[m];
-                return <Icon key={`in-${m}`} className="shrink-0" style={{ width: size, height: size }} />;
-            })}
-            {extraOutput.length > 0 && (
-                <>
-                    <ArrowRightIcon className="shrink-0 text-gray-300 dark:text-gray-600" style={{ width: size - 2, height: size - 2 }} />
-                    {extraOutput.map((m) => {
-                        const Icon = ICON_MAP[m];
-                        return <Icon key={`out-${m}`} className="shrink-0 text-blue-400 dark:text-blue-500" style={{ width: size, height: size }} />;
-                    })}
-                </>
-            )}
+        <span className="inline-flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
+            <span className="inline-flex items-center gap-px" title="Input modalities">
+                {renderRow(inp, size)}
+            </span>
+            <span className="text-[10px] text-gray-300 dark:text-gray-600 select-none">→</span>
+            <span className="inline-flex items-center gap-px" title="Output modalities">
+                {renderRow(out, size)}
+            </span>
+        </span>
+    );
+}
+
+// ─── Table cell (for Providers page columns) ────────────
+
+/** Render a single modality cell for table columns. Shows sorted icons. */
+export function ModalityCell({
+    modalities,
+    size = 14,
+}: {
+    modalities?: Modality[];
+    size?: number;
+}) {
+    const mods = modalities ?? ["text"];
+    return (
+        <span className="inline-flex items-center gap-0.5 text-gray-400 dark:text-gray-500">
+            {renderRow(mods, size)}
         </span>
     );
 }

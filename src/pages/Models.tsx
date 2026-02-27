@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
-import { ModalityIcons } from "../components/ModalityIcons";
+import { ModalityBadges } from "../components/ModalityIcons";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -102,12 +102,9 @@ function ModelCard({
 					className={`mt-0.5 size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
 				/>
 				<div className="min-w-0 flex-1">
-					<span className="flex items-center gap-1.5">
-						<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-							{group.displayName}
-						</h4>
-						<ModalityIcons input={group.inputModalities} output={group.outputModalities} />
-					</span>
+					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+						{group.displayName}
+					</h4>
 					<span className="flex items-center gap-1 mt-1">
 						<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
 							{group.id}
@@ -137,6 +134,7 @@ function ModelCard({
 						<Badge variant="brand">{group.providers.length}</Badge>
 					</div>
 					<div className="flex flex-wrap items-center justify-end gap-1.5">
+						<ModalityBadges input={group.inputModalities} output={group.outputModalities} />
 						<Badge variant="success">
 							<DualPrice
 								original={best.inputPrice}

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
-import { ModalityIcons } from "../components/ModalityIcons";
+import { ModalityCell } from "../components/ModalityIcons";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -82,6 +82,8 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 								<th className="py-2.5 pl-4 pr-2 sm:pl-5">
 									{t("models.model")}
 								</th>
+								<th className="px-2">In</th>
+								<th className="px-2">Out</th>
 								<th className="px-2 text-right">Input /1M</th>
 								<th className="px-2 text-right">Output /1M</th>
 								<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">Context</th>
@@ -95,9 +97,14 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 											<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
 												{m.id}
 											</code>
-											<ModalityIcons input={m.inputModalities} output={m.outputModalities} size={12} />
 											<CopyButton text={m.id} />
 										</span>
+									</td>
+									<td className="px-2 py-2.5">
+										<ModalityCell modalities={m.inputModalities} size={13} />
+									</td>
+									<td className="px-2 py-2.5">
+										<ModalityCell modalities={m.outputModalities} size={13} />
 									</td>
 									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice
