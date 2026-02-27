@@ -1,10 +1,10 @@
 /**
  * Platform settlement — service fee calculation and wallet operations.
  *
- * Both sides pay a 1% fee:
- *   Consumer pays:  baseCost × 1.01
- *   Provider earns: baseCost × 0.99
- *   Platform keeps:  baseCost × 0.02
+ * Both sides pay a 3% fee (6% total platform markup):
+ *   Consumer pays:  baseCost × 1.03
+ *   Provider earns: baseCost × 0.97
+ *   Platform keeps: baseCost × 0.06
  *
  * Self-use (consumer = credential owner) incurs no wallet operations.
  */
@@ -12,7 +12,7 @@
 import type { Settlement } from "../../shared/types";
 import { WalletDao } from "./wallet-dao";
 
-export const SERVICE_FEE_RATE = 0.01;
+export const SERVICE_FEE_RATE = 0.03;
 
 export function calculateSettlement(
 	baseCost: number,
