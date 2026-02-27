@@ -31,13 +31,14 @@ function SyncButton({
 	label: string;
 	endpoint: string;
 }) {
-	const { token } = useAuth();
+	const { getToken } = useAuth();
 	const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
 	const [elapsed, setElapsed] = useState(0);
 
 	const run = useCallback(async () => {
 		setState("loading");
 		try {
+			const token = await getToken();
 			const res = await fetch(endpoint, {
 				method: "POST",
 				headers: { Authorization: `Bearer ${token}` },
@@ -51,7 +52,7 @@ function SyncButton({
 			setState("error");
 			setTimeout(() => setState("idle"), 3000);
 		}
-	}, [endpoint, token]);
+	}, [endpoint, getToken]);
 
 	return (
 		<button
