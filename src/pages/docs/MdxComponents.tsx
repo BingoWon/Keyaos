@@ -90,7 +90,7 @@ function CodeBlock(props: ComponentPropsWithoutRef<"pre">) {
 			</div>
 			{/* Code content */}
 			<pre
-				className="overflow-x-auto rounded-b-lg bg-brand-950/95 p-4 font-mono text-[13px] leading-relaxed text-gray-100 dark:bg-brand-950/60 [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-inherit [&>code]:text-[inherit]"
+				className="overflow-x-auto rounded-b-lg bg-brand-950/95 p-4 font-mono text-[13px] leading-relaxed text-gray-100 dark:bg-brand-950/60 [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-inherit"
 				{...props}
 			/>
 		</div>

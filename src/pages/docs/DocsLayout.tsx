@@ -43,7 +43,6 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import { LanguageSelector } from "../../components/LanguageSelector";
 import { ThemeToggle } from "../../components/ThemeToggle";
 import { classNames } from "../../utils/classNames";
-import { mdxComponents } from "./MdxComponents";
 import { TableOfContents } from "./TableOfContents";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -372,7 +371,7 @@ export function DocsLayout() {
 							</div>
 							{/* MDX content */}
 							<div data-docs-content>
-								<Outlet context={mdxComponents} />
+								<Outlet />
 							</div>
 						</div>
 						{/* TOC */}
