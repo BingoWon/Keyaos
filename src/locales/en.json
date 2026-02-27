@@ -5,9 +5,13 @@
 	},
 	"docs": {
 		"title": "Docs",
+		"section_getting_started": "Getting Started",
+		"section_help_center": "Help Center",
 		"nav_quickstart": "Quick Start",
 		"nav_pricing": "Pricing",
-		"nav_privacy": "Privacy"
+		"nav_privacy": "Privacy Policy",
+		"nav_terms": "Terms of Service",
+		"nav_contact": "Contact Us"
 	},
 	"common": {
 		"loading": "Loading...",

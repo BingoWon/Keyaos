@@ -7,13 +7,17 @@ import {
 import {
 	Bars3Icon,
 	BookOpenIcon,
+	ChatBubbleLeftRightIcon,
 	CurrencyDollarIcon,
+	DocumentTextIcon,
 	ShieldCheckIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
 import {
 	BookOpenIcon as BookOpenIconSolid,
+	ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
 	CurrencyDollarIcon as CurrencyDollarIconSolid,
+	DocumentTextIcon as DocumentTextIconSolid,
 	ShieldCheckIcon as ShieldCheckIconSolid,
 } from "@heroicons/react/24/solid";
 import type { ComponentType, SVGProps } from "react";
@@ -24,6 +28,7 @@ import { LanguageSelector } from "../../components/LanguageSelector";
 import { ThemeToggle } from "../../components/ThemeToggle";
 import { classNames } from "../../utils/classNames";
 import { mdxComponents } from "./MdxComponents";
+import { TableOfContents } from "./TableOfContents";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -49,49 +54,63 @@ interface NavItem {
 	activeIcon: HeroIcon;
 }
 
+interface NavSection {
+	label: string;
+	items: NavItem[];
+}
+
 function Sidebar({
-	items,
+	sections,
 	onNavigate,
 }: {
-	items: NavItem[];
+	sections: NavSection[];
 	onNavigate?: () => void;
 }) {
 	return (
 		<nav className="flex flex-1 flex-col">
-			<ul className="flex flex-1 flex-col gap-y-1">
-				{items.map((item) => (
-					<li key={item.href}>
-						<NavLink
-							to={item.href}
-							end
-							onClick={onNavigate}
-							className={({ isActive }) =>
-								classNames(
-									isActive
-										? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
-										: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-									"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
-								)
-							}
-						>
-							{({ isActive }) => {
-								const Icon = isActive ? item.activeIcon : item.icon;
-								return (
-									<>
-										<Icon
-											aria-hidden="true"
-											className={classNames(
+			<ul className="flex flex-1 flex-col gap-y-6">
+				{sections.map((section) => (
+					<li key={section.label}>
+						<h3 className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+							{section.label}
+						</h3>
+						<ul className="space-y-1">
+							{section.items.map((item) => (
+								<li key={item.href}>
+									<NavLink
+										to={item.href}
+										end
+										onClick={onNavigate}
+										className={({ isActive }) =>
+											classNames(
 												isActive
-													? "text-brand-600 dark:text-brand-300"
-													: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
-												"size-6 shrink-0",
-											)}
-										/>
-										{item.name}
-									</>
-								);
-							}}
-						</NavLink>
+													? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+													: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
+												"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
+											)
+										}
+									>
+										{({ isActive }) => {
+											const Icon = isActive ? item.activeIcon : item.icon;
+											return (
+												<>
+													<Icon
+														aria-hidden="true"
+														className={classNames(
+															isActive
+																? "text-brand-600 dark:text-brand-300"
+																: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
+															"size-5 shrink-0",
+														)}
+													/>
+													{item.name}
+												</>
+											);
+										}}
+									</NavLink>
+								</li>
+							))}
+						</ul>
 					</li>
 				))}
 			</ul>
@@ -107,24 +126,46 @@ export function DocsLayout() {
 	const { t } = useTranslation();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
-	const navItems: NavItem[] = [
+	const navSections: NavSection[] = [
 		{
-			name: t("docs.nav_quickstart"),
-			href: "/docs/quickstart",
-			icon: BookOpenIcon,
-			activeIcon: BookOpenIconSolid,
+			label: t("docs.section_getting_started"),
+			items: [
+				{
+					name: t("docs.nav_quickstart"),
+					href: "/docs/quickstart",
+					icon: BookOpenIcon,
+					activeIcon: BookOpenIconSolid,
+				},
+				{
+					name: t("docs.nav_pricing"),
+					href: "/docs/pricing",
+					icon: CurrencyDollarIcon,
+					activeIcon: CurrencyDollarIconSolid,
+				},
+			],
 		},
 		{
-			name: t("docs.nav_pricing"),
-			href: "/docs/pricing",
-			icon: CurrencyDollarIcon,
-			activeIcon: CurrencyDollarIconSolid,
-		},
-		{
-			name: t("docs.nav_privacy"),
-			href: "/docs/privacy",
-			icon: ShieldCheckIcon,
-			activeIcon: ShieldCheckIconSolid,
+			label: t("docs.section_help_center"),
+			items: [
+				{
+					name: t("docs.nav_privacy"),
+					href: "/docs/privacy",
+					icon: ShieldCheckIcon,
+					activeIcon: ShieldCheckIconSolid,
+				},
+				{
+					name: t("docs.nav_terms"),
+					href: "/docs/terms",
+					icon: DocumentTextIcon,
+					activeIcon: DocumentTextIconSolid,
+				},
+				{
+					name: t("docs.nav_contact"),
+					href: "/docs/contact",
+					icon: ChatBubbleLeftRightIcon,
+					activeIcon: ChatBubbleLeftRightIconSolid,
+				},
+			],
 		},
 	];
 
@@ -167,7 +208,7 @@ export function DocsLayout() {
 								</Link>
 							</div>
 							<Sidebar
-								items={navItems}
+								sections={navSections}
 								onNavigate={() => setSidebarOpen(false)}
 							/>
 						</div>
@@ -176,7 +217,7 @@ export function DocsLayout() {
 			</Dialog>
 
 			{/* Desktop sidebar */}
-			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
 				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 dark:border-white/10 dark:bg-black/10">
 					<div className="flex h-16 shrink-0 items-center justify-between">
 						<Link to="/" className="flex items-center gap-2.5">
@@ -195,7 +236,7 @@ export function DocsLayout() {
 							<GitHubIcon className="size-5" />
 						</a>
 					</div>
-					<Sidebar items={navItems} />
+					<Sidebar sections={navSections} />
 				</div>
 			</div>
 
@@ -214,10 +255,21 @@ export function DocsLayout() {
 				</div>
 			</div>
 
-			{/* Content area */}
-			<main className="py-10 lg:pl-72 dark:bg-gray-900 min-h-screen">
-				<div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-					<Outlet context={mdxComponents} />
+			{/* Content area: main + TOC */}
+			<main className="lg:pl-64 dark:bg-gray-900 min-h-screen">
+				<div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+					<div className="lg:grid lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_240px]">
+						{/* Article content */}
+						<div className="max-w-3xl">
+							<Outlet context={mdxComponents} />
+						</div>
+						{/* Right TOC — desktop only */}
+						<aside className="hidden lg:block">
+							<div className="sticky top-10">
+								<TableOfContents />
+							</div>
+						</aside>
+					</div>
 				</div>
 			</main>
 		</div>

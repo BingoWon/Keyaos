@@ -1,4 +1,11 @@
-import type { ComponentPropsWithoutRef } from "react";
+import { CheckIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import {
+	Children,
+	type ComponentPropsWithoutRef,
+	isValidElement,
+	type ReactElement,
+	useState,
+} from "react";
 import { Link } from "react-router-dom";
 
 /* ── Headings ──────────────────────────────────────────── */
@@ -24,15 +31,74 @@ function makeHeading(Tag: "h1" | "h2" | "h3" | "h4") {
 	};
 }
 
-/* ── Code ──────────────────────────────────────────────── */
+/* ── Code block with copy button ───────────────────────── */
 
-/**
- * MDX renders fenced code blocks as `<pre><code className="language-*">`.
- * Inline code renders as `<code>` without a className.
- * We use the className prop to distinguish the two cases:
- * - With className → block code inside <pre>, keep transparent bg
- * - Without className → inline code, apply pill styling
- */
+function extractText(node: unknown): string {
+	if (typeof node === "string") return node;
+	if (typeof node === "number") return String(node);
+	if (!isValidElement(node)) return "";
+	const el = node as ReactElement<{ children?: React.ReactNode }>;
+	return Children.toArray(el.props.children).map(extractText).join("");
+}
+
+function CodeBlock(props: ComponentPropsWithoutRef<"pre">) {
+	const [copied, setCopied] = useState(false);
+
+	// Extract language from child <code className="language-*">
+	const child = Children.only(props.children);
+	const lang =
+		isValidElement(child) &&
+		typeof (child as ReactElement<{ className?: string }>).props.className ===
+			"string"
+			? (child as ReactElement<{ className?: string }>).props.className
+					?.replace("language-", "")
+					.toUpperCase()
+			: undefined;
+
+	const text = extractText(props.children);
+
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(text);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
+	return (
+		<div className="group relative mb-4">
+			{/* Header bar: language label + copy */}
+			<div className="flex items-center justify-between rounded-t-lg bg-brand-950 px-4 py-1.5 dark:bg-brand-950/80">
+				<span className="text-[11px] font-medium uppercase tracking-wider text-brand-300/70">
+					{lang || "CODE"}
+				</span>
+				<button
+					type="button"
+					onClick={handleCopy}
+					className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-brand-300/70 transition-colors hover:bg-white/10 hover:text-brand-200"
+				>
+					{copied ? (
+						<>
+							<CheckIcon className="size-3.5 text-green-400" />
+							<span>Copied</span>
+						</>
+					) : (
+						<>
+							<ClipboardDocumentIcon className="size-3.5" />
+							<span>Copy</span>
+						</>
+					)}
+				</button>
+			</div>
+			{/* Code content */}
+			<pre
+				className="overflow-x-auto rounded-b-lg bg-brand-950/95 p-4 font-mono text-[13px] leading-relaxed text-gray-100 dark:bg-brand-950/60 [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-inherit [&>code]:text-[inherit]"
+				{...props}
+			/>
+		</div>
+	);
+}
+
+/* ── Inline code ───────────────────────────────────────── */
+
 function Code(props: ComponentPropsWithoutRef<"code">) {
 	const isBlock = typeof props.className === "string";
 	if (isBlock) {
@@ -40,7 +106,7 @@ function Code(props: ComponentPropsWithoutRef<"code">) {
 	}
 	return (
 		<code
-			className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[13px] text-gray-800 dark:bg-white/10 dark:text-gray-200"
+			className="rounded bg-brand-50 px-1.5 py-0.5 font-mono text-[13px] text-brand-800 dark:bg-brand-500/15 dark:text-brand-200"
 			{...props}
 		/>
 	);
@@ -97,12 +163,7 @@ export const mdxComponents = {
 		/>
 	),
 	code: Code,
-	pre: (props: ComponentPropsWithoutRef<"pre">) => (
-		<pre
-			className="mb-4 overflow-x-auto rounded-lg bg-gray-950 p-4 font-mono text-[13px] leading-relaxed text-gray-100 dark:bg-white/5 [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-inherit [&>code]:text-[inherit]"
-			{...props}
-		/>
-	),
+	pre: CodeBlock,
 	blockquote: (props: ComponentPropsWithoutRef<"blockquote">) => (
 		<blockquote
 			className="mb-4 border-l-4 border-brand-500/40 pl-4 italic text-sm text-gray-500 dark:text-gray-400"
