@@ -67,6 +67,7 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			output_modalities: serializeModalities(arch?.output_modalities),
 			sort_order: results.length,
 			upstream_model_id: null,
+			metadata: JSON.stringify(m),
 			created_at: createdMs && now - createdMs > ONE_DAY ? createdMs : now,
 		});
 	}
@@ -100,6 +101,7 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			output_modalities: serializeModalities(m.output_modalities),
 			sort_order: 999999,
 			upstream_model_id: null,
+			metadata: null,
 			created_at: Date.now(),
 		});
 	}
@@ -134,6 +136,7 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			output_modalities: null,
 			sort_order: 999999,
 			upstream_model_id: id,
+			metadata: null,
 			created_at: Date.now(),
 		});
 	}
@@ -166,6 +169,7 @@ function parseStaticUsdModels(
 		output_modalities: null,
 		sort_order: 999999,
 		upstream_model_id: null,
+		metadata: null,
 		created_at: Date.now(),
 	}));
 }

@@ -8,8 +8,8 @@ export class PricingDao {
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, sort_order, upstream_model_id, created_at, refreshed_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
+			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, sort_order, upstream_model_id, metadata, created_at, refreshed_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   name = excluded.name,
 			   input_price = excluded.input_price,
@@ -20,6 +20,7 @@ export class PricingDao {
 			   is_active = 1,
 			   sort_order = excluded.sort_order,
 			   upstream_model_id = excluded.upstream_model_id,
+			   metadata = excluded.metadata,
 			   refreshed_at = excluded.refreshed_at`,
 		);
 
@@ -36,6 +37,7 @@ export class PricingDao {
 				m.output_modalities,
 				m.sort_order,
 				m.upstream_model_id,
+				m.metadata,
 				m.created_at,
 				now,
 			),
@@ -82,6 +84,20 @@ export class PricingDao {
 			)
 			.bind(modelId)
 			.all<DbModelPricing>();
+		return res.results || [];
+	}
+
+	/** OpenRouter catalog for /v1/models — one entry per model, with full metadata */
+	async getOpenRouterCatalog(): Promise<
+		Pick<DbModelPricing, "metadata">[]
+	> {
+		const res = await this.db
+			.prepare(
+				`SELECT metadata FROM model_pricing
+				 WHERE provider = 'openrouter' AND is_active = 1 AND metadata IS NOT NULL
+				 ORDER BY sort_order ASC`,
+			)
+			.all<Pick<DbModelPricing, "metadata">>();
 		return res.results || [];
 	}
 

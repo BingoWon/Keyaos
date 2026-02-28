@@ -12,7 +12,7 @@ import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
 import credentialsRouter from "./routes/credentials";
 import messagesRouter from "./routes/messages";
-import modelsRouter from "./routes/models";
+import { dashboardModelsRouter, publicModelsRouter } from "./routes/models";
 import systemRouter from "./routes/system";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import { log } from "./shared/logger";
@@ -116,7 +116,7 @@ app.use("/v1/*", async (c, next) => {
 // ─── Management API ─────────────────────────────────────
 app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
-app.route("/api/models", modelsRouter);
+app.route("/api/models", dashboardModelsRouter);
 app.route("/api", systemRouter);
 
 // ─── Platform-only routes (gated at request time) ───────
@@ -143,7 +143,7 @@ app.route("/api/webhooks", webhookRouter);
 
 // ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);
-app.route("/v1/models", modelsRouter);
+app.route("/v1/models", publicModelsRouter);
 
 app.get("/v1/credits", async (c) => {
 	const { WalletDao } = await import("./platform/billing/wallet-dao");

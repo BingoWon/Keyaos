@@ -293,6 +293,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			output_modalities: null,
 			sort_order: 999999,
 			upstream_model_id: null,
+			metadata: null,
 			created_at: Date.now(),
 		}));
 	}

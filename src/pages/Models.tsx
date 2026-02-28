@@ -54,11 +54,11 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		// Merge modalities (take union across providers)
 		mergeModalities(group.inputModalities, e.input_modalities);
 		mergeModalities(group.outputModalities, e.output_modalities);
-		if (e.created && (!group.createdAt || e.created * 1000 < group.createdAt)) {
-			group.createdAt = e.created * 1000;
+		if (e.created_at && (!group.createdAt || e.created_at < group.createdAt)) {
+			group.createdAt = e.created_at;
 		}
 		group.providers.push({
-			provider: e.owned_by,
+			provider: e.provider,
 			inputPrice: e.input_price ?? 0,
 			outputPrice: e.output_price ?? 0,
 			platformInputPrice: e.platform_input_price,
@@ -227,7 +227,7 @@ function ModelCard({
 
 export function Models() {
 	const { t } = useTranslation();
-	const { data: raw, loading, error } = useFetch<ModelEntry[]>("/v1/models");
+	const { data: raw, loading, error } = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
 
 	const providerMap = useMemo(() => {

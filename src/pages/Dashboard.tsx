@@ -88,7 +88,7 @@ function aggregateTopModels(
 			};
 			groups.set(e.id, g);
 		}
-		g.providers.add(e.owned_by);
+		g.providers.add(e.provider);
 		const ip = e.input_price ?? 0;
 		const op = e.output_price ?? 0;
 		if (ip < g.bestInput) g.bestInput = ip;
@@ -131,7 +131,7 @@ function aggregateProviders(
 ): ProviderGroup[] {
 	const counts = new Map<string, number>();
 	for (const e of entries) {
-		counts.set(e.owned_by, (counts.get(e.owned_by) ?? 0) + 1);
+		counts.set(e.provider, (counts.get(e.provider) ?? 0) + 1);
 	}
 	const metaMap = new Map(metas.map((m) => [m.id, m]));
 	return [...counts.entries()]
@@ -153,7 +153,7 @@ export function Dashboard() {
 		{ skip: !isPlatform },
 	);
 	const { data: rawModels, loading: modelsLoading } =
-		useFetch<ModelEntry[]>("/v1/models");
+		useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
 	const { data: recentUsage } = useFetch<UsageEntry[]>("/api/usage?limit=5", {
 		skip: !isPlatform,
@@ -420,10 +420,10 @@ export function Dashboard() {
 									</td>
 									<td
 										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${tx.netCredits > 0
-												? "text-green-600 dark:text-green-400"
-												: tx.netCredits < 0
-													? "text-red-600 dark:text-red-400"
-													: "text-gray-400 dark:text-gray-500"
+											? "text-green-600 dark:text-green-400"
+											: tx.netCredits < 0
+												? "text-red-600 dark:text-red-400"
+												: "text-gray-400 dark:text-gray-500"
 											}`}
 									>
 										{formatSignedUSD(tx.netCredits)}

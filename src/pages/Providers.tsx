@@ -134,7 +134,7 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 export function Providers() {
 	const { t } = useTranslation();
 	const { data: models, loading: modelsLoading } =
-		useFetch<ModelEntry[]>("/v1/models");
+		useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData, loading: providersLoading } =
 		useFetch<ProviderMeta[]>("/api/providers");
 
@@ -146,13 +146,12 @@ export function Providers() {
 
 		const byProvider = new Map<string, ProviderGroup>();
 		for (const m of models) {
-			const meta = providerMap.get(m.owned_by);
+			const meta = providerMap.get(m.provider);
 			if (!meta) continue;
-
-			let group = byProvider.get(m.owned_by);
+			let group = byProvider.get(m.provider);
 			if (!group) {
 				group = { provider: meta, models: [] };
-				byProvider.set(m.owned_by, group);
+				byProvider.set(m.provider, group);
 			}
 			group.models.push({
 				id: m.id,
