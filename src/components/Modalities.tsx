@@ -58,13 +58,6 @@ export function ModalityBadges({
 	const inp = input ?? ["text"];
 	const out = output ?? ["text"];
 
-	const isDefault =
-		inp.length === 1 &&
-		inp[0] === "text" &&
-		out.length === 1 &&
-		out[0] === "text";
-	if (isDefault) return null;
-
 	return (
 		<span className="inline-flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
 			<span className="inline-flex items-center gap-0.5">
