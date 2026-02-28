@@ -87,20 +87,6 @@ export class PricingDao {
 		return res.results || [];
 	}
 
-	/** OpenRouter catalog for /v1/models — one entry per model, with full metadata */
-	async getOpenRouterCatalog(): Promise<
-		Pick<DbModelPricing, "metadata">[]
-	> {
-		const res = await this.db
-			.prepare(
-				`SELECT metadata FROM model_pricing
-				 WHERE provider = 'openrouter' AND is_active = 1 AND metadata IS NOT NULL
-				 ORDER BY sort_order ASC`,
-			)
-			.all<Pick<DbModelPricing, "metadata">>();
-		return res.results || [];
-	}
-
 	async getActivePricingWithBestMultiplier(): Promise<
 		(DbModelPricing & { best_multiplier: number | null })[]
 	> {
