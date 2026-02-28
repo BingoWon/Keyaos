@@ -221,13 +221,13 @@ export function Dashboard() {
 		},
 		...(isPlatform
 			? [
-				{
-					name: t("dashboard.wallet_balance"),
-					stat: wallet ? formatUSD(wallet.balance) : "-",
-					icon: CreditCardIcon,
-					href: "/dashboard/billing",
-				},
-			]
+					{
+						name: t("dashboard.wallet_balance"),
+						stat: wallet ? formatUSD(wallet.balance) : "-",
+						icon: CreditCardIcon,
+						href: "/dashboard/billing",
+					},
+				]
 			: []),
 	];
 
@@ -419,12 +419,13 @@ export function Dashboard() {
 										{tx.provider}
 									</td>
 									<td
-										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${tx.netCredits > 0
-											? "text-green-600 dark:text-green-400"
-											: tx.netCredits < 0
-												? "text-red-600 dark:text-red-400"
-												: "text-gray-400 dark:text-gray-500"
-											}`}
+										className={`py-2.5 pl-2 pr-5 text-sm text-right font-medium whitespace-nowrap ${
+											tx.netCredits > 0
+												? "text-green-600 dark:text-green-400"
+												: tx.netCredits < 0
+													? "text-red-600 dark:text-red-400"
+													: "text-gray-400 dark:text-gray-500"
+										}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>

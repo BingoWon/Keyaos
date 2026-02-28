@@ -20,8 +20,8 @@ import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";
 import AuthenticationMdx from "./pages/docs/authentication.mdx";
 import BillingMdx from "./pages/docs/billing.mdx";
 import ContactMdx from "./pages/docs/contact.mdx";
-import CreditsApiMdx from "./pages/docs/credits-api.mdx";
 import CredentialsSharingMdx from "./pages/docs/credentials-sharing.mdx";
+import CreditsApiMdx from "./pages/docs/credits-api.mdx";
 import { DocsLayout } from "./pages/docs/DocsLayout";
 import ErrorCodesMdx from "./pages/docs/error-codes.mdx";
 import IntroductionMdx from "./pages/docs/introduction.mdx";
@@ -50,9 +50,9 @@ const dashboardChildren = [
 	{ path: "usage", element: <Usage /> },
 	...(isPlatform
 		? [
-			{ path: "ledger", element: <Ledger /> },
-			{ path: "billing", element: <Billing /> },
-		]
+				{ path: "ledger", element: <Ledger /> },
+				{ path: "billing", element: <Billing /> },
+			]
 		: []),
 ];
 
@@ -87,20 +87,20 @@ export const router = createBrowserRouter([
 	},
 	...(isPlatform
 		? [
-			{
-				path: "/admin",
-				element: (
-					<AuthGuard fallback={<Navigate to="/login" replace />}>
-						<AdminLayout />
-					</AuthGuard>
-				),
-				children: [
-					{ index: true, element: <Overview /> },
-					{ path: "users", element: <Users /> },
-					{ path: "data", element: <Data /> },
-				],
-			},
-		]
+				{
+					path: "/admin",
+					element: (
+						<AuthGuard fallback={<Navigate to="/login" replace />}>
+							<AdminLayout />
+						</AuthGuard>
+					),
+					children: [
+						{ index: true, element: <Overview /> },
+						{ path: "users", element: <Users /> },
+						{ path: "data", element: <Data /> },
+					],
+				},
+			]
 		: []),
 	{ path: "/design", element: <DesignSystem /> },
 	{

@@ -74,8 +74,7 @@ export function PriceChart({
 	const [subDim, setSubDim] = useState<ModelSubDimension>("input");
 
 	// For model charts, use model:input or model:output; for provider, use provider
-	const apiDimension =
-		dimension === "model" ? `model:${subDim}` : "provider";
+	const apiDimension = dimension === "model" ? `model:${subDim}` : "provider";
 	const url = `/api/candles/${apiDimension}/${encodeURIComponent(value)}?hours=${hours}`;
 	const { data: candles, loading } = useFetch<Candle[]>(url);
 
@@ -118,9 +117,9 @@ export function PriceChart({
 			priceFormat:
 				dimension === "provider"
 					? {
-						type: "custom" as const,
-						formatter: (p: number) => `×${p.toFixed(3)}`,
-					}
+							type: "custom" as const,
+							formatter: (p: number) => `×${p.toFixed(3)}`,
+						}
 					: { type: "price" as const, precision: 4, minMove: 0.0001 },
 		});
 
@@ -190,10 +189,11 @@ export function PriceChart({
 									key={d}
 									type="button"
 									onClick={() => setSubDim(d)}
-									className={`px-2 py-0.5 text-xs rounded-md transition-colors capitalize ${subDim === d
+									className={`px-2 py-0.5 text-xs rounded-md transition-colors capitalize ${
+										subDim === d
 											? "bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
 											: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-										}`}
+									}`}
 								>
 									{d}
 								</button>
@@ -207,10 +207,11 @@ export function PriceChart({
 							key={h}
 							type="button"
 							onClick={() => setHours(h)}
-							className={`px-2 py-0.5 text-xs rounded-md transition-colors ${hours === h
+							className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
+								hours === h
 									? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
 									: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-								}`}
+							}`}
 						>
 							{formatHours(h)}
 						</button>

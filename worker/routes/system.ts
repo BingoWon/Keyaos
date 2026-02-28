@@ -148,7 +148,12 @@ systemRouter.get("/candles/:dimension/:value", async (c) => {
 	const limit = hours * 60;
 
 	const dao = new CandleDao(c.env.DB);
-	const candles = await dao.getCandles(dimension as CandleDimension, value, since, limit);
+	const candles = await dao.getCandles(
+		dimension as CandleDimension,
+		value,
+		since,
+		limit,
+	);
 
 	return c.json({
 		data: candles.map((cd) => ({

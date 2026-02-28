@@ -4,13 +4,10 @@ import type { DbPriceCandle } from "./schema";
 const INTERVAL_MS = 60 * 1000;
 const RETENTION_DAYS = 30;
 
-export type CandleDimension =
-	| "model:input"
-	| "model:output"
-	| "provider";
+export type CandleDimension = "model:input" | "model:output" | "provider";
 
 export class CandleDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	/**
 	 * Aggregate real trade data into candles.
@@ -98,10 +95,22 @@ export class CandleDao {
 			const effectiveOutput = row.output_price * mul;
 
 			if (row.input_tokens > 0 && effectiveInput > 0) {
-				upsert("model:input", row.model, interval, effectiveInput, row.input_tokens);
+				upsert(
+					"model:input",
+					row.model,
+					interval,
+					effectiveInput,
+					row.input_tokens,
+				);
 			}
 			if (row.output_tokens > 0 && effectiveOutput > 0) {
-				upsert("model:output", row.model, interval, effectiveOutput, row.output_tokens);
+				upsert(
+					"model:output",
+					row.model,
+					interval,
+					effectiveOutput,
+					row.output_tokens,
+				);
 			}
 
 			if (mul > 0) {

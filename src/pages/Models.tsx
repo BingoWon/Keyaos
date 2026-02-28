@@ -1,5 +1,8 @@
-import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import {
+	ChevronRightIcon,
+	MagnifyingGlassIcon,
+	XMarkIcon,
+} from "@heroicons/react/20/solid";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CopyButton } from "../components/CopyButton";
@@ -252,19 +255,16 @@ export function Models() {
 		);
 	}, [groups, query]);
 
-	const handleKeyDown = useCallback(
-		(e: KeyboardEvent) => {
-			if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-				e.preventDefault();
-				inputRef.current?.focus();
-			}
-			if (e.key === "Escape" && document.activeElement === inputRef.current) {
-				setQuery("");
-				inputRef.current?.blur();
-			}
-		},
-		[],
-	);
+	const handleKeyDown = useCallback((e: KeyboardEvent) => {
+		if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+			e.preventDefault();
+			inputRef.current?.focus();
+		}
+		if (e.key === "Escape" && document.activeElement === inputRef.current) {
+			setQuery("");
+			inputRef.current?.blur();
+		}
+	}, []);
 
 	useEffect(() => {
 		document.addEventListener("keydown", handleKeyDown);

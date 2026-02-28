@@ -57,7 +57,7 @@ app.use("/api/*", async (c, next) => {
 	if (c.req.path.startsWith("/api/webhooks/")) return next();
 
 	if (c.env.CLERK_SECRET_KEY) {
-		await clerkMiddleware()(c, async () => { });
+		await clerkMiddleware()(c, async () => {});
 		const auth = getAuth(c);
 		if (auth?.userId) {
 			c.set("owner_id", auth.userId);
@@ -94,7 +94,7 @@ app.use("/v1/*", async (c, next) => {
 
 	if (c.env.CLERK_SECRET_KEY) {
 		try {
-			await clerkMiddleware()(c, async () => { });
+			await clerkMiddleware()(c, async () => {});
 			const auth = getAuth(c);
 			if (auth?.userId) {
 				c.set("owner_id", auth.userId);

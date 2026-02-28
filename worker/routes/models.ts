@@ -24,8 +24,7 @@ publicModelsRouter.get("/", async (c) => {
 	]);
 
 	// cents-per-M-tokens → USD-per-token string (OpenRouter format)
-	const toUsdPerToken = (centsPerM: number) =>
-		String(centsPerM / 100_000_000);
+	const toUsdPerToken = (centsPerM: number) => String(centsPerM / 100_000_000);
 
 	// Group by model_id (Map preserves insertion order = sort_order)
 	const groups = new Map<
@@ -70,7 +69,8 @@ publicModelsRouter.get("/", async (c) => {
 			pricing.prompt = toUsdPerToken(inputClose);
 
 			// Derive discount ratio for multi-modal pricing
-			const originalPrompt = Number.parseFloat(basePricing.prompt || "0") * 100_000_000;
+			const originalPrompt =
+				Number.parseFloat(basePricing.prompt || "0") * 100_000_000;
 			if (originalPrompt > 0) {
 				const ratio = inputClose / originalPrompt;
 				for (const [key, val] of Object.entries(basePricing)) {
@@ -121,9 +121,9 @@ dashboardModelsRouter.get("/", async (c) => {
 			output_price: m.output_price,
 			...(mul != null &&
 				mul < 1 && {
-				platform_input_price: m.input_price * mul,
-				platform_output_price: m.output_price * mul,
-			}),
+					platform_input_price: m.input_price * mul,
+					platform_output_price: m.output_price * mul,
+				}),
 			context_length: m.context_length,
 			created_at: m.created_at || null,
 			input_modalities: m.input_modalities
