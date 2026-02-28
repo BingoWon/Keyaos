@@ -52,12 +52,14 @@ publicModelsRouter.get("/", async (c) => {
 			groups.set(row.model_id, g);
 		}
 
-		const mul = row.best_multiplier ?? 1;
-		const ei = row.input_price * mul;
-		const eo = row.output_price * mul;
-		if (ei < g.bestInput) g.bestInput = ei;
-		if (eo < g.bestOutput) g.bestOutput = eo;
-		if (!g.providers.includes(row.provider)) g.providers.push(row.provider);
+		const mul = row.best_multiplier;
+		if (mul != null) {
+			const ei = row.input_price * mul;
+			const eo = row.output_price * mul;
+			if (ei < g.bestInput) g.bestInput = ei;
+			if (eo < g.bestOutput) g.bestOutput = eo;
+			if (!g.providers.includes(row.provider)) g.providers.push(row.provider);
+		}
 	}
 
 	const data = [...groups.entries()].map(([id, g]) => {
