@@ -1,64 +1,36 @@
 # Pricing
 
-Keyaos passes through upstream provider pricing with no markup on the base model cost. Platform fees apply only to cross-user routing.
-
-## Credits
-
-Keyaos uses an internal currency called **Credits**. The exchange rate is fixed:
-
-| Amount | Credits |
-|--------|---------|
-| $1.00 USD | 1.00 Credits |
-| $10.00 USD | 10.00 Credits |
-| $100.00 USD | 100.00 Credits |
-
-## Deposit Fees
-
-**Zero.** We absorb all Stripe payment gateway fees. When you buy $10.00, you receive exactly 10.00 Credits. No markup, no hidden costs.
-
-For comparison, [OpenRouter charges a 5.5% fee](https://openrouter.ai/docs/faq#pricing-and-fees) on credit purchases.
+Keyaos passes through provider pricing with no markup on the base model cost. Platform fees apply only to cross-user routing.
 
 ## Routing Fees
 
 Fees depend on how your request is routed:
 
-| Scenario | Fee |
-|----------|-----|
+| Scenario | Your Fee |
+|----------|----------|
 | **Self-use** — request matches your own BYOK credential | **0%** (completely free) |
-| **Cross-user routing** — request is fulfilled by another user's shared credential | **6%** total (3% consumer + 3% provider) |
-| **No match** — no healthy credential available | No charge |
+| **Cross-user routing** — request is fulfilled by another user's shared credential | **3%** service fee |
+
+**No user is ever charged more than 3% on any single API call.** When you use your own credentials, routing is completely free.
 
 ### How Cross-User Fees Work
 
-When a request is routed through another user's shared credential:
+When a request is routed through another user's shared credential, each party pays a 3% service fee independently:
 
-- **Consumer pays**: base cost × 1.03 (3% surcharge)
-- **Provider earns**: base cost × 0.97 (3% platform commission)
-- **Platform keeps**: the 6% spread
+- **Consumer pays**: base cost × 1.03
+- **Provider earns**: base cost × 0.97
 
 ### Example
 
-A request costs $0.10 at the upstream provider rate:
+A request costs $5.00 at the provider's rate:
 
 | Party | Amount |
 |-------|--------|
-| Consumer charged | $0.103 |
-| Provider earns | $0.097 |
-| Platform fee | $0.006 |
+| Consumer charged | $5.15 |
+| Provider earns | $4.85 |
 
 ## BYOK — Bring Your Own Key
 
-Add your own API keys on the [BYOK](/dashboard/byok) page. When a request matches a model your key supports, it routes directly to the upstream provider through your credential — **completely free**, with zero platform fees.
+Add your own API credentials on the [BYOK](/dashboard/byok) page. When a request matches a model your credential supports, it routes directly to the provider — **completely free**, with zero fees.
 
-You can also **share** your keys to earn credits when other users route through them. Set a **price multiplier** to control your pricing strategy.
-
-## Price Multiplier
-
-Each shared credential has a configurable price multiplier (default: 0.8×):
-
-| Multiplier | Meaning |
-|-----------|---------|
-| 1.0× | Cost price (you earn nothing, consumer pays base rate) |
-| 0.8× | 20% discount — attracts more routing traffic |
-| 0.5× | Subscription keys — aggressive discount |
-| 1.5× | Premium pricing — for high-availability keys |
+You can also **share** your credentials (API keys, OAuth tokens, and more) to earn credits when other users route through them. See [Credentials Sharing](/docs/credentials-sharing) for details on pricing strategy and multipliers.

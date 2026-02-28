@@ -56,8 +56,8 @@ export function TableOfContents() {
 	if (items.length === 0) return null;
 
 	return (
-		<nav className="text-sm">
-			<h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+		<nav className="border-l border-gray-200 pl-4 text-sm dark:border-white/10">
+			<h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-gray-200">
 				On this page
 			</h4>
 			<ul className="space-y-1.5">

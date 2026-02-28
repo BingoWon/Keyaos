@@ -1,10 +1,9 @@
 /**
  * Platform settlement — service fee calculation and wallet operations.
  *
- * Both sides pay a 3% fee (6% total platform markup):
+ * Each side pays a 3% service fee on cross-user routing:
  *   Consumer pays:  baseCost × 1.03
  *   Provider earns: baseCost × 0.97
- *   Platform keeps: baseCost × 0.06
  *
  * Self-use (consumer = credential owner) incurs no wallet operations.
  */

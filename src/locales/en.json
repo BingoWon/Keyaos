@@ -14,6 +14,7 @@
 		"nav_models_routing": "Models & Routing",
 		"nav_credentials_sharing": "Credentials Sharing",
 		"nav_pricing": "Pricing",
+		"nav_billing": "Billing",
 		"nav_authentication": "Authentication",
 		"nav_openai_api": "OpenAI API",
 		"nav_anthropic_api": "Anthropic API",
@@ -45,6 +46,7 @@
 		"billing": "Billing",
 		"guide": "Guide",
 		"admin": "Admin",
+		"docs": "Docs",
 		"logout": "Log out"
 	},
 	"theme": {

@@ -1,4 +1,5 @@
 import {
+	BookOpenIcon,
 	BuildingOfficeIcon,
 	CpuChipIcon,
 	CreditCardIcon,
@@ -11,6 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import {
+	BookOpenIcon as BookOpenIconSolid,
 	BuildingOfficeIcon as BuildingOfficeIconSolid,
 	CpuChipIcon as CpuChipIconSolid,
 	CreditCardIcon as CreditCardIconSolid,
@@ -90,6 +92,12 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 					},
 				]
 			: []),
+		{
+			name: t("nav.docs"),
+			href: "/docs",
+			icon: BookOpenIcon,
+			activeIcon: BookOpenIconSolid,
+		},
 		...(isAdmin === true
 			? [
 					{

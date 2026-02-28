@@ -5,6 +5,7 @@ import {
 	TransitionChild,
 } from "@headlessui/react";
 import {
+	BanknotesIcon,
 	Bars3Icon,
 	BookOpenIcon,
 	ChatBubbleLeftRightIcon,
@@ -23,6 +24,7 @@ import {
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
 import {
+	BanknotesIcon as BanknotesIconSolid,
 	BookOpenIcon as BookOpenIconSolid,
 	ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
 	CodeBracketIcon as CodeBracketIconSolid,
@@ -218,6 +220,12 @@ export function DocsLayout() {
 					icon: CurrencyDollarIcon,
 					activeIcon: CurrencyDollarIconSolid,
 				},
+				{
+					name: t("docs.nav_billing"),
+					href: "/docs/billing",
+					icon: BanknotesIcon,
+					activeIcon: BanknotesIconSolid,
+				},
 			],
 		},
 		{
@@ -253,16 +261,16 @@ export function DocsLayout() {
 			label: t("docs.section_support"),
 			items: [
 				{
-					name: t("docs.nav_privacy"),
-					href: "/docs/privacy",
-					icon: ShieldCheckIcon,
-					activeIcon: ShieldCheckIconSolid,
-				},
-				{
 					name: t("docs.nav_terms"),
-					href: "/docs/terms",
+					href: "/docs/terms-of-service",
 					icon: DocumentTextIcon,
 					activeIcon: DocumentTextIconSolid,
+				},
+				{
+					name: t("docs.nav_privacy"),
+					href: "/docs/privacy-policy",
+					icon: ShieldCheckIcon,
+					activeIcon: ShieldCheckIconSolid,
 				},
 				{
 					name: t("docs.nav_contact"),

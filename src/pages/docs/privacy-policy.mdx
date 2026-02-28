@@ -1,0 +1,138 @@
+# Privacy Policy
+
+Last updated: February 27, 2026
+
+This Privacy Policy ("Policy") describes how the operators of Keyaos ("Keyaos," "we," "us," or "our") collect, use, and handle information when you access or use our website, APIs, and related services (collectively, the "Service"). This Policy is incorporated into and forms part of our [Terms of Service](/docs/terms-of-service).
+
+**By using the Service, you consent to the practices described in this Policy. If you do not agree, please do not use the Service.**
+
+## 1. What We Collect
+
+### 1.1 Account Information
+
+When you register, we collect information necessary to create and manage your account, including your email address, display name, and authentication credentials provided through our third-party authentication provider.
+
+### 1.2 Billing Information
+
+When you purchase Credits, payment processing is handled entirely by our third-party payment processor. We do not store your credit card numbers or financial account details. We retain only transaction confirmations and billing records.
+
+### 1.3 Request Metadata
+
+For each API request processed through the Service, we record the following metadata for billing and service operation:
+
+- Timestamp
+- Model identifier
+- Upstream provider used
+- Input and output token counts
+- Credit cost or earnings
+
+This metadata is visible on your [Usage](/dashboard/usage) page.
+
+### 1.4 Automatically Collected Information
+
+When you visit our website, we may automatically collect:
+
+- IP address
+- Browser type and version
+- Device type and operating system
+- Pages visited and interaction patterns
+- Referring URL
+
+## 2. What We Never Collect
+
+**Your prompts, completions, and all request/response content are never logged, stored, inspected, or retained by Keyaos — under any circumstances.**
+
+This is not a policy toggle or user setting. It is an architectural guarantee: the routing engine processes your API request payload in memory within an isolated runtime environment and forwards it directly to the upstream provider. No content is written to any database, disk, log, or persistent storage at any point.
+
+This applies equally to:
+
+- Direct API calls
+- Self-use (own credential) routing
+- Cross-user routing
+
+The Keyaos routing engine is source-available. You can independently verify this claim by reviewing the code on [GitHub](https://github.com/BingoWon/Keyaos).
+
+## 3. How We Use Your Data
+
+We use the information we collect for the following purposes:
+
+- **Service operation** — processing and routing your API requests, managing your account
+- **Billing** — calculating credit usage, recording transactions, generating usage reports
+- **Security** — detecting abuse, preventing fraud, protecting the integrity of the Service
+- **Service improvement** — analyzing aggregated, de-identified usage patterns to improve performance and reliability
+- **Communication** — sending you service-related notices, responding to support requests
+- **Legal compliance** — fulfilling obligations under applicable laws and regulations
+
+**We do not use any collected data to train, fine-tune, or improve any AI model or machine learning system.**
+
+## 4. How We Share Your Data
+
+We do not sell your personal information. We may share your information only in the following limited circumstances:
+
+- **Service providers** — with third-party providers who assist us in operating the Service (e.g., payment processing, authentication, hosting), bound by obligations to protect your data
+- **Legal requirements** — when required by law, regulation, legal process, or governmental request
+- **Protection of rights** — when necessary to protect the rights, safety, or property of Keyaos, our users, or the public
+- **Business transfers** — in connection with a merger, acquisition, or sale of assets, in which case your data would remain subject to this Policy
+
+## 5. Cookies & Analytics
+
+We use cookies and Google Analytics to understand how visitors interact with our website. Cookies are small text files placed on your device that help us recognize your browser and remember preferences.
+
+We use:
+
+- **Essential cookies** — required for basic site functionality such as authentication
+- **Analytics cookies** — used via Google Analytics to collect aggregated, anonymized usage statistics
+
+You can control cookie preferences through your browser settings. Disabling cookies may affect your ability to use certain features of the Service. For more information about Google Analytics and how to opt out, visit [Google's Privacy & Terms](https://policies.google.com/privacy) page.
+
+## 6. Third-Party Upstream Providers
+
+When the Service routes your API request to an upstream AI model provider, **your request content leaves the Keyaos environment and enters the provider's infrastructure.** From that point, the handling of your data is governed entirely by that provider's own privacy policy and data practices.
+
+Keyaos has no control over, and assumes no responsibility for, how upstream providers process, store, log, or use the content of your requests once forwarded. We encourage you to review the privacy policies and data practices of the AI model providers you access through the Service.
+
+## 7. Data Security
+
+We implement reasonable administrative, technical, and physical safeguards designed to protect your information, including:
+
+- API credentials protected by Cloudflare's infrastructure-level security
+- Secure communication channels (TLS/HTTPS)
+- Access controls limiting personnel access to user data
+- Isolated runtime environments (Cloudflare Workers) for request processing
+
+However, no method of transmission or storage is completely secure. We cannot guarantee absolute security, and you use the Service at your own risk.
+
+## 8. Data Retention & Deletion
+
+We retain your account information and request metadata for the duration of your account's existence. Upon account termination — whether initiated by you or by us — we will retain your data for a period of thirty (30) days, after which it will be permanently deleted from our systems, unless retention is required by applicable law.
+
+To request deletion of your account and associated data, please contact us through the channels listed below.
+
+## 9. Your Rights
+
+Depending on your jurisdiction, you may have the right to:
+
+- **Access** the personal information we hold about you
+- **Correct** inaccurate information
+- **Delete** your personal information
+- **Object** to or restrict certain processing activities
+
+To exercise any of these rights, please contact us at the address below. We will respond within a reasonable timeframe in accordance with applicable law.
+
+## 10. Children's Privacy
+
+The Service is not directed to individuals under the age of 18. We do not knowingly collect personal information from anyone under 18. If we become aware that we have collected personal information from an individual under 18, we will take steps to delete such information promptly.
+
+## 11. Data Residency
+
+The Service runs on [Cloudflare Workers](https://workers.cloudflare.com/), which execute at the edge location nearest to you. API request payloads are processed in-memory within the Worker's isolate and are never persisted.
+
+Account data and billing records are stored in Cloudflare D1, in the region configured during deployment. We endeavor to comply with applicable data protection laws in the jurisdictions where we operate.
+
+## 12. Changes to This Policy
+
+We may update this Policy from time to time. Material changes will be communicated through the Service or via email. Your continued use of the Service after such notification constitutes acceptance of the revised Policy.
+
+## 13. Contact
+
+If you have questions or concerns about this Policy, please [contact us](/docs/contact) or [open an issue on GitHub](https://github.com/BingoWon/Keyaos/issues).

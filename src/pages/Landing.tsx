@@ -2,6 +2,7 @@ import { UserButton } from "@clerk/clerk-react";
 import { ArrowRightIcon } from "@heroicons/react/20/solid";
 import {
 	BoltIcon,
+	BookOpenIcon,
 	CodeBracketIcon,
 	CommandLineIcon,
 	GlobeAltIcon,
@@ -79,6 +80,13 @@ function Navbar() {
 					>
 						<GitHubIcon className="size-5" />
 					</a>
+					<Link
+						to="/docs"
+						className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+						aria-label="Docs"
+					>
+						<BookOpenIcon className="size-5" />
+					</Link>
 					{authed ? (
 						<>
 							<Link

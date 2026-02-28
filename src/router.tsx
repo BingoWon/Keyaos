@@ -18,6 +18,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
 import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";
 import AuthenticationMdx from "./pages/docs/authentication.mdx";
+import BillingMdx from "./pages/docs/billing.mdx";
 import ContactMdx from "./pages/docs/contact.mdx";
 import CredentialsSharingMdx from "./pages/docs/credentials-sharing.mdx";
 import { DocsLayout } from "./pages/docs/DocsLayout";
@@ -27,9 +28,9 @@ import { MdxPage } from "./pages/docs/MdxPage";
 import ModelsRoutingMdx from "./pages/docs/models-routing.mdx";
 import OpenaiApiMdx from "./pages/docs/openai-api.mdx";
 import PricingMdx from "./pages/docs/pricing.mdx";
-import PrivacyMdx from "./pages/docs/privacy.mdx";
+import PrivacyPolicyMdx from "./pages/docs/privacy-policy.mdx";
 import QuickstartMdx from "./pages/docs/quickstart.mdx";
-import TermsMdx from "./pages/docs/terms.mdx";
+import TermsOfServiceMdx from "./pages/docs/terms-of-service.mdx";
 import { Landing } from "./pages/Landing";
 import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
@@ -119,6 +120,7 @@ export const router = createBrowserRouter([
 				element: <MdxPage Component={CredentialsSharingMdx} />,
 			},
 			{ path: "pricing", element: <MdxPage Component={PricingMdx} /> },
+			{ path: "billing", element: <MdxPage Component={BillingMdx} /> },
 			{
 				path: "authentication",
 				element: <MdxPage Component={AuthenticationMdx} />,
@@ -129,8 +131,14 @@ export const router = createBrowserRouter([
 				element: <MdxPage Component={AnthropicApiMdx} />,
 			},
 			{ path: "error-codes", element: <MdxPage Component={ErrorCodesMdx} /> },
-			{ path: "privacy", element: <MdxPage Component={PrivacyMdx} /> },
-			{ path: "terms", element: <MdxPage Component={TermsMdx} /> },
+			{
+				path: "privacy-policy",
+				element: <MdxPage Component={PrivacyPolicyMdx} />,
+			},
+			{
+				path: "terms-of-service",
+				element: <MdxPage Component={TermsOfServiceMdx} />,
+			},
 			{ path: "contact", element: <MdxPage Component={ContactMdx} /> },
 		],
 	},

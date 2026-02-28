@@ -118,7 +118,7 @@ describe("Platform billing: cross-user settlement", () => {
 		const feeRatio = entry.platform_fee / entry.base_cost;
 		assert.ok(
 			Math.abs(feeRatio - 0.06) < 0.001,
-			`Platform fee ~6% of base_cost, got ${(feeRatio * 100).toFixed(2)}%`,
+			`Platform fee ~3% per side of base_cost, got ${(feeRatio * 100).toFixed(2)}%`,
 		);
 
 		console.log(
