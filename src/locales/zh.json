@@ -23,7 +23,9 @@
 		"nav_error_codes": "错误码",
 		"nav_privacy": "隐私政策",
 		"nav_terms": "服务条款",
-		"nav_contact": "联系我们"
+		"nav_contact": "联系我们",
+		"search_placeholder": "搜索文档...",
+		"search_no_results": "未找到结果"
 	},
 	"common": {
 		"loading": "加载中...",

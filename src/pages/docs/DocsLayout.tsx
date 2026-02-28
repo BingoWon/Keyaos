@@ -45,13 +45,16 @@ import {
 import type { ComponentType, SVGProps } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { LanguageSelector } from "../../components/LanguageSelector";
 import { ThemeToggle } from "../../components/ThemeToggle";
 import { classNames } from "../../utils/classNames";
 import { TableOfContents } from "./TableOfContents";
 
 type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+import { Logo } from "../../components/Logo";
+import { DocSearch } from "./DocSearch";
 
 const GITHUB_URL = "https://github.com/BingoWon/Keyaos";
 
@@ -329,13 +332,9 @@ export function DocsLayout() {
 						</TransitionChild>
 						<div className="relative flex grow flex-col gap-y-5 overflow-y-auto bg-white px-5 pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10">
 							<div className="flex h-16 shrink-0 items-center">
-								<Link to="/" className="flex items-center gap-2.5">
-									<img src="/logo.png" alt="Keyaos" className="size-7" />
-									<span className="text-lg font-bold text-gray-900 dark:text-white">
-										{t("brand.name")}
-									</span>
-								</Link>
+								<Logo size="md" />
 							</div>
+							<DocSearch />
 							<Sidebar
 								sections={navSections}
 								onNavigate={() => setSidebarOpen(false)}
@@ -349,12 +348,7 @@ export function DocsLayout() {
 			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-60 lg:flex-col">
 				<div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-5 dark:border-white/10 dark:bg-black/10">
 					<div className="flex h-16 shrink-0 items-center justify-between">
-						<Link to="/" className="flex items-center gap-2.5">
-							<img src="/logo.png" alt="Keyaos" className="size-7" />
-							<span className="text-lg font-bold text-gray-900 dark:text-white">
-								{t("brand.name")}
-							</span>
-						</Link>
+						<Logo size="md" />
 						<a
 							href={GITHUB_URL}
 							target="_blank"
@@ -365,6 +359,7 @@ export function DocsLayout() {
 							<GitHubIcon className="size-5" />
 						</a>
 					</div>
+					<DocSearch />
 					<Sidebar sections={navSections} />
 				</div>
 			</div>

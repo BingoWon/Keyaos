@@ -1,24 +1,35 @@
-import { CheckIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import {
+	CheckIcon,
+	ClipboardDocumentIcon,
+	LinkIcon,
+} from "@heroicons/react/24/outline";
 import {
 	Children,
 	type ComponentPropsWithoutRef,
 	isValidElement,
 	type ReactElement,
+	useEffect,
 	useState,
 } from "react";
 import { Link } from "react-router-dom";
 
-/* ── Headings ──────────────────────────────────────────── */
+/* ── Slug generation ──────────────────────────────────── */
+
+function toSlug(children: React.ReactNode): string | undefined {
+	if (typeof children === "string") {
+		return children
+			.toLowerCase()
+			.replace(/\s+/g, "-")
+			.replace(/[^\w-]/g, "");
+	}
+	return undefined;
+}
+
+/* ── Headings with anchor links ───────────────────────── */
 
 function makeHeading(Tag: "h1" | "h2" | "h3" | "h4") {
 	return function Heading(props: ComponentPropsWithoutRef<typeof Tag>) {
-		const id =
-			typeof props.children === "string"
-				? props.children
-						.toLowerCase()
-						.replace(/\s+/g, "-")
-						.replace(/[^\w-]/g, "")
-				: undefined;
+		const id = toSlug(props.children);
 
 		const styles: Record<string, string> = {
 			h1: "text-2xl font-bold tracking-tight text-gray-900 dark:text-white mt-0 mb-6",
@@ -27,8 +38,35 @@ function makeHeading(Tag: "h1" | "h2" | "h3" | "h4") {
 			h4: "text-base font-semibold text-gray-900 dark:text-white mt-6 mb-2",
 		};
 
-		return <Tag id={id} className={styles[Tag]} {...props} />;
+		return (
+			<Tag id={id} className={`group relative ${styles[Tag]}`} {...props}>
+				{props.children}
+				{id && Tag !== "h1" && (
+					<a
+						href={`#${id}`}
+						className="ml-2 inline-flex opacity-0 transition-opacity group-hover:opacity-100"
+						aria-label={`Link to ${props.children}`}
+					>
+						<LinkIcon className="size-4 text-gray-400 hover:text-brand-500 dark:text-gray-500 dark:hover:text-brand-400" />
+					</a>
+				)}
+			</Tag>
+		);
 	};
+}
+
+/* ── Scroll to hash on mount ──────────────────────────── */
+
+export function useScrollToHash() {
+	useEffect(() => {
+		const hash = window.location.hash.slice(1);
+		if (!hash) return;
+		// Wait for MDX content to render
+		const timer = setTimeout(() => {
+			document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+		}, 100);
+		return () => clearTimeout(timer);
+	}, []);
 }
 
 /* ── Code block with copy button ───────────────────────── */

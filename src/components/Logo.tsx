@@ -1,22 +1,48 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 interface LogoProps {
-	size?: "sm" | "lg";
+	size?: "sm" | "md" | "lg";
+	as?: "link" | "div";
+	to?: string;
+	className?: string;
 }
 
-export function Logo({ size = "sm" }: LogoProps) {
-	const { t } = useTranslation();
-	const imgSize = size === "lg" ? "h-12 w-12" : "h-8 w-8";
-	const textSize = size === "lg" ? "text-3xl" : "text-xl";
+const SIZES = {
+	sm: { img: "size-6", text: "text-base" },
+	md: { img: "size-7", text: "text-lg" },
+	lg: { img: "size-8 rounded-xl", text: "text-xl" },
+} as const;
 
-	return (
-		<div className="flex items-center gap-x-2">
-			<img src="/logo.png" alt="Keyaos" className={`${imgSize} rounded-xl`} />
+export function Logo({
+	size = "lg",
+	as = "link",
+	to = "/",
+	className = "",
+}: LogoProps) {
+	const { t } = useTranslation();
+	const s = SIZES[size];
+
+	const content = (
+		<>
+			<img src="/logo.png" alt="Keyaos" className={s.img} />
 			<span
-				className={`${textSize} font-bold text-gray-900 dark:text-white tracking-tight`}
+				className={`${s.text} font-bold text-gray-900 dark:text-white tracking-tight`}
 			>
 				{t("brand.name")}
 			</span>
-		</div>
+		</>
 	);
+
+	const cls = `flex items-center gap-2.5 ${className}`;
+
+	if (as === "link") {
+		return (
+			<Link to={to} className={cls}>
+				{content}
+			</Link>
+		);
+	}
+
+	return <div className={cls}>{content}</div>;
 }

@@ -23,7 +23,9 @@
 		"nav_error_codes": "Error Codes",
 		"nav_privacy": "Privacy Policy",
 		"nav_terms": "Terms of Service",
-		"nav_contact": "Contact Us"
+		"nav_contact": "Contact Us",
+		"search_placeholder": "Search docs...",
+		"search_no_results": "No results found"
 	},
 	"common": {
 		"loading": "Loading...",

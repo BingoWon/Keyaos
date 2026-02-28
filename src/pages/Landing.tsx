@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { isPlatform, useAuth } from "../auth";
 import { LanguageSelector } from "../components/LanguageSelector";
+import { Logo } from "../components/Logo";
 import { ThemeToggle } from "../components/ThemeToggle";
 
 const PROVIDERS = [
@@ -60,13 +61,7 @@ function Navbar() {
 	return (
 		<header className="fixed inset-x-0 top-0 z-50 backdrop-blur-lg bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/50 dark:border-white/5">
 			<nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-				<Link
-					to="/"
-					className="flex items-center gap-2.5 text-lg font-bold text-gray-900 dark:text-white"
-				>
-					<img src="/logo.png" alt="Keyaos" className="size-7" />
-					{t("brand.name")}
-				</Link>
+				<Logo size="md" />
 
 				<div className="flex items-center gap-1.5">
 					<ThemeToggle />
@@ -488,15 +483,10 @@ function Footer() {
 		<footer className="border-t border-gray-200 py-12 dark:border-white/5">
 			<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 sm:flex-row">
 				<div className="flex items-center gap-2.5">
-					<img src="/logo.png" alt="Keyaos" className="size-6" />
-					<div>
-						<span className="text-base font-bold text-gray-900 dark:text-white">
-							{t("brand.name")}
-						</span>
-						<span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
-							{t("landing.footer_desc")}
-						</span>
-					</div>
+					<Logo size="sm" as="div" />
+					<span className="text-xs text-gray-400 dark:text-gray-500">
+						{t("landing.footer_desc")}
+					</span>
 				</div>
 				<div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
 					<Link to="/docs" className="transition-colors hover:text-brand-500">
