@@ -25,6 +25,7 @@ import { DocsLayout } from "./pages/docs/DocsLayout";
 import ErrorCodesMdx from "./pages/docs/error-codes.mdx";
 import IntroductionMdx from "./pages/docs/introduction.mdx";
 import { MdxPage } from "./pages/docs/MdxPage";
+import ModelsApiMdx from "./pages/docs/models-api.mdx";
 import ModelsRoutingMdx from "./pages/docs/models-routing.mdx";
 import OpenaiApiMdx from "./pages/docs/openai-api.mdx";
 import PricingMdx from "./pages/docs/pricing.mdx";
@@ -48,9 +49,9 @@ const dashboardChildren = [
 	{ path: "usage", element: <Usage /> },
 	...(isPlatform
 		? [
-				{ path: "ledger", element: <Ledger /> },
-				{ path: "billing", element: <Billing /> },
-			]
+			{ path: "ledger", element: <Ledger /> },
+			{ path: "billing", element: <Billing /> },
+		]
 		: []),
 ];
 
@@ -85,20 +86,20 @@ export const router = createBrowserRouter([
 	},
 	...(isPlatform
 		? [
-				{
-					path: "/admin",
-					element: (
-						<AuthGuard fallback={<Navigate to="/login" replace />}>
-							<AdminLayout />
-						</AuthGuard>
-					),
-					children: [
-						{ index: true, element: <Overview /> },
-						{ path: "users", element: <Users /> },
-						{ path: "data", element: <Data /> },
-					],
-				},
-			]
+			{
+				path: "/admin",
+				element: (
+					<AuthGuard fallback={<Navigate to="/login" replace />}>
+						<AdminLayout />
+					</AuthGuard>
+				),
+				children: [
+					{ index: true, element: <Overview /> },
+					{ path: "users", element: <Users /> },
+					{ path: "data", element: <Data /> },
+				],
+			},
+		]
 		: []),
 	{ path: "/design", element: <DesignSystem /> },
 	{
@@ -126,6 +127,7 @@ export const router = createBrowserRouter([
 				element: <MdxPage Component={AuthenticationMdx} />,
 			},
 			{ path: "openai-api", element: <MdxPage Component={OpenaiApiMdx} /> },
+			{ path: "models-api", element: <MdxPage Component={ModelsApiMdx} /> },
 			{
 				path: "anthropic-api",
 				element: <MdxPage Component={AnthropicApiMdx} />,

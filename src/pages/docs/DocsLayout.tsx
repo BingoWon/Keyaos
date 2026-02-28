@@ -12,6 +12,7 @@ import {
 	CheckIcon,
 	ClipboardDocumentIcon,
 	CodeBracketIcon,
+	CubeIcon,
 	CurrencyDollarIcon,
 	DocumentTextIcon,
 	ExclamationTriangleIcon,
@@ -28,6 +29,7 @@ import {
 	BookOpenIcon as BookOpenIconSolid,
 	ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
 	CodeBracketIcon as CodeBracketIconSolid,
+	CubeIcon as CubeIconSolid,
 	CurrencyDollarIcon as CurrencyDollarIconSolid,
 	DocumentTextIcon as DocumentTextIconSolid,
 	ExclamationTriangleIcon as ExclamationTriangleIconSolid,
@@ -236,6 +238,12 @@ export function DocsLayout() {
 					href: "/docs/authentication",
 					icon: KeyIcon,
 					activeIcon: KeyIconSolid,
+				},
+				{
+					name: t("docs.nav_models_api"),
+					href: "/docs/models-api",
+					icon: CubeIcon,
+					activeIcon: CubeIconSolid,
 				},
 				{
 					name: t("docs.nav_openai_api"),

@@ -57,27 +57,11 @@ Create a chat completion. Supports streaming and non-streaming modes.
 
 ### GET /v1/models
 
-List all currently available models with pricing information.
+List all available models with pricing and provider information. See the full reference at [Models & Credits API](/docs/models-api).
 
-**Response:**
+### GET /v1/credits
 
-```json
-{
-  "object": "list",
-  "data": [
-    {
-      "id": "openai/gpt-4o",
-      "object": "model",
-      "owned_by": "openai"
-    },
-    {
-      "id": "anthropic/claude-sonnet-4",
-      "object": "model",
-      "owned_by": "anthropic"
-    }
-  ]
-}
-```
+Check your credit balance. See the full reference at [Models & Credits API](/docs/models-api).
 
 ## Keyaos Extensions
 
