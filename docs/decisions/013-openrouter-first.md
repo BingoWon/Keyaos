@@ -37,9 +37,11 @@ DeepInfra API 返回 HuggingFace 风格的大写 model_id（如 `Qwen/Qwen3-Max`
 
 所有模型列表查询 `ORDER BY sort_order ASC`，前端不再自行排序。
 
-### 3. DeepInfra model_id 归一化
+### 3. DeepInfra model_id 归一化与转发
 
-在 `parseDeepInfraModels()` 中将 model_id 统一转为小写（`.toLowerCase()`），与 OpenRouter 的小写格式对齐。原始大写 ID 保存到 `name` 字段供参考。
+在 `parseDeepInfraModels()` 中将 `model_id` 统一转为小写（`.toLowerCase()`），与 OpenRouter 的小写格式对齐。原始大写 ID 存入 `upstream_model_id` 字段，供转发时恢复原始大小写（DeepInfra API 大小写敏感）。
+
+`dispatcher.ts` 在调度结果中返回 `upstreamModelId`，`gateway.ts` 转发时使用 `upstreamModelId ?? modelId`，确保上游 API 收到正确格式的 model ID，而内部路由、计费、前端展示统一使用小写 canonical ID。
 
 ### 4. 两阶段同步
 
@@ -76,7 +78,9 @@ Phase 2: 并行同步其他供应商
 ## 相关文件
 
 - `worker/core/sync/sync-service.ts` — 两阶段同步实现
-- `worker/core/providers/registry.ts` — OpenRouter 排序写入 + DeepInfra 大小写归一化
-- `worker/core/db/pricing-dao.ts` — sort_order 列写入和查询排序
-- `migrations/0001_initial.sql` — sort_order 列定义
+- `worker/core/providers/registry.ts` — OpenRouter 排序写入 + DeepInfra 大小写归一化 + `upstream_model_id`
+- `worker/core/db/pricing-dao.ts` — sort_order / upstream_model_id 列写入和查询排序
+- `worker/core/dispatcher.ts` — 调度结果返回 `upstreamModelId`
+- `worker/routes/gateway.ts` — 转发使用 `upstreamModelId ?? modelId`
+- `migrations/0001_initial.sql` — sort_order / upstream_model_id 列定义
 - `src/pages/Dashboard.tsx` / `Models.tsx` / `Providers.tsx` — 移除前端自定义排序
