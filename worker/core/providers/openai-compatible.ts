@@ -59,6 +59,7 @@ function defaultParseModels(
 			is_active: 1,
 			sort_order: 999999,
 			upstream_model_id: null,
+			created_at: Date.now(),
 		}));
 }
 

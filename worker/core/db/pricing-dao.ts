@@ -36,7 +36,7 @@ export class PricingDao {
 				m.output_modalities,
 				m.sort_order,
 				m.upstream_model_id,
-				now,
+				m.created_at,
 				now,
 			),
 		);

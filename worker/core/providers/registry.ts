@@ -39,6 +39,8 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 	const data = raw.data as Record<string, unknown>[] | undefined;
 	if (!data) return [];
 	const results: ParsedModel[] = [];
+	const now = Date.now();
+	const ONE_DAY = 86_400_000;
 
 	for (const m of data) {
 		const id = m.id as string;
@@ -51,6 +53,8 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 		if (inputUsdPerM < 0 || outputUsdPerM < 0) continue;
 
 		const arch = m.architecture as Record<string, unknown> | undefined;
+		const createdEpoch = (m.created as number) || 0;
+		const createdMs = createdEpoch * 1000;
 		results.push({
 			id: `openrouter:${id}`,
 			provider: "openrouter",
@@ -64,6 +68,7 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			is_active: 1,
 			sort_order: results.length,
 			upstream_model_id: null,
+			created_at: createdMs && now - createdMs > ONE_DAY ? createdMs : now,
 		});
 	}
 	return results;
@@ -97,6 +102,7 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			is_active: 1,
 			sort_order: 999999,
 			upstream_model_id: null,
+			created_at: Date.now(),
 		});
 	}
 	return results;
@@ -131,6 +137,7 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			is_active: 1,
 			sort_order: 999999,
 			upstream_model_id: id,
+			created_at: Date.now(),
 		});
 	}
 	return results;
@@ -163,6 +170,7 @@ function parseStaticUsdModels(
 		is_active: 1,
 		sort_order: 999999,
 		upstream_model_id: null,
+		created_at: Date.now(),
 	}));
 }
 
