@@ -62,6 +62,7 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			input_modalities: serializeModalities(arch?.input_modalities),
 			output_modalities: serializeModalities(arch?.output_modalities),
 			is_active: 1,
+			sort_order: results.length,
 		});
 	}
 	return results;
@@ -93,6 +94,7 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			input_modalities: serializeModalities(m.input_modalities),
 			output_modalities: serializeModalities(m.output_modalities),
 			is_active: 1,
+			sort_order: 999999,
 		});
 	}
 	return results;
@@ -112,17 +114,20 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			| undefined;
 		if (!id || !pricing) continue;
 
+		// Normalize to lowercase to match OpenRouter/ZenMux canonical format
+		const canonicalId = id.toLowerCase();
 		results.push({
-			id: `deepinfra:${id}`,
+			id: `deepinfra:${canonicalId}`,
 			provider: "deepinfra",
-			model_id: id,
-			name: null,
+			model_id: canonicalId,
+			name: (m.id as string) || null,
 			input_price: dollarsToCentsPerM(pricing.input_tokens),
 			output_price: dollarsToCentsPerM(pricing.output_tokens),
 			context_length: (metadata?.context_length as number) || null,
 			input_modalities: null,
 			output_modalities: null,
 			is_active: 1,
+			sort_order: 999999,
 		});
 	}
 	return results;
@@ -153,6 +158,7 @@ function parseStaticUsdModels(
 		input_modalities: null,
 		output_modalities: null,
 		is_active: 1,
+		sort_order: 999999,
 	}));
 }
 

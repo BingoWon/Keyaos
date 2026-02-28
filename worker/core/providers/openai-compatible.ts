@@ -57,6 +57,7 @@ function defaultParseModels(
 			input_modalities: '["text"]',
 			output_modalities: '["text"]',
 			is_active: 1,
+			sort_order: 999999,
 		}));
 }
 

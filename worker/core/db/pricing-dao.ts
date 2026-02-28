@@ -1,15 +1,15 @@
 import type { DbModelPricing } from "./schema";
 
 export class PricingDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async upsertPricing(
 		models: Omit<DbModelPricing, "refreshed_at">[],
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, refreshed_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, sort_order, refreshed_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   name = excluded.name,
 			   input_price = excluded.input_price,
@@ -18,6 +18,7 @@ export class PricingDao {
 			   input_modalities = excluded.input_modalities,
 			   output_modalities = excluded.output_modalities,
 			   is_active = 1,
+			   sort_order = excluded.sort_order,
 			   refreshed_at = excluded.refreshed_at`,
 		);
 
@@ -32,6 +33,7 @@ export class PricingDao {
 				m.context_length,
 				m.input_modalities,
 				m.output_modalities,
+				m.sort_order,
 				now,
 			),
 		);
@@ -93,7 +95,7 @@ export class PricingDao {
 				   AND c.health_status NOT IN ('dead')
 				 WHERE mp.is_active = 1
 				 GROUP BY mp.id
-				 ORDER BY mp.model_id, mp.input_price ASC`,
+				 ORDER BY mp.sort_order ASC, mp.input_price ASC`,
 			)
 			.all<DbModelPricing & { best_multiplier: number | null }>();
 		return res.results || [];

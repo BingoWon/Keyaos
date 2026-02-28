@@ -168,11 +168,6 @@ export function Providers() {
 		}
 
 		for (const g of byProvider.values()) {
-			g.models.sort(
-				(a, b) =>
-					b.inputPrice - a.inputPrice ||
-					b.id.localeCompare(a.id, undefined, { numeric: true }),
-			);
 			const sample = g.models.find(
 				(m) => m.platformInputPrice != null && m.inputPrice > 0,
 			);

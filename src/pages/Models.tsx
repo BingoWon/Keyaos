@@ -65,11 +65,7 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		g.providers.sort((a, b) => a.inputPrice - b.inputPrice);
 	}
 
-	return [...groups.values()].sort(
-		(a, b) =>
-			b.providers.length - a.providers.length ||
-			b.id.localeCompare(a.id, undefined, { numeric: true }),
-	);
+	return [...groups.values()];
 }
 
 function ModelCard({

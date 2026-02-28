@@ -268,6 +268,7 @@ export class KiroAdapter implements ProviderAdapter {
 			input_modalities: null,
 			output_modalities: null,
 			is_active: 1,
+			sort_order: 999999,
 		}));
 	}
 

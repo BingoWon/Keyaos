@@ -15,23 +15,56 @@ export async function syncAllModels(
 	cnyUsdRate = 7,
 ): Promise<void> {
 	const dao = new PricingDao(db);
+	const allProviders = getAllProviders();
 
+	// ─── Phase 1: Sync OpenRouter first (canonical model catalog) ───
+	const orProvider = allProviders.find((p) => p.info.id === "openrouter");
+	if (!orProvider) {
+		log.error("sync", "OpenRouter provider not found in registry");
+		return;
+	}
+
+	const orModels = await orProvider.fetchModels(cnyUsdRate);
+	if (orModels.length === 0) {
+		log.warn("sync", "OpenRouter returned 0 models, aborting entire sync");
+		return;
+	}
+
+	await dao.upsertPricing(orModels);
+	await dao.deactivateMissing(
+		"openrouter",
+		orModels.map((m) => m.id),
+	);
+	log.info("sync", "OpenRouter synced (canonical)", { count: orModels.length });
+
+	// Build the canonical model_id allowlist
+	const allowedModelIds = new Set(orModels.map((m) => m.model_id));
+
+	// ─── Phase 2: Sync all other providers, filtering to allowlist ──
+	const otherProviders = allProviders.filter((p) => p.info.id !== "openrouter");
 	const results = await Promise.allSettled(
-		getAllProviders().map(async (provider) => {
+		otherProviders.map(async (provider) => {
 			const models = await provider.fetchModels(cnyUsdRate);
 			if (models.length === 0) {
 				log.warn("sync", "0 models, skipping", { provider: provider.info.id });
 				return;
 			}
 
-			await dao.upsertPricing(models);
+			// Only keep models that OpenRouter also provides
+			const filtered = models.filter((m) => allowedModelIds.has(m.model_id));
+
+			if (filtered.length > 0) {
+				await dao.upsertPricing(filtered);
+			}
 			await dao.deactivateMissing(
 				provider.info.id,
-				models.map((m) => m.id),
+				filtered.map((m) => m.id),
 			);
 			log.info("sync", "Models synced", {
 				provider: provider.info.id,
-				count: models.length,
+				total: models.length,
+				kept: filtered.length,
+				filtered: models.length - filtered.length,
 			});
 		}),
 	);
