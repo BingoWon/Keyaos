@@ -88,6 +88,7 @@
 		"enabled_true": "Enabled",
 		"enabled_false": "Disabled",
 		"copied": "Copied",
+		"copy_warning": "This API key will not be shown again after closing. Please copy it now.",
 		"no_data": "No API keys yet"
 	},
 	"credentials": {

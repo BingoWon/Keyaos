@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import { Trans, useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import { HealthBadge, type HealthStatus } from "../components/HealthBadge";
+import { Modal } from "../components/Modal";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { ProviderSelect } from "../components/ProviderSelect";
@@ -326,204 +327,211 @@ export function Byok() {
 				}
 			/>
 
-			{isAddOpen && (
-				<div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-white/10 dark:bg-white/5">
-					<form onSubmit={handleAdd} className="space-y-4">
-						{/* Row 1: Provider selector */}
-						<div className="w-full sm:w-64">
-							<label
-								htmlFor="provider"
-								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-							>
-								{t("credentials.provider")}
-							</label>
-							<div className="mt-1">
-								<ProviderSelect
-									id="provider"
-									providers={providers}
-									value={draft.provider}
-									onChange={(newId) => {
-										const isSub =
-											providers.find((p) => p.id === newId)?.isSubscription ??
-											false;
-										setDraft((d) => ({
-											...d,
-											provider: newId,
-											...(!priceMultiplierTouched && {
-												priceMultiplier: isSub ? "0.5" : "0.8",
-											}),
-										}));
-									}}
-								/>
-							</div>
-						</div>
-
-						{/* Guidance panel */}
-						{guide && (
-							<GuidancePanel
-								guide={guide}
-								providerId={draft.provider}
-								isOAuth={isOAuth}
-								open={guideOpen}
-								onToggle={() => setGuideOpen(!guideOpen)}
+			<Modal
+				open={isAddOpen}
+				onClose={() => {
+					setIsAddOpen(false);
+					setShowPassword(false);
+					setPriceMultiplierTouched(false);
+				}}
+				title={t("credentials.add_new")}
+				size="xl"
+			>
+				<form onSubmit={handleAdd} className="space-y-4">
+					{/* Row 1: Provider selector */}
+					<div className="w-full sm:w-64">
+						<label
+							htmlFor="provider"
+							className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+						>
+							{t("credentials.provider")}
+						</label>
+						<div className="mt-1">
+							<ProviderSelect
+								id="provider"
+								providers={providers}
+								value={draft.provider}
+								onChange={(newId) => {
+									const isSub =
+										providers.find((p) => p.id === newId)?.isSubscription ??
+										false;
+									setDraft((d) => ({
+										...d,
+										provider: newId,
+										...(!priceMultiplierTouched && {
+											priceMultiplier: isSub ? "0.5" : "0.8",
+										}),
+									}));
+								}}
 							/>
-						)}
-
-						{/* Row 2: Secret input */}
-						<div>
-							<label
-								htmlFor="secret"
-								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-							>
-								{t("credentials.secret")}
-							</label>
-							<div className="relative mt-1">
-								{isOAuth ? (
-									<textarea
-										id="secret"
-										required
-										rows={showPassword ? 4 : 1}
-										value={
-											showPassword
-												? draft.secret
-												: draft.secret
-													? "\u2022".repeat(Math.min(draft.secret.length, 40))
-													: ""
-										}
-										onChange={(e) => {
-											if (showPassword)
-												setDraft({ ...draft, secret: e.target.value });
-										}}
-										onFocus={() => {
-											if (!showPassword) setShowPassword(true);
-										}}
-										onPaste={(e) => {
-											if (!showPassword) {
-												e.preventDefault();
-												const text = e.clipboardData.getData("text");
-												setDraft({ ...draft, secret: text });
-												setShowPassword(true);
-											}
-										}}
-										className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 font-mono text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 resize-none"
-										placeholder={guide?.placeholder ?? "refresh_token or JSON"}
-									/>
-								) : (
-									<Input
-										type={showPassword ? "text" : "password"}
-										id="secret"
-										required
-										value={draft.secret}
-										onChange={(e) =>
-											setDraft({ ...draft, secret: e.target.value })
-										}
-										className="pr-10"
-										placeholder={guide?.placeholder ?? "sk-..."}
-									/>
-								)}
-								<button
-									type="button"
-									onClick={() => setShowPassword(!showPassword)}
-									className="absolute top-2 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-								>
-									{showPassword ? (
-										<EyeSlashIcon className="size-5" />
-									) : (
-										<EyeIcon className="size-5" />
-									)}
-								</button>
-							</div>
-							{/* Smart format detection hint */}
-							{secretHint.type && (
-								<p
-									className={`mt-1.5 flex items-center gap-1 text-xs ${
-										secretHint.type === "json"
-											? "text-green-600 dark:text-green-400"
-											: "text-amber-600 dark:text-amber-400"
-									}`}
-								>
-									<InformationCircleIcon className="size-4 shrink-0" />
-									{secretHint.message}
-								</p>
-							)}
 						</div>
+					</div>
 
-						{/* Row 3: Quota + Price Multiplier side by side */}
-						<div className="flex flex-col sm:flex-row gap-4">
-							{needsManualQuota && (
-								<div className="w-full sm:w-40">
-									<label
-										htmlFor="quota"
-										className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-									>
-										{t("credentials.quota")}
-									</label>
-									<Input
-										type="number"
-										id="quota"
-										min="0"
-										step="0.01"
-										value={draft.quota}
-										onChange={(e) =>
-											setDraft({ ...draft, quota: e.target.value })
+					{/* Guidance panel */}
+					{guide && (
+						<GuidancePanel
+							guide={guide}
+							providerId={draft.provider}
+							isOAuth={isOAuth}
+							open={guideOpen}
+							onToggle={() => setGuideOpen(!guideOpen)}
+						/>
+					)}
+
+					{/* Row 2: Secret input */}
+					<div>
+						<label
+							htmlFor="secret"
+							className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+						>
+							{t("credentials.secret")}
+						</label>
+						<div className="relative mt-1">
+							{isOAuth ? (
+								<textarea
+									id="secret"
+									required
+									rows={showPassword ? 4 : 1}
+									value={
+										showPassword
+											? draft.secret
+											: draft.secret
+												? "\u2022".repeat(Math.min(draft.secret.length, 40))
+												: ""
+									}
+									onChange={(e) => {
+										if (showPassword)
+											setDraft({ ...draft, secret: e.target.value });
+									}}
+									onFocus={() => {
+										if (!showPassword) setShowPassword(true);
+									}}
+									onPaste={(e) => {
+										if (!showPassword) {
+											e.preventDefault();
+											const text = e.clipboardData.getData("text");
+											setDraft({ ...draft, secret: text });
+											setShowPassword(true);
 										}
-										className="mt-1"
-										placeholder="10.00"
-									/>
-								</div>
+									}}
+									className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-10 font-mono text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 resize-none"
+									placeholder={guide?.placeholder ?? "refresh_token or JSON"}
+								/>
+							) : (
+								<Input
+									type={showPassword ? "text" : "password"}
+									id="secret"
+									required
+									value={draft.secret}
+									onChange={(e) =>
+										setDraft({ ...draft, secret: e.target.value })
+									}
+									className="pr-10"
+									placeholder={guide?.placeholder ?? "sk-..."}
+								/>
 							)}
-							<div className="w-full sm:w-56">
+							<button
+								type="button"
+								onClick={() => setShowPassword(!showPassword)}
+								className="absolute top-2 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+							>
+								{showPassword ? (
+									<EyeSlashIcon className="size-5" />
+								) : (
+									<EyeIcon className="size-5" />
+								)}
+							</button>
+						</div>
+						{/* Smart format detection hint */}
+						{secretHint.type && (
+							<p
+								className={`mt-1.5 flex items-center gap-1 text-xs ${
+									secretHint.type === "json"
+										? "text-green-600 dark:text-green-400"
+										: "text-amber-600 dark:text-amber-400"
+								}`}
+							>
+								<InformationCircleIcon className="size-4 shrink-0" />
+								{secretHint.message}
+							</p>
+						)}
+					</div>
+
+					{/* Row 3: Quota + Price Multiplier side by side */}
+					<div className="flex flex-col sm:flex-row gap-4">
+						{needsManualQuota && (
+							<div className="w-full sm:w-40">
 								<label
-									htmlFor="priceMultiplier"
+									htmlFor="quota"
 									className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 								>
-									{t("credentials.price_multiplier")}
+									{t("credentials.quota")}
 								</label>
 								<Input
 									type="number"
-									id="priceMultiplier"
-									min="0.01"
-									max="1"
+									id="quota"
+									min="0"
 									step="0.01"
-									required
-									value={draft.priceMultiplier}
-									onChange={(e) => {
-										setDraft({ ...draft, priceMultiplier: e.target.value });
-										setPriceMultiplierTouched(true);
-									}}
+									value={draft.quota}
+									onChange={(e) =>
+										setDraft({ ...draft, quota: e.target.value })
+									}
 									className="mt-1"
-									placeholder="0.8"
+									placeholder="10.00"
 								/>
-								{draft.priceMultiplier && (
-									<p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-										{t("credentials.price_multiplier_helper", {
-											ratio: draft.priceMultiplier,
-											credited: (
-												1.0 * (Number.parseFloat(draft.priceMultiplier) || 0)
-											).toFixed(2),
-										})}
-									</p>
-								)}
 							</div>
-						</div>
-
-						{/* Row 4: Actions */}
-						<div className="flex justify-end gap-3 pt-1">
-							<Button
-								variant="secondary"
-								onClick={() => {
-									setIsAddOpen(false);
-									setShowPassword(false);
-									setPriceMultiplierTouched(false);
-								}}
+						)}
+						<div className="w-full sm:w-56">
+							<label
+								htmlFor="priceMultiplier"
+								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
-								{t("common.cancel")}
-							</Button>
-							<Button type="submit">{t("common.save")}</Button>
+								{t("credentials.price_multiplier")}
+							</label>
+							<Input
+								type="number"
+								id="priceMultiplier"
+								min="0.01"
+								max="1"
+								step="0.01"
+								required
+								value={draft.priceMultiplier}
+								onChange={(e) => {
+									setDraft({ ...draft, priceMultiplier: e.target.value });
+									setPriceMultiplierTouched(true);
+								}}
+								className="mt-1"
+								placeholder="0.8"
+							/>
+							{draft.priceMultiplier && (
+								<p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+									{t("credentials.price_multiplier_helper", {
+										ratio: draft.priceMultiplier,
+										credited: (
+											1.0 * (Number.parseFloat(draft.priceMultiplier) || 0)
+										).toFixed(2),
+									})}
+								</p>
+							)}
 						</div>
-					</form>
-				</div>
-			)}
+					</div>
+
+					{/* Row 4: Actions */}
+					<div className="flex justify-end gap-3 pt-1">
+						<Button
+							variant="secondary"
+							onClick={() => {
+								setIsAddOpen(false);
+								setShowPassword(false);
+								setPriceMultiplierTouched(false);
+							}}
+						>
+							{t("common.cancel")}
+						</Button>
+						<Button type="submit">{t("common.save")}</Button>
+					</div>
+				</form>
+			</Modal>
 
 			<div className="mt-8 flow-root">
 				<div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

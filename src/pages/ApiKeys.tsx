@@ -12,6 +12,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
+import { Modal } from "../components/Modal";
 import { PageLoader } from "../components/PageLoader";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { Button, Input } from "../components/ui";
@@ -43,6 +44,8 @@ export function ApiKeys() {
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [newName, setNewName] = useState("");
+	const [createdKey, setCreatedKey] = useState<string | null>(null);
+	const [keyCopied, setKeyCopied] = useState(false);
 	const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editName, setEditName] = useState("");
@@ -63,7 +66,8 @@ export function ApiKeys() {
 			});
 			const result = await res.json();
 			if (res.ok) {
-				setIsAddOpen(false);
+				setCreatedKey(result.id);
+				setKeyCopied(false);
 				setNewName("");
 				refetch();
 				toast.success(t("common.success"), { id: tid });
@@ -149,38 +153,92 @@ export function ApiKeys() {
 				</div>
 			</div>
 
-			{isAddOpen && (
-				<div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">
-					<form
-						onSubmit={handleAdd}
-						className="flex flex-col sm:flex-row gap-4 items-end"
-					>
-						<div className="w-full sm:flex-1">
+			{/* Create API Key Modal */}
+			<Modal
+				open={isAddOpen}
+				onClose={() => {
+					setIsAddOpen(false);
+					setCreatedKey(null);
+					setNewName("");
+				}}
+				title={createdKey ? t("api_keys.key") : t("api_keys.add_new")}
+				size="md"
+			>
+				{createdKey ? (
+					<div className="space-y-4">
+						<div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-500/20 dark:bg-amber-900/20 dark:text-amber-300">
+							⚠️ {t("api_keys.copy_warning")}
+						</div>
+						<div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-sm text-gray-800 dark:border-white/10 dark:bg-white/5 dark:text-gray-200">
+							<span className="flex-1 break-all select-all">{createdKey}</span>
+							<button
+								type="button"
+								onClick={() => {
+									navigator.clipboard.writeText(createdKey);
+									setKeyCopied(true);
+									toast.success(t("api_keys.copied"));
+								}}
+								className="shrink-0 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-600"
+							>
+								{keyCopied ? (
+									<span className="flex items-center gap-1">
+										<CheckIcon className="size-3.5" />
+										{t("api_keys.copied")}
+									</span>
+								) : (
+									<span className="flex items-center gap-1">
+										<ClipboardDocumentIcon className="size-3.5" />
+										Copy
+									</span>
+								)}
+							</button>
+						</div>
+						<div className="flex justify-end">
+							<Button
+								onClick={() => {
+									setIsAddOpen(false);
+									setCreatedKey(null);
+								}}
+							>
+								{t("common.confirm")}
+							</Button>
+						</div>
+					</div>
+				) : (
+					<form onSubmit={handleAdd} className="space-y-4">
+						<div>
 							<label
-								htmlFor="name"
+								htmlFor="modal-key-name"
 								className="block text-sm font-medium text-gray-700 dark:text-gray-300"
 							>
 								{t("api_keys.name")}
 							</label>
 							<Input
 								type="text"
-								id="name"
+								id="modal-key-name"
 								required
 								value={newName}
 								onChange={(e) => setNewName(e.target.value)}
 								className="mt-1"
 								placeholder="e.g. Production"
+								autoFocus
 							/>
 						</div>
-						<div className="flex gap-2 w-full sm:w-auto">
-							<Button variant="secondary" onClick={() => setIsAddOpen(false)}>
+						<div className="flex justify-end gap-3">
+							<Button
+								variant="secondary"
+								onClick={() => {
+									setIsAddOpen(false);
+									setNewName("");
+								}}
+							>
 								{t("common.cancel")}
 							</Button>
 							<Button type="submit">{t("common.save")}</Button>
 						</div>
 					</form>
-				</div>
-			)}
+				)}
+			</Modal>
 
 			<div className="mt-8 flow-root">
 				<div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

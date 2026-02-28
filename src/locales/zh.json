@@ -88,6 +88,7 @@
 		"enabled_true": "已启用",
 		"enabled_false": "已禁用",
 		"copied": "已复制",
+		"copy_warning": "此 API 密钥关闭后将不再显示，请立即复制。",
 		"no_data": "尚无 API 密钥"
 	},
 	"credentials": {
