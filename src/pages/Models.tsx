@@ -1,5 +1,6 @@
+import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
@@ -237,6 +238,39 @@ export function Models() {
 
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
+	// ─── Search ────────────────────────────────────────
+	const [query, setQuery] = useState("");
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	const filtered = useMemo(() => {
+		if (!query.trim()) return groups;
+		const q = query.toLowerCase();
+		return groups.filter(
+			(g) =>
+				g.id.toLowerCase().includes(q) ||
+				g.displayName.toLowerCase().includes(q),
+		);
+	}, [groups, query]);
+
+	const handleKeyDown = useCallback(
+		(e: KeyboardEvent) => {
+			if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+				e.preventDefault();
+				inputRef.current?.focus();
+			}
+			if (e.key === "Escape" && document.activeElement === inputRef.current) {
+				setQuery("");
+				inputRef.current?.blur();
+			}
+		},
+		[],
+	);
+
+	useEffect(() => {
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [handleKeyDown]);
+
 	if (error) {
 		return (
 			<div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-500/20 dark:bg-red-900/20 dark:text-red-400">
@@ -247,13 +281,47 @@ export function Models() {
 
 	return (
 		<div>
-			<div>
-				<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-					{t("models.title")}
-				</h3>
-				<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-					{t("models.subtitle")}
-				</p>
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<h3 className="text-base font-semibold text-gray-900 dark:text-white">
+						{t("models.title")}
+					</h3>
+					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						{t("models.subtitle")}
+					</p>
+				</div>
+
+				{!loading && groups.length > 0 && (
+					<div className="relative w-full sm:w-72">
+						<MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500" />
+						<input
+							ref={inputRef}
+							type="text"
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+							placeholder="Search models…"
+							className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.03] py-2 pl-9 pr-20 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+						/>
+						<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+							{query ? (
+								<button
+									type="button"
+									onClick={() => {
+										setQuery("");
+										inputRef.current?.focus();
+									}}
+									className="rounded-md p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+								>
+									<XMarkIcon className="size-4" />
+								</button>
+							) : (
+								<kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:text-gray-500">
+									⌘K
+								</kbd>
+							)}
+						</div>
+					</div>
+				)}
 			</div>
 
 			{loading ? (
@@ -265,11 +333,23 @@ export function Models() {
 					{t("models.no_data")}
 				</p>
 			) : (
-				<div className="mt-5 grid gap-3">
-					{groups.map((g) => (
-						<ModelCard key={g.id} group={g} providerMap={providerMap} />
-					))}
-				</div>
+				<>
+					{query && (
+						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+							{filtered.length} of {groups.length} models
+						</p>
+					)}
+					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
+						{filtered.map((g) => (
+							<ModelCard key={g.id} group={g} providerMap={providerMap} />
+						))}
+					</div>
+					{query && filtered.length === 0 && (
+						<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+							No models matching "{query}"
+						</p>
+					)}
+				</>
 			)}
 		</div>
 	);
