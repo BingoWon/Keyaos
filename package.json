@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build && node scripts/build-search-index.mjs",
+		"build": "node scripts/build-search-index.mjs && vite build",
 		"deploy": "wrangler d1 migrations apply keyaos-db --remote && wrangler deploy",
 		"test": "vitest run",
 		"test:api": "node --env-file=.env.local --experimental-strip-types --no-warnings --test tests/e2e/**/*.test.ts",

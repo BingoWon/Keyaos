@@ -11,5 +11,7 @@ coverage/
 /docs/
 references/
 scripts/
+!scripts/build-search-index.mjs
+public/pagefind/
 *.log
 *.pid

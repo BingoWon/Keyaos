@@ -347,7 +347,7 @@ export function Billing() {
 							{t("billing.auto_topup_no_card")}
 						</p>
 					) : (
-						<div className="mt-3 space-y-4">
+						<div className="mt-3 space-y-3">
 							<div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:divide-x sm:divide-gray-200 sm:dark:divide-white/10">
 								<div className="sm:pr-4">
 									<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
