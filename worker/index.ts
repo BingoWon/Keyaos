@@ -148,7 +148,7 @@ app.route("/v1/models", publicModelsRouter);
 app.get("/v1/credits", async (c) => {
 	const { WalletDao } = await import("./platform/billing/wallet-dao");
 	const balance = await new WalletDao(c.env.DB).getBalance(c.get("owner_id"));
-	return c.json({ balance });
+	return c.json({ data: { balance } });
 });
 
 // ─── Anthropic-compatible API ───────────────────────────
