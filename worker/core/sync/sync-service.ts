@@ -1,8 +1,9 @@
 /**
  * Model & Credential Sync Service
  *
- * Parallelizes provider fetches via Promise.allSettled.
- * Models are only deactivated when the API returns a valid, non-empty response.
+ * Two-phase OpenRouter-first sync:
+ * Phase 1 — Sync OpenRouter (canonical catalog, sets sort_order).
+ * Phase 2 — Sync remaining providers in parallel, filtered to OpenRouter allowlist.
  */
 
 import { log } from "../../shared/logger";

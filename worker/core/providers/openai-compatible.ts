@@ -58,6 +58,7 @@ function defaultParseModels(
 			output_modalities: '["text"]',
 			is_active: 1,
 			sort_order: 999999,
+			upstream_model_id: null,
 		}));
 }
 

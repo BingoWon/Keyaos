@@ -36,6 +36,7 @@ export interface DbModelPricing {
 	output_modalities: string | null; // JSON array or null if unknown
 	is_active: number;
 	sort_order: number;
+	upstream_model_id: string | null;
 	refreshed_at: number;
 }
 

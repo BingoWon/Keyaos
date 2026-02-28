@@ -8,8 +8,8 @@ export class PricingDao {
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, sort_order, refreshed_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+			`INSERT INTO model_pricing (id, provider, model_id, name, input_price, output_price, context_length, input_modalities, output_modalities, is_active, sort_order, upstream_model_id, refreshed_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   name = excluded.name,
 			   input_price = excluded.input_price,
@@ -19,6 +19,7 @@ export class PricingDao {
 			   output_modalities = excluded.output_modalities,
 			   is_active = 1,
 			   sort_order = excluded.sort_order,
+			   upstream_model_id = excluded.upstream_model_id,
 			   refreshed_at = excluded.refreshed_at`,
 		);
 
@@ -34,6 +35,7 @@ export class PricingDao {
 				m.input_modalities,
 				m.output_modalities,
 				m.sort_order,
+				m.upstream_model_id,
 				now,
 			),
 		);

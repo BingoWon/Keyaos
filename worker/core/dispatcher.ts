@@ -16,6 +16,7 @@ export interface DispatchResult {
 	credential: DbCredential;
 	provider: ProviderAdapter;
 	modelId: string;
+	upstreamModelId: string | null;
 	modelPrice: { inputPricePerM: number; outputPricePerM: number };
 }
 
@@ -57,6 +58,7 @@ export async function dispatchAll(
 				credential,
 				provider,
 				modelId: offering.model_id,
+				upstreamModelId: offering.upstream_model_id,
 				modelPrice: {
 					inputPricePerM: offering.input_price * credential.price_multiplier,
 					outputPricePerM: offering.output_price * credential.price_multiplier,

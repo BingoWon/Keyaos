@@ -66,11 +66,11 @@ export async function executeCompletion(
 	let lastError: unknown;
 
 	for (let attempt = 0; attempt < candidates.length; attempt++) {
-		const { credential, provider, modelId, modelPrice } = candidates[attempt];
+		const { credential, provider, modelId, upstreamModelId, modelPrice } = candidates[attempt];
 		const isSub = provider.info.isSubscription ?? false;
 		const upstreamBody = {
 			...req.body,
-			model: modelId,
+			model: upstreamModelId ?? modelId,
 			stream_options: req.body.stream ? { include_usage: true } : undefined,
 		};
 
@@ -113,10 +113,10 @@ export async function executeCompletion(
 							const settlement = isPlatform
 								? calculateSettlement(baseCost, isSelfUse)
 								: {
-										consumerCharged: 0,
-										providerEarned: 0,
-										platformFee: 0,
-									};
+									consumerCharged: 0,
+									providerEarned: 0,
+									platformFee: 0,
+								};
 
 							await recordUsage(c.env.DB, {
 								consumerId,

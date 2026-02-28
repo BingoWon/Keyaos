@@ -63,6 +63,7 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			output_modalities: serializeModalities(arch?.output_modalities),
 			is_active: 1,
 			sort_order: results.length,
+			upstream_model_id: null,
 		});
 	}
 	return results;
@@ -95,6 +96,7 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			output_modalities: serializeModalities(m.output_modalities),
 			is_active: 1,
 			sort_order: 999999,
+			upstream_model_id: null,
 		});
 	}
 	return results;
@@ -120,7 +122,7 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			id: `deepinfra:${canonicalId}`,
 			provider: "deepinfra",
 			model_id: canonicalId,
-			name: (m.id as string) || null,
+			name: null,
 			input_price: dollarsToCentsPerM(pricing.input_tokens),
 			output_price: dollarsToCentsPerM(pricing.output_tokens),
 			context_length: (metadata?.context_length as number) || null,
@@ -128,6 +130,7 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			output_modalities: null,
 			is_active: 1,
 			sort_order: 999999,
+			upstream_model_id: id,
 		});
 	}
 	return results;
@@ -159,6 +162,7 @@ function parseStaticUsdModels(
 		output_modalities: null,
 		is_active: 1,
 		sort_order: 999999,
+		upstream_model_id: null,
 	}));
 }
 

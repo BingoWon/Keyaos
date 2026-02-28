@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     output_modalities TEXT DEFAULT NULL,
     is_active INTEGER DEFAULT 1,
     sort_order INTEGER NOT NULL DEFAULT 999999,
+    upstream_model_id TEXT DEFAULT NULL,
     refreshed_at INTEGER NOT NULL
 );
 
