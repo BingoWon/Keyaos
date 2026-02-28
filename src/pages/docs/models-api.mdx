@@ -4,7 +4,7 @@ Browse the complete model catalog with pricing, capabilities, and provider avail
 
 ## GET /v1/models
 
-Returns all available models. Each model appears exactly once — pricing reflects the **best effective rate** across all providers.
+Returns all available models. Each model appears exactly once — pricing reflects **real transaction prices** updated every minute.
 
 **Request:**
 
@@ -23,6 +23,7 @@ curl https://your-gateway.workers.dev/v1/models \
       "name": "Google: Gemini 3.1 Pro Preview",
       "created": 1771509627,
       "description": "Gemini 3.1 Pro Preview is Google's frontier reasoning model...",
+      "hugging_face_id": null,
       "context_length": 1048576,
       "pricing": {
         "prompt": "0.000002",
@@ -33,8 +34,11 @@ curl https://your-gateway.workers.dev/v1/models \
         "input_cache_write": "0.000000375"
       },
       "architecture": {
+        "modality": "text+image+audio+video->text",
         "input_modalities": ["audio", "image", "text", "video"],
-        "output_modalities": ["text"]
+        "output_modalities": ["text"],
+        "tokenizer": "Gemini",
+        "instruct_type": null
       },
       "supported_parameters": [
         "include_reasoning", "max_tokens", "temperature",
@@ -54,15 +58,16 @@ curl https://your-gateway.workers.dev/v1/models \
 | `name` | `string` | Human-readable display name |
 | `created` | `number` | Unix timestamp (seconds) when the model was first available |
 | `description` | `string \| null` | Detailed model description and capabilities |
+| `hugging_face_id` | `string \| null` | HuggingFace model card reference |
 | `context_length` | `number \| null` | Maximum context window in tokens |
 | `pricing` | `object` | Cost in **USD per token** (string) — see below |
-| `architecture` | `object \| null` | Supported input/output modalities |
+| `architecture` | `object \| null` | Model architecture and modality info |
 | `supported_parameters` | `string[] \| null` | API parameters this model accepts |
 | `providers` | `string[]` | Upstream providers that can serve this model |
 
 ## Pricing Object
 
-All values are strings representing **USD per token**.
+All values are strings representing **USD per token**. `prompt` and `completion` are updated every minute based on actual transaction data. Other dimensions are derived proportionally.
 
 | Field | Description |
 |---|---|
@@ -74,4 +79,12 @@ All values are strings representing **USD per token**.
 | `input_cache_read` | Cached prompt read cost |
 | `input_cache_write` | Cache write cost |
 
-> `prompt` and `completion` reflect Keyaos's best effective price (cheapest provider × credential multiplier). Other pricing dimensions are informational reference values.
+## Architecture Object
+
+| Field | Type | Description |
+|---|---|---|
+| `modality` | `string` | Summary string, e.g. `"text+image->text"` |
+| `input_modalities` | `string[]` | Accepted input types |
+| `output_modalities` | `string[]` | Produced output types |
+| `tokenizer` | `string` | Tokenizer family, e.g. `"Gemini"`, `"Claude"` |
+| `instruct_type` | `string \| null` | Instruction format, e.g. `"deepseek-r1"` |

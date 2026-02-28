@@ -45,7 +45,7 @@ function renderRow(modalities: Modality[], size: number) {
 
 // ─── Inline badges (for Models page / Dashboard cards) ──
 
-/** Compact Input→Output badge pair. Hidden when both are text-only. */
+/** Compact Input→Output badge pair. */
 export function ModalityBadges({
 	input,
 	output,
