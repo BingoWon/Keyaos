@@ -4,7 +4,7 @@ export class PricingDao {
 	constructor(private db: D1Database) { }
 
 	async upsertPricing(
-		models: Omit<DbModelPricing, "refreshed_at">[],
+		models: Omit<DbModelPricing, "refreshed_at" | "is_active">[],
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(

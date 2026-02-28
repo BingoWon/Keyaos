@@ -291,7 +291,6 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			context_length: m.context_length,
 			input_modalities: null,
 			output_modalities: null,
-			is_active: 1,
 			sort_order: 999999,
 			upstream_model_id: null,
 			created_at: Date.now(),

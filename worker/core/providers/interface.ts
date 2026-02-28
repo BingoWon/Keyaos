@@ -23,7 +23,7 @@ export interface ProviderCredits {
 	usage: number | null;
 }
 
-export type ParsedModel = Omit<DbModelPricing, "refreshed_at">;
+export type ParsedModel = Omit<DbModelPricing, "refreshed_at" | "is_active">;
 
 export interface ProviderAdapter {
 	info: ProviderInfo;
