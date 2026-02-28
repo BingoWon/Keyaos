@@ -43,11 +43,13 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     input_modalities TEXT DEFAULT NULL,
     output_modalities TEXT DEFAULT NULL,
     is_active INTEGER DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 999999,
     refreshed_at INTEGER NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_model ON model_pricing(provider, model_id);
 CREATE INDEX IF NOT EXISTS idx_model_pricing_routing ON model_pricing(model_id, is_active, input_price);
+CREATE INDEX IF NOT EXISTS idx_model_pricing_sort ON model_pricing(model_id, sort_order);
 
 -- 4. API usage records (two-sided: consumer + credential owner)
 CREATE TABLE IF NOT EXISTS usage (
