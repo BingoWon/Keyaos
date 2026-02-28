@@ -66,7 +66,7 @@ export function ApiKeys() {
 			});
 			const result = await res.json();
 			if (res.ok) {
-				setCreatedKey(result.id);
+				setCreatedKey(result.data.id);
 				setKeyCopied(false);
 				setNewName("");
 				refetch();
