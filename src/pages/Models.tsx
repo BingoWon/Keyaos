@@ -10,13 +10,14 @@ import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatContext } from "../utils/format";
+import { formatContext, formatRelativeTime } from "../utils/format";
 import { mergeModalities } from "../utils/modalities";
 
 interface ModelGroup {
 	id: string;
 	displayName: string;
 	providers: ProviderRow[];
+	createdAt: number;
 	inputModalities: Modality[];
 	outputModalities: Modality[];
 }
@@ -40,6 +41,7 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 				id: e.id,
 				displayName: e.name || e.id,
 				providers: [],
+				createdAt: 0,
 				inputModalities: e.input_modalities ?? ["text"],
 				outputModalities: e.output_modalities ?? ["text"],
 			};
@@ -51,6 +53,9 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		// Merge modalities (take union across providers)
 		mergeModalities(group.inputModalities, e.input_modalities);
 		mergeModalities(group.outputModalities, e.output_modalities);
+		if (e.created_at && (!group.createdAt || e.created_at < group.createdAt)) {
+			group.createdAt = e.created_at;
+		}
 		group.providers.push({
 			provider: e.owned_by,
 			inputPrice: e.input_price ?? 0,
@@ -93,7 +98,7 @@ function ModelCard({
 					<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
 						{group.displayName}
 					</h4>
-					<span className="flex items-center gap-1 mt-1">
+					<span className="flex items-center gap-1.5 mt-1">
 						<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
 							{group.id}
 						</code>
@@ -102,6 +107,11 @@ function ModelCard({
 						<span onClick={(e) => e.stopPropagation()}>
 							<CopyButton text={group.id} />
 						</span>
+						{group.createdAt > 0 && (
+							<span className="ml-1 text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+								{formatRelativeTime(group.createdAt)}
+							</span>
+						)}
 					</span>
 				</div>
 				<div className="shrink-0 flex flex-col items-end gap-2">
