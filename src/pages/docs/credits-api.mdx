@@ -1,0 +1,28 @@
+# Credits API
+
+Check your credit balance via API.
+
+## GET /v1/credits
+
+Returns the current credit balance for the authenticated user.
+
+**Request:**
+
+```bash
+curl https://your-gateway.workers.dev/v1/credits \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "balance": 42.50
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `balance` | `number` | Remaining credits in USD-equivalent |

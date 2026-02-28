@@ -20,6 +20,7 @@ import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";
 import AuthenticationMdx from "./pages/docs/authentication.mdx";
 import BillingMdx from "./pages/docs/billing.mdx";
 import ContactMdx from "./pages/docs/contact.mdx";
+import CreditsApiMdx from "./pages/docs/credits-api.mdx";
 import CredentialsSharingMdx from "./pages/docs/credentials-sharing.mdx";
 import { DocsLayout } from "./pages/docs/DocsLayout";
 import ErrorCodesMdx from "./pages/docs/error-codes.mdx";
@@ -128,6 +129,7 @@ export const router = createBrowserRouter([
 			},
 			{ path: "openai-api", element: <MdxPage Component={OpenaiApiMdx} /> },
 			{ path: "models-api", element: <MdxPage Component={ModelsApiMdx} /> },
+			{ path: "credits-api", element: <MdxPage Component={CreditsApiMdx} /> },
 			{
 				path: "anthropic-api",
 				element: <MdxPage Component={AnthropicApiMdx} />,

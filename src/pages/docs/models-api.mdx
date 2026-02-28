@@ -1,10 +1,10 @@
-# Models & Credits API
+# Models API
 
-Endpoints for browsing the model catalog and checking your credit balance.
+Browse the complete model catalog with pricing, capabilities, and provider availability.
 
 ## GET /v1/models
 
-Returns all available models with pricing, capabilities, and provider availability. Each model appears exactly once — pricing reflects the **best effective rate** across all providers.
+Returns all available models. Each model appears exactly once — pricing reflects the **best effective rate** across all providers.
 
 **Request:**
 
@@ -46,7 +46,7 @@ curl https://your-gateway.workers.dev/v1/models \
 }
 ```
 
-### Response Fields
+## Response Fields
 
 | Field | Type | Description |
 |---|---|---|
@@ -60,7 +60,7 @@ curl https://your-gateway.workers.dev/v1/models \
 | `supported_parameters` | `string[] \| null` | API parameters this model accepts |
 | `providers` | `string[]` | Upstream providers that can serve this model |
 
-### Pricing Object
+## Pricing Object
 
 All values are strings representing **USD per token**.
 
@@ -74,29 +74,4 @@ All values are strings representing **USD per token**.
 | `input_cache_read` | Cached prompt read cost |
 | `input_cache_write` | Cache write cost |
 
-> `prompt` and `completion` reflect Keyaos's best effective price (cheapest provider × credential multiplier). Other pricing dimensions are informational.
-
----
-
-## GET /v1/credits
-
-Returns the current credit balance for the authenticated user.
-
-**Request:**
-
-```bash
-curl https://your-gateway.workers.dev/v1/credits \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-**Response:**
-
-```json
-{
-  "balance": 42.50
-}
-```
-
-| Field | Type | Description |
-|---|---|---|
-| `balance` | `number` | Remaining credits in USD-equivalent |
+> `prompt` and `completion` reflect Keyaos's best effective price (cheapest provider × credential multiplier). Other pricing dimensions are informational reference values.

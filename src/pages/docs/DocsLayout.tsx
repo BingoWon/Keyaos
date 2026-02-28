@@ -12,6 +12,7 @@ import {
 	CheckIcon,
 	ClipboardDocumentIcon,
 	CodeBracketIcon,
+	CreditCardIcon,
 	CubeIcon,
 	CurrencyDollarIcon,
 	DocumentTextIcon,
@@ -29,6 +30,7 @@ import {
 	BookOpenIcon as BookOpenIconSolid,
 	ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
 	CodeBracketIcon as CodeBracketIconSolid,
+	CreditCardIcon as CreditCardIconSolid,
 	CubeIcon as CubeIconSolid,
 	CurrencyDollarIcon as CurrencyDollarIconSolid,
 	DocumentTextIcon as DocumentTextIconSolid,
@@ -244,6 +246,12 @@ export function DocsLayout() {
 					href: "/docs/models-api",
 					icon: CubeIcon,
 					activeIcon: CubeIconSolid,
+				},
+				{
+					name: t("docs.nav_credits_api"),
+					href: "/docs/credits-api",
+					icon: CreditCardIcon,
+					activeIcon: CreditCardIconSolid,
 				},
 				{
 					name: t("docs.nav_openai_api"),
