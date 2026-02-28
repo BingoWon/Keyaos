@@ -37,6 +37,7 @@ export interface DbModelPricing {
 	is_active: number;
 	sort_order: number;
 	upstream_model_id: string | null;
+	created_at: number;
 	refreshed_at: number;
 }
 
