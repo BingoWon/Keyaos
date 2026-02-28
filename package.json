@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build",
+		"build": "vite build && node scripts/build-search-index.mjs",
 		"deploy": "wrangler d1 migrations apply keyaos-db --remote && wrangler deploy",
 		"test": "vitest run",
 		"test:api": "node --env-file=.env.local --experimental-strip-types --no-warnings --test tests/e2e/**/*.test.ts",
@@ -49,6 +49,7 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^5.1.4",
 		"openai": "^6.24.0",
+		"pagefind": "^1.4.0",
 		"tailwindcss": "4",
 		"typescript": "^5.9.3",
 		"vite": "^7.3.1",
