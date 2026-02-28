@@ -9,7 +9,7 @@ export interface ModelEntry {
 	platform_input_price?: number;
 	platform_output_price?: number;
 	context_length?: number;
-	created_at?: number | null;
+	created?: number;
 	input_modalities?: Modality[];
 	output_modalities?: Modality[];
 }

@@ -13,7 +13,7 @@ modelsRouter.get("/", async (c) => {
 		return {
 			id: m.model_id,
 			object: "model" as const,
-			created: Math.floor(m.refreshed_at / 1000),
+			created: m.created_at ? Math.floor(m.created_at / 1000) : 0,
 			owned_by: m.provider,
 			...(m.name && { name: m.name }),
 			input_price: m.input_price,
@@ -24,7 +24,6 @@ modelsRouter.get("/", async (c) => {
 				platform_output_price: m.output_price * mul,
 			}),
 			context_length: m.context_length,
-			created_at: m.created_at || null,
 			input_modalities: m.input_modalities
 				? JSON.parse(m.input_modalities)
 				: null,

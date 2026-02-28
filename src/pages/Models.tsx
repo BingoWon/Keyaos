@@ -54,8 +54,8 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		// Merge modalities (take union across providers)
 		mergeModalities(group.inputModalities, e.input_modalities);
 		mergeModalities(group.outputModalities, e.output_modalities);
-		if (e.created_at && (!group.createdAt || e.created_at < group.createdAt)) {
-			group.createdAt = e.created_at;
+		if (e.created && (!group.createdAt || e.created * 1000 < group.createdAt)) {
+			group.createdAt = e.created * 1000;
 		}
 		group.providers.push({
 			provider: e.owned_by,
