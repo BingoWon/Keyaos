@@ -60,7 +60,7 @@ export interface DbUsageEntry {
 }
 
 export interface DbPriceCandle {
-	dimension: "model" | "provider";
+	dimension: "model:input" | "model:output" | "provider";
 	dimension_value: string;
 	interval_start: number;
 	open_price: number;

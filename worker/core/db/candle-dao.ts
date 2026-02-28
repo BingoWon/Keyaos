@@ -4,13 +4,19 @@ import type { DbPriceCandle } from "./schema";
 const INTERVAL_MS = 60 * 1000;
 const RETENTION_DAYS = 30;
 
+export type CandleDimension =
+	| "model:input"
+	| "model:output"
+	| "provider";
+
 export class CandleDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	/**
 	 * Aggregate real trade data into candles.
-	 * - Model dimension: OHLC of blended price per M tokens (base_cost / tokens × 1M)
-	 * - Provider dimension: OHLC of price_multiplier
+	 * - model:input  — OHLC of effective input price per M tokens
+	 * - model:output — OHLC of effective output price per M tokens
+	 * - provider     — OHLC of price_multiplier
 	 */
 	async aggregate(since: number): Promise<void> {
 		const now = Date.now();
@@ -18,11 +24,14 @@ export class CandleDao {
 
 		const rows = await this.db
 			.prepare(
-				`SELECT provider, model, price_multiplier,
-				        input_tokens, output_tokens, base_cost, created_at
-				 FROM usage
-				 WHERE created_at >= ? AND created_at < ?
-				 ORDER BY created_at ASC`,
+				`SELECT u.provider, u.model, u.price_multiplier,
+				        u.input_tokens, u.output_tokens, u.created_at,
+				        mp.input_price, mp.output_price
+				 FROM usage u
+				 JOIN model_pricing mp
+				   ON mp.provider = u.provider AND mp.model_id = u.model AND mp.is_active = 1
+				 WHERE u.created_at >= ? AND u.created_at < ?
+				 ORDER BY u.created_at ASC`,
 			)
 			.bind(windowStart, now)
 			.all<{
@@ -31,8 +40,9 @@ export class CandleDao {
 				price_multiplier: number;
 				input_tokens: number;
 				output_tokens: number;
-				base_cost: number;
 				created_at: number;
+				input_price: number;
+				output_price: number;
 			}>();
 
 		if (!rows.results?.length) return;
@@ -82,21 +92,25 @@ export class CandleDao {
 
 		for (const row of rows.results) {
 			const interval = Math.floor(row.created_at / INTERVAL_MS) * INTERVAL_MS;
-			const totalTokens = row.input_tokens + row.output_tokens;
+			const mul = row.price_multiplier;
 
-			const pricePerM =
-				totalTokens > 0 ? (row.base_cost / totalTokens) * 1_000_000 : 0;
-			if (pricePerM > 0) {
-				upsert("model", row.model, interval, pricePerM, totalTokens);
+			const effectiveInput = row.input_price * mul;
+			const effectiveOutput = row.output_price * mul;
+
+			if (row.input_tokens > 0 && effectiveInput > 0) {
+				upsert("model:input", row.model, interval, effectiveInput, row.input_tokens);
+			}
+			if (row.output_tokens > 0 && effectiveOutput > 0) {
+				upsert("model:output", row.model, interval, effectiveOutput, row.output_tokens);
 			}
 
-			if (row.price_multiplier > 0) {
+			if (mul > 0) {
 				upsert(
 					"provider",
 					row.provider,
 					interval,
-					row.price_multiplier,
-					totalTokens,
+					mul,
+					row.input_tokens + row.output_tokens,
 				);
 			}
 		}
@@ -137,15 +151,16 @@ export class CandleDao {
 
 	/**
 	 * Generate quoted candles for models and providers without real trades.
-	 * - Model: best available input_price × min(price_multiplier) across credentials
-	 * - Provider: min(price_multiplier) across available credentials
+	 * - model:input  — MIN(input_price × price_multiplier)
+	 * - model:output — MIN(output_price × price_multiplier)
+	 * - provider     — MIN(price_multiplier)
 	 * Uses volume=0 to distinguish from real trades. Deduplicates against previous interval.
 	 */
 	async generateQuotedCandles(): Promise<void> {
 		const now = Date.now();
 		const interval = Math.floor(now / INTERVAL_MS) * INTERVAL_MS;
 
-		const [modelQuotes, providerQuotes] = await Promise.all([
+		const [inputQuotes, outputQuotes, providerQuotes] = await Promise.all([
 			this.db
 				.prepare(
 					`SELECT mp.model_id AS val, MIN(mp.input_price * c.price_multiplier) AS price
@@ -153,6 +168,16 @@ export class CandleDao {
 					 JOIN upstream_credentials c ON c.provider = mp.provider
 					 WHERE mp.is_active = 1 AND c.is_enabled = 1
 					   AND c.health_status NOT IN ('dead') AND mp.input_price > 0
+					 GROUP BY mp.model_id`,
+				)
+				.all<{ val: string; price: number }>(),
+			this.db
+				.prepare(
+					`SELECT mp.model_id AS val, MIN(mp.output_price * c.price_multiplier) AS price
+					 FROM model_pricing mp
+					 JOIN upstream_credentials c ON c.provider = mp.provider
+					 WHERE mp.is_active = 1 AND c.is_enabled = 1
+					   AND c.health_status NOT IN ('dead') AND mp.output_price > 0
 					 GROUP BY mp.model_id`,
 				)
 				.all<{ val: string; price: number }>(),
@@ -167,9 +192,13 @@ export class CandleDao {
 		]);
 
 		const quotes: { dim: string; val: string; price: number }[] = [];
-		for (const q of modelQuotes.results || []) {
+		for (const q of inputQuotes.results || []) {
 			if (q.price > 0)
-				quotes.push({ dim: "model", val: q.val, price: q.price });
+				quotes.push({ dim: "model:input", val: q.val, price: q.price });
+		}
+		for (const q of outputQuotes.results || []) {
+			if (q.price > 0)
+				quotes.push({ dim: "model:output", val: q.val, price: q.price });
 		}
 		for (const q of providerQuotes.results || []) {
 			if (q.price > 0)
@@ -249,11 +278,35 @@ export class CandleDao {
 	}
 
 	/**
+	 * Get latest close prices for all items in a dimension.
+	 * Returns a Map of dimension_value → close_price.
+	 */
+	async getLatestPrices(
+		dimension: CandleDimension,
+	): Promise<Map<string, number>> {
+		const res = await this.db
+			.prepare(
+				`SELECT dimension_value, close_price
+				 FROM price_candles
+				 WHERE dimension = ?
+				   AND interval_start = (
+				     SELECT MAX(interval_start) FROM price_candles WHERE dimension = ?
+				   )`,
+			)
+			.bind(dimension, dimension)
+			.all<{ dimension_value: string; close_price: number }>();
+
+		return new Map(
+			(res.results || []).map((r) => [r.dimension_value, r.close_price]),
+		);
+	}
+
+	/**
 	 * Fetch candles with gap-filling: sparse DB rows are expanded into
 	 * continuous 1-minute candles using the previous close price.
 	 */
 	async getCandles(
-		dimension: "model" | "provider",
+		dimension: CandleDimension,
 		value: string,
 		since: number,
 		limit = 10080,

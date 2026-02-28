@@ -22,6 +22,8 @@ interface Candle {
 	totalTokens: number;
 }
 
+type ModelSubDimension = "input" | "output";
+
 interface PriceChartProps {
 	dimension: "model" | "provider";
 	value: string;
@@ -69,8 +71,12 @@ export function PriceChart({
 	const chartRef = useRef<IChartApi | null>(null);
 	const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 	const [hours, setHours] = useState<number>(24);
+	const [subDim, setSubDim] = useState<ModelSubDimension>("input");
 
-	const url = `/api/candles/${dimension}/${encodeURIComponent(value)}?hours=${hours}`;
+	// For model charts, use model:input or model:output; for provider, use provider
+	const apiDimension =
+		dimension === "model" ? `model:${subDim}` : "provider";
+	const url = `/api/candles/${apiDimension}/${encodeURIComponent(value)}?hours=${hours}`;
 	const { data: candles, loading } = useFetch<Candle[]>(url);
 
 	// Create chart once on mount
@@ -112,9 +118,9 @@ export function PriceChart({
 			priceFormat:
 				dimension === "provider"
 					? {
-							type: "custom" as const,
-							formatter: (p: number) => `×${p.toFixed(3)}`,
-						}
+						type: "custom" as const,
+						formatter: (p: number) => `×${p.toFixed(3)}`,
+					}
 					: { type: "price" as const, precision: 4, minMove: 0.0001 },
 		});
 
@@ -173,20 +179,38 @@ export function PriceChart({
 			className={`rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 ${className}`}
 		>
 			<div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/5">
-				<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-					{title ?? t("chart.price_trend")}
-				</h4>
+				<div className="flex items-center gap-3">
+					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+						{title ?? t("chart.price_trend")}
+					</h4>
+					{dimension === "model" && (
+						<div className="flex gap-0.5 rounded-md bg-gray-100 p-0.5 dark:bg-white/10">
+							{(["input", "output"] as const).map((d) => (
+								<button
+									key={d}
+									type="button"
+									onClick={() => setSubDim(d)}
+									className={`px-2 py-0.5 text-xs rounded-md transition-colors capitalize ${subDim === d
+											? "bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+											: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+										}`}
+								>
+									{d}
+								</button>
+							))}
+						</div>
+					)}
+				</div>
 				<div className="flex gap-1">
 					{HOUR_OPTIONS.map((h) => (
 						<button
 							key={h}
 							type="button"
 							onClick={() => setHours(h)}
-							className={`px-2 py-0.5 text-xs rounded-md transition-colors ${
-								hours === h
+							className={`px-2 py-0.5 text-xs rounded-md transition-colors ${hours === h
 									? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
 									: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-							}`}
+								}`}
 						>
 							{formatHours(h)}
 						</button>

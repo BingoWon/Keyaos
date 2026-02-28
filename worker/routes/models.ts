@@ -1,24 +1,27 @@
 import { Hono } from "hono";
+import { CandleDao } from "../core/db/candle-dao";
 import { PricingDao } from "../core/db/pricing-dao";
 import type { AppEnv } from "../shared/types";
 
 /**
  * /v1/models — Public API, one entry per model.
  *
- * Aggregates across all providers to show:
- * - Best effective pricing (cheapest provider × credential multiplier)
- * - Full pricing breakdown from OpenRouter metadata (image, audio, cache, etc.)
- * - Available providers list
- * - Model capabilities (modalities, supported_parameters, description)
- *
- * prompt/completion prices are overridden with our best effective price;
- * other pricing dimensions (image, audio, cache) are passed through from metadata.
+ * Pricing uses pre-aggregated candle data (updated every minute):
+ * - prompt/completion from model:input / model:output candle close prices
+ * - Multi-modal prices derived via discount ratio against metadata
+ * - Zero real-time computation per request
  */
 export const publicModelsRouter = new Hono<AppEnv>();
 
 publicModelsRouter.get("/", async (c) => {
 	const dao = new PricingDao(c.env.DB);
-	const all = await dao.getActivePricingWithBestMultiplier();
+	const candleDao = new CandleDao(c.env.DB);
+
+	const [all, inputPrices, outputPrices] = await Promise.all([
+		dao.getActivePricingWithBestMultiplier(),
+		candleDao.getLatestPrices("model:input"),
+		candleDao.getLatestPrices("model:output"),
+	]);
 
 	// cents-per-M-tokens → USD-per-token string (OpenRouter format)
 	const toUsdPerToken = (centsPerM: number) =>
@@ -29,8 +32,6 @@ publicModelsRouter.get("/", async (c) => {
 		string,
 		{
 			meta: Record<string, unknown> | null;
-			bestInput: number;
-			bestOutput: number;
 			providers: string[];
 			name: string | null;
 			contextLength: number | null;
@@ -43,8 +44,6 @@ publicModelsRouter.get("/", async (c) => {
 			const meta = row.metadata ? JSON.parse(row.metadata) : null;
 			g = {
 				meta,
-				bestInput: Infinity,
-				bestOutput: Infinity,
 				providers: [],
 				name: row.name,
 				contextLength: row.context_length,
@@ -52,39 +51,48 @@ publicModelsRouter.get("/", async (c) => {
 			groups.set(row.model_id, g);
 		}
 
-		const mul = row.best_multiplier;
-		if (mul != null) {
-			const ei = row.input_price * mul;
-			const eo = row.output_price * mul;
-			if (ei < g.bestInput) g.bestInput = ei;
-			if (eo < g.bestOutput) g.bestOutput = eo;
+		if (row.best_multiplier != null) {
 			if (!g.providers.includes(row.provider)) g.providers.push(row.provider);
 		}
 	}
 
 	const data = [...groups.entries()].map(([id, g]) => {
 		const m = g.meta;
-		const arch = m?.architecture as Record<string, unknown> | undefined;
 
-		// Build pricing: keep multi-modal dimensions from metadata, override prompt/completion
+		// Build pricing from candle data
 		const basePricing = (m?.pricing as Record<string, string>) ?? {};
 		const pricing: Record<string, string> = { ...basePricing };
-		pricing.prompt = toUsdPerToken(g.bestInput);
-		pricing.completion = toUsdPerToken(g.bestOutput);
+
+		const inputClose = inputPrices.get(id);
+		const outputClose = outputPrices.get(id);
+
+		if (inputClose != null) {
+			pricing.prompt = toUsdPerToken(inputClose);
+
+			// Derive discount ratio for multi-modal pricing
+			const originalPrompt = Number.parseFloat(basePricing.prompt || "0") * 100_000_000;
+			if (originalPrompt > 0) {
+				const ratio = inputClose / originalPrompt;
+				for (const [key, val] of Object.entries(basePricing)) {
+					if (key !== "prompt" && key !== "completion" && val) {
+						pricing[key] = String(Number.parseFloat(val) * ratio);
+					}
+				}
+			}
+		}
+		if (outputClose != null) {
+			pricing.completion = toUsdPerToken(outputClose);
+		}
 
 		return {
 			id,
 			name: (m?.name as string) ?? g.name ?? id,
 			created: (m?.created as number) ?? 0,
 			description: (m?.description as string) ?? null,
+			hugging_face_id: (m?.hugging_face_id as string) ?? null,
 			context_length: (m?.context_length as number) ?? g.contextLength,
 			pricing,
-			architecture: arch
-				? {
-					input_modalities: arch.input_modalities,
-					output_modalities: arch.output_modalities,
-				}
-				: null,
+			architecture: (m?.architecture as Record<string, unknown>) ?? null,
 			supported_parameters: (m?.supported_parameters as string[]) ?? null,
 			providers: g.providers,
 		};

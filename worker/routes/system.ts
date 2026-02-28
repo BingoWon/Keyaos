@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { CandleDao } from "../core/db/candle-dao";
+import { CandleDao, type CandleDimension } from "../core/db/candle-dao";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { UsageDao } from "../core/db/usage-dao";
 import { getAllProviders } from "../core/providers/registry";
@@ -132,8 +132,9 @@ systemRouter.get("/ledger", async (c) => {
 
 /** Price candle data for charts */
 systemRouter.get("/candles/:dimension/:value", async (c) => {
-	const dimension = c.req.param("dimension") as "model" | "provider";
-	if (dimension !== "model" && dimension !== "provider") {
+	const dimension = c.req.param("dimension");
+	const validDimensions = new Set(["model:input", "model:output", "provider"]);
+	if (!validDimensions.has(dimension)) {
 		return c.json(
 			{
 				error: { message: "Invalid dimension", type: "invalid_request_error" },
@@ -147,7 +148,7 @@ systemRouter.get("/candles/:dimension/:value", async (c) => {
 	const limit = hours * 60;
 
 	const dao = new CandleDao(c.env.DB);
-	const candles = await dao.getCandles(dimension, value, since, limit);
+	const candles = await dao.getCandles(dimension as CandleDimension, value, since, limit);
 
 	return c.json({
 		data: candles.map((cd) => ({
