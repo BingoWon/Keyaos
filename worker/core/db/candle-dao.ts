@@ -311,23 +311,27 @@ export class CandleDao {
 	}
 
 	/**
-	 * Fetch candles with gap-filling: sparse DB rows are expanded into
-	 * continuous 1-minute candles using the previous close price.
+	 * Fetch candles with gap-filling and optional multi-minute aggregation.
+	 * Sparse DB rows are grouped into clock-aligned buckets of `intervalMs`,
+	 * then gaps are filled using the previous close price.
 	 */
 	async getCandles(
 		dimension: CandleDimension,
 		value: string,
 		since: number,
-		limit = 10080,
+		intervalMs = INTERVAL_MS,
 	): Promise<DbPriceCandle[]> {
+		const alignedSince =
+			Math.floor(since / intervalMs) * intervalMs;
+
 		const [sparseRes, seedRes] = await Promise.all([
 			this.db
 				.prepare(
 					`SELECT * FROM price_candles
 					 WHERE dimension = ? AND dimension_value = ? AND interval_start >= ?
-					 ORDER BY interval_start ASC LIMIT ?`,
+					 ORDER BY interval_start ASC`,
 				)
-				.bind(dimension, value, since, limit)
+				.bind(dimension, value, alignedSince)
 				.all<DbPriceCandle>(),
 			this.db
 				.prepare(
@@ -335,30 +339,56 @@ export class CandleDao {
 					 WHERE dimension = ? AND dimension_value = ? AND interval_start < ?
 					 ORDER BY interval_start DESC LIMIT 1`,
 				)
-				.bind(dimension, value, since)
+				.bind(dimension, value, alignedSince)
 				.first<{ close_price: number }>(),
 		]);
 
 		const sparse = sparseRes.results || [];
 		if (sparse.length === 0 && !seedRes) return [];
 
-		const sparseMap = new Map<number, DbPriceCandle>();
-		for (const c of sparse) sparseMap.set(c.interval_start, c);
+		const buckets = new Map<number, DbPriceCandle[]>();
+		for (const c of sparse) {
+			const key =
+				Math.floor(c.interval_start / intervalMs) * intervalMs;
+			let list = buckets.get(key);
+			if (!list) {
+				list = [];
+				buckets.set(key, list);
+			}
+			list.push(c);
+		}
 
 		const filled: DbPriceCandle[] = [];
-		const start = Math.floor(since / INTERVAL_MS) * INTERVAL_MS;
-		const end = Math.floor(Date.now() / INTERVAL_MS) * INTERVAL_MS;
-		let lastClose = seedRes?.close_price ?? sparse[0]?.open_price ?? 0;
+		const end = Math.floor(Date.now() / intervalMs) * intervalMs;
+		let lastClose =
+			seedRes?.close_price ?? sparse[0]?.open_price ?? 0;
 
-		for (
-			let ts = start;
-			ts <= end && filled.length < limit;
-			ts += INTERVAL_MS
-		) {
-			const existing = sparseMap.get(ts);
-			if (existing) {
-				filled.push(existing);
-				lastClose = existing.close_price;
+		for (let ts = alignedSince; ts <= end; ts += intervalMs) {
+			const group = buckets.get(ts);
+			if (group) {
+				let high = -Infinity;
+				let low = Infinity;
+				let volume = 0;
+				let totalTokens = 0;
+				for (const c of group) {
+					if (c.high_price > high) high = c.high_price;
+					if (c.low_price < low) low = c.low_price;
+					volume += c.volume;
+					totalTokens += c.total_tokens;
+				}
+				const last = group[group.length - 1];
+				filled.push({
+					dimension,
+					dimension_value: value,
+					interval_start: ts,
+					open_price: group[0].open_price,
+					high_price: high,
+					low_price: low,
+					close_price: last.close_price,
+					volume,
+					total_tokens: totalTokens,
+				});
+				lastClose = last.close_price;
 			} else if (lastClose > 0) {
 				filled.push({
 					dimension,
