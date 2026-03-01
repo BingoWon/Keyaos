@@ -11,7 +11,8 @@ import { ModalityBadges } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge, DualPrice } from "../components/ui";
+import { Badge, Button, DualPrice } from "../components/ui";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
@@ -233,8 +234,6 @@ function ModelCard({
 	);
 }
 
-const REFRESH_MS = 60_000;
-
 export function Models() {
 	const { t } = useTranslation();
 	const {
@@ -244,17 +243,7 @@ export function Models() {
 		refetch,
 	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
-
-	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-	useEffect(() => {
-		if (raw) setLastUpdated(new Date());
-	}, [raw]);
-
-	useEffect(() => {
-		const id = setInterval(refetch, REFRESH_MS);
-		return () => clearInterval(id);
-	}, [refetch]);
+	const lastUpdated = useAutoRefresh(refetch, raw);
 
 	const providerMap = useMemo(() => {
 		const m = new Map<string, ProviderMeta>();
@@ -304,63 +293,59 @@ export function Models() {
 
 	return (
 		<div>
-			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<div className="flex items-center gap-2">
-						<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-							{t("models.title")}
-						</h3>
-						{lastUpdated && (
-							<span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
-								{formatTimestamp(lastUpdated)}
-							</span>
-						)}
-						<button
-							type="button"
-							onClick={refetch}
-							className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-						>
-							<ArrowPathIcon
-								className={`size-3.5 ${loading ? "animate-spin" : ""}`}
-							/>
-						</button>
-					</div>
+			<div className="sm:flex sm:items-center">
+				<div className="sm:flex-auto">
+					<h3 className="text-base font-semibold text-gray-900 dark:text-white">
+						{t("models.title")}
+					</h3>
 					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 						{t("models.subtitle")}
 					</p>
 				</div>
-
-				{raw && groups.length > 0 && (
-					<div className="relative w-full sm:w-72">
-						<MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500" />
-						<input
-							ref={inputRef}
-							type="text"
-							value={query}
-							onChange={(e) => setQuery(e.target.value)}
-							placeholder="Search models…"
-							className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.03] py-2 pl-9 pr-20 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+				<div className="mt-4 sm:mt-0 flex items-center gap-3">
+					<Button
+						variant="secondary"
+						size="sm"
+						onClick={refetch}
+						className="tabular-nums shrink-0"
+					>
+						<ArrowPathIcon
+							className={`size-3.5 ${loading ? "animate-spin" : ""}`}
 						/>
-						<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-							{query ? (
-								<button
-									type="button"
-									onClick={() => {
-										setQuery("");
-										inputRef.current?.focus();
-									}}
-									className="rounded-md p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-								>
-									<XMarkIcon className="size-4" />
-								</button>
-							) : (
-								<kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:text-gray-500">
-									⌘K
-								</kbd>
-							)}
+						{lastUpdated && formatTimestamp(lastUpdated)}
+					</Button>
+					{raw && groups.length > 0 && (
+						<div className="relative flex-1 sm:flex-none sm:w-72">
+							<MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500" />
+							<input
+								ref={inputRef}
+								type="text"
+								value={query}
+								onChange={(e) => setQuery(e.target.value)}
+								placeholder="Search models…"
+								className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.03] py-2 pl-9 pr-20 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+							/>
+							<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+								{query ? (
+									<button
+										type="button"
+										onClick={() => {
+											setQuery("");
+											inputRef.current?.focus();
+										}}
+										className="rounded-md p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+									>
+										<XMarkIcon className="size-4" />
+									</button>
+								) : (
+									<kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:text-gray-500">
+										⌘K
+									</kbd>
+								)}
+							</div>
 						</div>
-					</div>
-				)}
+					)}
+				</div>
 			</div>
 
 			{!raw && loading ? (

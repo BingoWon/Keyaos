@@ -11,6 +11,7 @@ import {
 } from "lightweight-charts";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
 import { formatTimestamp } from "../utils/format";
 
@@ -38,8 +39,7 @@ interface PriceChartProps {
 	className?: string;
 }
 
-const HOUR_OPTIONS = [1, 6, 24, 72, 168] as const;
-const REFRESH_MS = 60_000;
+const HOUR_OPTIONS = [2, 6, 24, 72, 168] as const;
 
 const TIP_CLASS =
 	"pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5 z-20 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover/tip:opacity-100 dark:bg-gray-700";
@@ -101,28 +101,18 @@ export function PriceChart({
 
 	const [hours, setHours] = useState<number>(6);
 	const [subDim, setSubDim] = useState<ModelSubDimension>("input");
-	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 	const [legend, setLegend] = useState<OHLCValues | null>(null);
 
 	const apiDimension = dimension === "model" ? `model:${subDim}` : "provider";
 	const url = `/api/candles/${apiDimension}/${encodeURIComponent(value)}?hours=${hours}`;
 	const { data: candles, loading, refetch } = useFetch<Candle[]>(url);
+	const lastUpdated = useAutoRefresh(refetch, candles);
 
 	const fmtPrice = useCallback(
 		(p: number) =>
 			dimension === "provider" ? `×${p.toFixed(3)}` : p.toFixed(4),
 		[dimension],
 	);
-
-	useEffect(() => {
-		if (candles) setLastUpdated(new Date());
-	}, [candles]);
-
-	// Auto-refresh every minute
-	useEffect(() => {
-		const id = setInterval(refetch, REFRESH_MS);
-		return () => clearInterval(id);
-	}, [refetch]);
 
 	// Reset fit flag when query parameters change
 	useEffect(() => {

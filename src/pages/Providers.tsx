@@ -1,5 +1,5 @@
 import { ArrowPathIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
@@ -7,7 +7,8 @@ import { ModalityCell } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge, DualPrice } from "../components/ui";
+import { Badge, Button, DualPrice } from "../components/ui";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
@@ -131,8 +132,6 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 	);
 }
 
-const REFRESH_MS = 60_000;
-
 export function Providers() {
 	const { t } = useTranslation();
 	const {
@@ -142,17 +141,7 @@ export function Providers() {
 	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData, loading: providersLoading } =
 		useFetch<ProviderMeta[]>("/api/providers");
-
-	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
-	useEffect(() => {
-		if (models) setLastUpdated(new Date());
-	}, [models]);
-
-	useEffect(() => {
-		const id = setInterval(refetchModels, REFRESH_MS);
-		return () => clearInterval(id);
-	}, [refetchModels]);
+	const lastUpdated = useAutoRefresh(refetchModels, models);
 
 	const groups = useMemo(() => {
 		if (!models || !providersData) return [];
@@ -201,29 +190,28 @@ export function Providers() {
 
 	return (
 		<div>
-			<div>
-				<div className="flex items-center gap-2">
+			<div className="sm:flex sm:items-center">
+				<div className="sm:flex-auto">
 					<h3 className="text-base font-semibold text-gray-900 dark:text-white">
 						{t("providers.title")}
 					</h3>
-					{lastUpdated && (
-						<span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
-							{formatTimestamp(lastUpdated)}
-						</span>
-					)}
-					<button
-						type="button"
+					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						{t("providers.subtitle")}
+					</p>
+				</div>
+				<div className="mt-4 sm:mt-0 sm:flex-none">
+					<Button
+						variant="secondary"
+						size="sm"
 						onClick={refetchModels}
-						className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+						className="tabular-nums"
 					>
 						<ArrowPathIcon
 							className={`size-3.5 ${modelsLoading ? "animate-spin" : ""}`}
 						/>
-					</button>
+						{lastUpdated && formatTimestamp(lastUpdated)}
+					</Button>
 				</div>
-				<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-					{t("providers.subtitle")}
-				</p>
 			</div>
 
 			{initialLoading ? (
