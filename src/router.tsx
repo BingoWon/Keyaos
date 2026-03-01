@@ -12,7 +12,7 @@ import { AdminLayout } from "./pages/admin/AdminLayout";
 import { Data } from "./pages/admin/Data";
 import { Overview } from "./pages/admin/Overview";
 import { Users } from "./pages/admin/Users";
-import { Billing } from "./pages/Billing";
+import { Credits } from "./pages/Credits";
 import { Byok } from "./pages/Byok";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
@@ -34,7 +34,6 @@ import PrivacyPolicyMdx from "./pages/docs/privacy-policy.mdx";
 import QuickstartMdx from "./pages/docs/quickstart.mdx";
 import TermsOfServiceMdx from "./pages/docs/terms-of-service.mdx";
 import { Landing } from "./pages/Landing";
-import { Ledger } from "./pages/Ledger";
 import { Login } from "./pages/Login";
 import { Models } from "./pages/Models";
 import { NotFound } from "./pages/NotFound";
@@ -49,10 +48,7 @@ const dashboardChildren = [
 	{ path: "byok", element: <Byok /> },
 	{ path: "usage", element: <Usage /> },
 	...(isPlatform
-		? [
-				{ path: "ledger", element: <Ledger /> },
-				{ path: "billing", element: <Billing /> },
-			]
+		? [{ path: "credits", element: <Credits /> }]
 		: []),
 ];
 

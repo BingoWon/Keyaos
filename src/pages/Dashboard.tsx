@@ -237,7 +237,7 @@ export function Dashboard() {
 						name: t("dashboard.wallet_balance"),
 						stat: wallet ? formatUSD(wallet.balance) : "-",
 						icon: CreditCardIcon,
-						href: "/dashboard/billing",
+						href: "/dashboard/credits",
 					},
 				]
 			: []),

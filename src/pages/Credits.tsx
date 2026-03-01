@@ -1,8 +1,11 @@
 import {
+	ArrowDownTrayIcon,
 	ArrowPathIcon,
+	ArrowUpTrayIcon,
 	BanknotesIcon,
 	CreditCardIcon,
 	ExclamationTriangleIcon,
+	WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +16,7 @@ import { useAuth } from "../auth";
 import { PageLoader } from "../components/PageLoader";
 import { Badge, Button, Input, PromoBanner } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
+import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { formatSignedUSD, formatUSD } from "../utils/format";
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
@@ -28,34 +32,126 @@ interface AutoTopUpConfig {
 	pausedReason?: string | null;
 }
 
-export function Billing() {
+interface PaymentEntry {
+	id: string;
+	type: string;
+	amount_cents: number;
+	credits: number;
+	status: string;
+	created_at: number;
+}
+
+interface LedgerEntry {
+	id: string;
+	type: "usage" | "top_up" | "adjustment";
+	category: string;
+	description: string;
+	amount: number;
+	created_at: number;
+}
+
+type HistoryTab = "ledger" | "payments";
+
+/* ─── Category badges for ledger ─── */
+
+const CATEGORY_CONFIG: Record<
+	string,
+	{
+		icon: typeof ArrowUpTrayIcon;
+		colorClass: string;
+		bgClass: string;
+		labelKey: string;
+	}
+> = {
+	api_spend: {
+		icon: ArrowUpTrayIcon,
+		colorClass: "text-red-700 dark:text-red-400",
+		bgClass: "bg-red-50 dark:bg-red-900/30",
+		labelKey: "credits.api_spend",
+	},
+	credential_earn: {
+		icon: ArrowDownTrayIcon,
+		colorClass: "text-green-700 dark:text-green-400",
+		bgClass: "bg-green-50 dark:bg-green-900/30",
+		labelKey: "credits.credential_earn",
+	},
+	top_up: {
+		icon: CreditCardIcon,
+		colorClass: "text-blue-700 dark:text-blue-400",
+		bgClass: "bg-blue-50 dark:bg-blue-900/30",
+		labelKey: "credits.top_up",
+	},
+	auto_topup: {
+		icon: ArrowPathIcon,
+		colorClass: "text-violet-700 dark:text-violet-400",
+		bgClass: "bg-violet-50 dark:bg-violet-900/30",
+		labelKey: "credits.auto_topup_label",
+	},
+	grant: {
+		icon: BanknotesIcon,
+		colorClass: "text-emerald-700 dark:text-emerald-400",
+		bgClass: "bg-emerald-50 dark:bg-emerald-900/30",
+		labelKey: "credits.grant",
+	},
+	revoke: {
+		icon: WrenchScrewdriverIcon,
+		colorClass: "text-orange-700 dark:text-orange-400",
+		bgClass: "bg-orange-50 dark:bg-orange-900/30",
+		labelKey: "credits.revoke",
+	},
+};
+
+function CategoryBadge({ category }: { category: string }) {
+	const { t } = useTranslation();
+	const config = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.api_spend;
+	const Ic = config.icon;
+
+	return (
+		<span
+			className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${config.bgClass} ${config.colorClass}`}
+		>
+			<Ic className="size-3" />
+			{t(config.labelKey)}
+		</span>
+	);
+}
+
+/* ─── Tab buttons ─── */
+
+const tabClass = (active: boolean) =>
+	`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg border-b-2 ${
+		active
+			? "border-brand-500 text-brand-600 dark:text-brand-400"
+			: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+	}`;
+
+/* ─── Main page ─── */
+
+export function Credits() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
+	const formatDateTime = useFormatDateTime();
 	const [searchParams, setSearchParams] = useSearchParams();
+
 	const {
 		data: wallet,
 		loading: walletLoading,
 		refetch: refetchWallet,
 	} = useFetch<{ balance: number }>("/api/billing/balance");
 	const {
-		data: history,
-		loading: historyLoading,
-		refetch: refetchHistory,
-	} = useFetch<
-		{
-			id: string;
-			type: string;
-			amount_cents: number;
-			credits: number;
-			status: string;
-			created_at: number;
-		}[]
-	>("/api/billing/history");
+		data: payments,
+		loading: paymentsLoading,
+		refetch: refetchPayments,
+	} = useFetch<PaymentEntry[]>("/api/billing/history");
 	const {
 		data: autoConfig,
 		loading: autoLoading,
 		refetch: refetchAuto,
 	} = useFetch<AutoTopUpConfig>("/api/billing/auto-topup");
+	const {
+		data: ledger,
+		loading: ledgerLoading,
+	} = useFetch<LedgerEntry[]>("/api/ledger?limit=200");
 
 	const [loading, setLoading] = useState(false);
 	const [customAmount, setCustomAmount] = useState("");
@@ -64,6 +160,8 @@ export function Billing() {
 	const [autoThreshold, setAutoThreshold] = useState("5");
 	const [autoAmount, setAutoAmount] = useState("10");
 	const [autoSaving, setAutoSaving] = useState(false);
+
+	const [tab, setTab] = useState<HistoryTab>("ledger");
 
 	useEffect(() => {
 		if (autoConfig) {
@@ -76,26 +174,26 @@ export function Billing() {
 
 	useEffect(() => {
 		if (searchParams.get("success") === "true") {
-			toast.success(t("billing.success"));
+			toast.success(t("credits.success"));
 			refetchWallet();
-			refetchHistory();
+			refetchPayments();
 			refetchAuto();
 			setSearchParams({}, { replace: true });
 		} else if (searchParams.get("canceled") === "true") {
-			toast(t("billing.canceled"), { icon: "↩" });
+			toast(t("credits.canceled"), { icon: "↩" });
 			setSearchParams({}, { replace: true });
 			getToken().then((token) =>
 				fetch("/api/billing/cancel-pending", {
 					method: "POST",
 					headers: { Authorization: `Bearer ${token}` },
-				}).then(() => refetchHistory()),
+				}).then(() => refetchPayments()),
 			);
 		}
 	}, [
 		searchParams,
 		setSearchParams,
 		refetchWallet,
-		refetchHistory,
+		refetchPayments,
 		refetchAuto,
 		getToken,
 		t,
@@ -147,7 +245,7 @@ export function Billing() {
 				});
 				const json = await res.json();
 				if (json.ok) {
-					toast.success(t("billing.auto_topup_saved"));
+					toast.success(t("credits.auto_topup_saved"));
 					refetchAuto();
 				} else {
 					if (enabledOverride !== undefined) setAutoEnabled(!enabled);
@@ -170,20 +268,20 @@ export function Billing() {
 			<div className="sm:flex sm:items-center sm:justify-between">
 				<div>
 					<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-						{t("billing.title")}
+						{t("credits.title")}
 					</h3>
 					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-						{t("billing.subtitle")}
+						{t("credits.subtitle")}
 					</p>
 				</div>
 			</div>
 
 			{/* Promo Banner */}
 			<PromoBanner
-				title={t("billing.promo_title")}
+				title={t("credits.promo_title")}
 				description={
 					<Trans
-						i18nKey="billing.promo_desc"
+						i18nKey="credits.promo_desc"
 						components={{
 							OpenRouterLink: (
 								// biome-ignore lint/a11y/useAnchorContent: Trans injects children at runtime
@@ -207,7 +305,7 @@ export function Billing() {
 					</div>
 					<div>
 						<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-							{t("billing.balance")}
+							{t("credits.balance")}
 						</p>
 						<p className="text-3xl font-semibold text-gray-900 dark:text-white">
 							{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
@@ -227,10 +325,10 @@ export function Billing() {
 							</div>
 							<div>
 								<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-									{t("billing.buy_credits")}
+									{t("credits.buy_credits")}
 								</h4>
 								<p className="text-xs text-gray-500 dark:text-gray-400">
-									{t("billing.buy_credits_desc")}
+									{t("credits.buy_credits_desc")}
 								</p>
 							</div>
 						</div>
@@ -254,7 +352,7 @@ export function Billing() {
 									type="number"
 									min="1"
 									step="1"
-									placeholder={t("billing.custom_placeholder")}
+									placeholder={t("credits.custom_placeholder")}
 									value={customAmount}
 									onChange={(e) => setCustomAmount(e.target.value)}
 									className="pl-7"
@@ -264,7 +362,7 @@ export function Billing() {
 								disabled={loading || customCents < 100}
 								onClick={() => handleCheckout(customCents)}
 							>
-								{t("billing.buy_credits")}
+								{t("credits.buy_credits")}
 							</Button>
 						</div>
 						<div className="flex flex-wrap gap-2">
@@ -281,7 +379,7 @@ export function Billing() {
 							))}
 						</div>
 						<p className="text-xs text-gray-400 dark:text-gray-500">
-							{t("billing.rate")}
+							{t("credits.rate")}
 						</p>
 					</div>
 				</div>
@@ -295,10 +393,10 @@ export function Billing() {
 							</div>
 							<div>
 								<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-									{t("billing.auto_topup")}
+									{t("credits.auto_topup")}
 								</h4>
 								<p className="text-xs text-gray-500 dark:text-gray-400">
-									{t("billing.auto_topup_desc")}
+									{t("credits.auto_topup_desc")}
 								</p>
 							</div>
 						</div>
@@ -321,7 +419,7 @@ export function Billing() {
 					{autoConfig?.pausedReason && (
 						<div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
 							<ExclamationTriangleIcon className="size-4 shrink-0" />
-							{t("billing.auto_topup_paused", {
+							{t("credits.auto_topup_paused", {
 								reason: autoConfig.pausedReason,
 							})}
 						</div>
@@ -331,7 +429,7 @@ export function Billing() {
 						(autoConfig?.consecutiveFailures ?? 0) > 0 && (
 							<div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
 								<ExclamationTriangleIcon className="size-4 shrink-0" />
-								{t("billing.auto_topup_failing", {
+								{t("credits.auto_topup_failing", {
 									count: autoConfig?.consecutiveFailures,
 									delay: autoConfig?.consecutiveFailures === 1 ? "1h" : "24h",
 								})}
@@ -344,14 +442,14 @@ export function Billing() {
 						</div>
 					) : !autoConfig?.hasCard ? (
 						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
-							{t("billing.auto_topup_no_card")}
+							{t("credits.auto_topup_no_card")}
 						</p>
 					) : (
 						<div className="mt-3 space-y-3">
 							<div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:divide-x sm:divide-gray-200 sm:dark:divide-white/10">
 								<div className="sm:pr-4">
 									<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-										{t("billing.auto_topup_threshold")}
+										{t("credits.auto_topup_threshold")}
 									</span>
 									<div className="mt-1.5 flex flex-wrap items-center gap-2">
 										<div className="relative w-24">
@@ -385,7 +483,7 @@ export function Billing() {
 								</div>
 								<div className="sm:pl-4">
 									<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-										{t("billing.auto_topup_amount")}
+										{t("credits.auto_topup_amount")}
 									</span>
 									<div className="mt-1.5 flex flex-wrap items-center gap-2">
 										<div className="relative w-24">
@@ -430,74 +528,203 @@ export function Billing() {
 				</div>
 			</div>
 
-			{/* History */}
+			{/* History — tabbed */}
 			<div className="mt-8">
-				<h4 className="text-sm font-medium text-gray-900 dark:text-white">
-					{t("billing.history")}
-				</h4>
-				{historyLoading ? (
-					<div className="mt-4">
-						<PageLoader />
-					</div>
-				) : !history?.length ? (
-					<p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-						{t("billing.no_data")}
-					</p>
-				) : (
-					<div className="mt-3 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
-						<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-							<thead className="bg-gray-50 dark:bg-white/5">
-								<tr>
-									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-										{t("billing.time")}
-									</th>
-									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-										{t("billing.amount")}
-									</th>
-									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-										{t("billing.type")}
-									</th>
-									<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-										{t("billing.status")}
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-gray-200 dark:divide-white/10">
-								{history.map((p) => (
-									<tr key={p.id}>
-										<td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-											{new Date(p.created_at).toLocaleString()}
-										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-											{formatSignedUSD(p.credits)}
-										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-sm">
-											<Badge variant={p.type === "auto" ? "accent" : "brand"}>
-												{t(`billing.type_${p.type || "manual"}`)}
-											</Badge>
-										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-sm">
-											<span
-												className={
-													p.status === "completed"
-														? "text-green-600 dark:text-green-400"
-														: p.status === "pending"
-															? "text-yellow-600 dark:text-yellow-400"
-															: p.status === "failed"
-																? "text-red-600 dark:text-red-400"
-																: "text-gray-400 dark:text-gray-500"
-												}
-											>
-												{t(`billing.status_${p.status}`)}
-											</span>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
+				<div className="flex gap-1 border-b border-gray-200 dark:border-white/10">
+					<button
+						type="button"
+						onClick={() => setTab("ledger")}
+						className={tabClass(tab === "ledger")}
+					>
+						{t("credits.tab_transactions")}
+					</button>
+					<button
+						type="button"
+						onClick={() => setTab("payments")}
+						className={tabClass(tab === "payments")}
+					>
+						{t("credits.tab_payments")}
+					</button>
+				</div>
+
+				{tab === "ledger" && (
+					<LedgerTable
+						entries={ledger}
+						loading={ledgerLoading}
+						formatDateTime={formatDateTime}
+					/>
+				)}
+				{tab === "payments" && (
+					<PaymentsTable
+						entries={payments}
+						loading={paymentsLoading}
+						formatDateTime={formatDateTime}
+					/>
 				)}
 			</div>
+		</div>
+	);
+}
+
+/* ─── Ledger (transaction history) table ─── */
+
+function LedgerTable({
+	entries,
+	loading,
+	formatDateTime,
+}: {
+	entries: LedgerEntry[] | null;
+	loading: boolean;
+	formatDateTime: (ts: number) => string;
+}) {
+	const { t } = useTranslation();
+
+	if (loading)
+		return (
+			<div className="mt-5">
+				<PageLoader />
+			</div>
+		);
+
+	if (!entries?.length)
+		return (
+			<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+				{t("credits.no_transactions")}
+			</p>
+		);
+
+	return (
+		<div className="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+			<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
+				<thead className="bg-gray-50 dark:bg-white/5">
+					<tr>
+						<th className="py-3 pl-4 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 sm:pl-6">
+							{t("credits.time")}
+						</th>
+						<th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+							{t("credits.type")}
+						</th>
+						<th className="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+							{t("credits.description")}
+						</th>
+						<th className="px-3 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 sm:pr-6">
+							{t("credits.amount")}
+						</th>
+					</tr>
+				</thead>
+				<tbody className="divide-y divide-gray-200 dark:divide-white/5">
+					{entries.map((e) => (
+						<tr key={`${e.type}-${e.id}`}>
+							<td className="whitespace-nowrap py-3 pl-4 pr-3 text-sm text-gray-500 dark:text-gray-400 sm:pl-6">
+								{formatDateTime(e.created_at)}
+							</td>
+							<td className="whitespace-nowrap px-3 py-3">
+								<CategoryBadge category={e.category} />
+							</td>
+							<td className="whitespace-nowrap px-3 py-3 text-sm text-gray-900 dark:text-white">
+								{e.description ||
+									(e.type === "adjustment"
+										? t("credits.admin_adjustment")
+										: "—")}
+							</td>
+							<td
+								className={`whitespace-nowrap px-3 py-3 text-sm text-right font-medium sm:pr-6 ${
+									e.amount > 0
+										? "text-green-600 dark:text-green-400"
+										: e.amount < 0
+											? "text-red-600 dark:text-red-400"
+											: "text-gray-400 dark:text-gray-500"
+								}`}
+							>
+								{formatSignedUSD(e.amount)}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
+/* ─── Payments table ─── */
+
+function PaymentsTable({
+	entries,
+	loading,
+	formatDateTime,
+}: {
+	entries: PaymentEntry[] | null;
+	loading: boolean;
+	formatDateTime: (ts: number) => string;
+}) {
+	const { t } = useTranslation();
+
+	if (loading)
+		return (
+			<div className="mt-5">
+				<PageLoader />
+			</div>
+		);
+
+	if (!entries?.length)
+		return (
+			<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+				{t("credits.no_payments")}
+			</p>
+		);
+
+	return (
+		<div className="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+			<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
+				<thead className="bg-gray-50 dark:bg-white/5">
+					<tr>
+						<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+							{t("credits.time")}
+						</th>
+						<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+							{t("credits.amount")}
+						</th>
+						<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+							{t("credits.type")}
+						</th>
+						<th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+							{t("credits.status")}
+						</th>
+					</tr>
+				</thead>
+				<tbody className="divide-y divide-gray-200 dark:divide-white/10">
+					{entries.map((p) => (
+						<tr key={p.id}>
+							<td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+								{formatDateTime(p.created_at)}
+							</td>
+							<td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+								{formatSignedUSD(p.credits)}
+							</td>
+							<td className="whitespace-nowrap px-4 py-3 text-sm">
+								<Badge variant={p.type === "auto" ? "accent" : "brand"}>
+									{t(`credits.type_${p.type || "manual"}`)}
+								</Badge>
+							</td>
+							<td className="whitespace-nowrap px-4 py-3 text-sm">
+								<span
+									className={
+										p.status === "completed"
+											? "text-green-600 dark:text-green-400"
+											: p.status === "pending"
+												? "text-yellow-600 dark:text-yellow-400"
+												: p.status === "failed"
+													? "text-red-600 dark:text-red-400"
+													: "text-gray-400 dark:text-gray-500"
+									}
+								>
+									{t(`credits.status_${p.status}`)}
+								</span>
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
 		</div>
 	);
 }

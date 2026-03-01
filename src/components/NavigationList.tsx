@@ -3,7 +3,6 @@ import {
 	BuildingOfficeIcon,
 	CpuChipIcon,
 	CreditCardIcon,
-	DocumentCurrencyDollarIcon,
 	HomeIcon,
 	KeyIcon,
 	ListBulletIcon,
@@ -16,7 +15,6 @@ import {
 	BuildingOfficeIcon as BuildingOfficeIconSolid,
 	CpuChipIcon as CpuChipIconSolid,
 	CreditCardIcon as CreditCardIconSolid,
-	DocumentCurrencyDollarIcon as DocumentCurrencyDollarIconSolid,
 	HomeIcon as HomeIconSolid,
 	KeyIcon as KeyIconSolid,
 	ListBulletIcon as ListBulletIconSolid,
@@ -79,14 +77,8 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		...(isPlatform
 			? [
 					{
-						name: t("nav.ledger"),
-						href: "/dashboard/ledger",
-						icon: DocumentCurrencyDollarIcon,
-						activeIcon: DocumentCurrencyDollarIconSolid,
-					},
-					{
-						name: t("nav.billing"),
-						href: "/dashboard/billing",
+						name: t("nav.credits"),
+						href: "/dashboard/credits",
 						icon: CreditCardIcon,
 						activeIcon: CreditCardIconSolid,
 					},
