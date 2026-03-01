@@ -1,3 +1,4 @@
+import { ArrowPathIcon, ArrowsPointingOutIcon } from "@heroicons/react/20/solid";
 import {
 	type CandlestickData,
 	CandlestickSeries,
@@ -8,12 +9,19 @@ import {
 	type ISeriesApi,
 	type Time,
 } from "lightweight-charts";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFetch } from "../hooks/useFetch";
 
 interface Candle {
 	time: number;
+	open: number;
+	high: number;
+	low: number;
+	close: number;
+}
+
+interface OHLCValues {
 	open: number;
 	high: number;
 	low: number;
@@ -30,6 +38,7 @@ interface PriceChartProps {
 }
 
 const HOUR_OPTIONS = [1, 6, 24, 72, 168] as const;
+const REFRESH_MS = 60_000;
 
 function formatHours(h: number): string {
 	if (h < 24) return `${h}h`;
@@ -71,6 +80,14 @@ function toCandlestickData(candles: Candle[]): CandlestickData<Time>[] {
 	}));
 }
 
+function formatTimestamp(date: Date): string {
+	return date.toLocaleTimeString(undefined, {
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+	});
+}
+
 export function PriceChart({
 	dimension,
 	value,
@@ -81,15 +98,40 @@ export function PriceChart({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
 	const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+	const latestOHLCRef = useRef<OHLCValues | null>(null);
+	const hasInitialFitRef = useRef(false);
+
 	const [hours, setHours] = useState<number>(6);
 	const [subDim, setSubDim] = useState<ModelSubDimension>("input");
+	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+	const [legend, setLegend] = useState<OHLCValues | null>(null);
 
-	// For model charts, use model:input or model:output; for provider, use provider
 	const apiDimension = dimension === "model" ? `model:${subDim}` : "provider";
 	const url = `/api/candles/${apiDimension}/${encodeURIComponent(value)}?hours=${hours}`;
-	const { data: candles, loading } = useFetch<Candle[]>(url);
+	const { data: candles, loading, refetch } = useFetch<Candle[]>(url);
 
-	// Create chart once on mount
+	const fmtPrice = useCallback(
+		(p: number) =>
+			dimension === "provider" ? `×${p.toFixed(3)}` : p.toFixed(4),
+		[dimension],
+	);
+
+	useEffect(() => {
+		if (candles) setLastUpdated(new Date());
+	}, [candles]);
+
+	// Auto-refresh every minute
+	useEffect(() => {
+		const id = setInterval(refetch, REFRESH_MS);
+		return () => clearInterval(id);
+	}, [refetch]);
+
+	// Reset fit flag when query parameters change
+	useEffect(() => {
+		hasInitialFitRef.current = false;
+	}, [hours, subDim]);
+
+	// Create chart once
 	useEffect(() => {
 		if (!containerRef.current) return;
 
@@ -137,13 +179,30 @@ export function PriceChart({
 		chartRef.current = chart;
 		seriesRef.current = series;
 
+		chart.subscribeCrosshairMove((param) => {
+			if (!param.time || !param.seriesData.size) {
+				setLegend(latestOHLCRef.current);
+				return;
+			}
+			const d = param.seriesData.get(series) as
+				| CandlestickData<Time>
+				| undefined;
+			if (d) {
+				setLegend({
+					open: d.open,
+					high: d.high,
+					low: d.low,
+					close: d.close,
+				});
+			}
+		});
+
 		const resizeObserver = new ResizeObserver((entries) => {
 			const entry = entries[0];
 			if (entry) chart.applyOptions({ width: entry.contentRect.width });
 		});
 		resizeObserver.observe(containerRef.current);
 
-		// React to dark/light theme changes via class mutation on <html>
 		const themeObserver = new MutationObserver(() => {
 			const d = isDarkMode();
 			const c = getThemeColors(d);
@@ -174,13 +233,33 @@ export function PriceChart({
 		};
 	}, [dimension]);
 
-	// Update series data when candles change (no chart recreation)
+	// Update series data
 	useEffect(() => {
 		if (!seriesRef.current || !candles) return;
 		const data = toCandlestickData(candles);
 		seriesRef.current.setData(data);
-		chartRef.current?.timeScale().fitContent();
+
+		if (candles.length > 0) {
+			const last = candles[candles.length - 1];
+			const vals: OHLCValues = {
+				open: last.open,
+				high: last.high,
+				low: last.low,
+				close: last.close,
+			};
+			latestOHLCRef.current = vals;
+			setLegend(vals);
+		}
+
+		if (!hasInitialFitRef.current) {
+			chartRef.current?.timeScale().fitContent();
+			hasInitialFitRef.current = true;
+		}
 	}, [candles]);
+
+	const handleResetView = useCallback(() => {
+		chartRef.current?.timeScale().fitContent();
+	}, []);
 
 	const hasData = candles && candles.length > 0;
 
@@ -188,6 +267,7 @@ export function PriceChart({
 		<div
 			className={`rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 ${className}`}
 		>
+			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/5">
 				<div className="flex items-center gap-3">
 					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -229,13 +309,79 @@ export function PriceChart({
 					))}
 				</div>
 			</div>
-			<div className="p-3 relative">
+
+			{/* Chart */}
+			<div className="relative p-3">
+				{/* OHLC legend overlay */}
+				{legend && hasData && (
+					<div className="absolute top-5 left-5 z-10 pointer-events-none flex gap-3 text-[11px] font-mono tabular-nums">
+						<span>
+							<span className="text-gray-400 dark:text-gray-500">O </span>
+							<span className="text-gray-600 dark:text-gray-300">
+								{fmtPrice(legend.open)}
+							</span>
+						</span>
+						<span>
+							<span className="text-gray-400 dark:text-gray-500">H </span>
+							<span className="text-emerald-600 dark:text-emerald-400">
+								{fmtPrice(legend.high)}
+							</span>
+						</span>
+						<span>
+							<span className="text-gray-400 dark:text-gray-500">L </span>
+							<span className="text-red-500 dark:text-red-400">
+								{fmtPrice(legend.low)}
+							</span>
+						</span>
+						<span>
+							<span className="text-gray-400 dark:text-gray-500">C </span>
+							<span
+								className={
+									legend.close >= legend.open
+										? "text-emerald-600 dark:text-emerald-400"
+										: "text-red-500 dark:text-red-400"
+								}
+							>
+								{fmtPrice(legend.close)}
+							</span>
+						</span>
+					</div>
+				)}
+
 				<div ref={containerRef} className="h-[280px]" />
-				{(loading || !hasData) && (
+
+				{!hasData && (
 					<div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400 dark:text-gray-500 bg-white/80 dark:bg-gray-900/80">
 						{loading ? t("common.loading") : t("chart.no_data")}
 					</div>
 				)}
+			</div>
+
+			{/* Footer toolbar */}
+			<div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-100 dark:border-white/5">
+				<span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+					{lastUpdated && formatTimestamp(lastUpdated)}
+				</span>
+				<div className="flex items-center gap-0.5">
+					<button
+						type="button"
+						onClick={refetch}
+						title={t("chart.refresh")}
+						className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+					>
+						<ArrowPathIcon
+							className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+						/>
+					</button>
+					<button
+						type="button"
+						onClick={handleResetView}
+						title={t("chart.reset_view")}
+						className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+					>
+						<ArrowsPointingOutIcon className="size-3.5" />
+					</button>
+				</div>
 			</div>
 		</div>
 	);

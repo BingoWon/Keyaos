@@ -199,7 +199,9 @@
 	"chart": {
 		"price_trend": "价格走势",
 		"multiplier_trend": "定价乘数走势",
-		"no_data": "暂无成交数据"
+		"no_data": "暂无成交数据",
+		"refresh": "刷新",
+		"reset_view": "重置视图"
 	},
 	"usage": {
 		"title": "使用记录",

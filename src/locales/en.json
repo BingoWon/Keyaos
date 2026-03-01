@@ -202,7 +202,9 @@
 	"chart": {
 		"price_trend": "Price Trend",
 		"multiplier_trend": "Multiplier Trend",
-		"no_data": "No transaction data yet"
+		"no_data": "No transaction data yet",
+		"refresh": "Refresh",
+		"reset_view": "Reset View"
 	},
 	"usage": {
 		"title": "Usage",
