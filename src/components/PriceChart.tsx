@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFetch } from "../hooks/useFetch";
+import { formatTimestamp } from "../utils/format";
 
 interface Candle {
 	time: number;
@@ -83,15 +84,6 @@ function toCandlestickData(candles: Candle[]): CandlestickData<Time>[] {
 		low: c.low,
 		close: c.close,
 	}));
-}
-
-function formatTimestamp(date: Date): string {
-	return date.toLocaleTimeString(undefined, {
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-		hour12: false,
-	});
 }
 
 export function PriceChart({

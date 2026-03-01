@@ -1,4 +1,5 @@
 import {
+	ArrowPathIcon,
 	ChevronRightIcon,
 	MagnifyingGlassIcon,
 	XMarkIcon,
@@ -14,7 +15,11 @@ import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatContext, formatRelativeTime } from "../utils/format";
+import {
+	formatContext,
+	formatRelativeTime,
+	formatTimestamp,
+} from "../utils/format";
 import { mergeModalities } from "../utils/modalities";
 
 interface ModelGroup {
@@ -228,10 +233,28 @@ function ModelCard({
 	);
 }
 
+const REFRESH_MS = 60_000;
+
 export function Models() {
 	const { t } = useTranslation();
-	const { data: raw, loading, error } = useFetch<ModelEntry[]>("/api/models");
+	const {
+		data: raw,
+		loading,
+		error,
+		refetch,
+	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
+
+	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+	useEffect(() => {
+		if (raw) setLastUpdated(new Date());
+	}, [raw]);
+
+	useEffect(() => {
+		const id = setInterval(refetch, REFRESH_MS);
+		return () => clearInterval(id);
+	}, [refetch]);
 
 	const providerMap = useMemo(() => {
 		const m = new Map<string, ProviderMeta>();
@@ -283,15 +306,31 @@ export function Models() {
 		<div>
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 				<div>
-					<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-						{t("models.title")}
-					</h3>
+					<div className="flex items-center gap-2">
+						<h3 className="text-base font-semibold text-gray-900 dark:text-white">
+							{t("models.title")}
+						</h3>
+						{lastUpdated && (
+							<span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+								{formatTimestamp(lastUpdated)}
+							</span>
+						)}
+						<button
+							type="button"
+							onClick={refetch}
+							className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+						>
+							<ArrowPathIcon
+								className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+							/>
+						</button>
+					</div>
 					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 						{t("models.subtitle")}
 					</p>
 				</div>
 
-				{!loading && groups.length > 0 && (
+				{raw && groups.length > 0 && (
 					<div className="relative w-full sm:w-72">
 						<MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500" />
 						<input
@@ -324,7 +363,7 @@ export function Models() {
 				)}
 			</div>
 
-			{loading ? (
+			{!raw && loading ? (
 				<div className="mt-5">
 					<PageLoader />
 				</div>

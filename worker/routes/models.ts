@@ -104,15 +104,21 @@ publicModelsRouter.get("/", async (c) => {
 /**
  * /api/models — Dashboard API, multi-provider comparison.
  * Returns all provider offerings with per-provider pricing.
+ * Multiplier prefers latest candle close_price (real-time), falls back to credential best_multiplier.
  */
 export const dashboardModelsRouter = new Hono<AppEnv>();
 
 dashboardModelsRouter.get("/", async (c) => {
 	const dao = new PricingDao(c.env.DB);
-	const all = await dao.getActivePricingWithBestMultiplier();
+	const candleDao = new CandleDao(c.env.DB);
+
+	const [all, providerMuls] = await Promise.all([
+		dao.getActivePricingWithBestMultiplier(),
+		candleDao.getLatestPrices("provider"),
+	]);
 
 	const data = all.map((m) => {
-		const mul = m.best_multiplier;
+		const mul = providerMuls.get(m.provider) ?? m.best_multiplier;
 		return {
 			id: m.model_id,
 			provider: m.provider,
