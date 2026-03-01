@@ -162,8 +162,6 @@ systemRouter.get("/candles/:dimension/:value", async (c) => {
 			high: cd.high_price,
 			low: cd.low_price,
 			close: cd.close_price,
-			volume: cd.volume,
-			totalTokens: cd.total_tokens,
 		})),
 	});
 });
