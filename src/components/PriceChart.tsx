@@ -50,10 +50,15 @@ function getThemeColors(dark: boolean) {
 
 function utcToLocal(utcMs: number): number {
 	const d = new Date(utcMs);
-	return Date.UTC(
-		d.getFullYear(), d.getMonth(), d.getDate(),
-		d.getHours(), d.getMinutes(),
-	) / 1000;
+	return (
+		Date.UTC(
+			d.getFullYear(),
+			d.getMonth(),
+			d.getDate(),
+			d.getHours(),
+			d.getMinutes(),
+		) / 1000
+	);
 }
 
 function toCandlestickData(candles: Candle[]): CandlestickData<Time>[] {

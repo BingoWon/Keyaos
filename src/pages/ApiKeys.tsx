@@ -216,7 +216,6 @@ export function ApiKeys() {
 							<Input
 								type="text"
 								id="modal-key-name"
-								required
 								value={newName}
 								onChange={(e) => setNewName(e.target.value)}
 								className="mt-1"

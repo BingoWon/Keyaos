@@ -6,7 +6,7 @@ import type { AppEnv } from "../shared/types";
 import { parse } from "../shared/validate";
 
 const CreateKeyBody = z.object({
-	name: z.string().min(1, "name is required"),
+	name: z.string().optional().default("Untitled Key"),
 });
 
 const UpdateKeyBody = z.object({
