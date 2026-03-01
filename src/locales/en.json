@@ -189,14 +189,20 @@
 		"input_price": "Input Price",
 		"output_price": "Output Price",
 		"context": "Context",
-		"no_data": "No pricing data available yet."
+		"no_data": "No pricing data available yet.",
+		"search_placeholder": "Search models…",
+		"result_count": "{{count}} of {{total}} models",
+		"no_match": "No models matching \"{{query}}\""
 	},
 	"providers": {
 		"title": "Providers",
 		"subtitle": "Upstream provider pricing and transaction trends",
 		"models_count": "models",
 		"auto": "Auto",
-		"no_data": "No provider data available yet."
+		"no_data": "No provider data available yet.",
+		"search_placeholder": "Search providers…",
+		"result_count": "{{count}} of {{total}} providers",
+		"no_match": "No providers matching \"{{query}}\""
 	},
 	"common_updated_at": "Updated at {{time}}",
 	"common_refresh": "Refresh",

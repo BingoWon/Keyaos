@@ -228,7 +228,7 @@ export function Providers() {
 						<SearchBar
 							value={query}
 							onChange={setQuery}
-							placeholder="Search providers…"
+							placeholder={t("providers.search_placeholder")}
 						/>
 					)}
 				</div>
@@ -246,7 +246,7 @@ export function Providers() {
 				<>
 					{query && (
 						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
-							{filtered.length} of {groups.length} providers
+							{t("providers.result_count", { count: filtered.length, total: groups.length })}
 						</p>
 					)}
 					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
@@ -256,7 +256,7 @@ export function Providers() {
 					</div>
 					{query && filtered.length === 0 && (
 						<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-							No providers matching "{query}"
+							{t("providers.no_match", { query })}
 						</p>
 					)}
 				</>

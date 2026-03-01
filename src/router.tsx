@@ -8,12 +8,12 @@ import {
 import { AuthGuard, isPlatform, useAuth } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
+import { Byok } from "./pages/Byok";
+import { Credits } from "./pages/Credits";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { Data } from "./pages/admin/Data";
 import { Overview } from "./pages/admin/Overview";
 import { Users } from "./pages/admin/Users";
-import { Credits } from "./pages/Credits";
-import { Byok } from "./pages/Byok";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
 import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";

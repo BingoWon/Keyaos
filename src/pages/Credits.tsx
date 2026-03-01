@@ -35,7 +35,6 @@ interface AutoTopUpConfig {
 interface PaymentEntry {
 	id: string;
 	type: string;
-	amount_cents: number;
 	credits: number;
 	status: string;
 	created_at: number;
@@ -161,7 +160,7 @@ export function Credits() {
 	const [autoAmount, setAutoAmount] = useState("10");
 	const [autoSaving, setAutoSaving] = useState(false);
 
-	const [tab, setTab] = useState<HistoryTab>("ledger");
+	const [tab, setTab] = useState<HistoryTab>("payments");
 
 	useEffect(() => {
 		if (autoConfig) {
@@ -533,31 +532,31 @@ export function Credits() {
 				<div className="flex gap-1 border-b border-gray-200 dark:border-white/10">
 					<button
 						type="button"
-						onClick={() => setTab("ledger")}
-						className={tabClass(tab === "ledger")}
-					>
-						{t("credits.tab_transactions")}
-					</button>
-					<button
-						type="button"
 						onClick={() => setTab("payments")}
 						className={tabClass(tab === "payments")}
 					>
 						{t("credits.tab_payments")}
 					</button>
+					<button
+						type="button"
+						onClick={() => setTab("ledger")}
+						className={tabClass(tab === "ledger")}
+					>
+						{t("credits.tab_transactions")}
+					</button>
 				</div>
 
-				{tab === "ledger" && (
-					<LedgerTable
-						entries={ledger}
-						loading={ledgerLoading}
-						formatDateTime={formatDateTime}
-					/>
-				)}
 				{tab === "payments" && (
 					<PaymentsTable
 						entries={payments}
 						loading={paymentsLoading}
+						formatDateTime={formatDateTime}
+					/>
+				)}
+				{tab === "ledger" && (
+					<LedgerTable
+						entries={ledger}
+						loading={ledgerLoading}
 						formatDateTime={formatDateTime}
 					/>
 				)}

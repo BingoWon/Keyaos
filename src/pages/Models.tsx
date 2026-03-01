@@ -296,7 +296,7 @@ export function Models() {
 						<SearchBar
 							value={query}
 							onChange={setQuery}
-							placeholder="Search models…"
+							placeholder={t("models.search_placeholder")}
 						/>
 					)}
 				</div>
@@ -314,7 +314,7 @@ export function Models() {
 				<>
 					{query && (
 						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
-							{filtered.length} of {groups.length} models
+							{t("models.result_count", { count: filtered.length, total: groups.length })}
 						</p>
 					)}
 					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
@@ -324,7 +324,7 @@ export function Models() {
 					</div>
 					{query && filtered.length === 0 && (
 						<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-							No models matching "{query}"
+							{t("models.no_match", { query })}
 						</p>
 					)}
 				</>

@@ -186,14 +186,20 @@
 		"input_price": "输入定价",
 		"output_price": "输出定价",
 		"context": "上下文长度",
-		"no_data": "暂无定价数据。"
+		"no_data": "暂无定价数据。",
+		"search_placeholder": "搜索模型…",
+		"result_count": "{{count}} / {{total}} 个模型",
+		"no_match": "没有匹配 \"{{query}}\" 的模型"
 	},
 	"providers": {
 		"title": "供应商",
 		"subtitle": "上游供应商定价与成交趋势",
 		"models_count": "个模型",
 		"auto": "自动",
-		"no_data": "暂无供应商数据。"
+		"no_data": "暂无供应商数据。",
+		"search_placeholder": "搜索供应商…",
+		"result_count": "{{count}} / {{total}} 个供应商",
+		"no_match": "没有匹配 \"{{query}}\" 的供应商"
 	},
 	"common_updated_at": "更新于 {{time}}",
 	"common_refresh": "刷新",
