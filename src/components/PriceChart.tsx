@@ -40,6 +40,11 @@ interface PriceChartProps {
 const HOUR_OPTIONS = [1, 6, 24, 72, 168] as const;
 const REFRESH_MS = 60_000;
 
+const TIP_CLASS =
+	"pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5 z-20 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover/tip:opacity-100 dark:bg-gray-700";
+const TOOL_BTN_CLASS =
+	"p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors";
+
 function formatHours(h: number): string {
 	if (h < 24) return `${h}h`;
 	return `${h / 24}d`;
@@ -264,11 +269,6 @@ export function PriceChart({
 
 	const hasData = candles && candles.length > 0;
 
-	const tipClass =
-		"pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5 z-20 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover/tip:opacity-100 dark:bg-gray-700";
-	const toolBtnClass =
-		"p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors";
-
 	return (
 		<div
 			className={`rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 ${className}`}
@@ -327,23 +327,23 @@ export function PriceChart({
 						<button
 							type="button"
 							onClick={refetch}
-							className={toolBtnClass}
+							className={TOOL_BTN_CLASS}
 						>
 							<ArrowPathIcon
 								className={`size-3.5 ${loading ? "animate-spin" : ""}`}
 							/>
 						</button>
-						<span className={tipClass}>{t("chart.refresh")}</span>
+						<span className={TIP_CLASS}>{t("chart.refresh")}</span>
 					</span>
 					<span className="group/tip relative inline-flex">
 						<button
 							type="button"
 							onClick={handleResetView}
-							className={toolBtnClass}
+							className={TOOL_BTN_CLASS}
 						>
 							<ArrowsPointingInIcon className="size-3.5" />
 						</button>
-						<span className={tipClass}>{t("chart.reset_view")}</span>
+						<span className={TIP_CLASS}>{t("chart.reset_view")}</span>
 					</span>
 				</div>
 			</div>
