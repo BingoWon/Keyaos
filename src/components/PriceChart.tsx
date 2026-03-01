@@ -163,6 +163,8 @@ export function PriceChart({
 				borderColor: colors.borderColor,
 				timeVisible: true,
 				secondsVisible: false,
+				fixLeftEdge: true,
+				fixRightEdge: true,
 			},
 		});
 
