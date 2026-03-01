@@ -63,6 +63,14 @@ function getThemeColors(dark: boolean) {
 	};
 }
 
+function getCandleColors(lang: string) {
+	const zhStyle = lang.startsWith("zh");
+	return {
+		up: zhStyle ? "#ef4444" : "#22c55e",
+		down: zhStyle ? "#22c55e" : "#ef4444",
+	};
+}
+
 function utcToLocal(utcMs: number): number {
 	const d = new Date(utcMs);
 	return (
@@ -92,7 +100,7 @@ export function PriceChart({
 	title,
 	className = "",
 }: PriceChartProps) {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
 	const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -119,12 +127,15 @@ export function PriceChart({
 		hasInitialFitRef.current = false;
 	}, [hours, subDim]);
 
-	// Create chart once
+	const candleColors = getCandleColors(i18n.language);
+
+	// Create chart once (recreate on language change for color convention)
 	useEffect(() => {
 		if (!containerRef.current) return;
 
 		const dark = isDarkMode();
 		const colors = getThemeColors(dark);
+		const cc = getCandleColors(i18n.language);
 
 		const chart = createChart(containerRef.current, {
 			width: containerRef.current.clientWidth,
@@ -151,12 +162,12 @@ export function PriceChart({
 		});
 
 		const series = chart.addSeries(CandlestickSeries, {
-			upColor: "#22c55e",
-			downColor: "#ef4444",
-			borderDownColor: "#ef4444",
-			borderUpColor: "#22c55e",
-			wickDownColor: "#ef4444",
-			wickUpColor: "#22c55e",
+			upColor: cc.up,
+			downColor: cc.down,
+			borderDownColor: cc.down,
+			borderUpColor: cc.up,
+			wickDownColor: cc.down,
+			wickUpColor: cc.up,
 			priceFormat:
 				dimension === "provider"
 					? {
@@ -221,7 +232,7 @@ export function PriceChart({
 			chartRef.current = null;
 			seriesRef.current = null;
 		};
-	}, [dimension]);
+	}, [dimension, i18n.language]);
 
 	// Update series data
 	useEffect(() => {
@@ -344,24 +355,25 @@ export function PriceChart({
 						</span>
 						<span>
 							<span className="text-gray-400 dark:text-gray-500">H </span>
-							<span className="text-emerald-600 dark:text-emerald-400">
+							<span style={{ color: candleColors.up }}>
 								{fmtPrice(legend.high)}
 							</span>
 						</span>
 						<span>
 							<span className="text-gray-400 dark:text-gray-500">L </span>
-							<span className="text-red-500 dark:text-red-400">
+							<span style={{ color: candleColors.down }}>
 								{fmtPrice(legend.low)}
 							</span>
 						</span>
 						<span>
 							<span className="text-gray-400 dark:text-gray-500">C </span>
 							<span
-								className={
-									legend.close >= legend.open
-										? "text-emerald-600 dark:text-emerald-400"
-										: "text-red-500 dark:text-red-400"
-								}
+								style={{
+									color:
+										legend.close >= legend.open
+											? candleColors.up
+											: candleColors.down,
+								}}
 							>
 								{fmtPrice(legend.close)}
 							</span>
