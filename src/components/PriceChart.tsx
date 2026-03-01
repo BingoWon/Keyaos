@@ -129,7 +129,7 @@ export function PriceChart({
 
 	const candleColors = getCandleColors(i18n.language);
 
-	// Create chart once (recreate on language change for color convention)
+	// Create chart once
 	useEffect(() => {
 		if (!containerRef.current) return;
 
@@ -232,7 +232,21 @@ export function PriceChart({
 			chartRef.current = null;
 			seriesRef.current = null;
 		};
-	}, [dimension, i18n.language]);
+	}, [dimension]);
+
+	// Update candlestick colors on language change (zh: red-up, en: green-up)
+	useEffect(() => {
+		if (!seriesRef.current) return;
+		const cc = getCandleColors(i18n.language);
+		seriesRef.current.applyOptions({
+			upColor: cc.up,
+			downColor: cc.down,
+			borderDownColor: cc.down,
+			borderUpColor: cc.up,
+			wickDownColor: cc.down,
+			wickUpColor: cc.up,
+		});
+	}, [i18n.language]);
 
 	// Update series data
 	useEffect(() => {
