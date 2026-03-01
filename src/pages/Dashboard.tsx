@@ -18,7 +18,12 @@ import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatContext, formatSignedUSD, formatUSD } from "../utils/format";
+import {
+	formatContext,
+	formatRelativeTime,
+	formatSignedUSD,
+	formatUSD,
+} from "../utils/format";
 import { mergeModalities } from "../utils/modalities";
 
 interface Stats {
@@ -41,6 +46,7 @@ interface UsageEntry {
 
 interface ModelGroup {
 	id: string;
+	createdAt: number;
 	providerIds: string[];
 	bestInputPrice: number;
 	bestOutputPrice: number;
@@ -63,6 +69,7 @@ function aggregateTopModels(
 	const groups = new Map<
 		string,
 		{
+			createdAt: number;
 			providers: Set<string>;
 			bestInput: number;
 			bestOutput: number;
@@ -77,6 +84,7 @@ function aggregateTopModels(
 		let g = groups.get(e.id);
 		if (!g) {
 			g = {
+				createdAt: e.created_at ?? 0,
 				providers: new Set(),
 				bestInput: e.input_price ?? 0,
 				bestOutput: e.output_price ?? 0,
@@ -89,6 +97,9 @@ function aggregateTopModels(
 			groups.set(e.id, g);
 		}
 		g.providers.add(e.provider);
+		if (e.created_at && (!g.createdAt || e.created_at < g.createdAt)) {
+			g.createdAt = e.created_at;
+		}
 		const ip = e.input_price ?? 0;
 		const op = e.output_price ?? 0;
 		if (ip < g.bestInput) g.bestInput = ip;
@@ -113,6 +124,7 @@ function aggregateTopModels(
 	return [...groups.entries()]
 		.map(([id, g]) => ({
 			id,
+			createdAt: g.createdAt,
 			providerIds: [...g.providers],
 			bestInputPrice: g.bestInput,
 			bestOutputPrice: g.bestOutput,
@@ -306,7 +318,7 @@ export function Dashboard() {
 				<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-white/5">
 						<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-							{t("dashboard.top_models")}
+							{t("dashboard.latest_models")}
 						</h4>
 						<Link
 							to="/dashboard/models"
@@ -328,6 +340,13 @@ export function Dashboard() {
 												{m.id}
 											</code>
 										</Link>
+									</td>
+									<td className="px-2 py-3">
+										{m.createdAt > 0 && (
+											<Badge variant="warning">
+												{formatRelativeTime(m.createdAt)}
+											</Badge>
+										)}
 									</td>
 									<td className="px-2 py-3">
 										<span className="inline-flex items-center gap-1">

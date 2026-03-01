@@ -118,9 +118,9 @@ function ModelCard({
 							<CopyButton text={group.id} />
 						</span>
 						{group.createdAt > 0 && (
-							<span className="ml-1 text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+							<Badge variant="warning">
 								{formatRelativeTime(group.createdAt)}
-							</span>
+							</Badge>
 						)}
 					</span>
 				</div>

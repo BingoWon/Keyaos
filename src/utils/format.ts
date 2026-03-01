@@ -1,16 +1,15 @@
 /**
  * Unified USD formatting with adaptive significant digits.
  *
- * >= $0.01: standard 2-decimal currency format ($12.50, $0.05)
- * < $0.01:  3 significant digits, auto-adapts to magnitude ($0.00000675)
- *
- * toPrecision(3) eliminates IEEE 754 floating-point artifacts
- * (e.g. 0.00008631000000000001 → 0.0000863) while preserving
- * all meaningful billing precision.
+ * >= $1: standard 2-decimal currency ($12.50, $2.19)
+ * < $1:  4 significant digits, trailing zeros stripped (min 2 decimals)
+ *        so multiplied prices like $0.1095 aren't rounded to $0.11
  */
 function fmt(abs: number): string {
-	if (abs >= 0.01) return abs.toFixed(2);
-	return String(Number(abs.toPrecision(3)));
+	if (abs >= 1) return abs.toFixed(2);
+	const s = String(Number(abs.toPrecision(4)));
+	const decimals = s.split(".")[1]?.length ?? 0;
+	return decimals < 2 ? abs.toFixed(2) : s;
 }
 
 export function formatUSD(value: number): string {
@@ -28,9 +27,7 @@ export function formatSignedUSD(value: number): string {
 /** Format model pricing (input is cents-per-million-tokens) */
 export function formatPrice(price: number): string {
 	if (price === 0) return "Free";
-	const usd = price / 100;
-	if (usd >= 0.01) return `$${usd.toFixed(2)}`;
-	return `$${Number(usd.toPrecision(3))}`;
+	return `$${fmt(price / 100)}`;
 }
 
 export function formatContext(len: number): string {
