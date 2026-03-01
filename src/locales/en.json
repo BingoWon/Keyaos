@@ -199,6 +199,8 @@
 		"auto": "Auto",
 		"no_data": "No provider data available yet."
 	},
+	"common_updated_at": "Updated at {{time}}",
+	"common_refresh": "Refresh",
 	"chart": {
 		"price_trend": "Price Trend",
 		"multiplier_trend": "Multiplier Trend",

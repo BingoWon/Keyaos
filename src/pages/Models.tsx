@@ -303,16 +303,21 @@ export function Models() {
 					</p>
 				</div>
 				<div className="mt-4 sm:mt-0 flex items-center gap-3">
+					{lastUpdated && (
+						<span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500 tabular-nums shrink-0">
+							{t("common_updated_at", { time: formatTimestamp(lastUpdated) })}
+						</span>
+					)}
 					<Button
 						variant="secondary"
 						size="sm"
 						onClick={refetch}
-						className="tabular-nums shrink-0"
+						className="shrink-0"
 					>
 						<ArrowPathIcon
 							className={`size-3.5 ${loading ? "animate-spin" : ""}`}
 						/>
-						{lastUpdated && formatTimestamp(lastUpdated)}
+						{t("common_refresh")}
 					</Button>
 					{raw && groups.length > 0 && (
 						<div className="relative flex-1 sm:flex-none sm:w-72">
