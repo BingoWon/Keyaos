@@ -48,9 +48,17 @@ function getThemeColors(dark: boolean) {
 	};
 }
 
+function utcToLocal(utcMs: number): number {
+	const d = new Date(utcMs);
+	return Date.UTC(
+		d.getFullYear(), d.getMonth(), d.getDate(),
+		d.getHours(), d.getMinutes(),
+	) / 1000;
+}
+
 function toCandlestickData(candles: Candle[]): CandlestickData<Time>[] {
 	return candles.map((c) => ({
-		time: (c.time / 1000) as Time,
+		time: utcToLocal(c.time) as Time,
 		open: c.open,
 		high: c.high,
 		low: c.low,
@@ -68,7 +76,7 @@ export function PriceChart({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
 	const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-	const [hours, setHours] = useState<number>(24);
+	const [hours, setHours] = useState<number>(6);
 	const [subDim, setSubDim] = useState<ModelSubDimension>("input");
 
 	// For model charts, use model:input or model:output; for provider, use provider
