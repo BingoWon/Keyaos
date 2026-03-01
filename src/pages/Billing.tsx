@@ -217,7 +217,7 @@ export function Billing() {
 			</div>
 
 			{/* Buy Credits + Auto Top-Up */}
-			<div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+			<div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
 				{/* Buy Credits */}
 				<div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center justify-between">
