@@ -27,8 +27,8 @@ interface ApiKeyInfo {
 }
 
 function maskKey(id: string): string {
-	if (id.length <= 16) return id;
-	return `${id.slice(0, 10)}...${id.slice(-4)}`;
+	const prefix = id.slice(0, 10);
+	return `${prefix}${"•".repeat(id.length - 10)}`;
 }
 
 export function ApiKeys() {
@@ -332,7 +332,7 @@ export function ApiKeys() {
 													)}
 												</td>
 												{/* Key (masked + reveal + copy) */}
-												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
+												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400 min-w-[260px]">
 													<div className="flex items-center gap-2">
 														<span>
 															{revealedIds.has(k.id) ? k.id : maskKey(k.id)}

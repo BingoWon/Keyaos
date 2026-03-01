@@ -6,7 +6,10 @@ import type { AppEnv } from "../shared/types";
 import { parse } from "../shared/validate";
 
 const CreateKeyBody = z.object({
-	name: z.string().optional().default("Untitled Key"),
+	name: z
+		.string()
+		.optional()
+		.transform((v) => (v?.trim() ? v.trim() : "Untitled Key")),
 });
 
 const UpdateKeyBody = z.object({
