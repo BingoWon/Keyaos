@@ -1,4 +1,4 @@
-import { ArrowPathIcon, ArrowsPointingOutIcon } from "@heroicons/react/20/solid";
+import { ArrowPathIcon, ArrowsPointingInIcon } from "@heroicons/react/20/solid";
 import {
 	type CandlestickData,
 	CandlestickSeries,
@@ -263,12 +263,18 @@ export function PriceChart({
 
 	const hasData = candles && candles.length > 0;
 
+	const tipClass =
+		"pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-1.5 z-20 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover/tip:opacity-100 dark:bg-gray-700";
+	const toolBtnClass =
+		"p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors";
+
 	return (
 		<div
 			className={`rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 ${className}`}
 		>
 			{/* Header */}
-			<div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/5">
+			<div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 dark:border-white/5">
+				{/* Left: title + sub-dimension toggle */}
 				<div className="flex items-center gap-3">
 					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
 						{title ?? t("chart.price_trend")}
@@ -292,6 +298,8 @@ export function PriceChart({
 						</div>
 					)}
 				</div>
+
+				{/* Center: time range */}
 				<div className="flex gap-1">
 					{HOUR_OPTIONS.map((h) => (
 						<button
@@ -308,11 +316,39 @@ export function PriceChart({
 						</button>
 					))}
 				</div>
+
+				{/* Right: timestamp + tools */}
+				<div className="flex items-center gap-1.5">
+					<span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+						{lastUpdated && formatTimestamp(lastUpdated)}
+					</span>
+					<span className="group/tip relative inline-flex">
+						<button
+							type="button"
+							onClick={refetch}
+							className={toolBtnClass}
+						>
+							<ArrowPathIcon
+								className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+							/>
+						</button>
+						<span className={tipClass}>{t("chart.refresh")}</span>
+					</span>
+					<span className="group/tip relative inline-flex">
+						<button
+							type="button"
+							onClick={handleResetView}
+							className={toolBtnClass}
+						>
+							<ArrowsPointingInIcon className="size-3.5" />
+						</button>
+						<span className={tipClass}>{t("chart.reset_view")}</span>
+					</span>
+				</div>
 			</div>
 
 			{/* Chart */}
 			<div className="relative p-3">
-				{/* OHLC legend overlay */}
 				{legend && hasData && (
 					<div className="absolute top-5 left-5 z-10 pointer-events-none flex gap-3 text-[11px] font-mono tabular-nums">
 						<span>
@@ -355,33 +391,6 @@ export function PriceChart({
 						{loading ? t("common.loading") : t("chart.no_data")}
 					</div>
 				)}
-			</div>
-
-			{/* Footer toolbar */}
-			<div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-100 dark:border-white/5">
-				<span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
-					{lastUpdated && formatTimestamp(lastUpdated)}
-				</span>
-				<div className="flex items-center gap-0.5">
-					<button
-						type="button"
-						onClick={refetch}
-						title={t("chart.refresh")}
-						className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-					>
-						<ArrowPathIcon
-							className={`size-3.5 ${loading ? "animate-spin" : ""}`}
-						/>
-					</button>
-					<button
-						type="button"
-						onClick={handleResetView}
-						title={t("chart.reset_view")}
-						className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-					>
-						<ArrowsPointingOutIcon className="size-3.5" />
-					</button>
-				</div>
 			</div>
 		</div>
 	);
