@@ -130,13 +130,12 @@ systemRouter.get("/ledger", async (c) => {
 	return c.json({ data: res.results || [] });
 });
 
-/** Auto-select candle interval to keep ~60-170 candles per view. */
+/** Auto-select candle interval based on time range. */
 function resolveIntervalMs(hours: number): number {
-	if (hours <= 1) return 60_000;
-	if (hours <= 6) return 300_000;
-	if (hours <= 24) return 900_000;
-	if (hours <= 72) return 1_800_000;
-	return 3_600_000;
+	if (hours <= 6) return 60_000;
+	if (hours <= 24) return 300_000;
+	if (hours <= 72) return 900_000;
+	return 1_800_000;
 }
 
 /** Price candle data for charts */
