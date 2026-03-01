@@ -7,6 +7,7 @@ import { ModalityCell } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { SearchBar } from "../components/SearchBar";
 import { Badge, Button, DualPrice } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
@@ -185,6 +186,18 @@ export function Providers() {
 		);
 	}, [models, providersData]);
 
+	const [query, setQuery] = useState("");
+
+	const filtered = useMemo(() => {
+		if (!query.trim()) return groups;
+		const q = query.toLowerCase();
+		return groups.filter(
+			(g) =>
+				g.provider.id.toLowerCase().includes(q) ||
+				g.provider.name.toLowerCase().includes(q),
+		);
+	}, [groups, query]);
+
 	const initialLoading =
 		(!models || !providersData) && (modelsLoading || providersLoading);
 
@@ -201,20 +214,23 @@ export function Providers() {
 				</div>
 				<div className="mt-4 sm:mt-0 flex items-center gap-3">
 					{lastUpdated && (
-						<span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500 tabular-nums">
+						<span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500 tabular-nums shrink-0">
 							{t("common_updated_at", { time: formatTimestamp(lastUpdated) })}
 						</span>
 					)}
-					<Button
-						variant="secondary"
-						size="sm"
-						onClick={refetchModels}
-					>
+					<Button onClick={refetchModels} className="shrink-0">
 						<ArrowPathIcon
-							className={`size-3.5 ${modelsLoading ? "animate-spin" : ""}`}
+							className={`-ml-0.5 size-5 ${modelsLoading ? "animate-spin" : ""}`}
 						/>
 						{t("common_refresh")}
 					</Button>
+					{groups.length > 0 && (
+						<SearchBar
+							value={query}
+							onChange={setQuery}
+							placeholder="Search providers…"
+						/>
+					)}
 				</div>
 			</div>
 
@@ -227,11 +243,23 @@ export function Providers() {
 					{t("providers.no_data")}
 				</p>
 			) : (
-				<div className="mt-5 grid gap-3">
-					{groups.map((g) => (
-						<ProviderCard key={g.provider.id} group={g} />
-					))}
-				</div>
+				<>
+					{query && (
+						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+							{filtered.length} of {groups.length} providers
+						</p>
+					)}
+					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
+						{filtered.map((g) => (
+							<ProviderCard key={g.provider.id} group={g} />
+						))}
+					</div>
+					{query && filtered.length === 0 && (
+						<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+							No providers matching "{query}"
+						</p>
+					)}
+				</>
 			)}
 		</div>
 	);

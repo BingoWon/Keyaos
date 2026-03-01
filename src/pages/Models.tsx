@@ -1,16 +1,12 @@
-import {
-	ArrowPathIcon,
-	ChevronRightIcon,
-	MagnifyingGlassIcon,
-	XMarkIcon,
-} from "@heroicons/react/20/solid";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowPathIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { SearchBar } from "../components/SearchBar";
 import { Badge, Button, DualPrice } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
@@ -253,9 +249,7 @@ export function Models() {
 
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
-	// ─── Search ────────────────────────────────────────
 	const [query, setQuery] = useState("");
-	const inputRef = useRef<HTMLInputElement>(null);
 
 	const filtered = useMemo(() => {
 		if (!query.trim()) return groups;
@@ -266,22 +260,6 @@ export function Models() {
 				g.displayName.toLowerCase().includes(q),
 		);
 	}, [groups, query]);
-
-	const handleKeyDown = useCallback((e: KeyboardEvent) => {
-		if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-			e.preventDefault();
-			inputRef.current?.focus();
-		}
-		if (e.key === "Escape" && document.activeElement === inputRef.current) {
-			setQuery("");
-			inputRef.current?.blur();
-		}
-	}, []);
-
-	useEffect(() => {
-		document.addEventListener("keydown", handleKeyDown);
-		return () => document.removeEventListener("keydown", handleKeyDown);
-	}, [handleKeyDown]);
 
 	if (error) {
 		return (
@@ -308,47 +286,18 @@ export function Models() {
 							{t("common_updated_at", { time: formatTimestamp(lastUpdated) })}
 						</span>
 					)}
-					<Button
-						variant="secondary"
-						size="sm"
-						onClick={refetch}
-						className="shrink-0"
-					>
+					<Button onClick={refetch} className="shrink-0">
 						<ArrowPathIcon
-							className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+							className={`-ml-0.5 size-5 ${loading ? "animate-spin" : ""}`}
 						/>
 						{t("common_refresh")}
 					</Button>
 					{raw && groups.length > 0 && (
-						<div className="relative flex-1 sm:flex-none sm:w-72">
-							<MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500" />
-							<input
-								ref={inputRef}
-								type="text"
-								value={query}
-								onChange={(e) => setQuery(e.target.value)}
-								placeholder="Search models…"
-								className="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.03] py-2 pl-9 pr-20 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
-							/>
-							<div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-								{query ? (
-									<button
-										type="button"
-										onClick={() => {
-											setQuery("");
-											inputRef.current?.focus();
-										}}
-										className="rounded-md p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-									>
-										<XMarkIcon className="size-4" />
-									</button>
-								) : (
-									<kbd className="hidden sm:inline-flex items-center gap-0.5 rounded-md border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:text-gray-500">
-										⌘K
-									</kbd>
-								)}
-							</div>
-						</div>
+						<SearchBar
+							value={query}
+							onChange={setQuery}
+							placeholder="Search models…"
+						/>
 					)}
 				</div>
 			</div>
