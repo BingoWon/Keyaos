@@ -317,7 +317,7 @@ export function Overview() {
 			{loading ? (
 				<PageLoader />
 			) : (
-				<dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+				<dl className="grid grid-cols-6 gap-4">
 					{cards.map((c) => (
 						<div
 							key={c.name}
