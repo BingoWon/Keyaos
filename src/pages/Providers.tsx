@@ -76,7 +76,7 @@ function ProviderDetailModal({
 						<tr key={m.id}>
 							<td className="py-2.5 pr-2 text-sm text-gray-700 dark:text-gray-300">
 								<span className="inline-flex items-center gap-1">
-									<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate max-w-[240px]">
+									<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
 										{m.id}
 									</code>
 									<CopyButton text={m.id} />

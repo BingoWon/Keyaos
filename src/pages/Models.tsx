@@ -310,11 +310,11 @@ export function Models() {
 										>
 											<td className="py-2.5 pl-4 pr-2 sm:pl-5">
 												<div className="min-w-0">
-													<div className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[260px]">
+													<div className="text-sm font-semibold text-gray-900 dark:text-white">
 														{g.displayName}
 													</div>
 													<div className="flex items-center gap-1.5 mt-0.5">
-														<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+														<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
 															{g.id}
 														</code>
 														<span onClick={(e) => e.stopPropagation()}>
