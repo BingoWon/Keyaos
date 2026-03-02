@@ -35,10 +35,10 @@ import QuickstartMdx from "./pages/docs/quickstart.mdx";
 import TermsOfServiceMdx from "./pages/docs/terms-of-service.mdx";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
+import { Logs } from "./pages/Logs";
 import { Models } from "./pages/Models";
 import { NotFound } from "./pages/NotFound";
 import { Providers } from "./pages/Providers";
-import { Logs } from "./pages/Logs";
 
 const dashboardChildren = [
 	{ index: true, element: <Dashboard /> },
