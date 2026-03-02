@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { CandleDao } from "../core/db/candle-dao";
 import { PricingDao } from "../core/db/pricing-dao";
+import { edgeCache } from "../shared/cache";
 import type { AppEnv } from "../shared/types";
 
 /**
@@ -13,7 +14,7 @@ import type { AppEnv } from "../shared/types";
  */
 export const publicModelsRouter = new Hono<AppEnv>();
 
-publicModelsRouter.get("/", async (c) => {
+publicModelsRouter.get("/", edgeCache(), async (c) => {
 	const dao = new PricingDao(c.env.DB);
 	const candleDao = new CandleDao(c.env.DB);
 
@@ -108,7 +109,7 @@ publicModelsRouter.get("/", async (c) => {
  */
 export const dashboardModelsRouter = new Hono<AppEnv>();
 
-dashboardModelsRouter.get("/", async (c) => {
+dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 	const dao = new PricingDao(c.env.DB);
 	const candleDao = new CandleDao(c.env.DB);
 

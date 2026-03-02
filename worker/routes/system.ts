@@ -3,6 +3,7 @@ import { CandleDao, type CandleDimension } from "../core/db/candle-dao";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { LogsDao } from "../core/db/logs-dao";
 import { getAllProviders } from "../core/providers/registry";
+import { edgeCache } from "../shared/cache";
 import type { AppEnv } from "../shared/types";
 
 const systemRouter = new Hono<AppEnv>();
@@ -19,7 +20,7 @@ systemRouter.get("/pool/stats", async (c) => {
 	return c.json(await dao.getStats(c.get("owner_id")));
 });
 
-systemRouter.get("/providers", (c) => {
+systemRouter.get("/providers", edgeCache(), (c) => {
 	const providers = getAllProviders().map((p) => ({
 		id: p.info.id,
 		name: p.info.name,
@@ -79,7 +80,7 @@ function resolveIntervalMs(hours: number): number {
 }
 
 /** Price candle data for charts */
-systemRouter.get("/candles/:dimension/:value", async (c) => {
+systemRouter.get("/candles/:dimension/:value", edgeCache(), async (c) => {
 	const dimension = c.req.param("dimension");
 	const validDimensions = new Set(["model:input", "model:output", "provider"]);
 	if (!validDimensions.has(dimension)) {
