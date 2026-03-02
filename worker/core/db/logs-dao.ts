@@ -50,17 +50,24 @@ export class LogsDao {
 		return res.results || [];
 	}
 
-	async getEarnings24h(userId: string): Promise<number> {
+	async get24hStats(
+		userId: string,
+	): Promise<{ earnings: number; apiCalls: number }> {
 		const since = Date.now() - 24 * 60 * 60 * 1000;
 		const res = await this.db
 			.prepare(
-				`SELECT COALESCE(SUM(provider_earned), 0) AS total
+				`SELECT
+					COALESCE(SUM(CASE WHEN credential_owner_id = ?1 AND consumer_id != ?1 THEN provider_earned ELSE 0 END), 0) AS earnings,
+					COUNT(CASE WHEN consumer_id = ?1 THEN 1 END) AS api_calls
 				 FROM logs
-				 WHERE credential_owner_id = ? AND consumer_id != ? AND created_at >= ?`,
+				 WHERE created_at >= ?2 AND (consumer_id = ?1 OR credential_owner_id = ?1)`,
 			)
-			.bind(userId, userId, since)
-			.first<{ total: number }>();
-		return res?.total ?? 0;
+			.bind(userId, since)
+			.first<{ earnings: number; api_calls: number }>();
+		return {
+			earnings: res?.earnings ?? 0,
+			apiCalls: res?.api_calls ?? 0,
+		};
 	}
 
 	/** Sum provider_earned per credential for a given credential owner */

@@ -66,8 +66,9 @@
 	"dashboard": {
 		"title": "概览",
 		"credits_balance": "额度余额",
-		"healthy_credentials": "健康密钥",
 		"credits_earnings": "额度收益（24h）",
+		"api_calls": "API 调用（24h）",
+		"healthy_credentials": "健康密钥",
 		"providers_title": "供应商",
 		"latest_models": "最新模型",
 		"view_all": "查看全部",

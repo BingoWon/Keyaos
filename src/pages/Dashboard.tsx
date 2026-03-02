@@ -1,5 +1,6 @@
 import {
 	ArrowTrendingUpIcon,
+	BoltIcon,
 	CreditCardIcon,
 	DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
@@ -31,11 +32,12 @@ import {
 	aggregateProviders,
 } from "../utils/providers";
 
-const LATEST_MODELS_LIMIT = 10;
+const LATEST_MODELS_LIMIT = 8;
 
 interface PoolStats {
 	healthyCredentials: number;
 	earnings24h: number;
+	apiCalls24h: number;
 }
 
 interface LogEntry {
@@ -120,16 +122,22 @@ export function Dashboard() {
 				]
 			: []),
 		{
-			name: t("dashboard.healthy_credentials"),
-			stat: poolStats ? poolStats.healthyCredentials : "-",
-			icon: DocumentCheckIcon,
-			href: "/dashboard/byok",
-		},
-		{
 			name: t("dashboard.credits_earnings"),
 			stat: poolStats ? formatUSD(poolStats.earnings24h) : "-",
 			icon: ArrowTrendingUpIcon,
 			href: "/dashboard/logs",
+		},
+		{
+			name: t("dashboard.api_calls"),
+			stat: poolStats ? poolStats.apiCalls24h.toLocaleString() : "-",
+			icon: BoltIcon,
+			href: "/dashboard/logs",
+		},
+		{
+			name: t("dashboard.healthy_credentials"),
+			stat: poolStats ? poolStats.healthyCredentials : "-",
+			icon: DocumentCheckIcon,
+			href: "/dashboard/byok",
 		},
 	];
 
@@ -140,7 +148,7 @@ export function Dashboard() {
 			</h3>
 
 			{/* Stats Cards */}
-			<dl className={`grid gap-4 ${statCards.length === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+			<dl className={`grid gap-4 ${isPlatform ? "grid-cols-4" : "grid-cols-3"}`}>
 				{statCards.map((item) => (
 					<Link
 						key={item.name}

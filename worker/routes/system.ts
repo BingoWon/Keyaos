@@ -17,13 +17,14 @@ systemRouter.get("/me", (c) => {
 
 systemRouter.get("/pool/stats", async (c) => {
 	const userId = c.get("owner_id");
-	const [credStats, earnings24h] = await Promise.all([
+	const [credStats, logStats] = await Promise.all([
 		new CredentialsDao(c.env.DB).getStats(userId),
-		new LogsDao(c.env.DB).getEarnings24h(userId),
+		new LogsDao(c.env.DB).get24hStats(userId),
 	]);
 	return c.json({
 		healthyCredentials: credStats.total - credStats.dead,
-		earnings24h,
+		earnings24h: logStats.earnings,
+		apiCalls24h: logStats.apiCalls,
 	});
 });
 
