@@ -279,10 +279,10 @@ export function Models() {
 										{t("models.model")}
 									</th>
 									<th className="px-2 hidden lg:table-cell">Modalities</th>
-									<th className="px-2 hidden md:table-cell max-w-[100px]">
+									<th className="px-2 hidden md:table-cell">
 										24h Chart
 									</th>
-									<th className="px-2 hidden md:table-cell max-w-[100px]">
+									<th className="px-2 hidden md:table-cell">
 										24h Range
 									</th>
 									<th className="px-2 text-right">Input /1M</th>
@@ -334,10 +334,10 @@ export function Models() {
 													output={g.outputModalities}
 												/>
 											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell max-w-[100px]">
+											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && <Sparkline data={spark} />}
 											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell max-w-[100px]">
+											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && (
 													<PriceRange
 														data={spark}

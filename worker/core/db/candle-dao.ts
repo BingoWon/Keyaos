@@ -313,7 +313,7 @@ export class CandleDao {
 				low_price: number;
 			}>();
 
-		const SAMPLE_MS = 30 * 60 * 1000;
+		const SAMPLE_MS = 10 * 60 * 1000;
 		const groups = new Map<
 			string,
 			{ closes: Map<number, number>; low: number; high: number }

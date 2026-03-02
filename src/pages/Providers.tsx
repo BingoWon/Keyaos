@@ -240,8 +240,8 @@ export function Providers() {
 									<th className="py-2.5 pl-4 pr-2 sm:pl-5">
 										{t("models.provider")}
 									</th>
-									<th className="px-2 hidden md:table-cell max-w-[100px]">24h Chart</th>
-									<th className="px-2 hidden md:table-cell max-w-[100px]">24h Range</th>
+									<th className="px-2 hidden md:table-cell">24h Chart</th>
+									<th className="px-2 hidden md:table-cell">24h Range</th>
 									<th className="px-2 text-right">Multiplier</th>
 									<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
 										{t("providers.models_count")}
@@ -268,16 +268,19 @@ export function Providers() {
 														<div className="text-sm font-semibold text-gray-900 dark:text-white">
 															{g.provider.name}
 														</div>
-														<div className="text-xs text-gray-500 dark:text-gray-400">
+														<div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
 															{g.provider.id}
+															<span onClick={(e) => e.stopPropagation()}>
+																<CopyButton text={g.provider.id} />
+															</span>
 														</div>
 													</span>
 												</span>
 											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell max-w-[100px]">
+											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && <Sparkline data={spark} />}
 											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell max-w-[100px]">
+											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && (
 													<PriceRange
 														data={spark}
