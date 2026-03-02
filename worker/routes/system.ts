@@ -79,6 +79,23 @@ function resolveIntervalMs(hours: number): number {
 	return 3_600_000;
 }
 
+/** Bulk 24h sparkline data for all items in a dimension */
+systemRouter.get("/sparklines/:dimension", edgeCache(), async (c) => {
+	const dimension = c.req.param("dimension");
+	const validDimensions = new Set(["model:input", "model:output", "provider"]);
+	if (!validDimensions.has(dimension)) {
+		return c.json(
+			{
+				error: { message: "Invalid dimension", type: "invalid_request_error" },
+			},
+			400,
+		);
+	}
+	const dao = new CandleDao(c.env.DB);
+	const data = await dao.getSparklines(dimension as CandleDimension);
+	return c.json({ data });
+});
+
 /** Price candle data for charts */
 systemRouter.get("/candles/:dimension/:value", edgeCache(), async (c) => {
 	const dimension = c.req.param("dimension");

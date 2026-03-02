@@ -278,6 +278,87 @@ export class CandleDao {
 		log.info("candles", `Quoted ${toWrite.length} candles`);
 	}
 
+	/**
+	 * Bulk sparkline data for all items in a dimension over the last 24h.
+	 * Returns close prices sampled at 30-min intervals + 24h high/low/first/last.
+	 */
+	async getSparklines(
+		dimension: CandleDimension,
+	): Promise<
+		Record<
+			string,
+			{
+				points: number[];
+				low: number;
+				high: number;
+				first: number;
+				last: number;
+			}
+		>
+	> {
+		const since = Date.now() - 24 * 60 * 60 * 1000;
+		const res = await this.db
+			.prepare(
+				`SELECT dimension_value, interval_start, close_price, high_price, low_price
+				 FROM price_candles
+				 WHERE dimension = ? AND interval_start >= ?
+				 ORDER BY interval_start ASC`,
+			)
+			.bind(dimension, since)
+			.all<{
+				dimension_value: string;
+				interval_start: number;
+				close_price: number;
+				high_price: number;
+				low_price: number;
+			}>();
+
+		const SAMPLE_MS = 30 * 60 * 1000;
+		const groups = new Map<
+			string,
+			{ closes: Map<number, number>; low: number; high: number }
+		>();
+
+		for (const r of res.results || []) {
+			let g = groups.get(r.dimension_value);
+			if (!g) {
+				g = { closes: new Map(), low: Infinity, high: -Infinity };
+				groups.set(r.dimension_value, g);
+			}
+			const bucket = Math.floor(r.interval_start / SAMPLE_MS) * SAMPLE_MS;
+			g.closes.set(bucket, r.close_price);
+			if (r.low_price < g.low) g.low = r.low_price;
+			if (r.high_price > g.high) g.high = r.high_price;
+		}
+
+		const result: Record<
+			string,
+			{
+				points: number[];
+				low: number;
+				high: number;
+				first: number;
+				last: number;
+			}
+		> = {};
+
+		for (const [key, g] of groups) {
+			const sorted = [...g.closes.entries()].sort((a, b) => a[0] - b[0]);
+			const points = sorted.map(([, v]) => v);
+			if (points.length > 0) {
+				result[key] = {
+					points,
+					low: g.low,
+					high: g.high,
+					first: points[0],
+					last: points[points.length - 1],
+				};
+			}
+		}
+
+		return result;
+	}
+
 	async pruneOldCandles(): Promise<void> {
 		const cutoff = Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000;
 		await this.db

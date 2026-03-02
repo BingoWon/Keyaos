@@ -7,6 +7,7 @@ import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { SearchBar } from "../components/SearchBar";
+import { PriceRange, Sparkline, type SparklineData } from "../components/Sparkline";
 import { Badge, Button, DualPrice } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
@@ -14,6 +15,7 @@ import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
 import {
 	formatContext,
+	formatPrice,
 	formatRelativeTime,
 	formatTimestamp,
 } from "../utils/format";
@@ -82,9 +84,13 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 function ModelCard({
 	group,
 	providerMap,
+	sparkInput,
+	sparkOutput,
 }: {
 	group: ModelGroup;
 	providerMap: Map<string, ProviderMeta>;
+	sparkInput?: SparklineData;
+	sparkOutput?: SparklineData;
 }) {
 	const [open, setOpen] = useState(false);
 	const best = group.providers[0];
@@ -137,6 +143,17 @@ function ModelCard({
 						</div>
 						<Badge variant="brand">{group.providers.length}</Badge>
 					</div>
+					{(sparkInput || sparkOutput) && (
+						<div className="hidden md:flex items-center gap-3">
+							{sparkInput && <Sparkline data={sparkInput} />}
+							{sparkInput && (
+								<PriceRange
+									data={sparkInput}
+									format={(v) => formatPrice(v * 100)}
+								/>
+							)}
+						</div>
+					)}
 					<div className="flex flex-wrap items-center justify-end gap-1.5">
 						<ModalityBadges
 							input={group.inputModalities}
@@ -239,6 +256,12 @@ export function Models() {
 		refetch,
 	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
+	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
+		"/api/sparklines/model:input",
+	);
+	const { data: outputSparks } = useFetch<Record<string, SparklineData>>(
+		"/api/sparklines/model:output",
+	);
 	const lastUpdated = useAutoRefresh(refetch, raw);
 
 	const providerMap = useMemo(() => {
@@ -319,7 +342,13 @@ export function Models() {
 					)}
 					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
 						{filtered.map((g) => (
-							<ModelCard key={g.id} group={g} providerMap={providerMap} />
+							<ModelCard
+								key={g.id}
+								group={g}
+								providerMap={providerMap}
+								sparkInput={inputSparks?.[g.id]}
+								sparkOutput={outputSparks?.[g.id]}
+							/>
 						))}
 					</div>
 					{query && filtered.length === 0 && (

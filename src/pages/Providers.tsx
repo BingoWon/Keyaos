@@ -8,6 +8,7 @@ import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { SearchBar } from "../components/SearchBar";
+import { PriceRange, Sparkline, type SparklineData } from "../components/Sparkline";
 import { Badge, Button, DualPrice } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
@@ -33,7 +34,13 @@ interface ProviderGroup {
 	bestMultiplier?: number;
 }
 
-function ProviderCard({ group }: { group: ProviderGroup }) {
+function ProviderCard({
+	group,
+	spark,
+}: {
+	group: ProviderGroup;
+	spark?: SparklineData;
+}) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
 
@@ -60,6 +67,15 @@ function ProviderCard({ group }: { group: ProviderGroup }) {
 						{group.provider.id}
 					</span>
 				</div>
+				{spark && (
+					<div className="hidden md:flex items-center gap-3">
+						<Sparkline data={spark} />
+						<PriceRange
+							data={spark}
+							format={(v) => `×${v.toFixed(2)}`}
+						/>
+					</div>
+				)}
 				<div className="shrink-0 flex items-center gap-1.5">
 					{group.bestMultiplier != null && group.bestMultiplier < 1 && (
 						<Badge variant="success">×{group.bestMultiplier.toFixed(3)}</Badge>
@@ -142,6 +158,9 @@ export function Providers() {
 	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData, loading: providersLoading } =
 		useFetch<ProviderMeta[]>("/api/providers");
+	const { data: providerSparks } = useFetch<Record<string, SparklineData>>(
+		"/api/sparklines/provider",
+	);
 	const lastUpdated = useAutoRefresh(refetchModels, models);
 
 	const groups = useMemo(() => {
@@ -251,7 +270,11 @@ export function Providers() {
 					)}
 					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
 						{filtered.map((g) => (
-							<ProviderCard key={g.provider.id} group={g} />
+							<ProviderCard
+								key={g.provider.id}
+								group={g}
+								spark={providerSparks?.[g.provider.id]}
+							/>
 						))}
 					</div>
 					{query && filtered.length === 0 && (

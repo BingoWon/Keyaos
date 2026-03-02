@@ -13,6 +13,7 @@ import { isPlatform } from "../auth";
 import { ModalityBadges } from "../components/Modalities";
 import { PageLoader } from "../components/PageLoader";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { Sparkline, type SparklineData } from "../components/Sparkline";
 import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
@@ -170,6 +171,9 @@ export function Dashboard() {
 	const { data: recentLogs } = useFetch<LogEntry[]>("/api/logs?limit=5", {
 		skip: !isPlatform,
 	});
+	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
+		"/api/sparklines/model:input",
+	);
 
 	const uniqueModelCount = useMemo(() => {
 		if (!rawModels) return 0;
@@ -362,6 +366,11 @@ export function Dashboard() {
 												) : null;
 											})}
 										</span>
+									</td>
+									<td className="hidden md:table-cell px-2 py-3">
+										{inputSparks?.[m.id] && (
+											<Sparkline data={inputSparks[m.id]} width={80} height={28} />
+										)}
 									</td>
 									<td className="px-2 py-3">
 										<ModalityBadges

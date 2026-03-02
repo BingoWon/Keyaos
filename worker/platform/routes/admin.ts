@@ -70,6 +70,12 @@ admin.get("/table/:name", async (c) => {
 	}
 });
 
+admin.get("/activity", async (c) => {
+	const hours = Math.min(Number(c.req.query("hours")) || 24, 168);
+	const data = await new AdminDao(c.env.DB).getActivity(hours);
+	return c.json({ data });
+});
+
 // ─── Manual cron triggers ───────────────────────────────
 
 admin.post("/sync-models", async (c) => {

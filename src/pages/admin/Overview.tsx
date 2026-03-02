@@ -7,13 +7,83 @@ import {
 	TableCellsIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../auth";
 import { PageLoader } from "../../components/PageLoader";
 import { IconButton } from "../../components/ui";
 import { useFetch } from "../../hooks/useFetch";
 import { formatUSD } from "../../utils/format";
+
+interface ActivityPoint {
+	time: number;
+	volume: number;
+	tokens: number;
+	records: number;
+}
+
+const RANGE_OPTIONS = [
+	{ label: "24h", hours: 24 },
+	{ label: "3d", hours: 72 },
+	{ label: "7d", hours: 168 },
+] as const;
+
+function MiniArea({
+	points,
+	accessor,
+	color,
+	label,
+}: {
+	points: ActivityPoint[];
+	accessor: (p: ActivityPoint) => number;
+	color: string;
+	label: string;
+}) {
+	if (points.length < 2) return null;
+
+	const W = 320;
+	const H = 80;
+	const PAD = 1;
+	const values = points.map(accessor);
+	const max = Math.max(...values) || 1;
+
+	const coords = values.map((v, i) => ({
+		x: PAD + (i / (values.length - 1)) * (W - PAD * 2),
+		y: PAD + (H - PAD * 2) - (v / max) * (H - PAD * 2),
+	}));
+
+	const line = coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
+	const area = `${coords[0].x.toFixed(1)},${H} ${line} ${coords[coords.length - 1].x.toFixed(1)},${H}`;
+
+	const total = values.reduce((a, b) => a + b, 0);
+
+	return (
+		<div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+			<div className="flex items-baseline justify-between mb-2">
+				<span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+					{label}
+				</span>
+				<span className="text-lg font-semibold text-gray-900 dark:text-white tabular-nums">
+					{total.toLocaleString()}
+				</span>
+			</div>
+			<svg
+				viewBox={`0 0 ${W} ${H}`}
+				className="w-full h-auto"
+				preserveAspectRatio="none"
+			>
+				<polygon points={area} fill={color} opacity={0.15} />
+				<polyline
+					points={line}
+					fill="none"
+					stroke={color}
+					strokeWidth={1.5}
+					strokeLinejoin="round"
+				/>
+			</svg>
+		</div>
+	);
+}
 
 interface PlatformOverview {
 	totalRevenue: number;
@@ -76,6 +146,12 @@ export function Overview() {
 	const { data, loading, refetch } = useFetch<PlatformOverview>(
 		"/api/admin/overview",
 	);
+	const [activityRange, setActivityRange] = useState(24);
+	const { data: activity } = useFetch<ActivityPoint[]>(
+		`/api/admin/activity?hours=${activityRange}`,
+	);
+
+	const activityData = useMemo(() => activity ?? [], [activity]);
 
 	const cards = data
 		? [
@@ -152,6 +228,50 @@ export function Overview() {
 					))}
 				</dl>
 			)}
+
+			<div>
+				<div className="flex items-center justify-between mb-3">
+					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+						{t("admin.activity")}
+					</h4>
+					<div className="inline-flex rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden">
+						{RANGE_OPTIONS.map((opt) => (
+							<button
+								key={opt.hours}
+								type="button"
+								onClick={() => setActivityRange(opt.hours)}
+								className={`px-3 py-1 text-xs font-medium transition-colors ${
+									activityRange === opt.hours
+										? "bg-brand-500 text-white"
+										: "bg-white text-gray-600 hover:bg-gray-50 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10"
+								}`}
+							>
+								{opt.label}
+							</button>
+						))}
+					</div>
+				</div>
+				<div className="grid gap-4 sm:grid-cols-3">
+					<MiniArea
+						points={activityData}
+						accessor={(p) => p.volume}
+						color="#6366f1"
+						label={t("admin.chart_volume")}
+					/>
+					<MiniArea
+						points={activityData}
+						accessor={(p) => p.tokens}
+						color="#f59e0b"
+						label={t("admin.chart_tokens")}
+					/>
+					<MiniArea
+						points={activityData}
+						accessor={(p) => p.records}
+						color="#22c55e"
+						label={t("admin.chart_records")}
+					/>
+				</div>
+			</div>
 		</div>
 	);
 }

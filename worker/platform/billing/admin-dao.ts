@@ -151,6 +151,45 @@ export class AdminDao {
 		return { rows: data.results || [], total: count?.cnt ?? 0 };
 	}
 
+	/**
+	 * Aggregated candle activity for admin overview charts.
+	 * Returns hourly buckets of volume, total_tokens, and record count.
+	 */
+	async getActivity(
+		hours: number,
+	): Promise<
+		{ time: number; volume: number; tokens: number; records: number }[]
+	> {
+		const since = Date.now() - hours * 60 * 60 * 1000;
+		const bucketMs = hours <= 24 ? 3600000 : 3600000 * 6;
+		const res = await this.db
+			.prepare(
+				`SELECT
+					(interval_start / ? * ?) AS bucket,
+					COALESCE(SUM(volume), 0) AS volume,
+					COALESCE(SUM(total_tokens), 0) AS tokens,
+					COUNT(*) AS records
+				 FROM price_candles
+				 WHERE interval_start >= ?
+				 GROUP BY bucket
+				 ORDER BY bucket ASC`,
+			)
+			.bind(bucketMs, bucketMs, since)
+			.all<{
+				bucket: number;
+				volume: number;
+				tokens: number;
+				records: number;
+			}>();
+
+		return (res.results || []).map((r) => ({
+			time: r.bucket,
+			volume: r.volume,
+			tokens: r.tokens,
+			records: r.records,
+		}));
+	}
+
 	async queryTable(
 		table: string,
 		limit: number,
