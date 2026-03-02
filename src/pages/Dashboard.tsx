@@ -1,8 +1,6 @@
 import {
-	BuildingOfficeIcon,
-	CpuChipIcon,
+	ArrowTrendingUpIcon,
 	CreditCardIcon,
-	CurrencyDollarIcon,
 	DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useMemo, useState } from "react";
@@ -58,9 +56,12 @@ export function Dashboard() {
 	const formatDateTime = useFormatDateTime();
 	const { data: stats, loading: statsLoading } =
 		useFetch<Stats>("/api/pool/stats");
-	const { data: wallet } = useFetch<{ balance: number }>(
+	const { data: balance } = useFetch<{ balance: number }>(
 		"/api/credits/balance",
 		{ skip: !isPlatform },
+	);
+	const { data: earnings } = useFetch<{ total: number }>(
+		"/api/logs/earnings-24h",
 	);
 	const { data: rawModels, loading: modelsLoading } =
 		useFetch<ModelEntry[]>("/api/models");
@@ -113,40 +114,28 @@ export function Dashboard() {
 	}
 
 	const statCards = [
-		{
-			name: t("dashboard.models_count"),
-			stat: uniqueModelCount,
-			icon: CpuChipIcon,
-			href: "/dashboard/models",
-		},
-		{
-			name: t("dashboard.providers_count"),
-			stat: providerGroups.length,
-			icon: BuildingOfficeIcon,
-			href: "/dashboard/providers",
-		},
-		{
-			name: t("dashboard.active_credentials"),
-			stat: stats ? stats.total - stats.dead : "-",
-			icon: DocumentCheckIcon,
-			href: "/dashboard/byok",
-		},
-		{
-			name: t("dashboard.total_quota"),
-			stat: stats ? formatUSD(stats.totalQuota) : "-",
-			icon: CurrencyDollarIcon,
-			href: "/dashboard/byok",
-		},
 		...(isPlatform
 			? [
 					{
-						name: t("dashboard.wallet_balance"),
-						stat: wallet ? formatUSD(wallet.balance) : "-",
+						name: t("dashboard.credits_balance"),
+						stat: balance ? formatUSD(balance.balance) : "-",
 						icon: CreditCardIcon,
 						href: "/dashboard/credits",
 					},
 				]
 			: []),
+		{
+			name: t("dashboard.healthy_credentials"),
+			stat: stats ? stats.total - stats.dead : "-",
+			icon: DocumentCheckIcon,
+			href: "/dashboard/byok",
+		},
+		{
+			name: t("dashboard.credits_earnings"),
+			stat: earnings ? formatUSD(earnings.total) : "-",
+			icon: ArrowTrendingUpIcon,
+			href: "/dashboard/logs",
+		},
 	];
 
 	return (
@@ -156,7 +145,7 @@ export function Dashboard() {
 			</h3>
 
 			{/* Stats Cards */}
-			<dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<dl className="grid grid-cols-3 gap-4">
 				{statCards.map((item) => (
 					<Link
 						key={item.name}
@@ -187,9 +176,12 @@ export function Dashboard() {
 			{providerGroups.length > 0 && (
 				<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-white/5">
-						<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-							{t("dashboard.providers_title")}
-						</h4>
+					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+						{t("dashboard.providers_title")}
+						<span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">
+							{providerGroups.length}
+						</span>
+					</h4>
 						<Link
 							to="/dashboard/providers"
 							className="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
@@ -224,9 +216,12 @@ export function Dashboard() {
 			{latestModels.length > 0 && (
 				<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
 					<div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-white/5">
-						<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-							{t("dashboard.latest_models")}
-						</h4>
+					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+						{t("dashboard.latest_models")}
+						<span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">
+							{uniqueModelCount}
+						</span>
+					</h4>
 						<Link
 							to="/dashboard/models"
 							className="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"

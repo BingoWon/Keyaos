@@ -71,6 +71,12 @@ systemRouter.get("/logs", async (c) => {
 	});
 });
 
+systemRouter.get("/logs/earnings-24h", async (c) => {
+	const userId = c.get("owner_id");
+	const total = await new LogsDao(c.env.DB).getEarnings24h(userId);
+	return c.json({ data: { total } });
+});
+
 /** Auto-select candle interval based on time range. */
 function resolveIntervalMs(hours: number): number {
 	if (hours <= 6) return 120_000;

@@ -50,6 +50,19 @@ export class LogsDao {
 		return res.results || [];
 	}
 
+	async getEarnings24h(userId: string): Promise<number> {
+		const since = Date.now() - 24 * 60 * 60 * 1000;
+		const res = await this.db
+			.prepare(
+				`SELECT COALESCE(SUM(provider_earned), 0) AS total
+				 FROM logs
+				 WHERE credential_owner_id = ? AND consumer_id != ? AND created_at >= ?`,
+			)
+			.bind(userId, userId, since)
+			.first<{ total: number }>();
+		return res?.total ?? 0;
+	}
+
 	/** Sum provider_earned per credential for a given credential owner */
 	async getEarningsByCredential(
 		credentialOwnerId: string,
