@@ -317,6 +317,9 @@ export function Models() {
 														<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
 															{g.id}
 														</code>
+														<span onClick={(e) => e.stopPropagation()}>
+															<CopyButton text={g.id} />
+														</span>
 														{g.createdAt > 0 && (
 															<Badge variant="warning">
 																{formatRelativeTime(g.createdAt)}

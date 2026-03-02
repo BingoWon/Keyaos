@@ -12,7 +12,7 @@ interface ModalProps {
 	onClose: () => void;
 	title?: string;
 	children: ReactNode;
-	size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+	size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
 }
 
 const SIZE_MAP = {
@@ -22,6 +22,7 @@ const SIZE_MAP = {
 	xl: "max-w-xl",
 	"2xl": "max-w-2xl",
 	"3xl": "max-w-3xl",
+	"4xl": "max-w-4xl",
 } as const;
 
 export function Modal({
@@ -60,11 +61,10 @@ export function Modal({
 							leaveTo="opacity-0 scale-95 translate-y-4"
 						>
 							<DialogPanel
-								className={`w-full ${SIZE_MAP[size]} rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl ring-1 ring-black/5 dark:border-white/10 dark:bg-gray-900 dark:ring-white/5`}
+								className={`w-full ${SIZE_MAP[size]} max-h-[90vh] flex flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl ring-1 ring-black/5 dark:border-white/10 dark:bg-gray-900 dark:ring-white/5`}
 							>
-								{/* Header */}
 								{title && (
-									<div className="mb-5 flex items-center justify-between">
+									<div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
 										<h3 className="text-base font-semibold text-gray-900 dark:text-white">
 											{title}
 										</h3>
@@ -77,9 +77,9 @@ export function Modal({
 										</button>
 									</div>
 								)}
-
-								{/* Content */}
+							<div className={`overflow-y-auto px-6 pb-6 overscroll-contain ${title ? "" : "pt-6"}`}>
 								{children}
+							</div>
 							</DialogPanel>
 						</TransitionChild>
 					</div>

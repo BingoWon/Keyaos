@@ -52,7 +52,7 @@ function ProviderDetailModal({
 			open
 			onClose={onClose}
 			title={group.provider.name}
-			size="3xl"
+			size="4xl"
 		>
 			<PriceChart
 				dimension="provider"
