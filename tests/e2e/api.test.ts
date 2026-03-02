@@ -105,9 +105,9 @@ test("Chat completion (streaming)", async () => {
 	console.log(`  Provider: ${res.headers.get("x-provider")}`);
 });
 
-test("Usage entries exist in database", () => {
+test("Log entries exist in database", () => {
 	const rows = dbQuery(
-		"SELECT COUNT(*) as cnt FROM usage",
+		"SELECT COUNT(*) as cnt FROM logs",
 	) as { cnt: number }[];
-	console.log(`  Usage entries: ${rows[0].cnt}`);
+	console.log(`  Log entries: ${rows[0].cnt}`);
 });

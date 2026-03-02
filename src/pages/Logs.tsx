@@ -10,7 +10,7 @@ import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { formatSignedUSD } from "../utils/format";
 
-interface UsageEntry {
+interface LogEntry {
 	id: string;
 	direction: "spent" | "earned" | "self";
 	provider: string;
@@ -21,14 +21,14 @@ interface UsageEntry {
 	createdAt: number;
 }
 
-function DirectionBadge({ direction }: { direction: UsageEntry["direction"] }) {
+function DirectionBadge({ direction }: { direction: LogEntry["direction"] }) {
 	const { t } = useTranslation();
 
 	if (direction === "earned") {
 		return (
 			<span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
 				<ArrowDownTrayIcon className="size-3" />
-				{t("usage.earned")}
+				{t("logs.earned")}
 			</span>
 		);
 	}
@@ -36,31 +36,31 @@ function DirectionBadge({ direction }: { direction: UsageEntry["direction"] }) {
 		return (
 			<span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
 				<ArrowUpTrayIcon className="size-3" />
-				{t("usage.spent")}
+				{t("logs.spent")}
 			</span>
 		);
 	}
 	return (
 		<span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
 			<ArrowPathIcon className="size-3" />
-			{t("usage.self_use")}
+			{t("logs.self_use")}
 		</span>
 	);
 }
 
-export function Usage() {
+export function Logs() {
 	const { t } = useTranslation();
 	const formatDateTime = useFormatDateTime();
 	const {
 		data: entries,
 		loading,
 		error,
-	} = useFetch<UsageEntry[]>("/api/usage?limit=100");
+	} = useFetch<LogEntry[]>("/api/logs?limit=100");
 
 	if (error) {
 		return (
 			<div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-500/20 dark:bg-red-900/20 dark:text-red-400">
-				Failed to load usage: {error.message}
+				Failed to load logs: {error.message}
 			</div>
 		);
 	}
@@ -68,17 +68,17 @@ export function Usage() {
 	return (
 		<div>
 			<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-				{t("usage.title")}
+				{t("logs.title")}
 			</h3>
 			<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-				{t("usage.subtitle")}
+				{t("logs.subtitle")}
 			</p>
 
 			<PromoBanner
-				title={t("usage.promo_title")}
+				title={t("logs.promo_title")}
 				description={
 					<Trans
-						i18nKey="usage.promo_desc"
+						i18nKey="logs.promo_desc"
 						components={{
 							GithubLink: (
 								// biome-ignore lint/a11y/useAnchorContent: Trans injects children at runtime
@@ -100,7 +100,7 @@ export function Usage() {
 				</div>
 			) : !entries?.length ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-					{t("usage.no_data")}
+					{t("logs.no_data")}
 				</p>
 			) : (
 				<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
@@ -108,25 +108,25 @@ export function Usage() {
 						<thead className="bg-gray-50 dark:bg-white/5">
 							<tr>
 								<th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">
-									{t("usage.time")}
+									{t("logs.time")}
 								</th>
 								<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-									{t("usage.direction")}
+									{t("logs.direction")}
 								</th>
 								<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-									{t("usage.model")}
+									{t("logs.model")}
 								</th>
 								<th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">
-									{t("usage.provider")}
+									{t("logs.provider")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
-									{t("usage.input_tokens")}
+									{t("logs.input_tokens")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white">
-									{t("usage.output_tokens")}
+									{t("logs.output_tokens")}
 								</th>
 								<th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 dark:text-white sm:pr-6">
-									{t("usage.credits")}
+									{t("logs.credits")}
 								</th>
 							</tr>
 						</thead>

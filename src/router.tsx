@@ -38,7 +38,7 @@ import { Login } from "./pages/Login";
 import { Models } from "./pages/Models";
 import { NotFound } from "./pages/NotFound";
 import { Providers } from "./pages/Providers";
-import { Usage } from "./pages/Usage";
+import { Logs } from "./pages/Logs";
 
 const dashboardChildren = [
 	{ index: true, element: <Dashboard /> },
@@ -46,7 +46,7 @@ const dashboardChildren = [
 	{ path: "providers", element: <Providers /> },
 	{ path: "api-keys", element: <ApiKeys /> },
 	{ path: "byok", element: <Byok /> },
-	{ path: "usage", element: <Usage /> },
+	{ path: "logs", element: <Logs /> },
 	...(isPlatform
 		? [{ path: "credits", element: <Credits /> }]
 		: []),

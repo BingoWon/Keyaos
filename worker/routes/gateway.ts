@@ -8,7 +8,7 @@
  */
 
 import type { Context } from "hono";
-import { calculateBaseCost, recordUsage } from "../core/billing";
+import { calculateBaseCost, recordLog } from "../core/billing";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
@@ -119,7 +119,7 @@ export async function executeCompletion(
 										platformFee: 0,
 									};
 
-							await recordUsage(c.env.DB, {
+							await recordLog(c.env.DB, {
 								consumerId,
 								credentialId: credential.id,
 								credentialOwnerId,

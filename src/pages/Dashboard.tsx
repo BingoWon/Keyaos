@@ -33,7 +33,7 @@ interface Stats {
 	totalQuota: number;
 }
 
-interface UsageEntry {
+interface LogEntry {
 	id: string;
 	direction: "spent" | "earned" | "self";
 	provider: string;
@@ -167,7 +167,7 @@ export function Dashboard() {
 	const { data: rawModels, loading: modelsLoading } =
 		useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
-	const { data: recentUsage } = useFetch<UsageEntry[]>("/api/usage?limit=5", {
+	const { data: recentLogs } = useFetch<LogEntry[]>("/api/logs?limit=5", {
 		skip: !isPlatform,
 	});
 
@@ -401,14 +401,14 @@ export function Dashboard() {
 			)}
 
 			{/* Recent Activity (platform only) */}
-			{isPlatform && recentUsage && recentUsage.length > 0 && (
+			{isPlatform && recentLogs && recentLogs.length > 0 && (
 				<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-white/5">
 						<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
 							{t("dashboard.recent_activity")}
 						</h4>
 						<Link
-							to="/dashboard/usage"
+							to="/dashboard/logs"
 							className="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
 						>
 							{t("dashboard.view_all")}
@@ -417,16 +417,16 @@ export function Dashboard() {
 					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
 						<thead>
 							<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
-								<th className="py-2.5 pl-5 pr-2">{t("usage.time")}</th>
-								<th className="px-2">{t("usage.model")}</th>
-								<th className="px-2">{t("usage.provider")}</th>
+								<th className="py-2.5 pl-5 pr-2">{t("logs.time")}</th>
+								<th className="px-2">{t("logs.model")}</th>
+								<th className="px-2">{t("logs.provider")}</th>
 								<th className="py-2.5 pl-2 pr-5 text-right">
-									{t("usage.credits")}
+									{t("logs.credits")}
 								</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-							{recentUsage.map((tx) => (
+							{recentLogs.map((tx) => (
 								<tr key={tx.id}>
 									<td className="py-2.5 pl-5 pr-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
 										{formatDateTime(tx.createdAt)}

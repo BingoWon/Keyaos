@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { CandleDao, type CandleDimension } from "../core/db/candle-dao";
 import { CredentialsDao } from "../core/db/credentials-dao";
-import { UsageDao } from "../core/db/usage-dao";
+import { LogsDao } from "../core/db/logs-dao";
 import { getAllProviders } from "../core/providers/registry";
 import type { AppEnv } from "../shared/types";
 
@@ -32,11 +32,11 @@ systemRouter.get("/providers", (c) => {
 	return c.json({ data: providers });
 });
 
-/** API usage records (per-request detail) */
-systemRouter.get("/usage", async (c) => {
+/** API request logs (per-request detail) */
+systemRouter.get("/logs", async (c) => {
 	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);
 	const userId = c.get("owner_id");
-	const dao = new UsageDao(c.env.DB);
+	const dao = new LogsDao(c.env.DB);
 	const entries = await dao.getEntriesForUser(userId, limit);
 
 	return c.json({
@@ -72,7 +72,7 @@ systemRouter.get("/usage", async (c) => {
 
 /**
  * Unified ledger: all credit movements in chronological order.
- * Combines usage (API spend/earn), payments (top-ups), and admin adjustments.
+ * Combines logs (API spend/earn), payments (top-ups), and admin adjustments.
  */
 systemRouter.get("/ledger", async (c) => {
 	const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
@@ -83,12 +83,12 @@ systemRouter.get("/ledger", async (c) => {
 		.prepare(
 			`SELECT * FROM (
 				SELECT
-					id, 'usage' AS type,
+					id, 'log' AS type,
 					CASE WHEN consumer_id = ? THEN 'api_spend' ELSE 'credential_earn' END AS category,
 					model AS description,
 					CASE WHEN consumer_id = ? THEN -consumer_charged ELSE provider_earned END AS amount,
 					created_at
-				FROM usage
+				FROM logs
 				WHERE (consumer_id = ? OR credential_owner_id = ?)
 					AND NOT (consumer_id = ? AND credential_owner_id = ?)
 
@@ -120,7 +120,7 @@ systemRouter.get("/ledger", async (c) => {
 		.bind(userId, userId, userId, userId, userId, userId, userId, userId, limit)
 		.all<{
 			id: string;
-			type: "usage" | "top_up" | "adjustment";
+			type: "log" | "top_up" | "adjustment";
 			category: string;
 			description: string;
 			amount: number;

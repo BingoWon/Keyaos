@@ -1,5 +1,5 @@
 /**
- * Core billing — usage tracking + upstream credential quota deduction.
+ * Core billing — log recording + upstream credential quota deduction.
  *
  * Platform-specific wallet settlement is handled separately
  * in worker/platform/billing/settlement.ts.
@@ -8,7 +8,7 @@
 import { log } from "../shared/logger";
 import type { Settlement } from "../shared/types";
 import { CredentialsDao } from "./db/credentials-dao";
-import { UsageDao } from "./db/usage-dao";
+import { LogsDao } from "./db/logs-dao";
 import type { TokenUsage } from "./utils/stream";
 
 export interface BillingParams {
@@ -38,7 +38,7 @@ export function calculateBaseCost(
 	return inputCost + outputCost;
 }
 
-export async function recordUsage(
+export async function recordLog(
 	db: D1Database,
 	params: BillingParams,
 ): Promise<void> {
@@ -58,7 +58,7 @@ export async function recordUsage(
 	if (inputTokens + outputTokens <= 0) return;
 
 	try {
-		await new UsageDao(db).createEntry({
+		await new LogsDao(db).createEntry({
 			consumer_id: consumerId,
 			credential_id: credentialId,
 			credential_owner_id: credentialOwnerId,
@@ -75,7 +75,7 @@ export async function recordUsage(
 
 		await new CredentialsDao(db).deductQuota(credentialId, baseCost);
 	} catch (err) {
-		log.error("billing", "Usage record write failed", {
+		log.error("billing", "Log entry write failed", {
 			credentialId,
 			error: err instanceof Error ? err.message : String(err),
 		});

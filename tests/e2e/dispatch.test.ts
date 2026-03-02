@@ -143,19 +143,19 @@ describe("Dispatch: billing correctness", () => {
 
 		await new Promise((r) => setTimeout(r, 2000));
 
-		const usageRows = dbQuery(
-			"SELECT credential_id, base_cost FROM usage ORDER BY created_at DESC LIMIT 1",
+		const logRows = dbQuery(
+			"SELECT credential_id, base_cost FROM logs ORDER BY created_at DESC LIMIT 1",
 		) as { credential_id: string; base_cost: number }[];
 
-		assert.ok(usageRows.length > 0, "No usage entry found after chat");
+		assert.ok(logRows.length > 0, "No log entry found after chat");
 		assert.strictEqual(
-			usageRows[0].credential_id,
+			logRows[0].credential_id,
 			result.credentialId,
-			"Usage credential_id must match x-credential-id response header",
+			"Log credential_id must match x-credential-id response header",
 		);
-		assert.ok(usageRows[0].base_cost > 0, "Base cost must be positive");
+		assert.ok(logRows[0].base_cost > 0, "Base cost must be positive");
 		console.log(
-			`  cred=${result.credentialId.slice(-8)}, base_cost=${usageRows[0].base_cost}`,
+			`  cred=${result.credentialId.slice(-8)}, base_cost=${logRows[0].base_cost}`,
 		);
 	});
 });

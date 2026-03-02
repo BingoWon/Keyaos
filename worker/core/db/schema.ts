@@ -42,7 +42,7 @@ export interface DbModelPricing {
 	refreshed_at: number;
 }
 
-export interface DbUsageEntry {
+export interface DbLogEntry {
 	id: string;
 	consumer_id: string;
 	credential_id: string;

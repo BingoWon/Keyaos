@@ -1,16 +1,16 @@
-import type { DbUsageEntry } from "./schema";
+import type { DbLogEntry } from "./schema";
 
-export class UsageDao {
+export class LogsDao {
 	constructor(private db: D1Database) {}
 
 	async createEntry(
-		tx: Omit<DbUsageEntry, "id" | "created_at">,
+		tx: Omit<DbLogEntry, "id" | "created_at">,
 	): Promise<string> {
 		const id = `tx_${crypto.randomUUID()}`;
 
 		await this.db
 			.prepare(
-				`INSERT INTO usage (
+				`INSERT INTO logs (
 					id, consumer_id, credential_id, credential_owner_id, provider, model,
 					input_tokens, output_tokens, base_cost,
 					consumer_charged, provider_earned, platform_fee, price_multiplier, created_at
@@ -37,15 +37,15 @@ export class UsageDao {
 		return id;
 	}
 
-	async getEntriesForUser(userId: string, limit = 50): Promise<DbUsageEntry[]> {
+	async getEntriesForUser(userId: string, limit = 50): Promise<DbLogEntry[]> {
 		const res = await this.db
 			.prepare(
-				`SELECT * FROM usage
+				`SELECT * FROM logs
 				 WHERE consumer_id = ? OR credential_owner_id = ?
 				 ORDER BY created_at DESC LIMIT ?`,
 			)
 			.bind(userId, userId, limit)
-			.all<DbUsageEntry>();
+			.all<DbLogEntry>();
 
 		return res.results || [];
 	}
@@ -57,7 +57,7 @@ export class UsageDao {
 		const res = await this.db
 			.prepare(
 				`SELECT credential_id, SUM(provider_earned) as total
-				 FROM usage WHERE credential_owner_id = ?
+				 FROM logs WHERE credential_owner_id = ?
 				 GROUP BY credential_id`,
 			)
 			.bind(credentialOwnerId)

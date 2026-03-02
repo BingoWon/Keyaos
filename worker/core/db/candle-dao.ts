@@ -24,7 +24,7 @@ export class CandleDao {
 				`SELECT u.provider, u.model, u.price_multiplier,
 				        u.input_tokens, u.output_tokens, u.created_at,
 				        mp.input_price, mp.output_price
-				 FROM usage u
+				 FROM logs u
 				 JOIN model_pricing mp
 				   ON mp.provider = u.provider AND mp.model_id = u.model AND mp.is_active = 1
 				 WHERE u.created_at >= ? AND u.created_at < ?

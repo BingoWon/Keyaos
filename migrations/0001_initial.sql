@@ -54,8 +54,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_model ON model_pric
 CREATE INDEX IF NOT EXISTS idx_model_pricing_routing ON model_pricing(model_id, is_active, input_price);
 CREATE INDEX IF NOT EXISTS idx_model_pricing_sort ON model_pricing(model_id, sort_order);
 
--- 4. API usage records (two-sided: consumer + credential owner)
-CREATE TABLE IF NOT EXISTS usage (
+-- 4. API request logs (two-sided: consumer + credential owner)
+CREATE TABLE IF NOT EXISTS logs (
     id TEXT PRIMARY KEY,
     consumer_id TEXT NOT NULL,
     credential_id TEXT NOT NULL,
@@ -72,9 +72,9 @@ CREATE TABLE IF NOT EXISTS usage (
     created_at INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_usage_consumer ON usage(consumer_id);
-CREATE INDEX IF NOT EXISTS idx_usage_credential_owner ON usage(credential_owner_id);
-CREATE INDEX IF NOT EXISTS idx_usage_created ON usage(created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_consumer ON logs(consumer_id);
+CREATE INDEX IF NOT EXISTS idx_logs_credential_owner ON logs(credential_owner_id);
+CREATE INDEX IF NOT EXISTS idx_logs_created ON logs(created_at);
 
 -- 5. Pre-aggregated OHLC candle data for price trend charts
 CREATE TABLE IF NOT EXISTS price_candles (

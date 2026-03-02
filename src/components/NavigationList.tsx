@@ -69,8 +69,8 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			activeIcon: KeyIconSolid,
 		},
 		{
-			name: t("nav.usage"),
-			href: "/dashboard/usage",
+			name: t("nav.logs"),
+			href: "/dashboard/logs",
 			icon: ListBulletIcon,
 			activeIcon: ListBulletIconSolid,
 		},

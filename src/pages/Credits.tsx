@@ -42,7 +42,7 @@ interface PaymentEntry {
 
 interface LedgerEntry {
 	id: string;
-	type: "usage" | "top_up" | "adjustment";
+	type: "log" | "top_up" | "adjustment";
 	category: string;
 	description: string;
 	amount: number;

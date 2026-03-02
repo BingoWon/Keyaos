@@ -45,7 +45,7 @@
 		"providers": "Providers",
 		"byok": "BYOK",
 		"api_keys": "API Keys",
-		"usage": "Usage",
+		"logs": "Logs",
 		"credits": "Credits",
 		"guide": "Guide",
 		"admin": "Admin",
@@ -213,8 +213,8 @@
 		"refresh": "Refresh",
 		"reset_view": "Reset View"
 	},
-	"usage": {
-		"title": "Usage",
+	"logs": {
+		"title": "Logs",
 		"subtitle": "Detailed API request logs — showing earnings from shared keys and costs from API calls",
 		"promo_title": "🛡️ Total privacy for your prompts",
 		"promo_desc": "We show your request metadata here for transparency. But your actual prompts and completions are never logged, stored, or visible to us. <GithubLink>Audit our 100% source-available engine on GitHub</GithubLink>.",
@@ -228,7 +228,7 @@
 		"earned": "Earned",
 		"spent": "Spent",
 		"self_use": "Self-use",
-		"no_data": "No usage records yet"
+		"no_data": "No logs yet"
 	},
 	"credits": {
 		"title": "Credits",

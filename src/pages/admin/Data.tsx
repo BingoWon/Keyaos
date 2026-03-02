@@ -6,7 +6,7 @@ import { IconButton } from "../../components/ui";
 import { useFetch } from "../../hooks/useFetch";
 
 const TABLES = [
-	"usage",
+	"logs",
 	"upstream_credentials",
 	"wallets",
 	"payments",
