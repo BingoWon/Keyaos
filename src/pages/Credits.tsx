@@ -439,10 +439,10 @@ export function Credits() {
 						<div className="mt-4">
 							<PageLoader />
 						</div>
-					) : !autoConfig?.hasCard ? (
-						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
-							{t("credits.auto_topup_no_card")}
-						</p>
+				) : !autoConfig?.hasCard ? (
+					<div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+						{t("credits.auto_topup_no_card")}
+					</div>
 					) : (
 						<div className="mt-3 space-y-3">
 							<div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:divide-x sm:divide-gray-200 sm:dark:divide-white/10">
