@@ -1,13 +1,19 @@
-import { ArrowPathIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
+import { Modal } from "../components/Modal";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { SearchBar } from "../components/SearchBar";
-import { PriceRange, Sparkline, type SparklineData } from "../components/Sparkline";
+import {
+	PriceRange,
+	Sparkline,
+	type SparklineData,
+} from "../components/Sparkline";
 import { Badge, Button, DualPrice } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
@@ -20,6 +26,8 @@ import {
 	formatTimestamp,
 } from "../utils/format";
 import { mergeModalities } from "../utils/modalities";
+
+const PAGE_SIZE = 30;
 
 interface ModelGroup {
 	id: string;
@@ -58,7 +66,6 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		if (e.name && group.displayName === group.id) {
 			group.displayName = e.name;
 		}
-		// Merge modalities (take union across providers)
 		mergeModalities(group.inputModalities, e.input_modalities);
 		mergeModalities(group.outputModalities, e.output_modalities);
 		if (e.created_at && (!group.createdAt || e.created_at < group.createdAt)) {
@@ -81,179 +88,79 @@ function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 	return [...groups.values()];
 }
 
-function ModelCard({
+function ModelDetailModal({
 	group,
 	providerMap,
-	sparkInput,
-	sparkOutput,
+	onClose,
 }: {
 	group: ModelGroup;
 	providerMap: Map<string, ProviderMeta>;
-	sparkInput?: SparklineData;
-	sparkOutput?: SparklineData;
+	onClose: () => void;
 }) {
-	const [open, setOpen] = useState(false);
-	const best = group.providers[0];
-	const maxContext = Math.max(...group.providers.map((p) => p.contextLength));
-
 	return (
-		<div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden transition-shadow hover:shadow-sm">
-			<button
-				type="button"
-				onClick={() => setOpen(!open)}
-				className="w-full px-4 py-3.5 sm:px-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer select-none text-left"
-			>
-				{/* Left: model info */}
-				<div className="flex items-start gap-2 min-w-0">
-					<ChevronRightIcon
-						className={`mt-0.5 size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-					/>
-					<div className="min-w-0">
-						<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-							{group.displayName}
-						</h4>
-						<span className="flex items-center gap-1.5 mt-1">
-							<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
-								{group.id}
-							</code>
-							{/* biome-ignore lint/a11y/noStaticElementInteractions: isolates click from parent button */}
-							{/* biome-ignore lint/a11y/useKeyWithClickEvents: inner button handles keyboard */}
-							<span onClick={(e) => e.stopPropagation()}>
-								<CopyButton text={group.id} />
-							</span>
-							{group.createdAt > 0 && (
-								<Badge variant="warning">
-									{formatRelativeTime(group.createdAt)}
-								</Badge>
-							)}
-						</span>
-					</div>
-				</div>
-
-				{/* Center: sparkline + price range */}
-				<div className="hidden md:flex flex-col items-center gap-1.5">
-					{sparkInput ? (
-						<>
-							<Sparkline data={sparkInput} width={120} height={36} />
-							<PriceRange
-								data={sparkInput}
-								format={(v) => formatPrice(v * 100)}
-								width={140}
-							/>
-						</>
-					) : (
-						<div className="w-[140px]" />
-					)}
-				</div>
-
-				{/* Right: badges + pricing */}
-				<div className="flex flex-col items-end gap-2">
-					<div className="flex items-center gap-1.5">
-						<div className="hidden sm:flex items-center gap-1">
-							{group.providers.slice(0, 5).map((p) => {
-								const meta = providerMap.get(p.provider);
-								return meta ? (
-									<ProviderLogo
-										key={p.provider}
-										src={meta.logoUrl}
-										name={meta.name}
-										size={18}
-									/>
-								) : null;
-							})}
-						</div>
-						<Badge variant="brand">{group.providers.length}</Badge>
-					</div>
-					<div className="flex flex-wrap items-center justify-end gap-1.5">
-						<ModalityBadges
-							input={group.inputModalities}
-							output={group.outputModalities}
-						/>
-						<Badge variant="success">
-							<DualPrice
-								original={best.inputPrice}
-								platform={best.platformInputPrice}
-							/>
-							in
-						</Badge>
-						<Badge variant="accent">
-							<DualPrice
-								original={best.outputPrice}
-								platform={best.platformOutputPrice}
-							/>
-							out
-						</Badge>
-						{maxContext > 0 && <Badge>{formatContext(maxContext)} ctx</Badge>}
-					</div>
-				</div>
-			</button>
-
-			{open && (
-				<div className="border-t border-gray-100 dark:border-white/5">
-					<PriceChart
-						dimension="model"
-						value={group.id}
-						className="m-3 border-0 shadow-none"
-					/>
-					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-						<thead>
-							<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
-								<th className="py-2.5 pl-4 pr-2 sm:pl-5">Provider</th>
-								<th className="px-2 text-right">Input /1M</th>
-								<th className="px-2 text-right">Output /1M</th>
-								<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">Context</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-							{group.providers.map((p, i) => (
-								<tr
-									key={p.provider}
-									className={
-										i === 0
-											? "bg-brand-50/50 dark:bg-brand-500/[0.04]"
-											: undefined
-									}
-								>
-									<td className="py-2.5 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-										{(() => {
-											const meta = providerMap.get(p.provider);
-											return (
-												<span className="inline-flex items-center gap-1.5">
-													{meta && (
-														<ProviderLogo
-															src={meta.logoUrl}
-															name={meta.name}
-															size={16}
-														/>
-													)}
-													{meta?.name ?? p.provider}
-													<CopyButton text={p.provider} />
-												</span>
-											);
-										})()}
-									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										<DualPrice
-											original={p.inputPrice}
-											platform={p.platformInputPrice}
-										/>
-									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										<DualPrice
-											original={p.outputPrice}
-											platform={p.platformOutputPrice}
-										/>
-									</td>
-									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{formatContext(p.contextLength)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
-		</div>
+		<Modal open onClose={onClose} title={group.displayName} size="3xl">
+			<PriceChart
+				dimension="model"
+				value={group.id}
+				className="border-0 shadow-none -mx-1"
+			/>
+			<table className="mt-4 min-w-full divide-y divide-gray-100 dark:divide-white/5">
+				<thead>
+					<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+						<th className="py-2 pr-2">Provider</th>
+						<th className="px-2 text-right">Input /1M</th>
+						<th className="px-2 text-right">Output /1M</th>
+						<th className="py-2 pl-2 text-right">Context</th>
+					</tr>
+				</thead>
+				<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+					{group.providers.map((p, i) => (
+						<tr
+							key={p.provider}
+							className={
+								i === 0
+									? "bg-brand-50/50 dark:bg-brand-500/[0.04]"
+									: undefined
+							}
+						>
+							<td className="py-2.5 pr-2 text-sm text-gray-700 dark:text-gray-300">
+								{(() => {
+									const meta = providerMap.get(p.provider);
+									return (
+										<span className="inline-flex items-center gap-1.5">
+											{meta && (
+												<ProviderLogo
+													src={meta.logoUrl}
+													name={meta.name}
+													size={16}
+												/>
+											)}
+											{meta?.name ?? p.provider}
+											<CopyButton text={p.provider} />
+										</span>
+									);
+								})()}
+							</td>
+							<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								<DualPrice
+									original={p.inputPrice}
+									platform={p.platformInputPrice}
+								/>
+							</td>
+							<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								<DualPrice
+									original={p.outputPrice}
+									platform={p.platformOutputPrice}
+								/>
+							</td>
+							<td className="py-2.5 pl-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								{formatContext(p.contextLength)}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</Modal>
 	);
 }
 
@@ -269,9 +176,6 @@ export function Models() {
 	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
 		"/api/sparklines/model:input",
 	);
-	const { data: outputSparks } = useFetch<Record<string, SparklineData>>(
-		"/api/sparklines/model:output",
-	);
 	const lastUpdated = useAutoRefresh(refetch, raw);
 
 	const providerMap = useMemo(() => {
@@ -283,6 +187,8 @@ export function Models() {
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
 	const [query, setQuery] = useState("");
+	const [page, setPage] = useState(1);
+	const [selected, setSelected] = useState<ModelGroup | null>(null);
 
 	const filtered = useMemo(() => {
 		if (!query.trim()) return groups;
@@ -293,6 +199,18 @@ export function Models() {
 				g.displayName.toLowerCase().includes(q),
 		);
 	}, [groups, query]);
+
+	const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+	const safePage = Math.min(page, totalPages);
+	const paged = filtered.slice(
+		(safePage - 1) * PAGE_SIZE,
+		safePage * PAGE_SIZE,
+	);
+
+	const handleSearch = (v: string) => {
+		setQuery(v);
+		setPage(1);
+	};
 
 	if (error) {
 		return (
@@ -328,7 +246,7 @@ export function Models() {
 					{raw && groups.length > 0 && (
 						<SearchBar
 							value={query}
-							onChange={setQuery}
+							onChange={handleSearch}
 							placeholder={t("models.search_placeholder")}
 						/>
 					)}
@@ -345,28 +263,158 @@ export function Models() {
 				</p>
 			) : (
 				<>
-					{query && (
-						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
-							{t("models.result_count", { count: filtered.length, total: groups.length })}
-						</p>
-					)}
-					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
-						{filtered.map((g) => (
-							<ModelCard
-								key={g.id}
-								group={g}
-								providerMap={providerMap}
-								sparkInput={inputSparks?.[g.id]}
-								sparkOutput={outputSparks?.[g.id]}
-							/>
-						))}
+					<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
+						<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+							<thead>
+								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+									<th className="py-2.5 pl-4 pr-2 sm:pl-5">
+										{t("models.model")}
+									</th>
+									<th className="px-2 hidden lg:table-cell">Modalities</th>
+									<th className="px-2 hidden md:table-cell">24h Chart</th>
+									<th className="px-2 hidden md:table-cell">24h Range</th>
+									<th className="px-2 text-right">Input /1M</th>
+									<th className="px-2 text-right">Output /1M</th>
+									<th className="px-2 text-right hidden sm:table-cell">
+										{t("models.context")}
+									</th>
+									<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+										Providers
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+								{paged.map((g) => {
+									const best = g.providers[0];
+									const maxCtx = Math.max(
+										...g.providers.map((p) => p.contextLength),
+									);
+									const spark = inputSparks?.[g.id];
+									return (
+										<tr
+											key={g.id}
+											onClick={() => setSelected(g)}
+											className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+										>
+											<td className="py-2.5 pl-4 pr-2 sm:pl-5">
+												<div className="min-w-0">
+													<div className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-[260px]">
+														{g.displayName}
+													</div>
+													<div className="flex items-center gap-1.5 mt-0.5">
+														<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
+															{g.id}
+														</code>
+														{g.createdAt > 0 && (
+															<Badge variant="warning">
+																{formatRelativeTime(g.createdAt)}
+															</Badge>
+														)}
+													</div>
+												</div>
+											</td>
+											<td className="px-2 py-2.5 hidden lg:table-cell">
+												<ModalityBadges
+													input={g.inputModalities}
+													output={g.outputModalities}
+												/>
+											</td>
+											<td className="px-2 py-2.5 hidden md:table-cell">
+												{spark && <Sparkline data={spark} />}
+											</td>
+											<td className="px-2 py-2.5 hidden md:table-cell">
+												{spark && (
+													<PriceRange
+														data={spark}
+														format={(v) => formatPrice(v * 100)}
+													/>
+												)}
+											</td>
+											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
+												<DualPrice
+													original={best.inputPrice}
+													platform={best.platformInputPrice}
+												/>
+											</td>
+											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
+												<DualPrice
+													original={best.outputPrice}
+													platform={best.platformOutputPrice}
+												/>
+											</td>
+											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 hidden sm:table-cell whitespace-nowrap">
+												{maxCtx > 0 ? formatContext(maxCtx) : "—"}
+											</td>
+											<td className="py-2.5 pl-2 pr-4 sm:pr-5">
+												<div className="flex items-center justify-end gap-1">
+													<span className="hidden sm:inline-flex items-center gap-0.5">
+														{g.providers.slice(0, 4).map((p) => {
+															const meta = providerMap.get(p.provider);
+															return meta ? (
+																<ProviderLogo
+																	key={p.provider}
+																	src={meta.logoUrl}
+																	name={meta.name}
+																	size={16}
+																/>
+															) : null;
+														})}
+													</span>
+													<Badge variant="brand">
+														{g.providers.length}
+													</Badge>
+												</div>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
 					</div>
-					{query && filtered.length === 0 && (
-						<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-							{t("models.no_match", { query })}
-						</p>
-					)}
+
+					{/* Pagination */}
+					<div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+						<span>
+							{query
+								? t("models.result_count", {
+										count: filtered.length,
+										total: groups.length,
+									})
+								: `${filtered.length} ${t("models.title").toLowerCase()}`}
+						</span>
+						{totalPages > 1 && (
+							<div className="flex items-center gap-1">
+								<button
+									type="button"
+									disabled={safePage <= 1}
+									onClick={() => setPage(safePage - 1)}
+									className="px-2.5 py-1 rounded-md border border-gray-200 dark:border-white/10 disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+								>
+									{t("admin.prev")}
+								</button>
+								<span className="px-2 tabular-nums">
+									{safePage} / {totalPages}
+								</span>
+								<button
+									type="button"
+									disabled={safePage >= totalPages}
+									onClick={() => setPage(safePage + 1)}
+									className="px-2.5 py-1 rounded-md border border-gray-200 dark:border-white/10 disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+								>
+									{t("admin.next")}
+								</button>
+							</div>
+						)}
+					</div>
 				</>
+			)}
+
+			{selected && (
+				<ModelDetailModal
+					group={selected}
+					providerMap={providerMap}
+					onClose={() => setSelected(null)}
+				/>
 			)}
 		</div>
 	);

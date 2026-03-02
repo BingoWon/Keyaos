@@ -1,14 +1,19 @@
-import { ArrowPathIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Modality } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityCell } from "../components/Modalities";
+import { Modal } from "../components/Modal";
 import { PageLoader } from "../components/PageLoader";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { SearchBar } from "../components/SearchBar";
-import { PriceRange, Sparkline, type SparklineData } from "../components/Sparkline";
+import {
+	PriceRange,
+	Sparkline,
+	type SparklineData,
+} from "../components/Sparkline";
 import { Badge, Button, DualPrice } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
@@ -34,130 +39,75 @@ interface ProviderGroup {
 	bestMultiplier?: number;
 }
 
-function ProviderCard({
+function ProviderDetailModal({
 	group,
-	spark,
+	onClose,
 }: {
 	group: ProviderGroup;
-	spark?: SparklineData;
+	onClose: () => void;
 }) {
 	const { t } = useTranslation();
-	const [open, setOpen] = useState(false);
-
 	return (
-		<div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden transition-shadow hover:shadow-sm">
-			<button
-				type="button"
-				onClick={() => setOpen(!open)}
-				className="w-full px-4 py-3.5 sm:px-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer select-none text-left"
-			>
-				{/* Left: provider info */}
-				<div className="flex items-center gap-2 min-w-0">
-					<ChevronRightIcon
-						className={`size-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
-					/>
-					<ProviderLogo
-						src={group.provider.logoUrl}
-						name={group.provider.name}
-						size={24}
-					/>
-					<div className="min-w-0">
-						<h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-							{group.provider.name}
-						</h4>
-						<span className="text-xs text-gray-500 dark:text-gray-400">
-							{group.provider.id}
-						</span>
-					</div>
-				</div>
-
-				{/* Center: sparkline + price range */}
-				<div className="hidden md:flex flex-col items-center gap-1.5">
-					{spark ? (
-						<>
-							<Sparkline data={spark} width={120} height={36} />
-							<PriceRange
-								data={spark}
-								format={(v) => `×${v.toFixed(2)}`}
-								width={140}
-							/>
-						</>
-					) : (
-						<div className="w-[140px]" />
-					)}
-				</div>
-
-				{/* Right: badges */}
-				<div className="flex items-center justify-end gap-1.5">
-					{group.bestMultiplier != null && group.bestMultiplier < 1 && (
-						<Badge variant="success">×{group.bestMultiplier.toFixed(3)}</Badge>
-					)}
-					<Badge variant="brand">
-						{group.models.length} {t("providers.models_count")}
-					</Badge>
-				</div>
-			</button>
-
-			{open && (
-				<div className="border-t border-gray-100 dark:border-white/5">
-					<PriceChart
-						dimension="provider"
-						value={group.provider.id}
-						title={t("chart.multiplier_trend")}
-						className="m-3 border-0 shadow-none"
-					/>
-					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-						<thead>
-							<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
-								<th className="py-2.5 pl-4 pr-2 sm:pl-5">
-									{t("models.model")}
-								</th>
-								<th className="px-2">In</th>
-								<th className="px-2">Out</th>
-								<th className="px-2 text-right">Input /1M</th>
-								<th className="px-2 text-right">Output /1M</th>
-								<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">Context</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-							{group.models.map((m) => (
-								<tr key={m.id}>
-									<td className="py-2.5 pl-4 pr-2 sm:pl-5 text-sm text-gray-700 dark:text-gray-300">
-										<span className="inline-flex items-center gap-1">
-											<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
-												{m.id}
-											</code>
-											<CopyButton text={m.id} />
-										</span>
-									</td>
-									<td className="px-2 py-2.5">
-										<ModalityCell modalities={m.inputModalities} />
-									</td>
-									<td className="px-2 py-2.5">
-										<ModalityCell modalities={m.outputModalities} />
-									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										<DualPrice
-											original={m.inputPrice}
-											platform={m.platformInputPrice}
-										/>
-									</td>
-									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										<DualPrice
-											original={m.outputPrice}
-											platform={m.platformOutputPrice}
-										/>
-									</td>
-									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
-										{m.contextLength > 0 ? formatContext(m.contextLength) : "—"}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
-		</div>
+		<Modal
+			open
+			onClose={onClose}
+			title={group.provider.name}
+			size="3xl"
+		>
+			<PriceChart
+				dimension="provider"
+				value={group.provider.id}
+				title={t("chart.multiplier_trend")}
+				className="border-0 shadow-none -mx-1"
+			/>
+			<table className="mt-4 min-w-full divide-y divide-gray-100 dark:divide-white/5">
+				<thead>
+					<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+						<th className="py-2 pr-2">{t("models.model")}</th>
+						<th className="px-2">In</th>
+						<th className="px-2">Out</th>
+						<th className="px-2 text-right">Input /1M</th>
+						<th className="px-2 text-right">Output /1M</th>
+						<th className="py-2 pl-2 text-right">Context</th>
+					</tr>
+				</thead>
+				<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+					{group.models.map((m) => (
+						<tr key={m.id}>
+							<td className="py-2.5 pr-2 text-sm text-gray-700 dark:text-gray-300">
+								<span className="inline-flex items-center gap-1">
+									<code className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate max-w-[240px]">
+										{m.id}
+									</code>
+									<CopyButton text={m.id} />
+								</span>
+							</td>
+							<td className="px-2 py-2.5">
+								<ModalityCell modalities={m.inputModalities} />
+							</td>
+							<td className="px-2 py-2.5">
+								<ModalityCell modalities={m.outputModalities} />
+							</td>
+							<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								<DualPrice
+									original={m.inputPrice}
+									platform={m.platformInputPrice}
+								/>
+							</td>
+							<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								<DualPrice
+									original={m.outputPrice}
+									platform={m.platformOutputPrice}
+								/>
+							</td>
+							<td className="py-2.5 pl-2 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
+								{m.contextLength > 0 ? formatContext(m.contextLength) : "—"}
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</Modal>
 	);
 }
 
@@ -218,6 +168,7 @@ export function Providers() {
 	}, [models, providersData]);
 
 	const [query, setQuery] = useState("");
+	const [selected, setSelected] = useState<ProviderGroup | null>(null);
 
 	const filtered = useMemo(() => {
 		if (!query.trim()) return groups;
@@ -275,26 +226,99 @@ export function Providers() {
 				</p>
 			) : (
 				<>
+					<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
+						<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+							<thead>
+								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+									<th className="py-2.5 pl-4 pr-2 sm:pl-5">
+										{t("models.provider")}
+									</th>
+									<th className="px-2 hidden md:table-cell">24h Chart</th>
+									<th className="px-2 hidden md:table-cell">24h Range</th>
+									<th className="px-2 text-right">Multiplier</th>
+									<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+										{t("providers.models_count")}
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+								{filtered.map((g) => {
+									const spark = providerSparks?.[g.provider.id];
+									return (
+										<tr
+											key={g.provider.id}
+											onClick={() => setSelected(g)}
+											className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+										>
+											<td className="py-2.5 pl-4 pr-2 sm:pl-5">
+												<span className="inline-flex items-center gap-2">
+													<ProviderLogo
+														src={g.provider.logoUrl}
+														name={g.provider.name}
+														size={22}
+													/>
+													<span>
+														<div className="text-sm font-semibold text-gray-900 dark:text-white">
+															{g.provider.name}
+														</div>
+														<div className="text-xs text-gray-500 dark:text-gray-400">
+															{g.provider.id}
+														</div>
+													</span>
+												</span>
+											</td>
+											<td className="px-2 py-2.5 hidden md:table-cell">
+												{spark && <Sparkline data={spark} />}
+											</td>
+											<td className="px-2 py-2.5 hidden md:table-cell">
+												{spark && (
+													<PriceRange
+														data={spark}
+														format={(v) => `×${v.toFixed(2)}`}
+													/>
+												)}
+											</td>
+											<td className="px-2 py-2.5 text-right">
+												{g.bestMultiplier != null &&
+												g.bestMultiplier < 1 ? (
+													<Badge variant="success">
+														×{g.bestMultiplier.toFixed(3)}
+													</Badge>
+												) : (
+													<span className="text-xs text-gray-400">—</span>
+												)}
+											</td>
+											<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+												<Badge variant="brand">{g.models.length}</Badge>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+
 					{query && (
 						<p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
-							{t("providers.result_count", { count: filtered.length, total: groups.length })}
+							{t("providers.result_count", {
+								count: filtered.length,
+								total: groups.length,
+							})}
 						</p>
 					)}
-					<div className={`${query ? "mt-2" : "mt-5"} grid gap-3`}>
-						{filtered.map((g) => (
-							<ProviderCard
-								key={g.provider.id}
-								group={g}
-								spark={providerSparks?.[g.provider.id]}
-							/>
-						))}
-					</div>
 					{query && filtered.length === 0 && (
 						<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 							{t("providers.no_match", { query })}
 						</p>
 					)}
 				</>
+			)}
+
+			{selected && (
+				<ProviderDetailModal
+					group={selected}
+					onClose={() => setSelected(null)}
+				/>
 			)}
 		</div>
 	);
