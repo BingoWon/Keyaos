@@ -164,11 +164,16 @@ export async function executeCompletion(
 				onStreamDone: () => {
 					c.executionCtx.waitUntil(credDao.reportSuccess(credential.id));
 				},
-				onStreamError: () => {
-					c.executionCtx.waitUntil(
-						credDao.reportFailure(credential.id, undefined, isSub),
-					);
-				},
+			onStreamError: (err) => {
+				rlog.warn("gateway", "Stream interrupted after 200", {
+					provider: provider.info.id,
+					credentialId: credential.id,
+					error: err instanceof Error ? err.message : String(err),
+				});
+				c.executionCtx.waitUntil(
+					credDao.reportFailure(credential.id, undefined, isSub),
+				);
+			},
 			});
 
 			return {

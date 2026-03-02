@@ -24,9 +24,17 @@ const app = new Hono<AppEnv>();
 
 app.onError((err, c) => {
 	if (err instanceof ApiError) {
+		const level = err.statusCode >= 500 ? "error" : "warn";
+		log[level]("api", err.message, {
+			status: err.statusCode,
+			type: err.type,
+			code: err.code,
+			path: c.req.path,
+		});
 		return c.json(err.toJSON(), err.statusCode as ContentfulStatusCode);
 	}
 	log.error("unhandled", err instanceof Error ? err.message : String(err), {
+		path: c.req.path,
 		stack: err instanceof Error ? err.stack : undefined,
 	});
 	return c.json(
