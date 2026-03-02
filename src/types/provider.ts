@@ -9,7 +9,6 @@ export interface ProviderMeta {
 	id: string;
 	name: string;
 	logoUrl: string;
-	modelCount: number;
 	supportsAutoCredits: boolean;
 	authType: "api_key" | "oauth";
 	isSubscription: boolean;

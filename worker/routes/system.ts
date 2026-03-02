@@ -29,21 +29,10 @@ systemRouter.get("/pool/stats", async (c) => {
 });
 
 systemRouter.get("/providers", edgeCache(), async (c) => {
-	const counts = new Map<string, number>();
-	try {
-		const rows = await c.env.DB.prepare(
-			"SELECT provider, COUNT(DISTINCT model_id) AS cnt FROM model_pricing GROUP BY provider",
-		).all<{ provider: string; cnt: number }>();
-		for (const r of rows.results) counts.set(r.provider, r.cnt);
-	} catch {
-		// DB not yet migrated or empty — continue with zero counts
-	}
-
 	const providers = getAllProviders().map((p) => ({
 		id: p.info.id,
 		name: p.info.name,
 		logoUrl: p.info.logoUrl,
-		modelCount: counts.get(p.info.id) ?? 0,
 		supportsAutoCredits: p.info.supportsAutoCredits,
 		authType: p.info.authType ?? "api_key",
 		isSubscription: p.info.isSubscription ?? false,

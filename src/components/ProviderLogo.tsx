@@ -54,29 +54,18 @@ export function ProviderChip({
 		? "cursor-pointer hover:border-brand-300 dark:hover:border-brand-500/30"
 		: "";
 
-	if (onClick) {
-		return (
-			<button
-				type="button"
-				onClick={onClick}
-				className={`${base} ${interactive} ${className}`}
-			>
-				<ProviderLogo src={src} name={name} size={size} />
-				<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-					{name}
-				</span>
-				{badge}
-			</button>
-		);
-	}
+	const Tag = onClick ? "button" : "span";
 
 	return (
-		<span className={`${base} ${className}`}>
+		<Tag
+			{...(onClick ? { type: "button" as const, onClick } : {})}
+			className={`${base} ${interactive} ${className}`}
+		>
 			<ProviderLogo src={src} name={name} size={size} />
 			<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
 				{name}
 			</span>
 			{badge}
-		</span>
+		</Tag>
 	);
 }

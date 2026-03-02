@@ -4,18 +4,17 @@ import type { ModelGroup } from "../utils/models";
 import { CopyButton } from "./CopyButton";
 import { Modal } from "./Modal";
 import { PriceChart } from "./PriceChart";
-import { ProviderChip } from "./ProviderLogo";
+import { ProviderLogo } from "./ProviderLogo";
 import { DualPrice } from "./ui";
 
 function ProviderCell({ id, meta }: { id: string; meta?: ProviderMeta }) {
 	return (
 		<td className="py-2.5 pr-2 text-sm text-gray-700 dark:text-gray-300">
 			<span className="inline-flex items-center gap-1.5">
-				{meta ? (
-					<ProviderChip src={meta.logoUrl} name={meta.name} size={16} />
-				) : (
-					<span>{id}</span>
+				{meta && (
+					<ProviderLogo src={meta.logoUrl} name={meta.name} size={16} />
 				)}
+				<span>{meta?.name ?? id}</span>
 				<CopyButton text={id} />
 			</span>
 		</td>

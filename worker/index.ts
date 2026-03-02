@@ -65,7 +65,9 @@ app.use("/api/*", async (c, next) => {
 	if (c.req.path.startsWith("/api/webhooks/")) return next();
 	if (
 		c.req.method === "GET" &&
-		(c.req.path === "/api/providers" || c.req.path === "/api/models")
+		(c.req.path === "/api/providers" ||
+			c.req.path === "/api/models" ||
+			c.req.path.startsWith("/api/sparklines/"))
 	)
 		return next();
 

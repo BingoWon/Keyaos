@@ -22,6 +22,7 @@ import { ModelDetailModal } from "../components/ModelDetailModal";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { Sparkline, type SparklineData } from "../components/Sparkline";
 import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
@@ -179,7 +180,7 @@ function Hero() {
 
 const LANDING_MODELS_LIMIT = 8;
 
-function MarketplaceShowcase() {
+function PlatformShowcase() {
 	const { t } = useTranslation();
 	const { isLoaded, isSignedIn } = useAuth();
 	const authed = isLoaded && isSignedIn;
@@ -190,6 +191,10 @@ function MarketplaceShowcase() {
 	const { data: models } = useFetch<ModelEntry[]>("/api/models", {
 		requireAuth: false,
 	});
+	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
+		"/api/sparklines/model:input",
+		{ requireAuth: false },
+	);
 
 	const providerGroups = useMemo(
 		() => aggregateProviders(models ?? [], providers ?? []),
@@ -229,7 +234,7 @@ function MarketplaceShowcase() {
 						<p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
 							{t("landing.models_label")}
 						</p>
-						<div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+						<div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
 							<table className="min-w-full">
 								<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
 									{modelGroups.map((g) => {
@@ -237,6 +242,7 @@ function MarketplaceShowcase() {
 										const maxCtx = Math.max(
 											...g.providers.map((p) => p.contextLength),
 										);
+										const spark = inputSparks?.[g.id];
 										return (
 											<tr
 												key={g.id}
@@ -260,6 +266,9 @@ function MarketplaceShowcase() {
 															)}
 														</div>
 													</div>
+												</td>
+												<td className="px-2 py-3 hidden md:table-cell">
+													{spark && <Sparkline data={spark} className="h-7" />}
 												</td>
 												<td className="px-2 py-3 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
 													<DualPrice
@@ -399,8 +408,8 @@ function Features() {
 		},
 		{
 			icon: UserGroupIcon,
-			title: t("landing.feat_marketplace_title"),
-			desc: t("landing.feat_marketplace_desc"),
+			title: t("landing.feat_sharing_title"),
+			desc: t("landing.feat_sharing_desc"),
 		},
 		{
 			icon: SignalIcon,
@@ -644,7 +653,7 @@ export function Landing() {
 			/>
 			<Navbar />
 			<Hero />
-			<MarketplaceShowcase />
+			<PlatformShowcase />
 			<HowItWorks />
 			<Features />
 			<CodeExample />
