@@ -183,7 +183,7 @@
 	"models": {
 		"title": "Models",
 		"subtitle": "Model pricing synced from upstream providers",
-		"model": "Model ID",
+		"model": "Model",
 		"provider": "Provider",
 		"name": "Display Name",
 		"input_price": "Input Price",

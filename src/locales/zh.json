@@ -180,7 +180,7 @@
 	"models": {
 		"title": "模型",
 		"subtitle": "从上游供应商同步的模型定价",
-		"model": "模型 ID",
+		"model": "模型",
 		"provider": "供应商",
 		"name": "显示名称",
 		"input_price": "输入定价",
