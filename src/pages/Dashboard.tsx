@@ -26,11 +26,8 @@ import {
 	formatSignedUSD,
 	formatUSD,
 } from "../utils/format";
-import { type ModelGroup, aggregateModels } from "../utils/models";
-import {
-	type ProviderGroup,
-	aggregateProviders,
-} from "../utils/providers";
+import { aggregateModels, type ModelGroup } from "../utils/models";
+import { aggregateProviders, type ProviderGroup } from "../utils/providers";
 
 const LATEST_MODELS_LIMIT = 8;
 
@@ -148,7 +145,9 @@ export function Dashboard() {
 			</h3>
 
 			{/* Stats Cards */}
-			<dl className={`grid gap-4 ${isPlatform ? "grid-cols-4" : "grid-cols-3"}`}>
+			<dl
+				className={`grid gap-4 ${isPlatform ? "grid-cols-4" : "grid-cols-3"}`}
+			>
 				{statCards.map((item) => (
 					<Link
 						key={item.name}
@@ -255,9 +254,7 @@ export function Dashboard() {
 													<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
 														{g.id}
 													</code>
-													<span onClick={(e) => e.stopPropagation()}>
-														<CopyButton text={g.id} />
-													</span>
+													<CopyButton text={g.id} />
 													{g.createdAt > 0 && (
 														<Badge variant="warning">
 															{formatRelativeTime(g.createdAt)}
@@ -305,9 +302,7 @@ export function Dashboard() {
 														) : null;
 													})}
 												</span>
-												<Badge variant="brand">
-													{g.providers.length}
-												</Badge>
+												<Badge variant="brand">{g.providers.length}</Badge>
 											</div>
 										</td>
 									</tr>

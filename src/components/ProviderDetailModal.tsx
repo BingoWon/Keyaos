@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
+import { formatContext } from "../utils/format";
+import type { ProviderGroup } from "../utils/providers";
 import { CopyButton } from "./CopyButton";
-import { ModalityCell } from "./Modalities";
 import { Modal } from "./Modal";
+import { ModalityCell } from "./Modalities";
 import { PriceChart } from "./PriceChart";
 import { DualPrice } from "./ui";
-import type { ProviderGroup } from "../utils/providers";
-import { formatContext } from "../utils/format";
 
 export function ProviderDetailModal({
 	group,
@@ -16,12 +16,7 @@ export function ProviderDetailModal({
 }) {
 	const { t } = useTranslation();
 	return (
-		<Modal
-			open
-			onClose={onClose}
-			title={group.provider.name}
-			size="4xl"
-		>
+		<Modal open onClose={onClose} title={group.provider.name} size="4xl">
 			<PriceChart
 				dimension="provider"
 				value={group.provider.id}

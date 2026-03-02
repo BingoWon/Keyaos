@@ -282,9 +282,7 @@ export class CandleDao {
 	 * Bulk sparkline data for all items in a dimension over the last 24h.
 	 * Returns close prices sampled at 30-min intervals + 24h high/low/first/last.
 	 */
-	async getSparklines(
-		dimension: CandleDimension,
-	): Promise<
+	async getSparklines(dimension: CandleDimension): Promise<
 		Record<
 			string,
 			{
@@ -402,8 +400,7 @@ export class CandleDao {
 		since: number,
 		intervalMs = INTERVAL_MS,
 	): Promise<DbPriceCandle[]> {
-		const alignedSince =
-			Math.floor(since / intervalMs) * intervalMs;
+		const alignedSince = Math.floor(since / intervalMs) * intervalMs;
 
 		const [sparseRes, seedRes] = await Promise.all([
 			this.db
@@ -429,8 +426,7 @@ export class CandleDao {
 
 		const buckets = new Map<number, DbPriceCandle[]>();
 		for (const c of sparse) {
-			const key =
-				Math.floor(c.interval_start / intervalMs) * intervalMs;
+			const key = Math.floor(c.interval_start / intervalMs) * intervalMs;
 			let list = buckets.get(key);
 			if (!list) {
 				list = [];
@@ -441,8 +437,7 @@ export class CandleDao {
 
 		const filled: DbPriceCandle[] = [];
 		const end = Math.floor(Date.now() / intervalMs) * intervalMs;
-		let lastClose =
-			seedRes?.close_price ?? sparse[0]?.open_price ?? 0;
+		let lastClose = seedRes?.close_price ?? sparse[0]?.open_price ?? 0;
 
 		for (let ts = alignedSince; ts <= end; ts += intervalMs) {
 			const group = buckets.get(ts);

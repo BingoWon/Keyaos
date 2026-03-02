@@ -1,11 +1,11 @@
+import type { ProviderMeta } from "../types/provider";
+import { formatContext } from "../utils/format";
+import type { ModelGroup } from "../utils/models";
 import { CopyButton } from "./CopyButton";
 import { Modal } from "./Modal";
 import { PriceChart } from "./PriceChart";
 import { ProviderLogo } from "./ProviderLogo";
 import { DualPrice } from "./ui";
-import type { ModelGroup } from "../utils/models";
-import type { ProviderMeta } from "../types/provider";
-import { formatContext } from "../utils/format";
 
 function ProviderCell({ id, meta }: { id: string; meta?: ProviderMeta }) {
 	return (
@@ -49,9 +49,7 @@ export function ModelDetailModal({
 						<tr
 							key={p.provider}
 							className={
-								i === 0
-									? "bg-brand-50/50 dark:bg-brand-500/[0.04]"
-									: undefined
+								i === 0 ? "bg-brand-50/50 dark:bg-brand-500/[0.04]" : undefined
 							}
 						>
 							<ProviderCell

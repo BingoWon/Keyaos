@@ -116,9 +116,7 @@ function ActivityAreaChart({
 				setHoverValue(null);
 				return;
 			}
-			const d = param.seriesData.get(series) as
-				| { value: number }
-				| undefined;
+			const d = param.seriesData.get(series) as { value: number } | undefined;
 			if (d) setHoverValue(d.value);
 		});
 

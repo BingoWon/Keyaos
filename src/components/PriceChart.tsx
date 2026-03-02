@@ -98,20 +98,22 @@ export function PriceChart({
 		[dimension],
 	);
 
-	// Reset fit flag when query parameters change
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional trigger on query param change
 	useEffect(() => {
 		hasInitialFitRef.current = false;
 	}, [hours, subDim]);
 
+	const langRef = useRef(i18n.language);
+	langRef.current = i18n.language;
+
 	const candleColors = getCandleColors(i18n.language);
 
-	// Create chart once
 	useEffect(() => {
 		if (!containerRef.current) return;
 
 		const dark = isDarkMode();
 		const colors = getThemeColors(dark);
-		const cc = getCandleColors(i18n.language);
+		const cc = getCandleColors(langRef.current);
 
 		const chart = createChart(containerRef.current, {
 			width: containerRef.current.clientWidth,
@@ -309,11 +311,7 @@ export function PriceChart({
 						{lastUpdated && formatTimestamp(lastUpdated)}
 					</span>
 					<span className="group/tip relative inline-flex">
-						<button
-							type="button"
-							onClick={refetch}
-							className={TOOL_BTN_CLASS}
-						>
+						<button type="button" onClick={refetch} className={TOOL_BTN_CLASS}>
 							<ArrowPathIcon
 								className={`size-3.5 ${loading ? "animate-spin" : ""}`}
 							/>

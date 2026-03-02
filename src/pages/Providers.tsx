@@ -17,7 +17,7 @@ import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
 import { formatTimestamp } from "../utils/format";
-import { type ProviderGroup, aggregateProviders } from "../utils/providers";
+import { aggregateProviders, type ProviderGroup } from "../utils/providers";
 
 const fmtMultiplier = (v: number) => `×${v.toFixed(2)}`;
 
@@ -30,10 +30,9 @@ export function Providers() {
 	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData, loading: providersLoading } =
 		useFetch<ProviderMeta[]>("/api/providers");
-	const {
-		data: providerSparks,
-		refetch: refetchSparks,
-	} = useFetch<Record<string, SparklineData>>("/api/sparklines/provider");
+	const { data: providerSparks, refetch: refetchSparks } = useFetch<
+		Record<string, SparklineData>
+	>("/api/sparklines/provider");
 
 	const refetch = useCallback(() => {
 		refetchModels();
@@ -143,9 +142,7 @@ export function Providers() {
 														</div>
 														<div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
 															{g.provider.id}
-															<span onClick={(e) => e.stopPropagation()}>
-																<CopyButton text={g.provider.id} />
-															</span>
+															<CopyButton text={g.provider.id} />
 														</div>
 													</span>
 												</span>
@@ -155,15 +152,11 @@ export function Providers() {
 											</td>
 											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && (
-													<PriceRange
-														data={spark}
-														format={fmtMultiplier}
-													/>
+													<PriceRange data={spark} format={fmtMultiplier} />
 												)}
 											</td>
 											<td className="px-2 py-2.5 text-right">
-												{g.bestMultiplier != null &&
-												g.bestMultiplier < 1 ? (
+												{g.bestMultiplier != null && g.bestMultiplier < 1 ? (
 													<Badge variant="success">
 														×{g.bestMultiplier.toFixed(3)}
 													</Badge>

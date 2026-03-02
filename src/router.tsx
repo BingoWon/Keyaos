@@ -8,19 +8,19 @@ import {
 import { AuthGuard, isPlatform, useAuth } from "./auth";
 import { SidebarLayout } from "./components/SidebarLayout";
 import { ApiKeys } from "./pages/ApiKeys";
-import { Byok } from "./pages/Byok";
-import { Credits } from "./pages/Credits";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { Data } from "./pages/admin/Data";
 import { Overview } from "./pages/admin/Overview";
 import { Users } from "./pages/admin/Users";
+import { Byok } from "./pages/Byok";
+import { Credits } from "./pages/Credits";
 import { Dashboard } from "./pages/Dashboard";
 import { DesignSystem } from "./pages/DesignSystem";
 import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";
 import AuthenticationMdx from "./pages/docs/authentication.mdx";
-import CreditsMdx from "./pages/docs/credits.mdx";
 import ContactMdx from "./pages/docs/contact.mdx";
 import CredentialsSharingMdx from "./pages/docs/credentials-sharing.mdx";
+import CreditsMdx from "./pages/docs/credits.mdx";
 import CreditsApiMdx from "./pages/docs/credits-api.mdx";
 import { DocsLayout } from "./pages/docs/DocsLayout";
 import ErrorCodesMdx from "./pages/docs/error-codes.mdx";
@@ -47,9 +47,7 @@ const dashboardChildren = [
 	{ path: "api-keys", element: <ApiKeys /> },
 	{ path: "byok", element: <Byok /> },
 	{ path: "logs", element: <Logs /> },
-	...(isPlatform
-		? [{ path: "credits", element: <Credits /> }]
-		: []),
+	...(isPlatform ? [{ path: "credits", element: <Credits /> }] : []),
 ];
 
 function LoginRoute() {

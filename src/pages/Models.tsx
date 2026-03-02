@@ -24,7 +24,7 @@ import {
 	formatRelativeTime,
 	formatTimestamp,
 } from "../utils/format";
-import { type ModelGroup, aggregateModels } from "../utils/models";
+import { aggregateModels, type ModelGroup } from "../utils/models";
 
 const PAGE_SIZE = 30;
 
@@ -37,10 +37,9 @@ export function Models() {
 		refetch: refetchModels,
 	} = useFetch<ModelEntry[]>("/api/models");
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
-	const {
-		data: inputSparks,
-		refetch: refetchSparks,
-	} = useFetch<Record<string, SparklineData>>("/api/sparklines/model:input");
+	const { data: inputSparks, refetch: refetchSparks } = useFetch<
+		Record<string, SparklineData>
+	>("/api/sparklines/model:input");
 
 	const refetch = useCallback(() => {
 		refetchModels();
@@ -176,9 +175,7 @@ export function Models() {
 														<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
 															{g.id}
 														</code>
-														<span onClick={(e) => e.stopPropagation()}>
-															<CopyButton text={g.id} />
-														</span>
+														<CopyButton text={g.id} />
 														{g.createdAt > 0 && (
 															<Badge variant="warning">
 																{formatRelativeTime(g.createdAt)}
@@ -198,10 +195,7 @@ export function Models() {
 											</td>
 											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && (
-													<PriceRange
-														data={spark}
-														format={formatPrice}
-													/>
+													<PriceRange data={spark} format={formatPrice} />
 												)}
 											</td>
 											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
@@ -234,9 +228,7 @@ export function Models() {
 															) : null;
 														})}
 													</span>
-													<Badge variant="brand">
-														{g.providers.length}
-													</Badge>
+													<Badge variant="brand">{g.providers.length}</Badge>
 												</div>
 											</td>
 										</tr>

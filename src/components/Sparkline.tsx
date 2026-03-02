@@ -53,6 +53,8 @@ export function Sparkline({
 			viewBox={`0 0 ${VB_W} ${VB_H}`}
 			preserveAspectRatio="none"
 			className={`h-8 w-full ${className}`}
+			role="img"
+			aria-label="24h price trend"
 		>
 			<polyline
 				points={pts}

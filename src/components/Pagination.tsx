@@ -43,10 +43,10 @@ export function Pagination({
 			>
 				<ChevronLeftIcon className="size-4" />
 			</button>
-			{pageRange(page, totalPages).map((p, i) =>
+			{pageRange(page, totalPages).map((p, idx) =>
 				p === "..." ? (
 					<span
-						key={`dots-${i}`}
+						key={`dots-${idx < 3 ? "start" : "end"}`}
 						className="inline-flex items-center justify-center size-8 text-xs text-gray-400"
 					>
 						…

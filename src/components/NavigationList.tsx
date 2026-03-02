@@ -115,61 +115,59 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			<ul className="flex flex-1 flex-col gap-y-7">
 				<li>
 					<ul className="-mx-2 space-y-1">
-					{navigation.map((item) => (
-						<li key={item.name}>
-							{item.external ? (
-								<a
-									href={item.href}
-									target="_blank"
-									rel="noopener noreferrer"
-									className={classNames(
-										"text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-										"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
-									)}
-								>
-									<item.icon
-										aria-hidden="true"
-										className="text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white size-6 shrink-0"
-									/>
-									{item.name}
-								</a>
-							) : (
-								<NavLink
-									to={item.href}
-									end={item.end}
-									onClick={onNavigate}
-									className={({ isActive }) =>
-										classNames(
-											isActive
-												? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
-												: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
+						{navigation.map((item) => (
+							<li key={item.name}>
+								{item.external ? (
+									<a
+										href={item.href}
+										target="_blank"
+										rel="noopener noreferrer"
+										className={classNames(
+											"text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
 											"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
-										)
-									}
-								>
-									{({ isActive }) => {
-										const Icon = isActive
-											? item.activeIcon
-											: item.icon;
-										return (
-											<>
-												<Icon
-													aria-hidden="true"
-													className={classNames(
-														isActive
-															? "text-brand-600 dark:text-brand-300"
-															: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
-														"size-6 shrink-0",
-													)}
-												/>
-												{item.name}
-											</>
-										);
-									}}
-								</NavLink>
-							)}
-						</li>
-					))}
+										)}
+									>
+										<item.icon
+											aria-hidden="true"
+											className="text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white size-6 shrink-0"
+										/>
+										{item.name}
+									</a>
+								) : (
+									<NavLink
+										to={item.href}
+										end={item.end}
+										onClick={onNavigate}
+										className={({ isActive }) =>
+											classNames(
+												isActive
+													? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+													: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
+												"group flex gap-x-3 rounded-lg p-2 text-sm/6 font-semibold",
+											)
+										}
+									>
+										{({ isActive }) => {
+											const Icon = isActive ? item.activeIcon : item.icon;
+											return (
+												<>
+													<Icon
+														aria-hidden="true"
+														className={classNames(
+															isActive
+																? "text-brand-600 dark:text-brand-300"
+																: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
+															"size-6 shrink-0",
+														)}
+													/>
+													{item.name}
+												</>
+											);
+										}}
+									</NavLink>
+								)}
+							</li>
+						))}
 					</ul>
 				</li>
 				<li className="-mx-6 mt-auto">

@@ -22,10 +22,7 @@ export function SearchBar({
 				e.preventDefault();
 				inputRef.current?.focus();
 			}
-			if (
-				e.key === "Escape" &&
-				document.activeElement === inputRef.current
-			) {
+			if (e.key === "Escape" && document.activeElement === inputRef.current) {
 				onChange("");
 				inputRef.current?.blur();
 			}

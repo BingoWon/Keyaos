@@ -77,7 +77,9 @@ export function Modal({
 										</button>
 									</div>
 								)}
-								<div className={`overflow-y-auto px-6 pb-6 overscroll-contain ${title ? "" : "pt-6"}`}>
+								<div
+									className={`overflow-y-auto px-6 pb-6 overscroll-contain ${title ? "" : "pt-6"}`}
+								>
 									{children}
 								</div>
 							</DialogPanel>

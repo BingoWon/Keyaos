@@ -227,12 +227,12 @@ export function DocsLayout() {
 					icon: CurrencyDollarIcon,
 					activeIcon: CurrencyDollarIconSolid,
 				},
-			{
-				name: t("docs.nav_credits"),
-				href: "/docs/credits",
-				icon: CreditCardIcon,
-				activeIcon: CreditCardIconSolid,
-			},
+				{
+					name: t("docs.nav_credits"),
+					href: "/docs/credits",
+					icon: CreditCardIcon,
+					activeIcon: CreditCardIconSolid,
+				},
 			],
 		},
 		{
@@ -256,24 +256,24 @@ export function DocsLayout() {
 					icon: FingerPrintIcon,
 					activeIcon: FingerPrintIconSolid,
 				},
-			{
-				name: t("docs.nav_models_api"),
-				href: "/docs/models-api",
-				icon: CpuChipIcon,
-				activeIcon: CpuChipIconSolid,
-			},
-			{
-				name: t("docs.nav_credits_api"),
-				href: "/docs/credits-api",
-				icon: BanknotesIcon,
-				activeIcon: BanknotesIconSolid,
-			},
-			{
-				name: t("docs.nav_error_codes"),
-				href: "/docs/error-codes",
-				icon: ExclamationTriangleIcon,
-				activeIcon: ExclamationTriangleIconSolid,
-			},
+				{
+					name: t("docs.nav_models_api"),
+					href: "/docs/models-api",
+					icon: CpuChipIcon,
+					activeIcon: CpuChipIconSolid,
+				},
+				{
+					name: t("docs.nav_credits_api"),
+					href: "/docs/credits-api",
+					icon: BanknotesIcon,
+					activeIcon: BanknotesIconSolid,
+				},
+				{
+					name: t("docs.nav_error_codes"),
+					href: "/docs/error-codes",
+					icon: ExclamationTriangleIcon,
+					activeIcon: ExclamationTriangleIconSolid,
+				},
 			],
 		},
 		{

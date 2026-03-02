@@ -147,10 +147,9 @@ export function Credits() {
 		loading: autoLoading,
 		refetch: refetchAuto,
 	} = useFetch<AutoTopUpConfig>("/api/credits/auto-topup");
-	const {
-		data: transactions,
-		loading: transactionsLoading,
-	} = useFetch<TransactionEntry[]>("/api/credits/transactions?limit=200");
+	const { data: transactions, loading: transactionsLoading } = useFetch<
+		TransactionEntry[]
+	>("/api/credits/transactions?limit=200");
 
 	const [loading, setLoading] = useState(false);
 	const [customAmount, setCustomAmount] = useState("");
@@ -439,10 +438,10 @@ export function Credits() {
 						<div className="mt-4">
 							<PageLoader />
 						</div>
-				) : !autoConfig?.hasCard ? (
-					<div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-						{t("credits.auto_topup_no_card")}
-					</div>
+					) : !autoConfig?.hasCard ? (
+						<div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+							{t("credits.auto_topup_no_card")}
+						</div>
 					) : (
 						<div className="mt-3 space-y-3">
 							<div className="flex flex-col gap-4 sm:flex-row sm:gap-0 sm:divide-x sm:divide-gray-200 sm:dark:divide-white/10">
@@ -553,13 +552,13 @@ export function Credits() {
 						formatDateTime={formatDateTime}
 					/>
 				)}
-			{tab === "transactions" && (
-				<TransactionsTable
-					entries={transactions}
-					loading={transactionsLoading}
-					formatDateTime={formatDateTime}
-				/>
-			)}
+				{tab === "transactions" && (
+					<TransactionsTable
+						entries={transactions}
+						loading={transactionsLoading}
+						formatDateTime={formatDateTime}
+					/>
+				)}
 			</div>
 		</div>
 	);
