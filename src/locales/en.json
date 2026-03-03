@@ -241,6 +241,8 @@
 		"promo_title": "💎 Zero deposit fees. Ever.",
 		"promo_desc": "We absorb all payment processing fees. Unlike the <OpenRouterLink>5.5% fee charged by OpenRouter</OpenRouterLink>, when you buy $10.00 here, you get exactly 10.00 Credits. No markup, no hidden costs.",
 		"balance": "Credits Balance",
+		"faq_what_are_credits": "What are Credits?",
+		"faq_credits_run_out": "What happens when credits run out?",
 		"buy_credits": "Buy Credits",
 		"buy_credits_desc": "One-time purchase, instant delivery.",
 		"rate": "$1 USD = $1 Credits",

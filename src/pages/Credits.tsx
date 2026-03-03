@@ -3,6 +3,7 @@ import {
 	ArrowPathIcon,
 	ArrowUpTrayIcon,
 	BanknotesIcon,
+	BookOpenIcon,
 	CreditCardIcon,
 	ExclamationTriangleIcon,
 	WrenchScrewdriverIcon,
@@ -294,17 +295,37 @@ export function Credits() {
 
 			{/* Balance Card */}
 			<div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
-				<div className="flex items-center gap-4">
-					<div className="rounded-lg bg-brand-500/10 p-3 dark:bg-brand-500/15">
-						<CreditCardIcon className="size-6 text-brand-500" />
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-4">
+						<div className="rounded-lg bg-brand-500/10 p-3 dark:bg-brand-500/15">
+							<CreditCardIcon className="size-6 text-brand-500" />
+						</div>
+						<div>
+							<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+								{t("credits.balance")}
+							</p>
+							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
+								{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
+							</p>
+						</div>
 					</div>
-					<div>
-						<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-							{t("credits.balance")}
-						</p>
-						<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-							{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
-						</p>
+					<div className="hidden sm:flex flex-col gap-1.5 text-right">
+						<a
+							href="/docs/credits#what-are-credits"
+							className="text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
+						>
+							{t("credits.faq_what_are_credits", "What are Credits?")} →
+						</a>
+						<a
+							href="/docs/credits#what-happens-when-credits-run-out"
+							className="text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
+						>
+							{t(
+								"credits.faq_credits_run_out",
+								"What happens when credits run out?",
+							)}{" "}
+							→
+						</a>
 					</div>
 				</div>
 			</div>
@@ -387,8 +408,15 @@ export function Credits() {
 								<ArrowPathIcon className="size-5 text-brand-500" />
 							</div>
 							<div>
-								<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+								<h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
 									{t("credits.auto_topup")}
+									<a
+										href="/docs/credits#auto-top-up"
+										className="text-gray-300 hover:text-brand-500 transition-colors dark:text-gray-600 dark:hover:text-brand-400"
+										title="Documentation"
+									>
+										<BookOpenIcon className="size-3.5" />
+									</a>
 								</h4>
 								<p className="text-xs text-gray-500 dark:text-gray-400">
 									{t("credits.auto_topup_desc")}

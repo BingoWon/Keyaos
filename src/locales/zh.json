@@ -238,6 +238,8 @@
 		"promo_title": "💎 充值零扣费，分文不少",
 		"promo_desc": "支付网关费用由我们全额承担。不同于 <OpenRouterLink>OpenRouter 加收的 5.5% 手续费</OpenRouterLink>，在这里充值 $10.00，您将获得完整的 10.00 额度。没有任何加价和隐藏成本。",
 		"balance": "账户余额",
+		"faq_what_are_credits": "什么是 Credits？",
+		"faq_credits_run_out": "Credits 用完会怎样？",
 		"buy_credits": "购买额度",
 		"buy_credits_desc": "一次性购买，即刻到账。",
 		"rate": "$1 USD = $1 Credits",
