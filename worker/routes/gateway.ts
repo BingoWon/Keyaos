@@ -19,7 +19,7 @@ import {
 } from "../platform/billing/settlement";
 import { WalletDao } from "../platform/billing/wallet-dao";
 import {
-	InsufficientCreditsError,
+	NoCredentialFallbackError,
 	NoKeyAvailableError,
 } from "../shared/errors";
 import { requestLogger } from "../shared/logger";
@@ -48,19 +48,25 @@ export async function executeCompletion(
 	const rlog = requestLogger(requestId, { model: req.model, consumerId });
 	const encryptionKey = c.env.ENCRYPTION_KEY;
 
+	let creditsFallback = false;
 	if (isPlatform) {
 		const balance = await new WalletDao(c.env.DB).getBalance(consumerId);
-		if (balance <= 0) throw new InsufficientCreditsError();
+		if (balance <= 0) creditsFallback = true;
 	}
 
-	const poolOwnerId = isPlatform ? undefined : consumerId;
+	const poolOwnerId = isPlatform && !creditsFallback ? undefined : consumerId;
 	const candidates = await dispatchAll(
 		c.env.DB,
 		encryptionKey,
 		req.model,
 		poolOwnerId,
 		req.providers,
-	);
+	).catch((err) => {
+		if (creditsFallback && err instanceof NoKeyAvailableError) {
+			throw new NoCredentialFallbackError(req.model);
+		}
+		throw err;
+	});
 	const credDao = new CredentialsDao(c.env.DB, encryptionKey);
 
 	rlog.info("gateway", "Dispatching", { candidates: candidates.length });

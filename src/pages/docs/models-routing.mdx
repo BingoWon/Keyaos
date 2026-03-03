@@ -22,13 +22,16 @@ Currently supported model families include:
 
 When you send a request, the dispatcher executes this pipeline:
 
-1. **Price lookup** — Query `model_pricing` for all providers that carry the requested model
-2. **Credential match** — Find all enabled, healthy credentials for each provider
-3. **Effective cost** — Calculate `base_price × price_multiplier` for each combination
-4. **Global sort** — Rank all candidates by effective cost, regardless of provider
-5. **Execute** — Try the cheapest; on failure, automatically retry the next candidate
+1. **Credits check** — If your balance is positive, the full global credential pool is available. If zero, routing narrows to your own BYOK credentials only (self-use is free)
+2. **Price lookup** — Query `model_pricing` for all providers that carry the requested model
+3. **Credential match** — Find all enabled, healthy credentials for each provider
+4. **Effective cost** — Calculate `base_price × price_multiplier` for each combination
+5. **Global sort** — Rank all candidates by effective cost, regardless of provider
+6. **Execute** — Try the cheapest; on failure, automatically retry the next candidate
 
 This means a credential with a low `price_multiplier` on an expensive provider can beat a credential on a cheap provider — the system always finds the **global minimum**.
+
+> When credits are exhausted, your own credentials still work at zero cost. The 402 error only fires when you have neither credits nor a matching credential.
 
 ## Provider Filtering
 

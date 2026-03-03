@@ -48,9 +48,11 @@ curl https://your-gateway.workers.dev/v1/models \
 
 If this returns a model list, your key is valid. If not, generate a new key from the [API Keys page](/dashboard/api-keys).
 
-### 402 — Top up your credits
+### 402 — Insufficient credits with no fallback
 
-Your credit balance is too low. Visit the [Credits page](/dashboard/credits) to add credits.
+Your credits balance is zero **and** you have no personal BYOK credential that supports the requested model. This error only appears when both conditions are true — if you have a matching credential, Keyaos automatically routes through it at zero cost.
+
+**Fix:** Either [top up your credits](/dashboard/credits) to access the global shared credential pool, or [add a credential](/dashboard/byok) for the model's provider to use your own key for free.
 
 ### 503 — No available credentials
 

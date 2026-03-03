@@ -51,18 +51,6 @@ export class WalletDao {
 			.run();
 	}
 
-	async debit(ownerId: string, amount: number): Promise<boolean> {
-		const res = await this.db
-			.prepare(
-				`UPDATE wallets SET balance = balance - ?, updated_at = ?
-				 WHERE owner_id = ? AND balance >= ?`,
-			)
-			.bind(amount, Date.now(), ownerId, amount)
-			.run();
-		return (res.meta?.changes ?? 0) > 0;
-	}
-
-	/** Admin revocation: always succeeds, caps balance at 0 */
 	async forceDebit(ownerId: string, amount: number): Promise<void> {
 		await this.db
 			.prepare(

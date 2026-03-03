@@ -47,13 +47,13 @@ export class NoKeyAvailableError extends ApiError {
 	}
 }
 
-export class InsufficientCreditsError extends ApiError {
-	constructor() {
+export class NoCredentialFallbackError extends ApiError {
+	constructor(model: string) {
 		super(
-			"Insufficient credits balance. Please top up.",
+			`Insufficient credits and no own credential available for model: ${model}. Please top up credits or add a credential for this provider.`,
 			402,
 			"billing_error",
-			"insufficient_credits",
+			"insufficient_credits_no_fallback",
 		);
 	}
 }

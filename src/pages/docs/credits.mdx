@@ -12,6 +12,20 @@ Manage your credits, payments, and auto top-up from the [Credits](/dashboard/cre
 | $10.00 USD | 10.00 Credits |
 | $100.00 USD | 100.00 Credits |
 
+## What Happens When Credits Run Out?
+
+Running out of credits **does not** mean your service stops. Keyaos automatically falls back to your own credentials:
+
+| Credits Balance | Routing Behavior | Cost |
+|----------------|-----------------|------|
+| **Positive** | Global pool — cheapest credential across all users | Self-use free; cross-user 3% fee |
+| **Zero** | Your own BYOK credentials only | **Always free** |
+| **Zero + no matching credential** | Request rejected (402) | — |
+
+This fallback ensures uninterrupted service as long as you have your own credentials configured. Self-use routing incurs **zero fees** and **zero credits**, so there is no additional cost to you.
+
+> **Tip:** Add credentials for the providers you use most on the [BYOK page](/dashboard/byok) to guarantee continuity even when your balance hits zero.
+
 ## Deposit Fees
 
 **Zero.** We absorb all payment processing fees. When you buy $10.00, you receive exactly 10.00 Credits. No markup, no hidden costs.

@@ -34,6 +34,6 @@ export async function settleWallets(
 ): Promise<void> {
 	if (settlement.consumerCharged <= 0) return;
 	const wallets = new WalletDao(db);
-	await wallets.debit(consumerId, settlement.consumerCharged);
+	await wallets.forceDebit(consumerId, settlement.consumerCharged);
 	await wallets.credit(credentialOwnerId, settlement.providerEarned);
 }
