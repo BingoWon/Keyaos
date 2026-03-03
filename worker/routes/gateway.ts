@@ -19,7 +19,7 @@ import {
 } from "../platform/billing/settlement";
 import { WalletDao } from "../platform/billing/wallet-dao";
 import {
-	NoCredentialFallbackError,
+	CreditsExhaustedNoFallbackError,
 	NoKeyAvailableError,
 } from "../shared/errors";
 import { requestLogger } from "../shared/logger";
@@ -63,7 +63,7 @@ export async function executeCompletion(
 		req.providers,
 	).catch((err) => {
 		if (creditsFallback && err instanceof NoKeyAvailableError) {
-			throw new NoCredentialFallbackError(req.model);
+			throw new CreditsExhaustedNoFallbackError(req.model);
 		}
 		throw err;
 	});

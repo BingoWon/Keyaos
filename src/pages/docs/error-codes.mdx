@@ -22,7 +22,7 @@ When a request fails, Keyaos returns a standard HTTP error response with a JSON 
 |------|---------|-------------|
 | `400` | Bad Request | Invalid JSON, missing required fields |
 | `401` | Unauthorized | Invalid or missing API key |
-| `402` | Payment Required | Insufficient credits |
+| `402` | Payment Required | Credits exhausted and no own credential available |
 | `403` | Forbidden | API key lacks permission for this resource |
 | `404` | Not Found | Invalid endpoint or model not available |
 | `429` | Rate Limited | Too many requests — retry after backoff |

@@ -129,7 +129,7 @@ export class AdminDao {
 		if (amount > 0) {
 			await this.wallet.credit(ownerId, amount);
 		} else if (amount < 0) {
-			await this.wallet.forceDebit(ownerId, -amount);
+			await this.wallet.debit(ownerId, -amount);
 		}
 	}
 

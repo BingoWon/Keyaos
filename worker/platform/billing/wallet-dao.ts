@@ -51,10 +51,10 @@ export class WalletDao {
 			.run();
 	}
 
-	async forceDebit(ownerId: string, amount: number): Promise<void> {
+	async debit(ownerId: string, amount: number): Promise<void> {
 		await this.db
 			.prepare(
-				"UPDATE wallets SET balance = MAX(0, balance - ?), updated_at = ? WHERE owner_id = ?",
+				"UPDATE wallets SET balance = balance - ?, updated_at = ? WHERE owner_id = ?",
 			)
 			.bind(amount, Date.now(), ownerId)
 			.run();

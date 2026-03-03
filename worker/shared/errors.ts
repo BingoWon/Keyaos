@@ -47,7 +47,7 @@ export class NoKeyAvailableError extends ApiError {
 	}
 }
 
-export class NoCredentialFallbackError extends ApiError {
+export class CreditsExhaustedNoFallbackError extends ApiError {
 	constructor(model: string) {
 		super(
 			`Insufficient credits and no own credential available for model: ${model}. Please top up credits or add a credential for this provider.`,
