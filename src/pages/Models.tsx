@@ -157,7 +157,7 @@ export function Models() {
 					<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
 						<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
 							<thead>
-								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
 									<th className="py-2.5 pl-4 pr-2 sm:pl-5">
 										{t("models.model")}
 									</th>
@@ -212,11 +212,17 @@ export function Models() {
 												/>
 											</td>
 											<td className="px-2 py-2.5 hidden md:table-cell">
-												{spark && <Sparkline data={spark} />}
-											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && (
-													<PriceRange data={spark} format={formatPrice} />
+													<div className="w-[clamp(80px,11vw,160px)]">
+														<Sparkline data={spark} />
+													</div>
+												)}
+											</td>
+											<td className="px-2 py-2.5 hidden md:table-cell whitespace-nowrap">
+												{spark && (
+													<div className="w-[clamp(80px,11vw,160px)]">
+														<PriceRange data={spark} format={formatPrice} />
+													</div>
 												)}
 											</td>
 											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
