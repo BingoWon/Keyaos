@@ -105,8 +105,8 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 /**
  * /api/models — Dashboard API, multi-provider comparison.
  * Returns all provider offerings with per-provider pricing.
- * Multiplier: uses real-time candle close_price when credentials exist, falls back to credential best_multiplier.
- * Providers without credentials show no multiplier (candle data around 1.0 is chart-only).
+ * Multiplier derives from candle close_price (historical record), falling back to credential best_multiplier.
+ * All display data reflects historical candle records — never real-time credential predictions.
  */
 export const dashboardModelsRouter = new Hono<AppEnv>();
 
@@ -120,10 +120,7 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 	]);
 
 	const data = all.map((m) => {
-		const mul =
-			m.best_multiplier != null
-				? (providerMuls.get(m.provider) ?? m.best_multiplier)
-				: undefined;
+		const mul = providerMuls.get(m.provider) ?? m.best_multiplier;
 		return {
 			id: m.model_id,
 			provider: m.provider,
