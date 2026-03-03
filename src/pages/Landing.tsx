@@ -21,8 +21,8 @@ import { Logo } from "../components/Logo";
 import { ModelDetailModal } from "../components/ModelDetailModal";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { ThemeToggle } from "../components/ThemeToggle";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
@@ -261,7 +261,10 @@ function PlatformShowcase() {
 															<CopyButton text={g.id} />
 															{g.createdAt > 0 && (
 																<Badge variant="warning">
-																	{formatRelativeTime(g.createdAt, i18n.language)}
+																	{formatRelativeTime(
+																		g.createdAt,
+																		i18n.language,
+																	)}
 																</Badge>
 															)}
 														</div>

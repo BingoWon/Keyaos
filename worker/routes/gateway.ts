@@ -46,6 +46,7 @@ export async function executeCompletion(
 	const isPlatform = !!c.env.CLERK_SECRET_KEY;
 	const requestId = crypto.randomUUID();
 	const rlog = requestLogger(requestId, { model: req.model, consumerId });
+	const encryptionKey = c.env.ENCRYPTION_KEY;
 
 	if (isPlatform) {
 		const balance = await new WalletDao(c.env.DB).getBalance(consumerId);
@@ -55,11 +56,12 @@ export async function executeCompletion(
 	const poolOwnerId = isPlatform ? undefined : consumerId;
 	const candidates = await dispatchAll(
 		c.env.DB,
+		encryptionKey,
 		req.model,
 		poolOwnerId,
 		req.providers,
 	);
-	const credDao = new CredentialsDao(c.env.DB);
+	const credDao = new CredentialsDao(c.env.DB, encryptionKey);
 
 	rlog.info("gateway", "Dispatching", { candidates: candidates.length });
 
@@ -76,11 +78,9 @@ export async function executeCompletion(
 		};
 
 		try {
+			const secret = await credDao.decryptSecret(credential);
 			const t0 = Date.now();
-			const response = await provider.forwardRequest(
-				credential.secret,
-				upstreamBody,
-			);
+			const response = await provider.forwardRequest(secret, upstreamBody);
 
 			if (!response.ok) {
 				await credDao.reportFailure(credential.id, response.status, isSub);
@@ -119,7 +119,7 @@ export async function executeCompletion(
 										platformFee: 0,
 									};
 
-							await recordLog(c.env.DB, {
+							await recordLog(c.env.DB, encryptionKey, {
 								consumerId,
 								credentialId: credential.id,
 								credentialOwnerId,

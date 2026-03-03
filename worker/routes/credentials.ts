@@ -7,11 +7,6 @@ import { ApiError, BadRequestError } from "../shared/errors";
 import type { AppEnv } from "../shared/types";
 import { parse } from "../shared/validate";
 
-function maskSecret(secret: string): string {
-	if (secret.length <= 12) return "•".repeat(secret.length);
-	return `${secret.slice(0, 10)}•••${secret.slice(-3)}`;
-}
-
 function toQuota(
 	amount: number,
 	currency: "USD" | "CNY",
@@ -92,9 +87,8 @@ credentialsRouter.post("/", async (c) => {
 		);
 	}
 
-	const dao = new CredentialsDao(c.env.DB);
-	const existing = await dao.findBySecret(secret);
-	if (existing) {
+	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
+	if (await dao.existsBySecretHash(secret)) {
 		throw new BadRequestError("This credential has already been added.");
 	}
 
@@ -131,7 +125,7 @@ credentialsRouter.post("/", async (c) => {
 		{
 			id: credential.id,
 			provider: credential.provider,
-			secretHint: maskSecret(credential.secret),
+			secretHint: credential.secret_hint,
 			quota: credential.quota,
 			quotaSource: credential.quota_source,
 			health: credential.health_status,
@@ -144,7 +138,7 @@ credentialsRouter.post("/", async (c) => {
 credentialsRouter.get("/", async (c) => {
 	const ownerId = c.get("owner_id");
 	const [all, earnings] = await Promise.all([
-		new CredentialsDao(c.env.DB).getAll(ownerId),
+		new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY).getAll(ownerId),
 		new LogsDao(c.env.DB).getEarningsByCredential(ownerId),
 	]);
 	return c.json({
@@ -152,7 +146,7 @@ credentialsRouter.get("/", async (c) => {
 			id: cred.id,
 			provider: cred.provider,
 			authType: cred.auth_type,
-			secretHint: maskSecret(cred.secret),
+			secretHint: cred.secret_hint,
 			quota: cred.quota,
 			quotaSource: cred.quota_source,
 			health: cred.health_status,
@@ -166,7 +160,7 @@ credentialsRouter.get("/", async (c) => {
 
 credentialsRouter.patch("/:id/quota", async (c) => {
 	const id = c.req.param("id");
-	const dao = new CredentialsDao(c.env.DB);
+	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const owner_id = c.get("owner_id");
 	const credential = await dao.get(id, owner_id);
 
@@ -213,7 +207,7 @@ credentialsRouter.patch("/:id/quota", async (c) => {
 });
 
 credentialsRouter.delete("/:id", async (c) => {
-	const dao = new CredentialsDao(c.env.DB);
+	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const success = await dao.remove(c.req.param("id"), c.get("owner_id"));
 	if (!success) {
 		throw new ApiError(
@@ -235,7 +229,7 @@ credentialsRouter.patch("/:id/settings", async (c) => {
 		}),
 	);
 
-	const dao = new CredentialsDao(c.env.DB);
+	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const credential = await dao.get(id, c.get("owner_id"));
 	if (!credential) {
 		throw new ApiError(
@@ -261,7 +255,7 @@ credentialsRouter.patch("/:id/settings", async (c) => {
 
 credentialsRouter.get("/:id/quota", async (c) => {
 	const id = c.req.param("id");
-	const dao = new CredentialsDao(c.env.DB);
+	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const credential = await dao.get(id, c.get("owner_id"));
 
 	if (!credential) {
@@ -283,8 +277,9 @@ credentialsRouter.get("/:id/quota", async (c) => {
 	if (credential.quota_source === "auto") {
 		const provider = getProvider(credential.provider);
 		if (provider) {
+			const secret = await dao.decryptSecret(credential);
 			const cnyRate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
-			const upstream = await provider.fetchCredits(credential.secret);
+			const upstream = await provider.fetchCredits(secret);
 			if (upstream?.remaining != null) {
 				const newQuota = toQuota(
 					upstream.remaining,

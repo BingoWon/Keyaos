@@ -14,6 +14,7 @@ import credentialsRouter from "./routes/credentials";
 import messagesRouter from "./routes/messages";
 import { dashboardModelsRouter, publicModelsRouter } from "./routes/models";
 import systemRouter from "./routes/system";
+import { sha256 } from "./shared/crypto";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import { log } from "./shared/logger";
 import type { AppEnv, Env } from "./shared/types";
@@ -101,7 +102,10 @@ app.use("/v1/*", async (c, next) => {
 			.trim() || c.req.header("x-api-key")?.trim();
 	if (!token) throw new AuthenticationError("Missing authorization token");
 
-	const key = await new ApiKeysDao(c.env.DB).getKey(token);
+	const keyHash = await sha256(token);
+	const key = await new ApiKeysDao(c.env.DB, c.env.ENCRYPTION_KEY).getByHash(
+		keyHash,
+	);
 	if (key?.is_enabled === 1) {
 		c.set("owner_id", key.owner_id);
 		return next();
@@ -210,7 +214,7 @@ export default {
 				candleDao.generateQuotedCandles(),
 				sweepAutoTopUp(env.DB, env.STRIPE_SECRET_KEY),
 				syncAllModels(env.DB, rate),
-				syncAutoCredits(env.DB, rate),
+				syncAutoCredits(env.DB, env.ENCRYPTION_KEY, rate),
 				candleDao.pruneOldCandles(),
 			]),
 		);

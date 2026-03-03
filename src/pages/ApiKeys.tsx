@@ -22,14 +22,9 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 interface ApiKeyInfo {
 	id: string;
 	name: string;
-	is_enabled: number;
-	created_at: number;
-}
-
-function maskKey(id: string): string {
-	const prefix = id.slice(0, 10);
-	const suffix = id.slice(-4);
-	return `${prefix}${"•".repeat(id.length - 14)}${suffix}`;
+	keyHint: string;
+	isEnabled: boolean;
+	createdAt: number;
 }
 
 export function ApiKeys() {
@@ -47,7 +42,9 @@ export function ApiKeys() {
 	const [newName, setNewName] = useState("");
 	const [createdKey, setCreatedKey] = useState<string | null>(null);
 	const [keyCopied, setKeyCopied] = useState(false);
-	const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+	const [revealedKeys, setRevealedKeys] = useState<Map<string, string>>(
+		new Map(),
+	);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editName, setEditName] = useState("");
 
@@ -67,7 +64,7 @@ export function ApiKeys() {
 			});
 			const result = await res.json();
 			if (res.ok) {
-				setCreatedKey(result.data.id);
+				setCreatedKey(result.data.plainKey);
 				setKeyCopied(false);
 				setNewName("");
 				refetch();
@@ -115,6 +112,11 @@ export function ApiKeys() {
 				headers: await getHeaders(),
 			});
 			if (res.ok) {
+				setRevealedKeys((prev) => {
+					const next = new Map(prev);
+					next.delete(id);
+					return next;
+				});
 				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
@@ -126,13 +128,50 @@ export function ApiKeys() {
 		}
 	};
 
-	const toggleReveal = (id: string) => {
-		setRevealedIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) next.delete(id);
-			else next.add(id);
-			return next;
-		});
+	const toggleReveal = async (id: string) => {
+		if (revealedKeys.has(id)) {
+			setRevealedKeys((prev) => {
+				const next = new Map(prev);
+				next.delete(id);
+				return next;
+			});
+			return;
+		}
+		try {
+			const res = await fetch(`/api/api-keys/${id}/reveal`, {
+				headers: await getHeaders(),
+			});
+			if (res.ok) {
+				const { key } = await res.json();
+				setRevealedKeys((prev) => new Map(prev).set(id, key));
+			} else {
+				toast.error(t("common.error"));
+			}
+		} catch {
+			toast.error(t("common.error"));
+		}
+	};
+
+	const copyKey = async (k: ApiKeyInfo) => {
+		let plainKey = revealedKeys.get(k.id);
+		if (!plainKey) {
+			try {
+				const res = await fetch(`/api/api-keys/${k.id}/reveal`, {
+					headers: await getHeaders(),
+				});
+				if (!res.ok) {
+					toast.error(t("common.error"));
+					return;
+				}
+				plainKey = (await res.json()).key;
+				setRevealedKeys((prev) => new Map(prev).set(k.id, plainKey as string));
+			} catch {
+				toast.error(t("common.error"));
+				return;
+			}
+		}
+		navigator.clipboard.writeText(plainKey);
+		toast.success(t("api_keys.copied"));
 	};
 
 	return (
@@ -284,7 +323,7 @@ export function ApiKeys() {
 										apiKeys.map((k) => (
 											<tr
 												key={k.id}
-												className={k.is_enabled ? "" : "opacity-50"}
+												className={k.isEnabled ? "" : "opacity-50"}
 											>
 												{/* Name (editable) */}
 												<td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-white">
@@ -332,19 +371,17 @@ export function ApiKeys() {
 														</span>
 													)}
 												</td>
-												{/* Key (masked + reveal + copy) */}
+												{/* Key (hint / revealed) */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
 													<div className="flex items-center gap-2">
-														<span>
-															{revealedIds.has(k.id) ? k.id : maskKey(k.id)}
-														</span>
+														<span>{revealedKeys.get(k.id) ?? k.keyHint}</span>
 														<button
 															type="button"
 															onClick={() => toggleReveal(k.id)}
 															className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-															title={revealedIds.has(k.id) ? "Hide" : "Reveal"}
+															title={revealedKeys.has(k.id) ? "Hide" : "Reveal"}
 														>
-															{revealedIds.has(k.id) ? (
+															{revealedKeys.has(k.id) ? (
 																<EyeSlashIcon className="size-4" />
 															) : (
 																<EyeIcon className="size-4" />
@@ -352,10 +389,7 @@ export function ApiKeys() {
 														</button>
 														<button
 															type="button"
-															onClick={() => {
-																navigator.clipboard.writeText(k.id);
-																toast.success(t("api_keys.copied"));
-															}}
+															onClick={() => copyKey(k)}
 															className="text-gray-400 hover:text-brand-500"
 															title="Copy"
 														>
@@ -365,19 +399,19 @@ export function ApiKeys() {
 												</td>
 												{/* Created */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-													{formatDateTime(k.created_at)}
+													{formatDateTime(k.createdAt)}
 												</td>
 												{/* Enabled toggle */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm">
 													<ToggleSwitch
-														enabled={!!k.is_enabled}
+														enabled={k.isEnabled}
 														onChange={(val) =>
 															handleUpdate(k.id, {
 																isEnabled: val ? 1 : 0,
 															})
 														}
 														label={t(
-															k.is_enabled
+															k.isEnabled
 																? "api_keys.enabled_true"
 																: "api_keys.enabled_false",
 														)}

@@ -1,6 +1,7 @@
 export type Env = {
 	DB: D1Database;
 	ADMIN_TOKEN: string;
+	ENCRYPTION_KEY: string;
 	CLERK_PUBLISHABLE_KEY?: string;
 	CLERK_SECRET_KEY?: string;
 	PLATFORM_OWNER_ID?: string;

@@ -30,6 +30,7 @@ export interface DispatchResult {
  */
 export async function dispatchAll(
 	db: D1Database,
+	encryptionKey: string,
 	model: string,
 	ownerId?: string,
 	providers?: string[],
@@ -37,7 +38,7 @@ export async function dispatchAll(
 	if (!model) throw new BadRequestError("Model is required");
 
 	const pricingDao = new PricingDao(db);
-	const credDao = new CredentialsDao(db);
+	const credDao = new CredentialsDao(db, encryptionKey);
 
 	const offerings = await pricingDao.findByModelId(model);
 	const candidates: DispatchResult[] = [];

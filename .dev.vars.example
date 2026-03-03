@@ -4,6 +4,8 @@
 
 # ─── Core (required) ─────────────────────────────────────
 ADMIN_TOKEN=changeme
+# Generate with: openssl rand -base64 32
+ENCRYPTION_KEY=
 
 # ─── Platform (optional — enables multi-tenancy) ─────────
 # PLATFORM_OWNER_ID=user_xxxxx

@@ -1,10 +1,14 @@
+import { decrypt, encrypt, mask, sha256 } from "../../shared/crypto";
 import type { DbCredential } from "./schema";
 
 /** Subscription-based credentials use a 5-hour cooldown before auto-recovery */
 const COOLDOWN_MS = 5 * 60 * 60 * 1000;
 
 export class CredentialsDao {
-	constructor(private db: D1Database) {}
+	constructor(
+		private db: D1Database,
+		private encryptionKey: string,
+	) {}
 
 	async add(params: {
 		owner_id: string;
@@ -18,22 +22,30 @@ export class CredentialsDao {
 		metadata?: Record<string, unknown> | null;
 	}): Promise<DbCredential> {
 		const id = `cred_${crypto.randomUUID()}`;
+		const [encryptedSecret, secretHash] = await Promise.all([
+			encrypt(params.secret, this.encryptionKey),
+			sha256(params.secret),
+		]);
+		const secretHint = mask(params.secret);
 
 		await this.db
 			.prepare(
 				`INSERT INTO upstream_credentials (
-					id, owner_id, provider, auth_type, secret,
+					id, owner_id, provider, auth_type,
+					encrypted_secret, secret_hash, secret_hint,
 					quota, quota_source,
 					is_enabled, price_multiplier,
 					health_status, metadata, added_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ok', ?, ?)`,
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ok', ?, ?)`,
 			)
 			.bind(
 				id,
 				params.owner_id,
 				params.provider,
 				params.authType ?? "api_key",
-				params.secret,
+				encryptedSecret,
+				secretHash,
+				secretHint,
 				params.quota ?? null,
 				params.quotaSource ?? null,
 				params.isEnabled ?? 1,
@@ -57,11 +69,19 @@ export class CredentialsDao {
 			.first<DbCredential>();
 	}
 
-	async findBySecret(secret: string): Promise<DbCredential | null> {
-		return this.db
-			.prepare("SELECT * FROM upstream_credentials WHERE secret = ?")
-			.bind(secret)
-			.first<DbCredential>();
+	async existsBySecretHash(plainSecret: string): Promise<boolean> {
+		const hash = await sha256(plainSecret);
+		const row = await this.db
+			.prepare(
+				"SELECT 1 FROM upstream_credentials WHERE secret_hash = ? LIMIT 1",
+			)
+			.bind(hash)
+			.first();
+		return row !== null;
+	}
+
+	async decryptSecret(cred: DbCredential): Promise<string> {
+		return decrypt(cred.encrypted_secret, this.encryptionKey);
 	}
 
 	async remove(id: string, owner_id: string): Promise<boolean> {
@@ -75,7 +95,6 @@ export class CredentialsDao {
 	/**
 	 * Select credentials available for dispatching.
 	 * Excludes: dead, disabled, and cooldown credentials still within their window.
-	 * When ownerId is omitted (platform mode), pools from ALL users' credentials.
 	 */
 	async selectAvailable(
 		provider: string,
@@ -172,12 +191,6 @@ export class CredentialsDao {
 			.run();
 	}
 
-	/**
-	 * Record an upstream failure.
-	 * - Subscription providers: first failure → cooldown (auto-recovers after 5h);
-	 *   failure after cooldown recovery → dead (needs manual intervention).
-	 * - Balance providers: 401/402/403 → dead; others → degraded.
-	 */
 	async reportFailure(
 		id: string,
 		statusCode?: number,
@@ -189,7 +202,6 @@ export class CredentialsDao {
 				.prepare("SELECT health_status FROM upstream_credentials WHERE id = ?")
 				.bind(id)
 				.first<{ health_status: string }>();
-			// First failure or currently ok → cooldown; already was cooldown → dead
 			status = cred?.health_status === "cooldown" ? "dead" : "cooldown";
 		} else {
 			status =

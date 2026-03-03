@@ -27,16 +27,53 @@ apiKeysRouter.post("/", async (c) => {
 		}),
 	);
 
-	const dao = new ApiKeysDao(c.env.DB);
-	const key = await dao.createKey(body.name, c.get("owner_id"));
+	const dao = new ApiKeysDao(c.env.DB, c.env.ENCRYPTION_KEY);
+	const { record, plainKey } = await dao.createKey(
+		body.name,
+		c.get("owner_id"),
+	);
 
-	return c.json({ data: key }, 201);
+	return c.json(
+		{
+			data: {
+				id: record.id,
+				name: record.name,
+				keyHint: record.key_hint,
+				isEnabled: record.is_enabled === 1,
+				createdAt: record.created_at,
+				plainKey,
+			},
+		},
+		201,
+	);
 });
 
 apiKeysRouter.get("/", async (c) => {
-	const dao = new ApiKeysDao(c.env.DB);
+	const dao = new ApiKeysDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const keys = await dao.listKeys(c.get("owner_id"));
-	return c.json({ data: keys });
+	return c.json({
+		data: keys.map((k) => ({
+			id: k.id,
+			name: k.name,
+			keyHint: k.key_hint,
+			isEnabled: k.is_enabled === 1,
+			createdAt: k.created_at,
+		})),
+	});
+});
+
+apiKeysRouter.get("/:id/reveal", async (c) => {
+	const dao = new ApiKeysDao(c.env.DB, c.env.ENCRYPTION_KEY);
+	const key = await dao.revealKey(c.req.param("id"), c.get("owner_id"));
+	if (!key) {
+		throw new ApiError(
+			"API Key not found",
+			404,
+			"not_found",
+			"api_key_not_found",
+		);
+	}
+	return c.json({ key });
 });
 
 apiKeysRouter.patch("/:id", async (c) => {
@@ -47,7 +84,7 @@ apiKeysRouter.patch("/:id", async (c) => {
 		}),
 	);
 
-	const dao = new ApiKeysDao(c.env.DB);
+	const dao = new ApiKeysDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const success = await dao.updateKey(c.req.param("id"), c.get("owner_id"), {
 		name: body.name,
 		is_enabled: body.isEnabled,
@@ -64,7 +101,7 @@ apiKeysRouter.patch("/:id", async (c) => {
 });
 
 apiKeysRouter.delete("/:id", async (c) => {
-	const dao = new ApiKeysDao(c.env.DB);
+	const dao = new ApiKeysDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const success = await dao.deleteKey(c.req.param("id"), c.get("owner_id"));
 	if (!success) {
 		throw new ApiError(

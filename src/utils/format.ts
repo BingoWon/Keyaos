@@ -67,7 +67,10 @@ function getRtf(locale?: string): Intl.RelativeTimeFormat {
 	const key = locale ?? "";
 	let rtf = rtfCache.get(key);
 	if (!rtf) {
-		rtf = new Intl.RelativeTimeFormat(locale, { numeric: "always", style: "narrow" });
+		rtf = new Intl.RelativeTimeFormat(locale, {
+			numeric: "always",
+			style: "narrow",
+		});
 		rtfCache.set(key, rtf);
 	}
 	return rtf;

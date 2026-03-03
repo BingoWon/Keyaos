@@ -40,6 +40,7 @@ export function calculateBaseCost(
 
 export async function recordLog(
 	db: D1Database,
+	encryptionKey: string,
 	params: BillingParams,
 ): Promise<void> {
 	const {
@@ -73,7 +74,10 @@ export async function recordLog(
 			price_multiplier: priceMultiplier,
 		});
 
-		await new CredentialsDao(db).deductQuota(credentialId, baseCost);
+		await new CredentialsDao(db, encryptionKey).deductQuota(
+			credentialId,
+			baseCost,
+		);
 	} catch (err) {
 		log.error("billing", "Log entry write failed", {
 			credentialId,

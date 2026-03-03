@@ -2,6 +2,9 @@ export interface DbApiKey {
 	id: string;
 	owner_id: string;
 	name: string;
+	key_hash: string;
+	encrypted_key: string;
+	key_hint: string;
 	is_enabled: number;
 	created_at: number;
 }
@@ -11,7 +14,9 @@ export interface DbCredential {
 	owner_id: string;
 	provider: string;
 	auth_type: string;
-	secret: string;
+	encrypted_secret: string;
+	secret_hash: string;
+	secret_hint: string;
 	quota: number | null;
 	quota_source: string | null;
 	is_enabled: number;

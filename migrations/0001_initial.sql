@@ -5,11 +5,15 @@ CREATE TABLE IF NOT EXISTS api_keys (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
     name TEXT NOT NULL,
+    key_hash TEXT NOT NULL,
+    encrypted_key TEXT NOT NULL,
+    key_hint TEXT NOT NULL,
     is_enabled INTEGER DEFAULT 1,
     created_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_api_keys_owner ON api_keys(owner_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
 
 -- 2. Upstream credentials (user-hosted provider keys and quotas)
 CREATE TABLE IF NOT EXISTS upstream_credentials (
@@ -17,7 +21,9 @@ CREATE TABLE IF NOT EXISTS upstream_credentials (
     owner_id TEXT NOT NULL,
     provider TEXT NOT NULL,
     auth_type TEXT NOT NULL DEFAULT 'api_key',
-    secret TEXT NOT NULL,
+    encrypted_secret TEXT NOT NULL,
+    secret_hash TEXT NOT NULL,
+    secret_hint TEXT NOT NULL,
     quota REAL,
     quota_source TEXT,
     is_enabled INTEGER DEFAULT 1,
@@ -29,7 +35,7 @@ CREATE TABLE IF NOT EXISTS upstream_credentials (
 );
 
 CREATE INDEX IF NOT EXISTS idx_credentials_owner ON upstream_credentials(owner_id);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_secret ON upstream_credentials(secret);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_secret_hash ON upstream_credentials(secret_hash);
 
 -- 3. Model pricing catalog (auto-synced by cron)
 CREATE TABLE IF NOT EXISTS model_pricing (

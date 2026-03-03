@@ -73,10 +73,7 @@ export function Models() {
 
 	const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 	const safePage = Math.min(page, totalPages);
-	const paged = filtered.slice(
-		(safePage - 1) * pageSize,
-		safePage * pageSize,
-	);
+	const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
 	const handleSearch = (v: string) => {
 		setQuery(v);
@@ -245,14 +242,14 @@ export function Models() {
 					</div>
 
 					<div className="mt-3 flex items-center justify-between">
-					<span className="text-xs text-gray-500 dark:text-gray-400">
-						{query
-							? t("models.result_count", {
-									count: filtered.length,
-									total: groups.length,
-								})
-							: t("models.total_count", { count: filtered.length })}
-					</span>
+						<span className="text-xs text-gray-500 dark:text-gray-400">
+							{query
+								? t("models.result_count", {
+										count: filtered.length,
+										total: groups.length,
+									})
+								: t("models.total_count", { count: filtered.length })}
+						</span>
 						<Pagination
 							page={safePage}
 							totalPages={totalPages}

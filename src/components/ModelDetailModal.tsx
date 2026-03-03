@@ -11,9 +11,7 @@ function ProviderCell({ id, meta }: { id: string; meta?: ProviderMeta }) {
 	return (
 		<td className="py-2.5 pr-2 text-sm text-gray-700 dark:text-gray-300">
 			<span className="inline-flex items-center gap-1.5">
-				{meta && (
-					<ProviderLogo src={meta.logoUrl} name={meta.name} size={16} />
-				)}
+				{meta && <ProviderLogo src={meta.logoUrl} name={meta.name} size={16} />}
 				<span>{meta?.name ?? id}</span>
 				<CopyButton text={id} />
 			</span>

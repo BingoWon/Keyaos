@@ -81,9 +81,10 @@ export async function syncAllModels(
 
 export async function syncAutoCredits(
 	db: D1Database,
+	encryptionKey: string,
 	cnyUsdRate = 7,
 ): Promise<void> {
-	const dao = new CredentialsDao(db);
+	const dao = new CredentialsDao(db, encryptionKey);
 	const autos = (await dao.getGlobal()).filter(
 		(c) => c.quota_source === "auto",
 	);
@@ -93,7 +94,8 @@ export async function syncAutoCredits(
 			const provider = getProvider(credential.provider);
 			if (!provider) return;
 
-			const credits = await provider.fetchCredits(credential.secret);
+			const secret = await dao.decryptSecret(credential);
+			const credits = await provider.fetchCredits(secret);
 			if (credits?.remaining == null) return;
 
 			const usd =

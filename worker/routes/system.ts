@@ -18,7 +18,7 @@ systemRouter.get("/me", (c) => {
 systemRouter.get("/pool/stats", async (c) => {
 	const userId = c.get("owner_id");
 	const [credStats, logStats] = await Promise.all([
-		new CredentialsDao(c.env.DB).getStats(userId),
+		new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY).getStats(userId),
 		new LogsDao(c.env.DB).get24hStats(userId),
 	]);
 	return c.json({

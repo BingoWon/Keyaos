@@ -1,28 +1,47 @@
+import { decrypt, encrypt, mask, sha256 } from "../../shared/crypto";
 import type { DbApiKey } from "./schema";
 
 export class ApiKeysDao {
-	constructor(private db: D1Database) {}
+	constructor(
+		private db: D1Database,
+		private encryptionKey: string,
+	) {}
 
-	async createKey(name: string, owner_id: string): Promise<DbApiKey> {
-		const id = `sk-keyaos-${crypto.randomUUID().replace(/-/g, "")}`;
+	/** Creates a key and returns the plaintext key (shown once, never stored). */
+	async createKey(
+		name: string,
+		owner_id: string,
+	): Promise<{ record: DbApiKey; plainKey: string }> {
+		const id = `key_${crypto.randomUUID().replace(/-/g, "")}`;
+		const plainKey = `sk-keyaos-${crypto.randomUUID().replace(/-/g, "")}`;
+
+		const [keyHash, encryptedKey] = await Promise.all([
+			sha256(plainKey),
+			encrypt(plainKey, this.encryptionKey),
+		]);
+		const keyHint = mask(plainKey, 10, 4);
 
 		await this.db
 			.prepare(
-				`INSERT INTO api_keys (id, owner_id, name, is_enabled, created_at)
-				 VALUES (?, ?, ?, 1, ?)`,
+				`INSERT INTO api_keys (id, owner_id, name, key_hash, encrypted_key, key_hint, is_enabled, created_at)
+				 VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
 			)
-			.bind(id, owner_id, name, Date.now())
+			.bind(id, owner_id, name, keyHash, encryptedKey, keyHint, Date.now())
 			.run();
 
-		const key = await this.getKey(id);
-		if (!key) throw new Error("Failed to create downstream API key");
-		return key;
-	}
-
-	async getKey(id: string): Promise<DbApiKey | null> {
-		return this.db
+		const record = await this.db
 			.prepare("SELECT * FROM api_keys WHERE id = ?")
 			.bind(id)
+			.first<DbApiKey>();
+		if (!record) throw new Error("Failed to create downstream API key");
+		return { record, plainKey };
+	}
+
+	/** Lookup a key by SHA-256 hash of the plaintext token (for auth). */
+	async getByHash(keyHash: string): Promise<DbApiKey | null> {
+		return this.db
+			.prepare("SELECT * FROM api_keys WHERE key_hash = ?")
+			.bind(keyHash)
 			.first<DbApiKey>();
 	}
 
@@ -34,6 +53,18 @@ export class ApiKeysDao {
 			.bind(owner_id)
 			.all<DbApiKey>();
 		return res.results || [];
+	}
+
+	/** Decrypt and return the full plaintext key (for reveal). */
+	async revealKey(id: string, owner_id: string): Promise<string | null> {
+		const row = await this.db
+			.prepare(
+				"SELECT encrypted_key FROM api_keys WHERE id = ? AND owner_id = ?",
+			)
+			.bind(id, owner_id)
+			.first<{ encrypted_key: string }>();
+		if (!row) return null;
+		return decrypt(row.encrypted_key, this.encryptionKey);
 	}
 
 	async updateKey(
