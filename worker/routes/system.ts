@@ -106,10 +106,7 @@ systemRouter.get("/sparklines/:dimension", edgeCache(), async (c) => {
 			: undefined;
 
 	const dao = new CandleDao(c.env.DB);
-	const data = await dao.getSparklines(
-		dimension as CandleDimension,
-		sampleMs,
-	);
+	const data = await dao.getSparklines(dimension as CandleDimension, sampleMs);
 	return c.json({ data });
 });
 

@@ -1,20 +1,19 @@
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CopyButton } from "../components/CopyButton";
 import { ProviderChip } from "../components/ProviderLogo";
+import { RefreshControl } from "../components/RefreshControl";
 import { SearchBar } from "../components/SearchBar";
 import {
 	PriceRange,
 	Sparkline,
 	type SparklineData,
 } from "../components/Sparkline";
-import { Badge, Button } from "../components/ui";
+import { Badge } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
-import { formatTimestamp } from "../utils/format";
 import { aggregateProviders, type ProviderGroup } from "../utils/providers";
 
 const ProviderDetailModal = lazy(() =>
@@ -79,17 +78,11 @@ export function Providers() {
 					</p>
 				</div>
 				<div className="mt-4 sm:mt-0 flex items-end gap-3">
-					{lastUpdated && (
-						<span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500 tabular-nums shrink-0 mb-1">
-							{t("common_updated_at", { time: formatTimestamp(lastUpdated) })}
-						</span>
-					)}
-					<Button onClick={refetch} className="shrink-0">
-						<ArrowPathIcon
-							className={`-ml-0.5 size-5 ${modelsLoading ? "animate-spin" : ""}`}
-						/>
-						{t("common_refresh")}
-					</Button>
+					<RefreshControl
+						loading={modelsLoading}
+						lastUpdated={lastUpdated}
+						onRefresh={refetch}
+					/>
 					{groups.length > 0 && (
 						<SearchBar
 							value={query}
@@ -130,12 +123,8 @@ export function Providers() {
 										{t("models.provider")}
 									</th>
 									<th className="px-2">ID</th>
-									<th className="px-2 hidden md:table-cell">
-										24h Chart
-									</th>
-									<th className="px-2 hidden md:table-cell">
-										24h Range
-									</th>
+									<th className="px-2 hidden md:table-cell">24h Chart</th>
+									<th className="px-2 hidden md:table-cell">24h Range</th>
 									<th className="px-2 text-right">Multiplier</th>
 									<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
 										{t("providers.models_count")}
