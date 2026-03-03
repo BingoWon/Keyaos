@@ -2,7 +2,7 @@ import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { lazy, Suspense, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CopyButton } from "../components/CopyButton";
-import { ProviderChip } from "../components/ProviderLogo";
+import { ProviderLogo } from "../components/ProviderLogo";
 import { SearchBar } from "../components/SearchBar";
 import {
 	PriceRange,
@@ -125,7 +125,7 @@ export function Providers() {
 					<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
 						<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
 							<thead>
-								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500">
+								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
 									<th className="py-2.5 pl-4 pr-2 sm:pl-5">
 										{t("models.provider")}
 									</th>
@@ -146,28 +146,35 @@ export function Providers() {
 											onClick={() => setSelected(g)}
 											className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
 										>
-											<td className="py-2.5 pl-4 pr-2 sm:pl-5">
-												<div className="flex items-center gap-2">
-													<ProviderChip
+											<td className="py-2.5 pl-4 pr-2 sm:pl-5 whitespace-nowrap">
+												<div className="flex items-center gap-2.5">
+													<ProviderLogo
 														src={g.provider.logoUrl}
 														name={g.provider.name}
 														size={20}
 													/>
-													<div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-														{g.provider.id}
-														<CopyButton text={g.provider.id} />
+													<div className="min-w-0">
+														<div className="text-sm font-semibold text-gray-900 dark:text-white">
+															{g.provider.name}
+														</div>
+														<div className="flex items-center gap-1 mt-0.5">
+															<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
+																{g.provider.id}
+															</code>
+															<CopyButton text={g.provider.id} />
+														</div>
 													</div>
 												</div>
 											</td>
 											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && <Sparkline data={spark} />}
 											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell">
+											<td className="px-2 py-2.5 hidden md:table-cell whitespace-nowrap">
 												{spark && (
 													<PriceRange data={spark} format={fmtMultiplier} />
 												)}
 											</td>
-											<td className="px-2 py-2.5 text-right">
+											<td className="px-2 py-2.5 text-right whitespace-nowrap">
 												{g.bestMultiplier != null && g.bestMultiplier < 1 ? (
 													<Badge variant="success">
 														×{g.bestMultiplier.toFixed(3)}
@@ -176,7 +183,7 @@ export function Providers() {
 													<span className="text-xs text-gray-400">—</span>
 												)}
 											</td>
-											<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+											<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-right whitespace-nowrap">
 												<Badge variant="brand">{g.models.length}</Badge>
 											</td>
 										</tr>
