@@ -168,14 +168,14 @@ export function Providers() {
 											</td>
 											<td className="px-2 py-2.5 hidden md:table-cell">
 												{spark && (
-													<div className="w-[250px]">
+													<div className="w-full min-w-[120px] max-w-[250px]">
 														<Sparkline data={spark} />
 													</div>
 												)}
 											</td>
 											<td className="px-2 py-2.5 hidden md:table-cell whitespace-nowrap">
 												{spark && (
-													<div className="w-[250px]">
+													<div className="w-full min-w-[120px] max-w-[250px]">
 														<PriceRange data={spark} format={fmtMultiplier} />
 													</div>
 												)}
