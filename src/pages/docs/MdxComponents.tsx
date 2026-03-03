@@ -8,7 +8,9 @@ import {
 	type ComponentPropsWithoutRef,
 	isValidElement,
 	type ReactElement,
+	useCallback,
 	useEffect,
+	useRef,
 	useState,
 } from "react";
 import { Link } from "react-router-dom";
@@ -27,27 +29,51 @@ function toSlug(children: React.ReactNode): string | undefined {
 
 /* ── Headings with anchor links ───────────────────────── */
 
+const HEADING_STYLES: Record<string, string> = {
+	h1: "text-2xl font-bold tracking-tight text-gray-900 dark:text-white mt-0 mb-6",
+	h2: "text-xl font-semibold text-gray-900 dark:text-white mt-10 mb-4 pb-2 border-b border-gray-200 dark:border-white/10",
+	h3: "text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-3",
+	h4: "text-base font-semibold text-gray-900 dark:text-white mt-6 mb-2",
+};
+
 function makeHeading(Tag: "h1" | "h2" | "h3" | "h4") {
 	return function Heading(props: ComponentPropsWithoutRef<typeof Tag>) {
 		const id = toSlug(props.children);
+		const [copied, setCopied] = useState(false);
+		const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
-		const styles: Record<string, string> = {
-			h1: "text-2xl font-bold tracking-tight text-gray-900 dark:text-white mt-0 mb-6",
-			h2: "text-xl font-semibold text-gray-900 dark:text-white mt-10 mb-4 pb-2 border-b border-gray-200 dark:border-white/10",
-			h3: "text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-3",
-			h4: "text-base font-semibold text-gray-900 dark:text-white mt-6 mb-2",
-		};
+		const handleCopy = useCallback(
+			(e: React.MouseEvent) => {
+				e.preventDefault();
+				const url = `${window.location.origin}${window.location.pathname}#${id}`;
+				navigator.clipboard.writeText(url);
+				window.history.replaceState(null, "", `#${id}`);
+				setCopied(true);
+				clearTimeout(timerRef.current);
+				timerRef.current = setTimeout(() => setCopied(false), 1500);
+			},
+			[id],
+		);
 
 		return (
-			<Tag id={id} className={`group relative ${styles[Tag]}`} {...props}>
+			<Tag
+				id={id}
+				className={`group relative scroll-mt-24 ${HEADING_STYLES[Tag]}`}
+				{...props}
+			>
 				{props.children}
 				{id && Tag !== "h1" && (
 					<a
 						href={`#${id}`}
-						className="ml-2 inline-flex opacity-0 transition-opacity group-hover:opacity-100"
-						aria-label={`Link to ${props.children}`}
+						onClick={handleCopy}
+						className="ml-2 inline-flex align-middle opacity-0 transition-opacity group-hover:opacity-100"
+						aria-label={`Copy link to ${props.children}`}
 					>
-						<LinkIcon className="size-4 text-gray-400 hover:text-brand-500 dark:text-gray-500 dark:hover:text-brand-400" />
+						{copied ? (
+							<CheckIcon className="size-5 text-green-500 dark:text-green-400" />
+						) : (
+							<LinkIcon className="size-5 text-gray-400 hover:text-brand-500 dark:text-gray-500 dark:hover:text-brand-400 transition-colors" />
+						)}
 					</a>
 				)}
 			</Tag>
@@ -61,11 +87,20 @@ export function useScrollToHash() {
 	useEffect(() => {
 		const hash = window.location.hash.slice(1);
 		if (!hash) return;
-		// Wait for MDX content to render
+
+		let frame: number;
 		const timer = setTimeout(() => {
-			document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
-		}, 100);
-		return () => clearTimeout(timer);
+			const el = document.getElementById(hash);
+			if (!el) return;
+			frame = requestAnimationFrame(() => {
+				el.scrollIntoView({ behavior: "smooth", block: "start" });
+			});
+		}, 150);
+
+		return () => {
+			clearTimeout(timer);
+			cancelAnimationFrame(frame);
+		};
 	}, []);
 }
 
