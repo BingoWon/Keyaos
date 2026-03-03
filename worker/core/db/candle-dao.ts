@@ -160,9 +160,10 @@ export class CandleDao {
 
 	/**
 	 * Generate quoted candles for models and providers without real trades.
-	 * - model:input  — MIN(input_price × price_multiplier)
-	 * - model:output — MIN(output_price × price_multiplier)
-	 * - provider     — MIN(price_multiplier)
+	 * Sources from model_pricing LEFT JOIN credentials:
+	 * - model:input  — MIN(input_price × COALESCE(multiplier, 1.0))
+	 * - model:output — MIN(output_price × COALESCE(multiplier, 1.0))
+	 * - provider     — COALESCE(MIN(multiplier), 1.0)
 	 * Uses volume=0 to distinguish from real trades. Deduplicates against previous interval.
 	 */
 	async generateQuotedCandles(): Promise<void> {
@@ -172,30 +173,41 @@ export class CandleDao {
 		const [inputQuotes, outputQuotes, providerQuotes] = await Promise.all([
 			this.db
 				.prepare(
-					`SELECT mp.model_id AS val, MIN(mp.input_price * c.price_multiplier) AS price
+					`SELECT mp.model_id AS val,
+					        MIN(mp.input_price * COALESCE(c.price_multiplier, 1.0)) AS price
 					 FROM model_pricing mp
-					 JOIN upstream_credentials c ON c.provider = mp.provider
-					 WHERE mp.is_active = 1 AND c.is_enabled = 1
-					   AND c.health_status NOT IN ('dead') AND mp.input_price > 0
+					 LEFT JOIN upstream_credentials c
+					   ON c.provider = mp.provider
+					   AND c.is_enabled = 1
+					   AND c.health_status NOT IN ('dead')
+					 WHERE mp.is_active = 1 AND mp.input_price > 0
 					 GROUP BY mp.model_id`,
 				)
 				.all<{ val: string; price: number }>(),
 			this.db
 				.prepare(
-					`SELECT mp.model_id AS val, MIN(mp.output_price * c.price_multiplier) AS price
+					`SELECT mp.model_id AS val,
+					        MIN(mp.output_price * COALESCE(c.price_multiplier, 1.0)) AS price
 					 FROM model_pricing mp
-					 JOIN upstream_credentials c ON c.provider = mp.provider
-					 WHERE mp.is_active = 1 AND c.is_enabled = 1
-					   AND c.health_status NOT IN ('dead') AND mp.output_price > 0
+					 LEFT JOIN upstream_credentials c
+					   ON c.provider = mp.provider
+					   AND c.is_enabled = 1
+					   AND c.health_status NOT IN ('dead')
+					 WHERE mp.is_active = 1 AND mp.output_price > 0
 					 GROUP BY mp.model_id`,
 				)
 				.all<{ val: string; price: number }>(),
 			this.db
 				.prepare(
-					`SELECT c.provider AS val, MIN(c.price_multiplier) AS price
-					 FROM upstream_credentials c
-					 WHERE c.is_enabled = 1 AND c.health_status NOT IN ('dead')
-					 GROUP BY c.provider`,
+					`SELECT mp.provider AS val,
+					        COALESCE(MIN(c.price_multiplier), 1.0) AS price
+					 FROM model_pricing mp
+					 LEFT JOIN upstream_credentials c
+					   ON c.provider = mp.provider
+					   AND c.is_enabled = 1
+					   AND c.health_status NOT IN ('dead')
+					 WHERE mp.is_active = 1
+					 GROUP BY mp.provider`,
 				)
 				.all<{ val: string; price: number }>(),
 		]);
