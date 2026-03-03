@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { CandleDao } from "../../core/db/candle-dao";
 import { syncAllModels, syncAutoCredits } from "../../core/sync/sync-service";
+import { decrypt, mask } from "../../shared/crypto";
 import { BadRequestError } from "../../shared/errors";
 import type { AppEnv } from "../../shared/types";
 import { AdminDao } from "../billing/admin-dao";
@@ -74,6 +75,42 @@ admin.get("/activity", async (c) => {
 	const hours = Math.min(Number(c.req.query("hours")) || 24, 168);
 	const data = await new AdminDao(c.env.DB).getActivity(hours);
 	return c.json({ data });
+});
+
+// ─── One-off maintenance ─────────────────────────────────
+
+admin.post("/remask", async (c) => {
+	const ek = c.env.ENCRYPTION_KEY;
+	const db = c.env.DB;
+	let updated = 0;
+
+	const keys = await db
+		.prepare("SELECT id, encrypted_key FROM api_keys")
+		.all<{ id: string; encrypted_key: string }>();
+	for (const row of keys.results ?? []) {
+		const plain = await decrypt(row.encrypted_key, ek);
+		const hint = mask(plain, 10, 4);
+		await db
+			.prepare("UPDATE api_keys SET key_hint = ? WHERE id = ?")
+			.bind(hint, row.id)
+			.run();
+		updated++;
+	}
+
+	const creds = await db
+		.prepare("SELECT id, encrypted_secret FROM upstream_credentials")
+		.all<{ id: string; encrypted_secret: string }>();
+	for (const row of creds.results ?? []) {
+		const plain = await decrypt(row.encrypted_secret, ek);
+		const hint = mask(plain);
+		await db
+			.prepare("UPDATE upstream_credentials SET secret_hint = ? WHERE id = ?")
+			.bind(hint, row.id)
+			.run();
+		updated++;
+	}
+
+	return c.json({ message: "Hints re-masked", updated });
 });
 
 // ─── Manual cron triggers ───────────────────────────────
