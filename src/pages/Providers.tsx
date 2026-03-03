@@ -78,9 +78,9 @@ export function Providers() {
 						{t("providers.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 sm:mt-0 flex items-center gap-3">
+				<div className="mt-4 sm:mt-0 flex items-end gap-3">
 					{lastUpdated && (
-						<span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500 tabular-nums shrink-0">
+						<span className="hidden sm:block text-xs text-gray-400 dark:text-gray-500 tabular-nums shrink-0 mb-1">
 							{t("common_updated_at", { time: formatTimestamp(lastUpdated) })}
 						</span>
 					)}
