@@ -25,11 +25,6 @@ import { isPlatform, useAuth } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { LanguageSelector } from "../components/LanguageSelector";
 import { Logo } from "../components/Logo";
-const ModelDetailModal = lazy(() =>
-	import("../components/ModelDetailModal").then((m) => ({
-		default: m.ModelDetailModal,
-	})),
-);
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
@@ -41,6 +36,12 @@ import type { ProviderMeta } from "../types/provider";
 import { formatContext, formatRelativeTime } from "../utils/format";
 import { aggregateModels, type ModelGroup } from "../utils/models";
 import { aggregateProviders } from "../utils/providers";
+
+const ModelDetailModal = lazy(() =>
+	import("../components/ModelDetailModal").then((m) => ({
+		default: m.ModelDetailModal,
+	})),
+);
 
 const GITHUB_URL = "https://github.com/BingoWon/Keyaos";
 

@@ -79,11 +79,9 @@ CREATE TABLE IF NOT EXISTS logs (
     created_at INTEGER NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_logs_consumer ON logs(consumer_id);
-CREATE INDEX IF NOT EXISTS idx_logs_credential_owner ON logs(credential_owner_id);
-CREATE INDEX IF NOT EXISTS idx_logs_created ON logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_logs_consumer_time ON logs(consumer_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_logs_credential_owner_time ON logs(credential_owner_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_created ON logs(created_at);
 
 -- 5. Pre-aggregated OHLC candle data for price trend charts
 CREATE TABLE IF NOT EXISTS price_candles (

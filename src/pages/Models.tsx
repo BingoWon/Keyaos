@@ -132,22 +132,22 @@ export function Models() {
 				</div>
 			</div>
 
-		{!raw && loading ? (
-			<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
-				<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-					{Array.from({ length: 8 }).map((_, i) => (
-						<div key={i} className="flex items-center gap-4 px-5 py-3.5">
-							<div className="flex-1 space-y-1.5">
-								<div className="h-4 w-40 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
-								<div className="h-3 w-56 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+			{!raw && loading ? (
+				<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
+					<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+						{Array.from({ length: 8 }).map((_, i) => (
+							<div key={i} className="flex items-center gap-4 px-5 py-3.5">
+								<div className="flex-1 space-y-1.5">
+									<div className="h-4 w-40 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+									<div className="h-3 w-56 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+								</div>
+								<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+								<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
 							</div>
-							<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-							<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-						</div>
-					))}
+						))}
+					</div>
 				</div>
-			</div>
-		) : groups.length === 0 ? (
+			) : groups.length === 0 ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 					{t("models.no_data")}
 				</p>
@@ -278,15 +278,15 @@ export function Models() {
 				</>
 			)}
 
-		{selected && (
-			<Suspense fallback={null}>
-				<ModelDetailModal
-					group={selected}
-					providerMap={providerMap}
-					onClose={() => setSelected(null)}
-				/>
-			</Suspense>
-		)}
+			{selected && (
+				<Suspense fallback={null}>
+					<ModelDetailModal
+						group={selected}
+						providerMap={providerMap}
+						onClose={() => setSelected(null)}
+					/>
+				</Suspense>
+			)}
 		</div>
 	);
 }

@@ -311,20 +311,20 @@ export function Overview() {
 				</div>
 			</div>
 
-		{loading ? (
-			<dl className="grid grid-cols-6 gap-4">
-				{Array.from({ length: 6 }).map((_, i) => (
-					<div
-						key={i}
-						className="rounded-xl border border-gray-200 bg-white px-4 py-5 dark:border-white/10 dark:bg-white/5 animate-pulse"
-					>
-						<div className="h-4 w-20 rounded bg-gray-200 dark:bg-white/10" />
-						<div className="mt-2 h-6 w-14 rounded bg-gray-200 dark:bg-white/10" />
-					</div>
-				))}
-			</dl>
-		) : (
-			<dl className="grid grid-cols-6 gap-4">
+			{loading ? (
+				<dl className="grid grid-cols-6 gap-4">
+					{Array.from({ length: 6 }).map((_, i) => (
+						<div
+							key={i}
+							className="rounded-xl border border-gray-200 bg-white px-4 py-5 dark:border-white/10 dark:bg-white/5 animate-pulse"
+						>
+							<div className="h-4 w-20 rounded bg-gray-200 dark:bg-white/10" />
+							<div className="mt-2 h-6 w-14 rounded bg-gray-200 dark:bg-white/10" />
+						</div>
+					))}
+				</dl>
+			) : (
+				<dl className="grid grid-cols-6 gap-4">
 					{cards.map((c) => (
 						<div
 							key={c.name}

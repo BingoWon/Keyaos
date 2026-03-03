@@ -4,13 +4,12 @@ import {
 	CreditCardIcon,
 	DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import { useMemo, useState } from "react";
+import { Suspense, lazy, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { isPlatform } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
-import { ModelDetailModal } from "../components/ModelDetailModal";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
@@ -27,6 +26,12 @@ import {
 } from "../utils/format";
 import { aggregateModels, type ModelGroup } from "../utils/models";
 import { aggregateProviders } from "../utils/providers";
+
+const ModelDetailModal = lazy(() =>
+	import("../components/ModelDetailModal").then((m) => ({
+		default: m.ModelDetailModal,
+	})),
+);
 
 const LATEST_MODELS_LIMIT = 8;
 
@@ -358,13 +363,15 @@ export function Dashboard() {
 				</div>
 			)}
 
-			{selectedModel && (
+		{selectedModel && (
+			<Suspense fallback={null}>
 				<ModelDetailModal
 					group={selectedModel}
 					providerMap={providerMap}
 					onClose={() => setSelectedModel(null)}
 				/>
-			)}
+			</Suspense>
+		)}
 		</div>
 	);
 }

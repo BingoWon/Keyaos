@@ -93,20 +93,20 @@ export function Logs() {
 				}
 			/>
 
-		{loading ? (
-			<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
-				<div className="divide-y divide-gray-200 dark:divide-white/10">
-					{Array.from({ length: 8 }).map((_, i) => (
-						<div key={i} className="flex items-center gap-4 px-6 py-4">
-							<div className="h-4 w-28 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
-							<div className="h-5 w-16 rounded-full bg-gray-100 dark:bg-white/5 animate-pulse" />
-							<div className="h-4 w-32 rounded bg-gray-100 dark:bg-white/5 animate-pulse flex-1" />
-							<div className="h-4 w-14 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-						</div>
-					))}
+			{loading ? (
+				<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+					<div className="divide-y divide-gray-200 dark:divide-white/10">
+						{Array.from({ length: 8 }).map((_, i) => (
+							<div key={i} className="flex items-center gap-4 px-6 py-4">
+								<div className="h-4 w-28 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+								<div className="h-5 w-16 rounded-full bg-gray-100 dark:bg-white/5 animate-pulse" />
+								<div className="h-4 w-32 rounded bg-gray-100 dark:bg-white/5 animate-pulse flex-1" />
+								<div className="h-4 w-14 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+							</div>
+						))}
+					</div>
 				</div>
-			</div>
-		) : !entries?.length ? (
+			) : !entries?.length ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 					{t("logs.no_data")}
 				</p>
