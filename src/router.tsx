@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import {
 	createBrowserRouter,
 	Navigate,
@@ -6,39 +6,89 @@ import {
 	useNavigate,
 } from "react-router-dom";
 import { AuthGuard, isPlatform, useAuth } from "./auth";
+import { PageLoader } from "./components/PageLoader";
 import { SidebarLayout } from "./components/SidebarLayout";
-import { ApiKeys } from "./pages/ApiKeys";
-import { AdminLayout } from "./pages/admin/AdminLayout";
-import { Data } from "./pages/admin/Data";
-import { Overview } from "./pages/admin/Overview";
-import { Users } from "./pages/admin/Users";
-import { Byok } from "./pages/Byok";
-import { Credits } from "./pages/Credits";
-import { Dashboard } from "./pages/Dashboard";
-import { DesignSystem } from "./pages/DesignSystem";
-import AnthropicApiMdx from "./pages/docs/anthropic-api.mdx";
-import AuthenticationMdx from "./pages/docs/authentication.mdx";
-import ContactMdx from "./pages/docs/contact.mdx";
-import CredentialsSharingMdx from "./pages/docs/credentials-sharing.mdx";
-import CreditsMdx from "./pages/docs/credits.mdx";
-import CreditsApiMdx from "./pages/docs/credits-api.mdx";
-import { DocsLayout } from "./pages/docs/DocsLayout";
-import ErrorCodesMdx from "./pages/docs/error-codes.mdx";
-import IntroductionMdx from "./pages/docs/introduction.mdx";
-import { MdxPage } from "./pages/docs/MdxPage";
-import ModelsApiMdx from "./pages/docs/models-api.mdx";
-import ModelsRoutingMdx from "./pages/docs/models-routing.mdx";
-import OpenaiApiMdx from "./pages/docs/openai-api.mdx";
-import PricingMdx from "./pages/docs/pricing.mdx";
-import PrivacyPolicyMdx from "./pages/docs/privacy-policy.mdx";
-import QuickstartMdx from "./pages/docs/quickstart.mdx";
-import TermsOfServiceMdx from "./pages/docs/terms-of-service.mdx";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
-import { Logs } from "./pages/Logs";
-import { Models } from "./pages/Models";
+import { MdxPage } from "./pages/docs/MdxPage";
 import { NotFound } from "./pages/NotFound";
-import { Providers } from "./pages/Providers";
+
+// ─── Lazy-loaded page components ─────────────────────────
+
+const Dashboard = lazy(() =>
+	import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })),
+);
+const Models = lazy(() =>
+	import("./pages/Models").then((m) => ({ default: m.Models })),
+);
+const Providers = lazy(() =>
+	import("./pages/Providers").then((m) => ({ default: m.Providers })),
+);
+const ApiKeys = lazy(() =>
+	import("./pages/ApiKeys").then((m) => ({ default: m.ApiKeys })),
+);
+const Byok = lazy(() =>
+	import("./pages/Byok").then((m) => ({ default: m.Byok })),
+);
+const Logs = lazy(() =>
+	import("./pages/Logs").then((m) => ({ default: m.Logs })),
+);
+const Credits = lazy(() =>
+	import("./pages/Credits").then((m) => ({ default: m.Credits })),
+);
+const DesignSystem = lazy(() =>
+	import("./pages/DesignSystem").then((m) => ({ default: m.DesignSystem })),
+);
+
+// ─── Lazy-loaded admin pages ─────────────────────────────
+
+const AdminLayout = lazy(() =>
+	import("./pages/admin/AdminLayout").then((m) => ({
+		default: m.AdminLayout,
+	})),
+);
+const Overview = lazy(() =>
+	import("./pages/admin/Overview").then((m) => ({ default: m.Overview })),
+);
+const Users = lazy(() =>
+	import("./pages/admin/Users").then((m) => ({ default: m.Users })),
+);
+const Data = lazy(() =>
+	import("./pages/admin/Data").then((m) => ({ default: m.Data })),
+);
+
+// ─── Lazy-loaded docs ────────────────────────────────────
+
+const DocsLayout = lazy(() =>
+	import("./pages/docs/DocsLayout").then((m) => ({ default: m.DocsLayout })),
+);
+const IntroductionMdx = lazy(() => import("./pages/docs/introduction.mdx"));
+const QuickstartMdx = lazy(() => import("./pages/docs/quickstart.mdx"));
+const ModelsRoutingMdx = lazy(
+	() => import("./pages/docs/models-routing.mdx"),
+);
+const CredentialsSharingMdx = lazy(
+	() => import("./pages/docs/credentials-sharing.mdx"),
+);
+const PricingMdx = lazy(() => import("./pages/docs/pricing.mdx"));
+const CreditsMdx = lazy(() => import("./pages/docs/credits.mdx"));
+const AuthenticationMdx = lazy(
+	() => import("./pages/docs/authentication.mdx"),
+);
+const OpenaiApiMdx = lazy(() => import("./pages/docs/openai-api.mdx"));
+const AnthropicApiMdx = lazy(() => import("./pages/docs/anthropic-api.mdx"));
+const ModelsApiMdx = lazy(() => import("./pages/docs/models-api.mdx"));
+const CreditsApiMdx = lazy(() => import("./pages/docs/credits-api.mdx"));
+const ErrorCodesMdx = lazy(() => import("./pages/docs/error-codes.mdx"));
+const PrivacyPolicyMdx = lazy(
+	() => import("./pages/docs/privacy-policy.mdx"),
+);
+const TermsOfServiceMdx = lazy(
+	() => import("./pages/docs/terms-of-service.mdx"),
+);
+const ContactMdx = lazy(() => import("./pages/docs/contact.mdx"));
+
+// ─── Route definitions ───────────────────────────────────
 
 const dashboardChildren = [
 	{ index: true, element: <Dashboard /> },
@@ -65,10 +115,7 @@ function LoginRoute() {
 }
 
 export const router = createBrowserRouter([
-	{
-		path: "/login/*",
-		element: <LoginRoute />,
-	},
+	{ path: "/login/*", element: <LoginRoute /> },
 	{ path: "/", element: <Landing /> },
 	{
 		path: "/dashboard",
@@ -85,7 +132,9 @@ export const router = createBrowserRouter([
 					path: "/admin",
 					element: (
 						<AuthGuard fallback={<Navigate to="/login" replace />}>
-							<AdminLayout />
+							<Suspense fallback={<PageLoader />}>
+								<AdminLayout />
+							</Suspense>
 						</AuthGuard>
 					),
 					children: [
@@ -96,10 +145,21 @@ export const router = createBrowserRouter([
 				},
 			]
 		: []),
-	{ path: "/design", element: <DesignSystem /> },
+	{
+		path: "/design",
+		element: (
+			<Suspense fallback={<PageLoader />}>
+				<DesignSystem />
+			</Suspense>
+		),
+	},
 	{
 		path: "/docs",
-		element: <DocsLayout />,
+		element: (
+			<Suspense fallback={<PageLoader />}>
+				<DocsLayout />
+			</Suspense>
+		),
 		children: [
 			{ index: true, element: <Navigate to="/docs/introduction" replace /> },
 			{
@@ -122,13 +182,16 @@ export const router = createBrowserRouter([
 				element: <MdxPage Component={AuthenticationMdx} />,
 			},
 			{ path: "openai-api", element: <MdxPage Component={OpenaiApiMdx} /> },
-			{ path: "models-api", element: <MdxPage Component={ModelsApiMdx} /> },
-			{ path: "credits-api", element: <MdxPage Component={CreditsApiMdx} /> },
 			{
 				path: "anthropic-api",
 				element: <MdxPage Component={AnthropicApiMdx} />,
 			},
-			{ path: "error-codes", element: <MdxPage Component={ErrorCodesMdx} /> },
+			{ path: "models-api", element: <MdxPage Component={ModelsApiMdx} /> },
+			{ path: "credits-api", element: <MdxPage Component={CreditsApiMdx} /> },
+			{
+				path: "error-codes",
+				element: <MdxPage Component={ErrorCodesMdx} />,
+			},
 			{
 				path: "privacy-policy",
 				element: <MdxPage Component={PrivacyPolicyMdx} />,

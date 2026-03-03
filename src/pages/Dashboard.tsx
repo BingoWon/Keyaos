@@ -11,7 +11,6 @@ import { isPlatform } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
 import { ModelDetailModal } from "../components/ModelDetailModal";
-import { PageLoader } from "../components/PageLoader";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
@@ -51,20 +50,22 @@ interface LogEntry {
 export function Dashboard() {
 	const { t, i18n } = useTranslation();
 	const formatDateTime = useFormatDateTime();
-	const { data: poolStats, loading: statsLoading } =
-		useFetch<PoolStats>("/api/pool/stats");
+	const { data: poolStats } = useFetch<PoolStats>("/api/pool/stats");
 	const { data: balance } = useFetch<{ balance: number }>(
 		"/api/credits/balance",
 		{ skip: !isPlatform },
 	);
 	const { data: rawModels, loading: modelsLoading } =
-		useFetch<ModelEntry[]>("/api/models");
-	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers");
+		useFetch<ModelEntry[]>("/api/models", { requireAuth: false });
+	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers", {
+		requireAuth: false,
+	});
 	const { data: recentLogs } = useFetch<LogEntry[]>("/api/logs?limit=5", {
 		skip: !isPlatform,
 	});
 	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
 		"/api/sparklines/model:input",
+		{ requireAuth: false },
 	);
 
 	const uniqueModelCount = useMemo(() => {
@@ -90,27 +91,12 @@ export function Dashboard() {
 
 	const [selectedModel, setSelectedModel] = useState<ModelGroup | null>(null);
 
-	const loading = statsLoading || modelsLoading;
-
-	if (loading) {
-		return (
-			<div>
-				<h3 className="text-base font-semibold text-gray-900 dark:text-white">
-					{t("dashboard.title")}
-				</h3>
-				<div className="mt-5">
-					<PageLoader />
-				</div>
-			</div>
-		);
-	}
-
 	const statCards = [
 		...(isPlatform
 			? [
 					{
 						name: t("dashboard.credits_balance"),
-						stat: balance ? formatUSD(balance.balance) : "-",
+						stat: balance ? formatUSD(balance.balance) : null,
 						icon: CreditCardIcon,
 						href: "/dashboard/credits",
 					},
@@ -118,19 +104,19 @@ export function Dashboard() {
 			: []),
 		{
 			name: t("dashboard.credits_earnings"),
-			stat: poolStats ? formatUSD(poolStats.earnings24h) : "-",
+			stat: poolStats ? formatUSD(poolStats.earnings24h) : null,
 			icon: ArrowTrendingUpIcon,
 			href: "/dashboard/logs",
 		},
 		{
 			name: t("dashboard.api_calls"),
-			stat: poolStats ? poolStats.apiCalls24h.toLocaleString() : "-",
+			stat: poolStats ? poolStats.apiCalls24h.toLocaleString() : null,
 			icon: BoltIcon,
 			href: "/dashboard/logs",
 		},
 		{
 			name: t("dashboard.healthy_credentials"),
-			stat: poolStats ? poolStats.healthyCredentials : "-",
+			stat: poolStats ? poolStats.healthyCredentials : null,
 			icon: DocumentCheckIcon,
 			href: "/dashboard/byok",
 		},
@@ -164,9 +150,13 @@ export function Dashboard() {
 							</p>
 						</dt>
 						<dd className="mt-3 ml-[3.25rem]">
-							<p className="text-2xl font-semibold text-gray-900 dark:text-white">
-								{item.stat}
-							</p>
+							{item.stat != null ? (
+								<p className="text-2xl font-semibold text-gray-900 dark:text-white">
+									{item.stat}
+								</p>
+							) : (
+								<div className="h-8 w-16 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+							)}
 						</dd>
 					</Link>
 				))}
@@ -196,7 +186,26 @@ export function Dashboard() {
 			)}
 
 			{/* Latest Models */}
-			{latestModels.length > 0 && (
+			{modelsLoading ? (
+				<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
+					<div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-white/5">
+						<div className="h-4 w-28 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+						<div className="h-3 w-16 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+					</div>
+					<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<div key={i} className="flex items-center gap-4 px-5 py-3.5">
+								<div className="flex-1 space-y-1.5">
+									<div className="h-4 w-40 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+									<div className="h-3 w-56 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+								</div>
+								<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+								<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+							</div>
+						))}
+					</div>
+				</div>
+			) : latestModels.length > 0 && (
 				<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
 					<div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-white/5">
 						<h4 className="text-sm font-semibold text-gray-900 dark:text-white">

@@ -4,17 +4,37 @@ import { useAuth } from "../auth";
 interface FetchOptions extends RequestInit {
 	requireAuth?: boolean;
 	skip?: boolean;
+	/** Cache freshness window in ms (default 30 000). Set 0 to disable caching. */
+	staleTime?: number;
+}
+
+const cache = new Map<string, { data: unknown; ts: number }>();
+
+/** Invalidate cache entries matching a URL prefix, or clear all if omitted. */
+export function invalidateCache(prefix?: string) {
+	if (!prefix) {
+		cache.clear();
+		return;
+	}
+	for (const key of cache.keys()) {
+		if (key.startsWith(prefix)) cache.delete(key);
+	}
 }
 
 export function useFetch<T>(url: string, options: FetchOptions = {}) {
-	const { requireAuth = true, skip = false, ...fetchOptions } = options;
+	const {
+		requireAuth = true,
+		skip = false,
+		staleTime = 30_000,
+		...fetchOptions
+	} = options;
 	const { getToken, signOut } = useAuth();
-
 	const optionsRef = useRef(fetchOptions);
 	optionsRef.current = fetchOptions;
 
-	const [data, setData] = useState<T | null>(null);
-	const [loading, setLoading] = useState<boolean>(true);
+	const hit = !skip ? cache.get(url) : undefined;
+	const [data, setData] = useState<T | null>(hit ? (hit.data as T) : null);
+	const [loading, setLoading] = useState(!hit);
 	const [error, setError] = useState<Error | null>(null);
 
 	const execute = useCallback(
@@ -23,41 +43,54 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 				setLoading(false);
 				return;
 			}
-			setLoading(true);
+
+			const hit = cache.get(url);
+			if (hit) {
+				setData(hit.data as T);
+				if (Date.now() - hit.ts < staleTime) {
+					setLoading(false);
+					return;
+				}
+				setLoading(false);
+			} else {
+				setLoading(true);
+			}
 			setError(null);
 
 			try {
-				const opts = optionsRef.current;
-				const headers = new Headers(opts.headers);
+				const headers = new Headers(optionsRef.current.headers);
 				if (requireAuth) {
-					const activeToken = await getToken();
-					if (activeToken) {
-						headers.set("Authorization", `Bearer ${activeToken}`);
-					}
+					const token = await getToken();
+					if (token) headers.set("Authorization", `Bearer ${token}`);
 				}
 
-				const res = await fetch(url, { ...opts, headers, signal });
+				const res = await fetch(url, {
+					...optionsRef.current,
+					headers,
+					signal,
+				});
 
 				if (res.status === 401) {
 					signOut();
 					throw new Error("Unauthorized");
 				}
-
-				if (!res.ok) {
-					throw new Error(`HTTP Error ${res.status}`);
-				}
+				if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
 
 				const json = await res.json();
-				setData(json.data !== undefined ? json.data : json);
+				const result = json.data !== undefined ? json.data : json;
+				cache.set(url, { data: result, ts: Date.now() });
+				setData(result as T);
 			} catch (err: unknown) {
 				if ((err as Error).name !== "AbortError") {
-					setError(err instanceof Error ? err : new Error("Unknown Error"));
+					setError(
+						err instanceof Error ? err : new Error("Unknown Error"),
+					);
 				}
 			} finally {
 				setLoading(false);
 			}
 		},
-		[url, getToken, requireAuth, skip, signOut],
+		[url, getToken, requireAuth, skip, signOut, staleTime],
 	);
 
 	useEffect(() => {
@@ -67,9 +100,10 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 	}, [execute]);
 
 	const refetch = useCallback(() => {
+		cache.delete(url);
 		const controller = new AbortController();
 		execute(controller.signal);
-	}, [execute]);
+	}, [execute, url]);
 
 	return { data, loading, error, refetch };
 }

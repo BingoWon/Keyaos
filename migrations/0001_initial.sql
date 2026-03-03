@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS upstream_credentials (
 
 CREATE INDEX IF NOT EXISTS idx_credentials_owner ON upstream_credentials(owner_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_secret_hash ON upstream_credentials(secret_hash);
+CREATE INDEX IF NOT EXISTS idx_credentials_provider ON upstream_credentials(provider, is_enabled, health_status);
 
 -- 3. Model pricing catalog (auto-synced by cron)
 CREATE TABLE IF NOT EXISTS model_pricing (
@@ -81,6 +82,8 @@ CREATE TABLE IF NOT EXISTS logs (
 CREATE INDEX IF NOT EXISTS idx_logs_consumer ON logs(consumer_id);
 CREATE INDEX IF NOT EXISTS idx_logs_credential_owner ON logs(credential_owner_id);
 CREATE INDEX IF NOT EXISTS idx_logs_created ON logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_consumer_time ON logs(consumer_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_credential_owner_time ON logs(credential_owner_id, created_at);
 
 -- 5. Pre-aggregated OHLC candle data for price trend charts
 CREATE TABLE IF NOT EXISTS price_candles (
@@ -95,6 +98,8 @@ CREATE TABLE IF NOT EXISTS price_candles (
     total_tokens INTEGER NOT NULL,
     PRIMARY KEY (dimension, dimension_value, interval_start)
 );
+
+CREATE INDEX IF NOT EXISTS idx_candles_dimension_time ON price_candles(dimension, interval_start);
 
 -- 6. [Platform] User wallets
 CREATE TABLE IF NOT EXISTS wallets (

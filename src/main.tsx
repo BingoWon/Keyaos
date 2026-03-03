@@ -9,8 +9,8 @@ import { router } from "./router";
 import "./styles/globals.css";
 import "./locales/i18n";
 
-loadCrisp();
-initGAFromConsent();
+setTimeout(loadCrisp);
+setTimeout(initGAFromConsent);
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Failed to find the root element");

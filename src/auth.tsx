@@ -182,6 +182,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 // ─── AuthGuard ──────────────────────────────────────────
 
+function AuthSkeleton() {
+	return (
+		<div className="min-h-screen dark:bg-gray-900">
+			<div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+				<div className="flex grow flex-col gap-y-5 border-r border-gray-200 bg-white px-6 dark:border-white/10 dark:bg-black/10">
+					<div className="flex h-16 shrink-0 items-center">
+						<div className="h-6 w-24 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+					</div>
+					<nav className="flex flex-1 flex-col gap-y-3">
+						{Array.from({ length: 6 }).map((_, i) => (
+							<div
+								key={i}
+								className="h-9 rounded-lg bg-gray-100 dark:bg-white/5 animate-pulse"
+							/>
+						))}
+					</nav>
+				</div>
+			</div>
+			<main className="py-10 lg:pl-72">
+				<div className="px-4 sm:px-6 lg:px-8">
+					<div className="h-6 w-32 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+					<div className="mt-6 grid grid-cols-3 gap-4">
+						{Array.from({ length: 3 }).map((_, i) => (
+							<div
+								key={i}
+								className="h-24 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 animate-pulse"
+							/>
+						))}
+					</div>
+				</div>
+			</main>
+		</div>
+	);
+}
+
 export function AuthGuard({
 	children,
 	fallback,
@@ -190,7 +225,7 @@ export function AuthGuard({
 	fallback: ReactNode;
 }) {
 	const { isLoaded, isSignedIn } = useAuth();
-	if (!isLoaded) return null;
+	if (!isLoaded) return <AuthSkeleton />;
 	return <>{isSignedIn ? children : fallback}</>;
 }
 

@@ -224,20 +224,28 @@ export class CredentialsDao {
 		dead: number;
 		totalQuota: number;
 	}> {
-		const all = await this.getAll(owner_id);
-		const providerSet = new Set<string>();
-		let dead = 0;
-		let totalQuota = 0;
-		for (const c of all) {
-			totalQuota += c.quota ?? 0;
-			if (c.health_status === "dead") dead++;
-			else if (c.is_enabled === 1) providerSet.add(c.provider);
-		}
+		const row = await this.db
+			.prepare(
+				`SELECT
+					COUNT(*) AS total,
+					COUNT(CASE WHEN health_status = 'dead' THEN 1 END) AS dead,
+					COUNT(DISTINCT CASE WHEN is_enabled = 1 AND health_status != 'dead' THEN provider END) AS active_providers,
+					COALESCE(SUM(quota), 0) AS total_quota
+				 FROM upstream_credentials
+				 WHERE owner_id = ?`,
+			)
+			.bind(owner_id)
+			.first<{
+				total: number;
+				dead: number;
+				active_providers: number;
+				total_quota: number;
+			}>();
 		return {
-			total: all.length,
-			activeProviders: providerSet.size,
-			dead,
-			totalQuota,
+			total: row?.total ?? 0,
+			activeProviders: row?.active_providers ?? 0,
+			dead: row?.dead ?? 0,
+			totalQuota: row?.total_quota ?? 0,
 		};
 	}
 }

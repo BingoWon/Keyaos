@@ -6,10 +6,11 @@ import {
 } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { UserMenu } from "../auth";
 import { Logo } from "./Logo";
+import { PageLoader } from "./PageLoader";
 
 interface BaseSidebarLayoutProps {
 	navigation: (onClose?: () => void) => ReactNode;
@@ -87,7 +88,9 @@ export function BaseSidebarLayout({
 
 			<main className="py-10 lg:pl-72 dark:bg-gray-900 min-h-screen">
 				<div className="px-4 sm:px-6 lg:px-8">
-					<Outlet />
+					<Suspense fallback={<PageLoader />}>
+						<Outlet />
+					</Suspense>
 				</div>
 			</main>
 		</div>

@@ -40,11 +40,13 @@ export class LogsDao {
 	async getEntriesForUser(userId: string, limit = 50): Promise<DbLogEntry[]> {
 		const res = await this.db
 			.prepare(
-				`SELECT * FROM logs
-				 WHERE consumer_id = ? OR credential_owner_id = ?
-				 ORDER BY created_at DESC LIMIT ?`,
+				`SELECT * FROM (
+					SELECT * FROM logs WHERE consumer_id = ?1 ORDER BY created_at DESC LIMIT ?2
+					UNION
+					SELECT * FROM logs WHERE credential_owner_id = ?1 ORDER BY created_at DESC LIMIT ?2
+				 ) ORDER BY created_at DESC LIMIT ?2`,
 			)
-			.bind(userId, userId, limit)
+			.bind(userId, limit)
 			.all<DbLogEntry>();
 
 		return res.results || [];
