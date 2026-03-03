@@ -95,7 +95,8 @@ Keyaos has no control over, and assumes no responsibility for, how upstream prov
 
 We implement reasonable administrative, technical, and physical safeguards designed to protect your information, including:
 
-- API credentials protected by Cloudflare's infrastructure-level security
+- All API credentials and API keys encrypted at rest using AES-256-GCM application-layer encryption
+- Cloudflare's infrastructure-level security as an additional layer of protection
 - Secure communication channels (TLS/HTTPS)
 - Access controls limiting personnel access to user data
 - Isolated runtime environments (Cloudflare Workers) for request processing
