@@ -102,6 +102,16 @@ export function Chat() {
 					}),
 				}),
 				headers: getHeaders,
+				prepareSendMessagesRequest: async (options) => ({
+					body: {
+						...options.body,
+						id: options.id,
+						messages: options.messages,
+						trigger: options.trigger,
+						messageId: options.messageId,
+						metadata: options.requestMetadata,
+					},
+				}),
 			}),
 		[getHeaders],
 	);
