@@ -86,15 +86,29 @@ threadsRouter.delete("/:id", async (c) => {
 });
 
 threadsRouter.get("/:id/messages", async (c) => {
+	const threadId = c.req.param("id");
 	const dao = new ThreadsDao(c.env.DB);
-	const messages = await dao.getMessages(c.req.param("id"));
+	const messages = await dao.getMessages(threadId);
 	return c.json({
-		messages: messages.map((m) => ({
-			id: m.id,
-			role: m.role,
-			parts: JSON.parse(m.content),
-			createdAt: new Date(m.created_at).toISOString(),
-		})),
+		messages: messages.map((m) => {
+			let parts: unknown[];
+			try {
+				parts = JSON.parse(m.content);
+			} catch {
+				log.error("threads", "Corrupt message content", {
+					threadId,
+					messageId: m.id,
+					contentPreview: m.content.slice(0, 100),
+				});
+				parts = [{ type: "text", text: "[corrupted message]" }];
+			}
+			return {
+				id: m.id,
+				role: m.role,
+				parts,
+				createdAt: new Date(m.created_at).toISOString(),
+			};
+		}),
 	});
 });
 
@@ -112,12 +126,17 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 		.join("\n");
 
 	if (!snippet) {
+		log.info("threads", "generate-title: empty snippet, skipping", {
+			threadId,
+		});
 		return c.json({ title: "New Thread" });
 	}
 
+	const titleModel = "qwen/qwen3.5-flash-02-23";
+
 	try {
 		const result = await executeCompletion(c, {
-			model: "gpt-4.1-nano",
+			model: titleModel,
 			body: {
 				messages: [
 					{
@@ -138,12 +157,21 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 		const title =
 			json.choices?.[0]?.message?.content?.trim() || "New Thread";
 
+		log.info("threads", "generate-title: success", {
+			threadId,
+			title,
+			model: titleModel,
+		});
+
 		const dao = new ThreadsDao(c.env.DB);
 		await dao.updateTitle(threadId, ownerId, title);
 		return c.json({ title });
 	} catch (err) {
-		log.warn("threads", "Title generation failed", {
+		log.error("threads", "generate-title: FAILED", {
+			threadId,
+			model: titleModel,
 			error: err instanceof Error ? err.message : String(err),
+			stack: err instanceof Error ? err.stack : undefined,
 		});
 		return c.json({ title: "New Thread" });
 	}

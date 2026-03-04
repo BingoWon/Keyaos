@@ -122,13 +122,21 @@ assistantRouter.post("/", async (c) => {
 					const payload = line.slice(6).trim();
 					if (payload === "[DONE]") continue;
 
-					try {
-						const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
-						if (delta) {
-							fullResponseText += delta;
-							writer.write({ type: "text-delta", delta, id: partId });
-						}
-					} catch {}
+				try {
+					const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
+					if (delta) {
+						fullResponseText += delta;
+						writer.write({ type: "text-delta", delta, id: partId });
+					}
+				} catch (parseErr) {
+					log.warn("assistant", "SSE chunk parse error", {
+						payload: payload.slice(0, 200),
+						error:
+							parseErr instanceof Error
+								? parseErr.message
+								: String(parseErr),
+					});
+				}
 				}
 			}
 

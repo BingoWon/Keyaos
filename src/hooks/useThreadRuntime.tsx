@@ -207,7 +207,12 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 						},
 					);
 					return buildTitleStream(res.title);
-				} catch {
+				} catch (err) {
+					console.error(
+						"[generateTitle] failed for thread",
+						remoteId,
+						err,
+					);
 					return buildTitleStream("New Thread");
 				}
 			},
