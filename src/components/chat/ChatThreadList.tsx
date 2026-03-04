@@ -1,16 +1,25 @@
 import {
 	ThreadListItemPrimitive,
 	ThreadListPrimitive,
+	useThreadListItemRuntime,
 } from "@assistant-ui/react";
 import {
-	ArchiveBoxIcon,
-	ArchiveBoxXMarkIcon,
 	ChatBubbleLeftRightIcon,
+	CheckIcon,
 	EllipsisHorizontalIcon,
+	PencilIcon,
 	PlusIcon,
 	TrashIcon,
+	XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { type FC, useState } from "react";
+import {
+	type FC,
+	type KeyboardEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 export const ChatThreadList: FC = () => {
@@ -42,6 +51,85 @@ export const ChatThreadList: FC = () => {
 
 const ThreadListItem: FC = () => {
 	const [showMenu, setShowMenu] = useState(false);
+	const [isRenaming, setIsRenaming] = useState(false);
+	const [draft, setDraft] = useState("");
+	const inputRef = useRef<HTMLInputElement>(null);
+	const runtime = useThreadListItemRuntime();
+
+	const startRename = useCallback(() => {
+		const current = runtime.getState().title ?? "";
+		setDraft(current);
+		setIsRenaming(true);
+		setShowMenu(false);
+	}, [runtime]);
+
+	const confirmRename = useCallback(() => {
+		const trimmed = draft.trim();
+		if (trimmed) {
+			runtime.rename(trimmed);
+		}
+		setIsRenaming(false);
+	}, [draft, runtime]);
+
+	const cancelRename = useCallback(() => {
+		setIsRenaming(false);
+	}, []);
+
+	const onKeyDown = useCallback(
+		(e: KeyboardEvent) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				confirmRename();
+			} else if (e.key === "Escape") {
+				cancelRename();
+			}
+		},
+		[confirmRename, cancelRename],
+	);
+
+	useEffect(() => {
+		if (isRenaming) inputRef.current?.focus();
+	}, [isRenaming]);
+
+	if (isRenaming) {
+		return (
+			<ThreadListItemPrimitive.Root className="group relative mb-0.5 flex items-center rounded-lg bg-gray-100 dark:bg-white/10">
+				<div className="flex min-w-0 flex-1 items-center gap-2 px-2.5 py-1.5">
+					<ChatBubbleLeftRightIcon className="size-4 shrink-0 opacity-50" />
+					<input
+						ref={inputRef}
+						value={draft}
+						onChange={(e) => setDraft(e.target.value)}
+						onKeyDown={onKeyDown}
+						onBlur={confirmRename}
+						className="min-w-0 flex-1 rounded bg-white px-1.5 py-0.5 text-sm text-gray-900 outline-none ring-1 ring-brand-500 dark:bg-gray-800 dark:text-white"
+					/>
+				</div>
+				<div className="flex shrink-0 items-center gap-0.5 pr-1">
+					<button
+						type="button"
+						onMouseDown={(e) => {
+							e.preventDefault();
+							confirmRename();
+						}}
+						className="flex size-5 items-center justify-center rounded text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-500/10"
+					>
+						<CheckIcon className="size-3" />
+					</button>
+					<button
+						type="button"
+						onMouseDown={(e) => {
+							e.preventDefault();
+							cancelRename();
+						}}
+						className="flex size-5 items-center justify-center rounded text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
+					>
+						<XMarkIcon className="size-3" />
+					</button>
+				</div>
+			</ThreadListItemPrimitive.Root>
+		);
+	}
 
 	return (
 		<ThreadListItemPrimitive.Root className="group relative mb-0.5 flex items-center rounded-lg transition-colors data-active:bg-brand-50 data-active:text-brand-700 dark:data-active:bg-brand-500/15 dark:data-active:text-brand-300">
@@ -66,26 +154,14 @@ const ThreadListItem: FC = () => {
 					className="absolute right-0 top-full z-30 mt-1 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-white/10 dark:bg-gray-800"
 					onMouseLeave={() => setShowMenu(false)}
 				>
-					<ThreadListItemPrimitive.Archive asChild>
-						<button
-							type="button"
-							onClick={() => setShowMenu(false)}
-							className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
-						>
-							<ArchiveBoxIcon className="size-3.5" />
-							Archive
-						</button>
-					</ThreadListItemPrimitive.Archive>
-					<ThreadListItemPrimitive.Unarchive asChild>
-						<button
-							type="button"
-							onClick={() => setShowMenu(false)}
-							className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
-						>
-							<ArchiveBoxXMarkIcon className="size-3.5" />
-							Unarchive
-						</button>
-					</ThreadListItemPrimitive.Unarchive>
+					<button
+						type="button"
+						onClick={startRename}
+						className="flex w-full items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+					>
+						<PencilIcon className="size-3.5" />
+						Rename
+					</button>
 					<ThreadListItemPrimitive.Delete asChild>
 						<button
 							type="button"
