@@ -173,40 +173,40 @@ export function Chat() {
 
 				{/* Main chat area */}
 				<div className="flex min-w-0 flex-1 flex-col">
-				<div className="flex shrink-0 items-center gap-3 border-b border-gray-200 px-3 py-2 dark:border-white/10">
-					<button
-						type="button"
-						onClick={() => setSidebarOpen((v) => !v)}
-						className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-						aria-label="Toggle sidebar"
-					>
-						{sidebarOpen ? (
-							<XMarkIcon className="size-4" />
-						) : (
-							<Bars3Icon className="size-4" />
-						)}
-					</button>
-					<div className="flex items-center gap-1">
-						<span className="text-xs font-medium text-gray-400 dark:text-gray-500">Model</span>
-						<ModelPicker
-							models={uniqueModels}
-							value={modelId}
-							onChange={handleModelIdChange}
+					<div className="flex shrink-0 items-center gap-3 border-b border-gray-200 px-3 py-2 dark:border-white/10">
+						<button
+							type="button"
+							onClick={() => setSidebarOpen((v) => !v)}
+							className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+							aria-label="Toggle sidebar"
+						>
+							{sidebarOpen ? (
+								<XMarkIcon className="size-4" />
+							) : (
+								<Bars3Icon className="size-4" />
+							)}
+						</button>
+						<div className="flex items-center gap-1">
+							<span className="text-xs font-medium text-gray-400 dark:text-gray-500">Model</span>
+							<ModelPicker
+								models={uniqueModels}
+								value={modelId}
+								onChange={handleModelIdChange}
+							/>
+						</div>
+						<div className="flex items-center gap-1">
+							<span className="text-xs font-medium text-gray-400 dark:text-gray-500">Provider</span>
+							<ProviderPicker
+								providers={availableProviders}
+								value={providerId}
+								onChange={handleProviderIdChange}
+							/>
+						</div>
+						<SystemPrompt
+							value={systemPrompt}
+							onChange={setSystemPrompt}
 						/>
 					</div>
-					<div className="flex items-center gap-1">
-						<span className="text-xs font-medium text-gray-400 dark:text-gray-500">Provider</span>
-						<ProviderPicker
-							providers={availableProviders}
-							value={providerId}
-							onChange={handleProviderIdChange}
-						/>
-					</div>
-					<SystemPrompt
-						value={systemPrompt}
-						onChange={setSystemPrompt}
-					/>
-				</div>
 					<div className="min-h-0 flex-1">
 						<ChatThread allowAttachments={allowAttachments} />
 					</div>

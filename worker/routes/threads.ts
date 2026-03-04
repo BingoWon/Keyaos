@@ -156,7 +156,7 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 	let result: Awaited<ReturnType<typeof executeCompletion>>;
 	try {
 		result = await executeCompletion(c, {
-			model_id: titleModel,
+			modelId: titleModel,
 			body: {
 				messages: [
 					{
@@ -173,7 +173,7 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 	} catch (err) {
 		log.error("threads", "generate-title: gateway FAILED", {
 			threadId,
-			model_id: titleModel,
+			modelId: titleModel,
 			error: err instanceof Error ? err.message : String(err),
 		});
 		return fallback("New Thread");
@@ -240,7 +240,7 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 			log.info("threads", "generate-title: success", {
 				threadId,
 				title,
-				model_id: titleModel,
+				modelId: titleModel,
 			});
 			try {
 				const dao = new ThreadsDao(c.env.DB);

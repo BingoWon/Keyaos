@@ -25,14 +25,14 @@ async function chat(
 ): Promise<{
 	status: number;
 	credentialId: string;
-	provider_id: string;
+	providerId: string;
 	body: string;
 }> {
 	const reqBody: Record<string, unknown> = {
 		model,
 		messages: [{ role: "user", content: "Say hi" }],
 	};
-	if (provider) reqBody.provider_id = provider;
+	if (provider) reqBody.provider = provider;
 
 	const res = await fetch(`${API_BASE}/v1/chat/completions`, {
 		method: "POST",
@@ -47,7 +47,7 @@ async function chat(
 	return {
 		status: res.status,
 		credentialId: res.headers.get("x-credential-id") ?? "",
-		provider_id: res.headers.get("x-provider") ?? "",
+		providerId: res.headers.get("x-provider") ?? "",
 		body,
 	};
 }
@@ -100,7 +100,7 @@ describe("Dispatch: cross-provider effective cost", () => {
 	test("openai/gpt-4o-mini: provider with lowest effective cost wins", async () => {
 		const result = await chat("openai/gpt-4o-mini");
 		console.log(
-			`  selected provider=${result.provider_id}, cred=${result.credentialId.slice(-8)}`,
+			`  selected provider=${result.providerId}, cred=${result.credentialId.slice(-8)}`,
 		);
 
 		assert.strictEqual(result.status, 200, `Chat failed: ${result.body}`);
@@ -128,9 +128,9 @@ describe("Dispatch: cross-provider effective cost", () => {
 		);
 
 		assert.strictEqual(
-			result.provider_id,
+			result.providerId,
 			ranked[0].provider_id,
-			`Expected ${ranked[0].provider_id} (lowest effective cost ${ranked[0].effectiveCost}) but got ${result.provider_id}`,
+			`Expected ${ranked[0].provider_id} (lowest effective cost ${ranked[0].effectiveCost}) but got ${result.providerId}`,
 		);
 	});
 });
@@ -164,10 +164,10 @@ describe("Dispatch: resilience", () => {
 	test("DeepSeek model responds successfully via dispatch", async () => {
 		const result = await chat("deepseek/deepseek-chat");
 		assert.strictEqual(result.status, 200, `Chat failed: ${result.body}`);
-		assert.ok(result.provider_id, "Missing x-provider header");
+		assert.ok(result.providerId, "Missing x-provider header");
 		assert.ok(result.credentialId, "Missing x-credential-id header");
 		console.log(
-			`  provider=${result.provider_id}, cred=${result.credentialId.slice(-8)}`,
+			`  provider=${result.providerId}, cred=${result.credentialId.slice(-8)}`,
 		);
 	});
 });

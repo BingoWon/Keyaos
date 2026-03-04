@@ -58,14 +58,14 @@ messagesRouter.post("/", async (c) => {
 
 	const openaiBody = toOpenAIRequest(rest);
 	const result = await executeCompletion(c, {
-		model_id: modelId,
+		modelId,
 		body: openaiBody,
-		provider_ids: providerIds,
+		providerIds,
 	});
 
 	const meta = {
 		"x-request-id": result.requestId,
-		"x-provider": result.provider_id,
+		"x-provider": result.providerId,
 		"x-credential-id": result.credentialId,
 	};
 

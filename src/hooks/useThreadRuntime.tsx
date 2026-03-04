@@ -338,7 +338,7 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 							},
 							body: JSON.stringify({
 								messages: condensed,
-								model: titleModel,
+								model_id: titleModel,
 							}),
 						},
 					);

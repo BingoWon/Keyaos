@@ -26,7 +26,7 @@ assistantRouter.post("/", async (c) => {
 	const threadId = body.threadId as string | undefined;
 	const providerIds = body.provider_ids as string[] | undefined;
 
-	if (!modelId) throw new BadRequestError("model is required");
+	if (!modelId) throw new BadRequestError("model_id is required");
 	if (!messages?.length) throw new BadRequestError("messages is required");
 
 	type ContentPart =
@@ -69,7 +69,7 @@ assistantRouter.post("/", async (c) => {
 	}
 
 	log.info("assistant", "Request", {
-		model_id: modelId,
+		modelId,
 		msgs: openaiMessages.length,
 		threadId,
 	});
@@ -83,21 +83,21 @@ assistantRouter.post("/", async (c) => {
 			let result: Awaited<ReturnType<typeof executeCompletion>>;
 			try {
 				result = await executeCompletion(c, {
-					model_id: modelId,
+					modelId,
 					body: { messages: openaiMessages, stream: true },
-					provider_ids: providerIds,
+					providerIds,
 				});
 			} catch (err) {
 				const msg =
 					err instanceof Error ? err.message : "Unknown gateway error";
-				log.error("assistant", "Gateway error", { error: msg, model_id: modelId });
+				log.error("assistant", "Gateway error", { error: msg, modelId });
 				writer.write({ type: "error", errorText: msg });
 				return;
 			}
 
 			const upstream = result.response;
 			log.info("assistant", "Streaming", {
-				provider_id: result.provider_id,
+				providerId: result.providerId,
 				reqId: result.requestId,
 			});
 
