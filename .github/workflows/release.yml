@@ -54,12 +54,16 @@ jobs:
             NOTES=$(git log "${LATEST}..HEAD" --pretty=format:'- %s (%h)')
           fi
 
-          npm version "${VERSION}" --no-git-tag-version
-
+          CURRENT=$(node -p "require('./package.json').version")
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json
-          git commit -m "chore(release): v${VERSION}"
+
+          if [ "$CURRENT" != "$VERSION" ]; then
+            npm version "${VERSION}" --no-git-tag-version
+            git add package.json
+            git commit -m "chore(release): v${VERSION}"
+          fi
+
           git tag "v${VERSION}"
           git push origin main --tags
 
