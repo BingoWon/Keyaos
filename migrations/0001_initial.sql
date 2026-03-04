@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS logs (
     credential_id TEXT NOT NULL,
     credential_owner_id TEXT NOT NULL,
     provider TEXT NOT NULL,
-    model TEXT NOT NULL,
+    model_id TEXT NOT NULL,
     input_tokens INTEGER NOT NULL,
     output_tokens INTEGER NOT NULL,
     base_cost REAL NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS chat_threads (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,
     title TEXT,
-    model TEXT,
+    model_id TEXT,
     status TEXT NOT NULL DEFAULT 'regular',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     thread_id TEXT NOT NULL,
     role TEXT NOT NULL,
     content TEXT NOT NULL,
-    model TEXT,
+    model_id TEXT,
     created_at INTEGER NOT NULL
 );
 

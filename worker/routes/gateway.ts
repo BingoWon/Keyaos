@@ -120,17 +120,17 @@ export async function executeCompletion(
 							const settlement = isPlatform
 								? calculateSettlement(baseCost, isSelfUse)
 								: {
-										consumerCharged: 0,
-										providerEarned: 0,
-										platformFee: 0,
-									};
+									consumerCharged: 0,
+									providerEarned: 0,
+									platformFee: 0,
+								};
 
 							await recordLog(c.env.DB, encryptionKey, {
 								consumerId,
 								credentialId: credential.id,
 								credentialOwnerId,
 								provider: credential.provider,
-								model: modelId,
+								model_id: modelId,
 								baseCost,
 								inputTokens: usage.prompt_tokens,
 								outputTokens: usage.completion_tokens,

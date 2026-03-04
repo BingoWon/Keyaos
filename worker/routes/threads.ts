@@ -16,7 +16,7 @@ threadsRouter.get("/", async (c) => {
 			remoteId: t.id,
 			status: t.status,
 			title: t.title,
-			model: t.model,
+			model: t.model_id,
 		})),
 	});
 });
@@ -31,7 +31,7 @@ threadsRouter.post("/", async (c) => {
 		id,
 		owner_id: ownerId,
 		title: null,
-		model: null,
+		model_id: null,
 		status: "regular",
 		created_at: now,
 		updated_at: now,
@@ -49,7 +49,7 @@ threadsRouter.get("/:id", async (c) => {
 		remoteId: thread.id,
 		status: thread.status,
 		title: thread.title,
-		model: thread.model,
+		model: thread.model_id,
 	});
 });
 
@@ -192,7 +192,7 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 			let buf = "";
 
 			try {
-				for (;;) {
+				for (; ;) {
 					const { done, value } = await reader.read();
 					if (done) break;
 					buf += decoder.decode(value, { stream: true });
@@ -273,7 +273,7 @@ threadsRouter.post("/:id/messages", async (c) => {
 			thread_id: threadId,
 			role: m.role,
 			content: JSON.stringify(m.parts),
-			model: m.model ?? null,
+			model_id: m.model ?? null,
 			created_at: now,
 		});
 	}

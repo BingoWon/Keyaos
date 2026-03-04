@@ -53,7 +53,7 @@ export interface DbLogEntry {
 	credential_id: string;
 	credential_owner_id: string;
 	provider: string;
-	model: string;
+	model_id: string;
 	input_tokens: number;
 	output_tokens: number;
 	base_cost: number;
@@ -80,7 +80,7 @@ export interface DbChatThread {
 	id: string;
 	owner_id: string;
 	title: string | null;
-	model: string | null;
+	model_id: string | null;
 	status: "regular" | "archived";
 	created_at: number;
 	updated_at: number;
@@ -91,6 +91,6 @@ export interface DbChatMessage {
 	thread_id: string;
 	role: string;
 	content: string;
-	model: string | null;
+	model_id: string | null;
 	created_at: number;
 }

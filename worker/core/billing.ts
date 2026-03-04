@@ -16,7 +16,7 @@ export interface BillingParams {
 	credentialId: string;
 	credentialOwnerId: string;
 	provider: string;
-	model: string;
+	model_id: string;
 	baseCost: number;
 	inputTokens: number;
 	outputTokens: number;
@@ -48,7 +48,7 @@ export async function recordLog(
 		credentialId,
 		credentialOwnerId,
 		provider,
-		model,
+		model_id,
 		baseCost,
 		inputTokens,
 		outputTokens,
@@ -64,7 +64,7 @@ export async function recordLog(
 			credential_id: credentialId,
 			credential_owner_id: credentialOwnerId,
 			provider,
-			model,
+			model_id,
 			input_tokens: inputTokens,
 			output_tokens: outputTokens,
 			base_cost: baseCost,

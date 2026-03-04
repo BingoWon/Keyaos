@@ -1,7 +1,7 @@
 import type { DbChatMessage, DbChatThread } from "./schema";
 
 export class ThreadsDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async list(
 		ownerId: string,
@@ -29,13 +29,13 @@ export class ThreadsDao {
 	async create(thread: DbChatThread): Promise<void> {
 		await this.db
 			.prepare(
-				"INSERT INTO chat_threads (id, owner_id, title, model, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+				"INSERT INTO chat_threads (id, owner_id, title, model_id, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
 			)
 			.bind(
 				thread.id,
 				thread.owner_id,
 				thread.title,
-				thread.model,
+				thread.model_id,
 				thread.status,
 				thread.created_at,
 				thread.updated_at,
@@ -59,13 +59,13 @@ export class ThreadsDao {
 	async updateModel(
 		threadId: string,
 		ownerId: string,
-		model: string,
+		model_id: string,
 	): Promise<void> {
 		await this.db
 			.prepare(
-				"UPDATE chat_threads SET model = ?, updated_at = ? WHERE id = ? AND owner_id = ?",
+				"UPDATE chat_threads SET model_id = ?, updated_at = ? WHERE id = ? AND owner_id = ?",
 			)
-			.bind(model, Date.now(), threadId, ownerId)
+			.bind(model_id, Date.now(), threadId, ownerId)
 			.run();
 	}
 
@@ -109,14 +109,14 @@ export class ThreadsDao {
 		await this.db.batch([
 			this.db
 				.prepare(
-					"INSERT INTO chat_messages (id, thread_id, role, content, model, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+					"INSERT INTO chat_messages (id, thread_id, role, content, model_id, created_at) VALUES (?, ?, ?, ?, ?, ?)",
 				)
 				.bind(
 					message.id,
 					message.thread_id,
 					message.role,
 					message.content,
-					message.model,
+					message.model_id,
 					message.created_at,
 				),
 			this.db

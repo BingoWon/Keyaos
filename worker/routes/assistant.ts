@@ -61,8 +61,8 @@ assistantRouter.post("/", async (c) => {
 			role: m.role,
 			content: textOnly
 				? (parts as { type: "text"; text: string }[])
-						.map((cp) => cp.text)
-						.join("")
+					.map((cp) => cp.text)
+					.join("")
 				: parts,
 		});
 	}
@@ -110,7 +110,7 @@ assistantRouter.post("/", async (c) => {
 			const decoder = new TextDecoder();
 			let buf = "";
 
-			for (;;) {
+			for (; ;) {
 				const { done, value } = await reader.read();
 				if (done) break;
 
@@ -123,21 +123,21 @@ assistantRouter.post("/", async (c) => {
 					const payload = line.slice(6).trim();
 					if (payload === "[DONE]") continue;
 
-				try {
-					const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
-					if (delta) {
-						fullResponseText += delta;
-						writer.write({ type: "text-delta", delta, id: partId });
+					try {
+						const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
+						if (delta) {
+							fullResponseText += delta;
+							writer.write({ type: "text-delta", delta, id: partId });
+						}
+					} catch (parseErr) {
+						log.warn("assistant", "SSE chunk parse error", {
+							payload: payload.slice(0, 200),
+							error:
+								parseErr instanceof Error
+									? parseErr.message
+									: String(parseErr),
+						});
 					}
-				} catch (parseErr) {
-					log.warn("assistant", "SSE chunk parse error", {
-						payload: payload.slice(0, 200),
-						error:
-							parseErr instanceof Error
-								? parseErr.message
-								: String(parseErr),
-					});
-				}
 				}
 			}
 
@@ -157,7 +157,7 @@ assistantRouter.post("/", async (c) => {
 									thread_id: threadId,
 									role: "user",
 									content: JSON.stringify(lastUserMsg.parts ?? []),
-									model: null,
+									model_id: null,
 									created_at: Date.now(),
 								});
 							}
@@ -168,7 +168,7 @@ assistantRouter.post("/", async (c) => {
 								content: JSON.stringify([
 									{ type: "text", text: fullResponseText },
 								]),
-								model: modelId,
+								model_id: modelId,
 								created_at: Date.now(),
 							});
 							await dao.updateModel(threadId, ownerId, modelId!);

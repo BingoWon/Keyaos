@@ -69,7 +69,7 @@ systemRouter.get("/logs", async (c) => {
 				id: tx.id,
 				direction,
 				provider: tx.provider,
-				model: tx.model,
+				model: tx.model_id,
 				inputTokens: tx.input_tokens,
 				outputTokens: tx.output_tokens,
 				netCredits,
