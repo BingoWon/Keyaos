@@ -334,7 +334,12 @@
 		"system_prompt": "System Prompt",
 		"system_prompt_placeholder": "Custom instructions for the assistant…",
 		"label_model": "Model",
-		"label_provider": "Provider"
+		"label_provider": "Provider",
+		"time_today": "Today",
+		"time_yesterday": "Yesterday",
+		"time_last_7_days": "Last 7 Days",
+		"time_last_30_days": "Last 30 Days",
+		"time_older": "Older"
 	},
 	"landing": {
 		"hero_tagline": "Order in Chaos",

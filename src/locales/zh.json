@@ -331,7 +331,12 @@
 		"system_prompt": "系统提示词",
 		"system_prompt_placeholder": "为助手设置自定义指令…",
 		"label_model": "模型",
-		"label_provider": "服务商"
+		"label_provider": "服务商",
+		"time_today": "今天",
+		"time_yesterday": "昨天",
+		"time_last_7_days": "过去 7 天",
+		"time_last_30_days": "过去 30 天",
+		"time_older": "更早"
 	},
 	"landing": {
 		"hero_tagline": "万钥归一",

@@ -1,6 +1,7 @@
 import {
 	ThreadListItemPrimitive,
 	ThreadListPrimitive,
+	useThreadList,
 	useThreadListItemRuntime,
 } from "@assistant-ui/react";
 import {
@@ -16,11 +17,43 @@ import {
 	type KeyboardEvent,
 	useCallback,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { activateThreadModel } from "../../hooks/useThreadRuntime";
+import {
+	activateThreadModel,
+	getThreadTimestamp,
+} from "../../hooks/useThreadRuntime";
+
+const TIME_BUCKET_KEYS = [
+	"chat.time_today",
+	"chat.time_yesterday",
+	"chat.time_last_7_days",
+	"chat.time_last_30_days",
+	"chat.time_older",
+] as const;
+
+function getTimeBucket(ts: number, now: number): number {
+	const todayStart = new Date(now);
+	todayStart.setHours(0, 0, 0, 0);
+	if (ts >= todayStart.getTime()) return 0;
+
+	const yesterdayStart = new Date(todayStart);
+	yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+	if (ts >= yesterdayStart.getTime()) return 1;
+
+	const weekStart = new Date(todayStart);
+	weekStart.setDate(weekStart.getDate() - 6);
+	if (ts >= weekStart.getTime()) return 2;
+
+	const monthStart = new Date(todayStart);
+	monthStart.setDate(monthStart.getDate() - 29);
+	if (ts >= monthStart.getTime()) return 3;
+
+	return 4;
+}
 
 export const ChatThreadList: FC = () => {
 	const { t } = useTranslation();
@@ -30,31 +63,71 @@ export const ChatThreadList: FC = () => {
 				<h2 className="text-sm font-semibold text-gray-900 dark:text-white">
 					{t("chat.threads")}
 				</h2>
-			<ThreadListPrimitive.New asChild>
-				<button
-					type="button"
-					onClick={() => {
-						setTimeout(() => {
-							document
-								.querySelector<HTMLTextAreaElement>(
-									'[aria-label="Message input"]',
-								)
-								?.focus();
-						}, 100);
-					}}
-					className="flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
-					aria-label={t("chat.new_thread")}
-				>
-					<PencilSquareIcon className="size-4" />
-				</button>
-			</ThreadListPrimitive.New>
+				<ThreadListPrimitive.New asChild>
+					<button
+						type="button"
+						onClick={() => {
+							setTimeout(() => {
+								document
+									.querySelector<HTMLTextAreaElement>(
+										'[aria-label="Message input"]',
+									)
+									?.focus();
+							}, 100);
+						}}
+						className="flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
+						aria-label={t("chat.new_thread")}
+					>
+						<PencilSquareIcon className="size-4" />
+					</button>
+				</ThreadListPrimitive.New>
 			</div>
 			<div className="flex-1 overflow-y-auto px-2 pb-2">
-				<ThreadListPrimitive.Items
-					components={{ ThreadListItem }}
-				/>
+				<GroupedThreadItems />
 			</div>
 		</ThreadListPrimitive.Root>
+	);
+};
+
+const GroupedThreadItems: FC = () => {
+	const { t } = useTranslation();
+	const state = useThreadList();
+
+	const groups = useMemo(() => {
+		const now = Date.now();
+		const buckets: number[][] = [[], [], [], [], []];
+
+		for (let i = 0; i < state.threadIds.length; i++) {
+			const threadId = state.threadIds[i]!;
+			const item = state.threadItems[threadId];
+			const remoteId = item?.remoteId;
+			const ts = remoteId ? getThreadTimestamp(remoteId) : undefined;
+			const bucket = ts ? getTimeBucket(ts, now) : 0;
+			buckets[bucket]!.push(i);
+		}
+
+		return buckets
+			.map((indices, bi) => ({ label: t(TIME_BUCKET_KEYS[bi]!), indices }))
+			.filter((g) => g.indices.length > 0);
+	}, [state.threadIds, state.threadItems, t]);
+
+	return (
+		<>
+			{groups.map((group) => (
+				<div key={group.label}>
+					<div className="px-2.5 pb-1 pt-3 text-xs font-medium text-gray-400 dark:text-gray-500">
+						{group.label}
+					</div>
+					{group.indices.map((i) => (
+						<ThreadListPrimitive.ItemByIndex
+							key={i}
+							index={i}
+							components={{ ThreadListItem }}
+						/>
+					))}
+				</div>
+			))}
+		</>
 	);
 };
 

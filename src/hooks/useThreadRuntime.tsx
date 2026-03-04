@@ -48,9 +48,14 @@ type AdapterOpts = {
 };
 
 // ---------------------------------------------------------------------------
-// Thread ↔ model binding (module-level external store)
+// Thread metadata caches (module-level)
 // ---------------------------------------------------------------------------
 const _modelMap = new Map<string, string>();
+const _timestampMap = new Map<string, number>();
+
+export function getThreadTimestamp(remoteId: string): number | undefined {
+	return _timestampMap.get(remoteId);
+}
 let _activeModel: string | null = null;
 const _listeners = new Set<() => void>();
 
@@ -195,10 +200,12 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 						status: string;
 						title?: string;
 						model_id?: string;
+						updated_at?: number;
 					}>;
 				}>(b(), await h());
 				for (const t of data.threads) {
 					if (t.model_id) _modelMap.set(t.remoteId, t.model_id);
+					if (t.updated_at) _timestampMap.set(t.remoteId, t.updated_at);
 				}
 				return data;
 			},

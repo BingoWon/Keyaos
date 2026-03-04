@@ -17,6 +17,7 @@ threadsRouter.get("/", async (c) => {
 			status: t.status,
 			title: t.title,
 			model_id: t.model_id,
+			updated_at: t.updated_at,
 		})),
 	});
 });
