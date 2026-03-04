@@ -64,14 +64,17 @@ function setActiveThreadModel(model: string | null) {
 	_notify();
 }
 
+function _subscribe(cb: () => void) {
+	_listeners.add(cb);
+	return () => _listeners.delete(cb);
+}
+
+function _getSnapshot() {
+	return _activeModel;
+}
+
 export function useActiveThreadModel(): string | null {
-	return useSyncExternalStore(
-		(cb) => {
-			_listeners.add(cb);
-			return () => _listeners.delete(cb);
-		},
-		() => _activeModel,
-	);
+	return useSyncExternalStore(_subscribe, _getSnapshot);
 }
 
 // ---------------------------------------------------------------------------
@@ -321,7 +324,10 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 							: String(m.content ?? ""),
 					}));
 				try {
-					const titleModel = m() || "openai/gpt-5-nano";
+					const titleModel = m();
+					if (!titleModel) {
+						return buildFallbackTitleStream("New Thread");
+					}
 					const res = await fetch(
 						`${b()}/${remoteId}/generate-title`,
 						{
@@ -350,17 +356,22 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 				}
 			},
 			fetch: async (threadId) => {
-				const data = await fetchApi<{
-					remoteId: string;
-					status: string;
-					title?: string;
-					model?: string;
-				}>(`${b()}/${threadId}`, await h());
-				if (data.model) _modelMap.set(data.remoteId, data.model);
-				setActiveThreadModel(
-					data.model ?? _modelMap.get(data.remoteId) ?? null,
-				);
-				return data;
+				try {
+					const data = await fetchApi<{
+						remoteId: string;
+						status: string;
+						title?: string;
+						model?: string;
+					}>(`${b()}/${threadId}`, await h());
+					if (data.model) _modelMap.set(data.remoteId, data.model);
+					setActiveThreadModel(
+						data.model ?? _modelMap.get(data.remoteId) ?? null,
+					);
+					return data;
+				} catch (err) {
+					console.error("[adapter.fetch] failed for thread", threadId, err);
+					throw err;
+				}
 			},
 			unstable_Provider,
 		};

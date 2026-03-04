@@ -146,7 +146,12 @@ threadsRouter.post("/:id/generate-title", async (c) => {
 		return fallback("New Thread");
 	}
 
-	const titleModel = body.model || "openai/gpt-5-nano";
+	if (!body.model) {
+		log.warn("threads", "generate-title: no model provided", { threadId });
+		return fallback("New Thread");
+	}
+
+	const titleModel = body.model;
 
 	let result: Awaited<ReturnType<typeof executeCompletion>>;
 	try {
