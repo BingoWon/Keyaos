@@ -23,6 +23,7 @@ import {
 	ServerStackIcon as ServerStackIconSolid,
 	ShieldCheckIcon as ShieldCheckIconSolid,
 } from "@heroicons/react/24/solid";
+import { Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { isPlatform, useAuth } from "../auth";
@@ -134,10 +135,13 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		<nav className="flex flex-1 flex-col">
 			<ul className="flex flex-1 flex-col gap-y-7">
 				<li>
-					<div className="-mx-2 space-y-5">
+					<div className="-mx-2">
 						{groups.map((group, gi) => (
-							<ul key={gi} className="space-y-1">
-
+							<Fragment key={gi}>
+								{gi > 0 && (
+									<div className="mx-3 my-2 h-px bg-gray-950/5 dark:bg-white/5" />
+								)}
+								<ul className="space-y-1">
 								{group.map((item) => (
 									<li key={item.href}>
 										{item.external ? (
@@ -194,6 +198,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 									</li>
 								))}
 							</ul>
+							</Fragment>
 						))}
 					</div>
 				</li>
