@@ -16,11 +16,9 @@ import { ChatThread } from "../components/chat/ChatThread";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 
-const DEFAULT_MODEL = "gpt-4o";
-
 export function Chat() {
 	const { getToken } = useAuth();
-	const [model, setModel] = useState(DEFAULT_MODEL);
+	const [model, setModel] = useState("");
 
 	const getTokenRef = useRef(getToken);
 	getTokenRef.current = getToken;
@@ -62,11 +60,15 @@ export function Chat() {
 		if (!models) return [];
 		const seen = new Set<string>();
 		return models.filter((m) => {
-			if (seen.has(m.model_id)) return false;
-			seen.add(m.model_id);
+			if (seen.has(m.id)) return false;
+			seen.add(m.id);
 			return true;
 		});
 	}, [models]);
+
+	if (uniqueModels.length > 0 && !model) {
+		setModel(uniqueModels[0].id);
+	}
 
 	return (
 		<AssistantRuntimeProvider runtime={runtime}>
@@ -95,8 +97,7 @@ function ModelPicker({
 	value: string;
 	onChange: (v: string) => void;
 }) {
-	const display =
-		models.find((m) => m.model_id === value)?.display_name || value;
+	const display = models.find((m) => m.id === value)?.name || value;
 
 	return (
 		<Listbox value={value} onChange={onChange}>
@@ -108,11 +109,11 @@ function ModelPicker({
 				<ListboxOptions className="absolute left-0 z-20 mt-1 max-h-80 w-72 overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg focus:outline-none dark:border-white/10 dark:bg-gray-800">
 					{models.map((m) => (
 						<ListboxOption
-							key={m.model_id}
-							value={m.model_id}
+							key={m.id}
+							value={m.id}
 							className="cursor-pointer px-3 py-2 text-sm text-gray-900 data-focus:bg-brand-50 data-selected:font-medium data-selected:text-brand-700 dark:text-gray-100 dark:data-focus:bg-brand-500/15 dark:data-selected:text-brand-300"
 						>
-							{m.display_name || m.model_id}
+							{m.name || m.id}
 						</ListboxOption>
 					))}
 				</ListboxOptions>
