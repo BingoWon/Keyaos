@@ -38,6 +38,9 @@ const Logs = lazyWithRetry(() =>
 const Credits = lazyWithRetry(() =>
 	import("./pages/Credits").then((m) => ({ default: m.Credits })),
 );
+const Chat = lazyWithRetry(() =>
+	import("./pages/Chat").then((m) => ({ default: m.Chat })),
+);
 const DesignSystem = lazyWithRetry(() =>
 	import("./pages/DesignSystem").then((m) => ({ default: m.DesignSystem })),
 );
@@ -110,6 +113,7 @@ const dashboardChildren = [
 	{ path: "byok", element: <Byok /> },
 	{ path: "logs", element: <Logs /> },
 	...(isPlatform ? [{ path: "credits", element: <Credits /> }] : []),
+	{ path: "chat", element: <Chat /> },
 ];
 
 function LoginRoute() {

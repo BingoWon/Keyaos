@@ -1,6 +1,7 @@
 import {
 	BookOpenIcon,
 	BuildingOfficeIcon,
+	ChatBubbleLeftRightIcon,
 	CpuChipIcon,
 	CreditCardIcon,
 	HomeIcon,
@@ -13,6 +14,7 @@ import {
 import {
 	BookOpenIcon as BookOpenIconSolid,
 	BuildingOfficeIcon as BuildingOfficeIconSolid,
+	ChatBubbleLeftRightIcon as ChatBubbleLeftRightIconSolid,
 	CpuChipIcon as CpuChipIconSolid,
 	CreditCardIcon as CreditCardIconSolid,
 	HomeIcon as HomeIconSolid,
@@ -80,6 +82,12 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 			href: "/dashboard/logs",
 			icon: ListBulletIcon,
 			activeIcon: ListBulletIconSolid,
+		},
+		{
+			name: t("nav.chat"),
+			href: "/dashboard/chat",
+			icon: ChatBubbleLeftRightIcon,
+			activeIcon: ChatBubbleLeftRightIconSolid,
 		},
 		...(isPlatform
 			? [

@@ -10,6 +10,7 @@ import adminRouter from "./platform/routes/admin";
 import creditsRouter, { webhookRouter } from "./platform/routes/credits";
 import apiKeysRouter from "./routes/api-keys";
 import chatRouter from "./routes/chat";
+import chatApiRouter from "./routes/chat-api";
 import credentialsRouter from "./routes/credentials";
 import messagesRouter from "./routes/messages";
 import { dashboardModelsRouter, publicModelsRouter } from "./routes/models";
@@ -137,6 +138,8 @@ app.route("/api/credentials", credentialsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/models", dashboardModelsRouter);
 app.route("/api", systemRouter);
+
+app.route("/api/chat", chatApiRouter);
 
 // ─── Platform-only routes (gated at request time) ───────
 const platformNotFound = (c: Context) =>

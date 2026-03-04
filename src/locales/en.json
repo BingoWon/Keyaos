@@ -50,6 +50,7 @@
 		"credits": "Credits",
 		"guide": "Guide",
 		"admin": "Admin",
+		"chat": "Chat",
 		"docs": "Docs",
 		"logout": "Log out"
 	},
@@ -321,6 +322,13 @@
 		"message": "We use cookies for analytics to improve your experience.",
 		"accept": "Accept",
 		"decline": "Decline"
+	},
+	"chat": {
+		"title": "Chat",
+		"welcome_title": "Hello there!",
+		"welcome_subtitle": "How can I help you today?",
+		"placeholder": "Send a message…",
+		"update": "Update"
 	},
 	"landing": {
 		"hero_tagline": "Order in Chaos",

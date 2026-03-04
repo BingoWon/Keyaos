@@ -50,6 +50,7 @@
 		"credits": "额度",
 		"guide": "快速开始",
 		"admin": "管理后台",
+		"chat": "对话",
 		"docs": "文档",
 		"logout": "退出登录"
 	},
@@ -318,6 +319,13 @@
 		"message": "我们使用 Cookie 进行访问分析，以提升您的体验。",
 		"accept": "接受",
 		"decline": "拒绝"
+	},
+	"chat": {
+		"title": "对话",
+		"welcome_title": "你好！",
+		"welcome_subtitle": "有什么可以帮助你的？",
+		"placeholder": "发送消息…",
+		"update": "更新"
 	},
 	"landing": {
 		"hero_tagline": "万钥归一",

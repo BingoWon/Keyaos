@@ -30,6 +30,54 @@
 	--color-accent-950: #311c0e;
 }
 
+/* Semantic tokens for chat UI (assistant-ui compatibility) */
+@theme inline {
+	--color-background: var(--kx-bg);
+	--color-foreground: var(--kx-fg);
+	--color-muted: var(--kx-muted);
+	--color-muted-foreground: var(--kx-muted-fg);
+	--color-border: var(--kx-border);
+	--color-input: var(--kx-input);
+	--color-ring: var(--kx-ring);
+	--color-primary: var(--kx-primary);
+	--color-primary-foreground: var(--kx-primary-fg);
+	--color-destructive: var(--kx-destructive);
+	--color-popover: var(--kx-popover);
+	--color-popover-foreground: var(--kx-popover-fg);
+}
+
+:root {
+	--kx-bg: #ffffff;
+	--kx-fg: #111827;
+	--kx-muted: #f3f4f6;
+	--kx-muted-fg: #6b7280;
+	--kx-border: #e5e7eb;
+	--kx-input: #e5e7eb;
+	--kx-ring: #9e52e0;
+	--kx-primary: #7f39ad;
+	--kx-primary-fg: #ffffff;
+	--kx-destructive: #ef4444;
+	--kx-popover: #ffffff;
+	--kx-popover-fg: #111827;
+	--foreground: #111827;
+}
+
+.dark {
+	--kx-bg: #111827;
+	--kx-fg: #ffffff;
+	--kx-muted: rgba(255, 255, 255, 0.1);
+	--kx-muted-fg: #9ca3af;
+	--kx-border: rgba(255, 255, 255, 0.1);
+	--kx-input: rgba(255, 255, 255, 0.15);
+	--kx-ring: #bb80f6;
+	--kx-primary: #bb80f6;
+	--kx-primary-fg: #111827;
+	--kx-destructive: #f87171;
+	--kx-popover: #1f2937;
+	--kx-popover-fg: #ffffff;
+	--foreground: #ffffff;
+}
+
 @layer base {
 	:root {
 		color-scheme: light dark;
