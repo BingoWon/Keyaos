@@ -134,16 +134,10 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 		<nav className="flex flex-1 flex-col">
 			<ul className="flex flex-1 flex-col gap-y-7">
 				<li>
-					<div className="-mx-2 space-y-4">
+					<div className="-mx-2 space-y-5">
 						{groups.map((group, gi) => (
-							<ul
-								key={gi}
-								className={classNames(
-									"space-y-1",
-									gi > 0 &&
-										"border-t border-gray-200 pt-4 dark:border-white/10",
-								)}
-							>
+							<ul key={gi} className="space-y-1">
+
 								{group.map((item) => (
 									<li key={item.href}>
 										{item.external ? (
