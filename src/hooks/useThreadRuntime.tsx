@@ -21,6 +21,7 @@ import {
 	useMemo,
 	useRef,
 	useState,
+	useSyncExternalStore,
 } from "react";
 
 async function fetchApi<T>(
@@ -45,6 +46,36 @@ type AdapterOpts = {
 	getHeaders: () => Promise<Record<string, string>>;
 };
 
+// ---------------------------------------------------------------------------
+// Thread ↔ model binding (module-level external store)
+// ---------------------------------------------------------------------------
+const _modelMap = new Map<string, string>();
+let _activeModel: string | null = null;
+const _listeners = new Set<() => void>();
+
+function _notify() {
+	for (const cb of _listeners) cb();
+}
+
+function setActiveThreadModel(model: string | null) {
+	if (model === _activeModel) return;
+	_activeModel = model;
+	_notify();
+}
+
+export function useActiveThreadModel(): string | null {
+	return useSyncExternalStore(
+		(cb) => {
+			_listeners.add(cb);
+			return () => _listeners.delete(cb);
+		},
+		() => _activeModel,
+	);
+}
+
+// ---------------------------------------------------------------------------
+// History adapter
+// ---------------------------------------------------------------------------
 function useKeyaosHistoryAdapter(
 	optsRef: React.RefObject<AdapterOpts>,
 ): ThreadHistoryAdapter {
@@ -110,25 +141,101 @@ function useKeyaosHistoryAdapter(
 	}, [aui, optsRef]);
 }
 
-function buildTitleStream(title: string): ReadableStream {
+// ---------------------------------------------------------------------------
+// Streaming title helpers
+// ---------------------------------------------------------------------------
+function buildFallbackTitleStream(title: string): ReadableStream {
 	return new ReadableStream({
 		start(ctrl) {
-			ctrl.enqueue({
-				type: "part-start",
-				part: { type: "text" },
-				path: [0],
-			});
-			ctrl.enqueue({
-				type: "text-delta",
-				textDelta: title,
-				path: [0],
-			});
+			ctrl.enqueue({ type: "part-start", part: { type: "text" }, path: [0] });
+			ctrl.enqueue({ type: "text-delta", textDelta: title, path: [0] });
 			ctrl.enqueue({ type: "part-finish", path: [0] });
 			ctrl.close();
 		},
 	});
 }
 
+function buildStreamingTitle(body: ReadableStream<Uint8Array>): ReadableStream {
+	const reader = body.getReader();
+	const decoder = new TextDecoder();
+	let buf = "";
+	let started = false;
+
+	return new ReadableStream({
+		async start(ctrl) {
+			try {
+				for (;;) {
+					const { done, value } = await reader.read();
+					if (done) break;
+					buf += decoder.decode(value, { stream: true });
+					const lines = buf.split("\n");
+					buf = lines.pop()!;
+
+					for (const line of lines) {
+						if (!line.startsWith("data: ")) continue;
+						const payload = line.slice(6).trim();
+						if (payload === "[DONE]") continue;
+						try {
+							const { delta } = JSON.parse(payload);
+							if (delta) {
+								if (!started) {
+									ctrl.enqueue({
+										type: "part-start",
+										part: { type: "text" },
+										path: [0],
+									});
+									started = true;
+								}
+								ctrl.enqueue({
+									type: "text-delta",
+									textDelta: delta,
+									path: [0],
+								});
+							}
+						} catch {
+							/* skip malformed SSE chunks */
+						}
+					}
+				}
+
+				if (!started) {
+					ctrl.enqueue({
+						type: "part-start",
+						part: { type: "text" },
+						path: [0],
+					});
+					ctrl.enqueue({
+						type: "text-delta",
+						textDelta: "New Thread",
+						path: [0],
+					});
+				}
+				ctrl.enqueue({ type: "part-finish", path: [0] });
+				ctrl.close();
+			} catch (err) {
+				console.error("[buildStreamingTitle] stream error:", err);
+				if (!started) {
+					ctrl.enqueue({
+						type: "part-start",
+						part: { type: "text" },
+						path: [0],
+					});
+				}
+				ctrl.enqueue({
+					type: "text-delta",
+					textDelta: "New Thread",
+					path: [0],
+				});
+				ctrl.enqueue({ type: "part-finish", path: [0] });
+				ctrl.close();
+			}
+		},
+	});
+}
+
+// ---------------------------------------------------------------------------
+// Adapter hook
+// ---------------------------------------------------------------------------
 export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter {
 	const optsRef = useRef(opts);
 	optsRef.current = opts;
@@ -151,8 +258,22 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 		const b = () => optsRef.current.apiBase;
 
 		return {
-			list: async () => fetchApi(b(), await h()),
+			list: async () => {
+				const data = await fetchApi<{
+					threads: Array<{
+						remoteId: string;
+						status: string;
+						title?: string;
+						model?: string;
+					}>;
+				}>(b(), await h());
+				for (const t of data.threads) {
+					if (t.model) _modelMap.set(t.remoteId, t.model);
+				}
+				return data;
+			},
 			initialize: async (threadId) => {
+				setActiveThreadModel(null);
 				return fetchApi(b(), await h(), {
 					method: "POST",
 					body: JSON.stringify({ threadId }),
@@ -198,25 +319,43 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 							: String(m.content ?? ""),
 					}));
 				try {
-					const res = await fetchApi<{ title: string }>(
+					const res = await fetch(
 						`${b()}/${remoteId}/generate-title`,
-						hd,
 						{
 							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								...hd,
+							},
 							body: JSON.stringify({ messages: condensed }),
 						},
 					);
-					return buildTitleStream(res.title);
+					if (!res.ok || !res.body) {
+						return buildFallbackTitleStream("New Thread");
+					}
+					return buildStreamingTitle(res.body);
 				} catch (err) {
 					console.error(
 						"[generateTitle] failed for thread",
 						remoteId,
 						err,
 					);
-					return buildTitleStream("New Thread");
+					return buildFallbackTitleStream("New Thread");
 				}
 			},
-			fetch: async (threadId) => fetchApi(`${b()}/${threadId}`, await h()),
+			fetch: async (threadId) => {
+				const data = await fetchApi<{
+					remoteId: string;
+					status: string;
+					title?: string;
+					model?: string;
+				}>(`${b()}/${threadId}`, await h());
+				if (data.model) _modelMap.set(data.remoteId, data.model);
+				setActiveThreadModel(
+					data.model ?? _modelMap.get(data.remoteId) ?? null,
+				);
+				return data;
+			},
 			unstable_Provider,
 		};
 	});
@@ -224,6 +363,9 @@ export function useThreadListAdapter(opts: AdapterOpts): RemoteThreadListAdapter
 	return adapter;
 }
 
+// ---------------------------------------------------------------------------
+// Runtime hook
+// ---------------------------------------------------------------------------
 export function useKeyaosRuntime(opts: {
 	transport: AssistantChatTransport;
 	adapter: RemoteThreadListAdapter;

@@ -11,7 +11,7 @@ import {
 	ChevronUpDownIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Modality } from "../../worker/core/db/schema";
 import { useAuth } from "../auth";
 import { ChatThread } from "../components/chat/ChatThread";
@@ -21,14 +21,36 @@ import {
 	loadSystemPrompt,
 } from "../components/chat/SystemPrompt";
 import { useFetch } from "../hooks/useFetch";
-import { useKeyaosRuntime, useThreadListAdapter } from "../hooks/useThreadRuntime";
+import {
+	useActiveThreadModel,
+	useKeyaosRuntime,
+	useThreadListAdapter,
+} from "../hooks/useThreadRuntime";
 import type { ModelEntry } from "../types/model";
+
+const LS_MODEL_KEY = "kx-chat-model";
 
 export function Chat() {
 	const { getToken } = useAuth();
-	const [model, setModel] = useState("");
+	const [model, setModel] = useState(
+		() => localStorage.getItem(LS_MODEL_KEY) || "",
+	);
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [systemPrompt, setSystemPrompt] = useState(loadSystemPrompt);
+
+	const activeThreadModel = useActiveThreadModel();
+	useEffect(() => {
+		if (activeThreadModel) setModel(activeThreadModel);
+	}, [activeThreadModel]);
+
+	const handleModelChange = useCallback((v: string) => {
+		setModel(v);
+		try {
+			localStorage.setItem(LS_MODEL_KEY, v);
+		} catch {
+			/* quota exceeded – ignore */
+		}
+	}, []);
 
 	const getTokenRef = useRef(getToken);
 	getTokenRef.current = getToken;
@@ -80,9 +102,9 @@ export function Chat() {
 
 	useEffect(() => {
 		if (uniqueModels.length > 0 && !model) {
-			setModel(uniqueModels[0].id);
+			handleModelChange(uniqueModels[0].id);
 		}
-	}, [uniqueModels, model]);
+	}, [uniqueModels, model, handleModelChange]);
 
 	const selectedModel = useMemo(
 		() => uniqueModels.find((m) => m.id === model),
@@ -123,7 +145,7 @@ export function Chat() {
 						<ModelPicker
 							models={uniqueModels}
 							value={model}
-							onChange={setModel}
+							onChange={handleModelChange}
 						/>
 						<SystemPrompt
 							value={systemPrompt}

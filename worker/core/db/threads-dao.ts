@@ -56,6 +56,19 @@ export class ThreadsDao {
 			.run();
 	}
 
+	async updateModel(
+		threadId: string,
+		ownerId: string,
+		model: string,
+	): Promise<void> {
+		await this.db
+			.prepare(
+				"UPDATE chat_threads SET model = ?, updated_at = ? WHERE id = ? AND owner_id = ?",
+			)
+			.bind(model, Date.now(), threadId, ownerId)
+			.run();
+	}
+
 	async updateStatus(
 		id: string,
 		ownerId: string,

@@ -73,6 +73,7 @@ assistantRouter.post("/", async (c) => {
 		threadId,
 	});
 
+	const ownerId = c.get("owner_id");
 	const partId = crypto.randomUUID();
 	let fullResponseText = "";
 
@@ -170,6 +171,7 @@ assistantRouter.post("/", async (c) => {
 								model: modelId,
 								created_at: Date.now(),
 							});
+							await dao.updateModel(threadId, ownerId, modelId!);
 						} catch (err) {
 							log.error("assistant", "Failed to save messages", {
 								threadId,
