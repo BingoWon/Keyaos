@@ -9,7 +9,6 @@ import {
 import {
 	Bars3Icon,
 	ChevronUpDownIcon,
-	XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -223,11 +222,7 @@ export function Chat() {
 							className="flex size-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
 							aria-label="Toggle sidebar"
 						>
-							{sidebarOpen ? (
-								<XMarkIcon className="size-4" />
-							) : (
-								<Bars3Icon className="size-4" />
-							)}
+							<Bars3Icon className="size-4" />
 						</button>
 						<div className="flex items-center gap-1">
 							<span className="text-xs font-medium text-gray-400 dark:text-gray-500">{t("chat.label_model")}</span>

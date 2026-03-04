@@ -7,7 +7,7 @@ import {
 	CheckIcon,
 	EllipsisHorizontalIcon,
 	PencilIcon,
-	PlusIcon,
+	PencilSquareIcon,
 	TrashIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -32,51 +32,10 @@ export const ChatThreadList: FC = () => {
 				<ThreadListPrimitive.New asChild>
 					<button
 						type="button"
-						onClick={() => {
-							console.debug("[NewThread] onClick fired");
-							const el = document.querySelector<HTMLTextAreaElement>(
-								'[aria-label="Message input"]',
-							);
-							console.debug("[NewThread] textarea found (sync):", !!el);
-							if (el) {
-								el.focus();
-								console.debug("[NewThread] focus called (sync), activeElement:", document.activeElement?.tagName, document.activeElement === el);
-							}
-							requestAnimationFrame(() => {
-								const el2 = document.querySelector<HTMLTextAreaElement>(
-									'[aria-label="Message input"]',
-								);
-								console.debug("[NewThread] textarea found (rAF):", !!el2);
-								if (el2) {
-									el2.focus();
-									console.debug("[NewThread] focus called (rAF), activeElement:", document.activeElement?.tagName, document.activeElement === el2);
-								}
-							});
-							setTimeout(() => {
-								const el3 = document.querySelector<HTMLTextAreaElement>(
-									'[aria-label="Message input"]',
-								);
-								console.debug("[NewThread] textarea found (100ms):", !!el3);
-								if (el3) {
-									el3.focus();
-									console.debug("[NewThread] focus called (100ms), activeElement:", document.activeElement?.tagName, document.activeElement === el3);
-								}
-							}, 100);
-							setTimeout(() => {
-								const el4 = document.querySelector<HTMLTextAreaElement>(
-									'[aria-label="Message input"]',
-								);
-								console.debug("[NewThread] textarea found (500ms):", !!el4);
-								if (el4) {
-									el4.focus();
-									console.debug("[NewThread] focus called (500ms), activeElement:", document.activeElement?.tagName, document.activeElement === el4);
-								}
-							}, 500);
-						}}
 						className="flex size-7 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
 						aria-label={t("chat.new_thread")}
 					>
-						<PlusIcon className="size-4" />
+						<PencilSquareIcon className="size-4" />
 					</button>
 				</ThreadListPrimitive.New>
 			</div>
@@ -172,7 +131,18 @@ const ThreadListItem: FC = () => {
 
 	return (
 		<ThreadListItemPrimitive.Root className="group relative mb-0.5 flex items-center rounded-lg transition-colors data-active:bg-brand-50 data-active:text-brand-700 dark:data-active:bg-brand-500/15 dark:data-active:text-brand-300">
-			<ThreadListItemPrimitive.Trigger className="flex min-w-0 flex-1 items-center rounded-lg px-2.5 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 group-data-active:bg-transparent group-data-active:text-brand-700 dark:text-gray-300 dark:hover:bg-white/5 dark:group-data-active:text-brand-300">
+			<ThreadListItemPrimitive.Trigger
+				className="flex min-w-0 flex-1 items-center rounded-lg px-2.5 py-2 text-left text-sm whitespace-nowrap text-gray-700 transition-colors hover:bg-gray-100 group-data-active:bg-transparent group-data-active:text-brand-700 dark:text-gray-300 dark:hover:bg-white/5 dark:group-data-active:text-brand-300"
+				onClick={() => {
+					setTimeout(() => {
+						document
+							.querySelector<HTMLTextAreaElement>(
+								'[aria-label="Message input"]',
+							)
+							?.focus();
+					}, 100);
+				}}
+			>
 				<ThreadListItemPrimitive.Title
 					fallback="New Thread"
 					className="truncate"
