@@ -163,6 +163,32 @@ export function Chat() {
 		return modalities.some((m: Modality) => m !== "text");
 	}, [selectedModel]);
 
+	if (!models) {
+		return (
+			<div className="-mx-4 sm:-mx-6 lg:-mx-8 -my-10 flex h-[calc(100dvh-3.5rem)] lg:h-dvh animate-pulse">
+				<div className="w-64 shrink-0 border-r border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-gray-900/50">
+					<div className="flex flex-col gap-2 p-4">
+						<div className="h-9 rounded-lg bg-gray-200 dark:bg-white/10" />
+						<div className="mt-4 h-4 w-3/4 rounded bg-gray-200 dark:bg-white/10" />
+						<div className="h-4 w-1/2 rounded bg-gray-200 dark:bg-white/10" />
+						<div className="h-4 w-2/3 rounded bg-gray-200 dark:bg-white/10" />
+					</div>
+				</div>
+				<div className="flex min-w-0 flex-1 flex-col">
+					<div className="flex items-center gap-3 border-b border-gray-200 px-3 py-2 dark:border-white/10">
+						<div className="size-8 rounded-lg bg-gray-200 dark:bg-white/10" />
+						<div className="h-5 w-40 rounded bg-gray-200 dark:bg-white/10" />
+						<div className="h-4 w-px bg-gray-200 dark:bg-white/10" />
+						<div className="h-5 w-24 rounded bg-gray-200 dark:bg-white/10" />
+					</div>
+					<div className="flex flex-1 items-center justify-center">
+						<div className="h-4 w-48 rounded bg-gray-200 dark:bg-white/10" />
+					</div>
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<AssistantRuntimeProvider runtime={runtime}>
 			<div className="-mx-4 sm:-mx-6 lg:-mx-8 -my-10 flex h-[calc(100dvh-3.5rem)] lg:h-dvh">
@@ -197,6 +223,7 @@ export function Chat() {
 							/>
 							{modelId && <CopyButton text={modelId} />}
 						</div>
+						<div className="h-4 w-px bg-gray-300 dark:bg-white/15" />
 						<div className="flex items-center gap-1">
 							<span className="text-xs font-medium text-gray-400 dark:text-gray-500">{t("chat.label_provider")}</span>
 							<ProviderPicker
