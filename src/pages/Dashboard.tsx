@@ -69,7 +69,7 @@ export function Dashboard() {
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers", {
 		requireAuth: false,
 	});
-	const { data: recentLogs } = useFetch<LogEntry[]>("/api/logs?limit=5", {
+	const { data: recentLogs } = useFetch<LogEntry[]>("/api/logs?limit=10", {
 		skip: !isPlatform,
 	});
 	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
