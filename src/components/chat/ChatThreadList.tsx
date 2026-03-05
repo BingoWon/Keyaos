@@ -1,8 +1,8 @@
 import {
 	ThreadListItemPrimitive,
 	ThreadListPrimitive,
-	useAssistantRuntime,
-	useThreadList,
+	useAui,
+	useAuiState,
 	useThreadListItemRuntime,
 } from "@assistant-ui/react";
 import {
@@ -92,16 +92,18 @@ export const ChatThreadList: FC = () => {
 
 const GroupedThreadItems: FC = () => {
 	const { t } = useTranslation();
-	const runtime = useAssistantRuntime();
-	const threadCount = useThreadList((s) => s.threadIds.length);
+	const aui = useAui();
+	const contentLength = useAuiState((s) => s.threads.threadIds.length);
 	const components = useMemo(() => ({ ThreadListItem }), []);
 
 	const groups = useMemo(() => {
+		if (contentLength === 0) return [];
+
+		const state = aui.threads().getState();
 		const now = Date.now();
 		const buckets: number[][] = [[], [], [], [], []];
-		const state = runtime.threads.getState();
 
-		for (let i = 0; i < threadCount; i++) {
+		for (let i = 0; i < contentLength; i++) {
 			const threadId = state.threadIds[i];
 			if (!threadId) continue;
 			const item = state.threadItems[threadId];
@@ -114,7 +116,7 @@ const GroupedThreadItems: FC = () => {
 		return buckets
 			.map((indices, bi) => ({ label: t(TIME_BUCKET_KEYS[bi] ?? ""), indices }))
 			.filter((g) => g.indices.length > 0);
-	}, [threadCount, runtime, t]);
+	}, [contentLength, aui, t]);
 
 	if (groups.length === 0) return null;
 
