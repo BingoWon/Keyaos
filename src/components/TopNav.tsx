@@ -161,18 +161,13 @@ function ModelSearch() {
 										if (e.key === "Enter") go(g.id);
 									}}
 									className={classNames(
-										"flex cursor-pointer items-baseline gap-2 px-3 py-2 text-sm transition-colors",
+										"cursor-pointer truncate px-3 py-2 text-sm font-medium text-gray-900 transition-colors dark:text-white",
 										i === activeIdx
 											? "bg-brand-50 dark:bg-brand-500/15"
 											: "hover:bg-gray-50 dark:hover:bg-white/5",
 									)}
 								>
-									<span className="shrink-0 font-medium text-gray-900 dark:text-white">
-										{g.displayName}
-									</span>
-									<span className="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
-										{g.id}
-									</span>
+									{g.displayName}
 								</div>
 							))}
 						</div>

@@ -31,6 +31,10 @@
 }
 
 @layer base {
+	html {
+		scroll-padding-top: 5rem;
+	}
+
 	:root {
 		color-scheme: light dark;
 	}
