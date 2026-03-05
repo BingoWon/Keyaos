@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
@@ -64,7 +64,15 @@ export function Models() {
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
 	const [searchParams] = useSearchParams();
-	const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
+	const urlQ = searchParams.get("q");
+	const [query, setQuery] = useState(() => urlQ ?? "");
+
+	useEffect(() => {
+		if (urlQ !== null) {
+			setQuery(urlQ);
+			setPage(1);
+		}
+	}, [urlQ]);
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 	const [selected, setSelected] = useState<ModelGroup | null>(null);

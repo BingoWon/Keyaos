@@ -56,8 +56,9 @@ function ModelSearch() {
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
 	const results = useMemo(() => {
-		if (!q.trim()) return [];
-		const lower = q.toLowerCase();
+		const trimmed = q.trim();
+		if (!trimmed) return groups.slice(0, SEARCH_PREVIEW_LIMIT);
+		const lower = trimmed.toLowerCase();
 		return groups
 			.filter(
 				(g) =>
@@ -67,7 +68,7 @@ function ModelSearch() {
 			.slice(0, SEARCH_PREVIEW_LIMIT);
 	}, [q, groups]);
 
-	const showPanel = open && q.trim().length > 0;
+	const showPanel = open && groups.length > 0;
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: reset selection on every keystroke
 	useEffect(() => setActiveIdx(-1), [q]);
@@ -86,7 +87,8 @@ function ModelSearch() {
 	}, []);
 
 	const go = (modelId: string) => {
-		navigate(`/models?q=${encodeURIComponent(modelId)}`);
+		const trimmed = modelId.trim();
+		navigate(trimmed ? `/models?q=${encodeURIComponent(trimmed)}` : "/models");
 		setQ("");
 		setOpen(false);
 		inputRef.current?.blur();
@@ -171,9 +173,6 @@ function ModelSearch() {
 									<span className="shrink-0 font-mono text-xs text-gray-400 dark:text-gray-500">
 										{g.id}
 									</span>
-									<span className="ml-auto shrink-0 text-xs text-gray-400 dark:text-gray-500">
-										{g.providers.length}p
-									</span>
 								</div>
 							))}
 						</div>
@@ -182,15 +181,6 @@ function ModelSearch() {
 							{t("models.no_match", { query: q.trim() })}
 						</div>
 					)}
-					<div className="border-t border-gray-100 px-3 py-2 dark:border-white/5">
-						<button
-							type="button"
-							onClick={() => go(q.trim())}
-							className="w-full text-left text-xs font-medium text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
-						>
-							{t("landing.models_explore")} →
-						</button>
-					</div>
 				</div>
 			)}
 		</div>
