@@ -37,19 +37,33 @@ export class LogsDao {
 		return id;
 	}
 
-	async getEntriesForUser(userId: string, limit = 50): Promise<DbLogEntry[]> {
+	async getEntriesForUser(
+		userId: string,
+		limit: number,
+		offset = 0,
+	): Promise<DbLogEntry[]> {
 		const res = await this.db
 			.prepare(
-				`SELECT * FROM (
-					SELECT * FROM (SELECT * FROM logs WHERE consumer_id = ?1 ORDER BY created_at DESC LIMIT ?2)
-					UNION
-					SELECT * FROM (SELECT * FROM logs WHERE credential_owner_id = ?1 ORDER BY created_at DESC LIMIT ?2)
-				 ) ORDER BY created_at DESC LIMIT ?2`,
+				`SELECT * FROM logs
+				 WHERE consumer_id = ?1 OR credential_owner_id = ?1
+				 ORDER BY created_at DESC
+				 LIMIT ?2 OFFSET ?3`,
 			)
-			.bind(userId, limit)
+			.bind(userId, limit, offset)
 			.all<DbLogEntry>();
 
 		return res.results || [];
+	}
+
+	async countForUser(userId: string): Promise<number> {
+		const res = await this.db
+			.prepare(
+				`SELECT COUNT(*) AS total FROM logs
+				 WHERE consumer_id = ? OR credential_owner_id = ?`,
+			)
+			.bind(userId, userId)
+			.first<{ total: number }>();
+		return res?.total ?? 0;
 	}
 
 	async get24hStats(
@@ -72,7 +86,6 @@ export class LogsDao {
 		};
 	}
 
-	/** Sum provider_earned per credential for a given credential owner */
 	async getEarningsByCredential(
 		credentialOwnerId: string,
 	): Promise<Map<string, number>> {

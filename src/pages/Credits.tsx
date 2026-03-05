@@ -146,19 +146,29 @@ export function Credits() {
 		loading: walletLoading,
 		refetch: refetchWallet,
 	} = useFetch<{ balance: number }>("/api/credits/balance");
+	const [paymentsPage, setPaymentsPage] = useState(1);
+	const [paymentsSize, setPaymentsSize] = useState(20);
+	const [txPage, setTxPage] = useState(1);
+	const [txSize, setTxSize] = useState(20);
+
 	const {
-		data: payments,
+		data: paymentsResult,
 		loading: paymentsLoading,
 		refetch: refetchPayments,
-	} = useFetch<PaymentEntry[]>("/api/credits/payments");
+	} = useFetch<{ items: PaymentEntry[]; total: number }>(
+		`/api/credits/payments?page=${paymentsPage}&limit=${paymentsSize}`,
+	);
 	const {
 		data: autoConfig,
 		loading: autoLoading,
 		refetch: refetchAuto,
 	} = useFetch<AutoTopUpConfig>("/api/credits/auto-topup");
-	const { data: transactions, loading: transactionsLoading } = useFetch<
-		TransactionEntry[]
-	>("/api/credits/transactions?limit=200", { skip: tab !== "transactions" });
+	const { data: txResult, loading: transactionsLoading } = useFetch<{
+		items: TransactionEntry[];
+		total: number;
+	}>(`/api/credits/transactions?page=${txPage}&limit=${txSize}`, {
+		skip: tab !== "transactions",
+	});
 
 	useEffect(() => {
 		if (autoConfig) {
@@ -581,16 +591,32 @@ export function Credits() {
 
 				{tab === "payments" && (
 					<PaymentsTable
-						entries={payments}
+						items={paymentsResult?.items ?? null}
+						total={paymentsResult?.total ?? 0}
 						loading={paymentsLoading}
 						formatDateTime={formatDateTime}
+						page={paymentsPage}
+						pageSize={paymentsSize}
+						onPageChange={setPaymentsPage}
+						onPageSizeChange={(s) => {
+							setPaymentsSize(s);
+							setPaymentsPage(1);
+						}}
 					/>
 				)}
 				{tab === "transactions" && (
 					<TransactionsTable
-						entries={transactions}
+						items={txResult?.items ?? null}
+						total={txResult?.total ?? 0}
 						loading={transactionsLoading}
 						formatDateTime={formatDateTime}
+						page={txPage}
+						pageSize={txSize}
+						onPageChange={setTxPage}
+						onPageSizeChange={(s) => {
+							setTxSize(s);
+							setTxPage(1);
+						}}
 					/>
 				)}
 			</div>
@@ -598,26 +624,34 @@ export function Credits() {
 	);
 }
 
+/* ─── Shared props for paginated tables ─── */
+
+interface PaginatedTableProps {
+	total: number;
+	loading: boolean;
+	formatDateTime: (ts: number) => string;
+	page: number;
+	pageSize: number;
+	onPageChange: (p: number) => void;
+	onPageSizeChange: (s: number) => void;
+}
+
 /* ─── Transaction history table ─── */
 
 function TransactionsTable({
-	entries,
+	items,
+	total,
 	loading,
 	formatDateTime,
-}: {
-	entries: TransactionEntry[] | null;
-	loading: boolean;
-	formatDateTime: (ts: number) => string;
-}) {
+	page,
+	pageSize,
+	onPageChange,
+	onPageSizeChange,
+}: PaginatedTableProps & { items: TransactionEntry[] | null }) {
 	const { t } = useTranslation();
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(20);
+	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-	const totalPages = Math.max(1, Math.ceil((entries?.length ?? 0) / pageSize));
-	const safePage = Math.min(page, totalPages);
-	const paged = entries?.slice((safePage - 1) * pageSize, safePage * pageSize);
-
-	if (loading)
+	if (loading && !items?.length)
 		return (
 			<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
 				<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
@@ -633,7 +667,7 @@ function TransactionsTable({
 			</div>
 		);
 
-	if (!entries?.length)
+	if (!items?.length)
 		return (
 			<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 				{t("credits.no_transactions")}
@@ -655,7 +689,7 @@ function TransactionsTable({
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-						{paged?.map((e) => (
+						{items.map((e) => (
 							<tr
 								key={`${e.type}-${e.id}`}
 								className="even:bg-gray-50/50 dark:even:bg-white/[0.015]"
@@ -690,17 +724,14 @@ function TransactionsTable({
 			</div>
 			<div className="mt-3 flex items-center justify-between">
 				<span className="text-xs text-gray-500 dark:text-gray-400">
-					{entries.length} {t("credits.tab_transactions").toLowerCase()}
+					{total.toLocaleString()} {t("credits.tab_transactions").toLowerCase()}
 				</span>
 				<Pagination
-					page={safePage}
+					page={page}
 					totalPages={totalPages}
-					onChange={setPage}
+					onChange={onPageChange}
 					pageSize={pageSize}
-					onPageSizeChange={(s) => {
-						setPageSize(s);
-						setPage(1);
-					}}
+					onPageSizeChange={onPageSizeChange}
 				/>
 			</div>
 		</>
@@ -710,23 +741,19 @@ function TransactionsTable({
 /* ─── Payments table ─── */
 
 function PaymentsTable({
-	entries,
+	items,
+	total,
 	loading,
 	formatDateTime,
-}: {
-	entries: PaymentEntry[] | null;
-	loading: boolean;
-	formatDateTime: (ts: number) => string;
-}) {
+	page,
+	pageSize,
+	onPageChange,
+	onPageSizeChange,
+}: PaginatedTableProps & { items: PaymentEntry[] | null }) {
 	const { t } = useTranslation();
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(20);
+	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-	const totalPages = Math.max(1, Math.ceil((entries?.length ?? 0) / pageSize));
-	const safePage = Math.min(page, totalPages);
-	const paged = entries?.slice((safePage - 1) * pageSize, safePage * pageSize);
-
-	if (loading)
+	if (loading && !items?.length)
 		return (
 			<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
 				<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
@@ -743,7 +770,7 @@ function PaymentsTable({
 			</div>
 		);
 
-	if (!entries?.length)
+	if (!items?.length)
 		return (
 			<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 				{t("credits.no_payments")}
@@ -765,7 +792,7 @@ function PaymentsTable({
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-						{paged?.map((p) => (
+						{items.map((p) => (
 							<tr
 								key={p.id}
 								className="even:bg-gray-50/50 dark:even:bg-white/[0.015]"
@@ -803,17 +830,14 @@ function PaymentsTable({
 			</div>
 			<div className="mt-3 flex items-center justify-between">
 				<span className="text-xs text-gray-500 dark:text-gray-400">
-					{entries.length} {t("credits.tab_payments").toLowerCase()}
+					{total.toLocaleString()} {t("credits.tab_payments").toLowerCase()}
 				</span>
 				<Pagination
-					page={safePage}
+					page={page}
 					totalPages={totalPages}
-					onChange={setPage}
+					onChange={onPageChange}
 					pageSize={pageSize}
-					onPageSizeChange={(s) => {
-						setPageSize(s);
-						setPage(1);
-					}}
+					onPageSizeChange={onPageSizeChange}
 				/>
 			</div>
 		</>

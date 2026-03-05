@@ -43,40 +43,46 @@ systemRouter.get("/providers", edgeCache(), async (c) => {
 
 /** API request logs (per-request detail) */
 systemRouter.get("/logs", async (c) => {
-	const limit = Math.min(Number(c.req.query("limit")) || 50, 200);
+	const page = Math.max(1, Number(c.req.query("page")) || 1);
+	const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 20), 100);
+	const offset = (page - 1) * limit;
 	const userId = c.get("owner_id");
 	const dao = new LogsDao(c.env.DB);
-	const entries = await dao.getEntriesForUser(userId, limit);
 
-	return c.json({
-		data: entries.map((tx) => {
-			const isConsumer = tx.consumer_id === userId;
-			const isProvider = tx.credential_owner_id === userId;
+	const [entries, total] = await Promise.all([
+		dao.getEntriesForUser(userId, limit, offset),
+		dao.countForUser(userId),
+	]);
 
-			let direction: "spent" | "earned" | "self";
-			if (isConsumer && isProvider) direction = "self";
-			else if (isConsumer) direction = "spent";
-			else direction = "earned";
+	const mapEntry = (tx: (typeof entries)[0]) => {
+		const isConsumer = tx.consumer_id === userId;
+		const isProvider = tx.credential_owner_id === userId;
 
-			const netCredits =
-				direction === "spent"
-					? -tx.consumer_charged
-					: direction === "earned"
-						? tx.provider_earned
-						: 0;
+		let direction: "spent" | "earned" | "self";
+		if (isConsumer && isProvider) direction = "self";
+		else if (isConsumer) direction = "spent";
+		else direction = "earned";
 
-			return {
-				id: tx.id,
-				direction,
-				provider_id: tx.provider_id,
-				model_id: tx.model_id,
-				inputTokens: tx.input_tokens,
-				outputTokens: tx.output_tokens,
-				netCredits,
-				createdAt: tx.created_at,
-			};
-		}),
-	});
+		const netCredits =
+			direction === "spent"
+				? -tx.consumer_charged
+				: direction === "earned"
+					? tx.provider_earned
+					: 0;
+
+		return {
+			id: tx.id,
+			direction,
+			provider_id: tx.provider_id,
+			model_id: tx.model_id,
+			inputTokens: tx.input_tokens,
+			outputTokens: tx.output_tokens,
+			netCredits,
+			createdAt: tx.created_at,
+		};
+	};
+
+	return c.json({ data: { items: entries.map(mapEntry), total } });
 });
 
 /** Auto-select candle interval based on time range. */

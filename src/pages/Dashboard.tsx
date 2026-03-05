@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { isPlatform } from "../auth";
 import { CopyButton } from "../components/CopyButton";
+import { DirectionBadge } from "../components/DirectionBadge";
 import { ModalityBadges } from "../components/Modalities";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -16,7 +17,7 @@ import { Sparkline, type SparklineData } from "../components/Sparkline";
 import { Badge, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-import { DirectionBadge } from "../pages/Logs";
+import type { LogEntry } from "../types/log";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
 import {
@@ -43,17 +44,6 @@ interface PoolStats {
 	apiCalls24h: number;
 }
 
-interface LogEntry {
-	id: string;
-	direction: "spent" | "earned" | "self";
-	provider_id: string;
-	model_id: string;
-	inputTokens: number;
-	outputTokens: number;
-	netCredits: number;
-	createdAt: number;
-}
-
 export function Dashboard() {
 	const { t, i18n } = useTranslation();
 	const formatDateTime = useFormatDateTime();
@@ -69,9 +59,13 @@ export function Dashboard() {
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers", {
 		requireAuth: false,
 	});
-	const { data: recentLogs } = useFetch<LogEntry[]>("/api/logs?limit=10", {
+	const { data: recentLogsResult } = useFetch<{
+		items: LogEntry[];
+		total: number;
+	}>("/api/logs?page=1&limit=10", {
 		skip: !isPlatform,
 	});
+	const recentLogs = recentLogsResult?.items;
 	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
 		"/api/sparklines/model:input",
 		{ requireAuth: false },
@@ -267,7 +261,7 @@ export function Dashboard() {
 										<tr
 											key={g.id}
 											onClick={() => setSelectedModel(g)}
-											className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+											className="even:bg-gray-50/50 hover:bg-gray-100/60 dark:even:bg-white/[0.015] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
 										>
 											<td className="py-2.5 pl-5 pr-2">
 												<div className="min-w-0">

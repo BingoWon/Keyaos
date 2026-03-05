@@ -71,9 +71,16 @@ credits.post("/checkout", async (c) => {
 
 // ─── GET /payments ───────────────────────────────────────
 credits.get("/payments", async (c) => {
+	const page = Math.max(1, Number(c.req.query("page")) || 1);
+	const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 20), 100);
+	const offset = (page - 1) * limit;
 	const ownerId = c.get("owner_id");
-	const history = await new PaymentsDao(c.env.DB).getHistory(ownerId);
-	return c.json({ data: history });
+	const dao = new PaymentsDao(c.env.DB);
+	const [items, total] = await Promise.all([
+		dao.getHistory(ownerId, limit, offset),
+		dao.countHistory(ownerId),
+	]);
+	return c.json({ data: { items, total } });
 });
 
 // ─── POST /cancel-pending ────────────────────────────────
@@ -85,59 +92,68 @@ credits.post("/cancel-pending", async (c) => {
 
 // ─── GET /transactions ───────────────────────────────────
 credits.get("/transactions", async (c) => {
-	const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
+	const page = Math.max(1, Number(c.req.query("page")) || 1);
+	const limit = Math.min(Math.max(1, Number(c.req.query("limit")) || 20), 100);
+	const offset = (page - 1) * limit;
 	const userId = c.get("owner_id");
 	const db = c.env.DB;
 
-	const res = await db
-		.prepare(
-			`SELECT * FROM (
-				SELECT
-					id, 'log' AS type,
-					CASE WHEN consumer_id = ? THEN 'api_spend' ELSE 'credential_earn' END AS category,
-					model AS description,
-					CASE WHEN consumer_id = ? THEN -consumer_charged ELSE provider_earned END AS amount,
-					created_at
-				FROM logs
-				WHERE (consumer_id = ? OR credential_owner_id = ?)
-					AND NOT (consumer_id = ? AND credential_owner_id = ?)
+	const baseQuery = `
+		SELECT
+			id, 'log' AS type,
+			CASE WHEN consumer_id = ?1 THEN 'api_spend' ELSE 'credential_earn' END AS category,
+			model_id AS description,
+			CASE WHEN consumer_id = ?1 THEN -consumer_charged ELSE provider_earned END AS amount,
+			created_at
+		FROM logs
+		WHERE (consumer_id = ?1 OR credential_owner_id = ?1)
+			AND NOT (consumer_id = ?1 AND credential_owner_id = ?1)
 
-				UNION ALL
+		UNION ALL
 
-				SELECT
-					id, 'top_up' AS type,
-					CASE WHEN type = 'auto' THEN 'auto_topup' ELSE 'top_up' END AS category,
-					CASE WHEN type = 'auto' THEN 'Auto Top-Up' ELSE 'Stripe' END AS description,
-					credits AS amount,
-					created_at
-				FROM payments
-				WHERE owner_id = ? AND status = 'completed'
+		SELECT
+			id, 'top_up' AS type,
+			CASE WHEN type = 'auto' THEN 'auto_topup' ELSE 'top_up' END AS category,
+			CASE WHEN type = 'auto' THEN 'Auto Top-Up' ELSE 'Stripe' END AS description,
+			credits AS amount,
+			created_at
+		FROM payments
+		WHERE owner_id = ?1 AND status = 'completed'
 
-				UNION ALL
+		UNION ALL
 
-				SELECT
-					id, 'adjustment' AS type,
-					CASE WHEN amount >= 0 THEN 'grant' ELSE 'revoke' END AS category,
-					COALESCE(reason, '') AS description,
-					amount,
-					created_at
-				FROM credit_adjustments
-				WHERE owner_id = ?
-			) combined
-			ORDER BY created_at DESC
-			LIMIT ?`,
-		)
-		.bind(userId, userId, userId, userId, userId, userId, userId, userId, limit)
-		.all<{
-			id: string;
-			type: "log" | "top_up" | "adjustment";
-			category: string;
-			description: string;
-			amount: number;
-			created_at: number;
-		}>();
+		SELECT
+			id, 'adjustment' AS type,
+			CASE WHEN amount >= 0 THEN 'grant' ELSE 'revoke' END AS category,
+			COALESCE(reason, '') AS description,
+			amount,
+			created_at
+		FROM credit_adjustments
+		WHERE owner_id = ?1`;
 
-	return c.json({ data: res.results || [] });
+	const [items, countRes] = await Promise.all([
+		db
+			.prepare(
+				`SELECT * FROM (${baseQuery}) combined ORDER BY created_at DESC LIMIT ?2 OFFSET ?3`,
+			)
+			.bind(userId, limit, offset)
+			.all<{
+				id: string;
+				type: "log" | "top_up" | "adjustment";
+				category: string;
+				description: string;
+				amount: number;
+				created_at: number;
+			}>(),
+		db
+			.prepare(`SELECT COUNT(*) AS total FROM (${baseQuery})`)
+			.bind(userId)
+			.first<{ total: number }>(),
+	]);
+
+	return c.json({
+		data: { items: items.results || [], total: countRes?.total ?? 0 },
+	});
 });
 
 // ─── Auto Top-Up Config ─────────────────────────────────

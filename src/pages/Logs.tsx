@@ -1,75 +1,32 @@
-import {
-	ArrowDownTrayIcon,
-	ArrowPathIcon,
-	ArrowUpTrayIcon,
-} from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { DirectionBadge } from "../components/DirectionBadge";
 import { Pagination } from "../components/Pagination";
 import { PromoBanner } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
+import type { LogEntry } from "../types/log";
 import { formatSignedUSD } from "../utils/format";
 
-interface LogEntry {
-	id: string;
-	direction: "spent" | "earned" | "self";
-	provider_id: string;
-	model_id: string;
-	inputTokens: number;
-	outputTokens: number;
-	netCredits: number;
-	createdAt: number;
-}
-
 const DEFAULT_PAGE_SIZE = 20;
-
-export function DirectionBadge({
-	direction,
-}: {
-	direction: "spent" | "earned" | "self";
-}) {
-	const { t } = useTranslation();
-
-	if (direction === "earned") {
-		return (
-			<span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
-				<ArrowDownTrayIcon className="size-3" />
-				{t("logs.earned")}
-			</span>
-		);
-	}
-	if (direction === "spent") {
-		return (
-			<span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
-				<ArrowUpTrayIcon className="size-3" />
-				{t("logs.spent")}
-			</span>
-		);
-	}
-	return (
-		<span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400">
-			<ArrowPathIcon className="size-3" />
-			{t("logs.self_use")}
-		</span>
-	);
-}
 
 export function Logs() {
 	const { t } = useTranslation();
 	const formatDateTime = useFormatDateTime();
-	const {
-		data: entries,
-		loading,
-		error,
-	} = useFetch<LogEntry[]>("/api/logs?limit=500");
-
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-	const totalPages = Math.max(1, Math.ceil((entries?.length ?? 0) / pageSize));
-	const safePage = Math.min(page, totalPages);
-	const paged = entries?.slice((safePage - 1) * pageSize, safePage * pageSize);
+	const {
+		data: result,
+		loading,
+		error,
+	} = useFetch<{ items: LogEntry[]; total: number }>(
+		`/api/logs?page=${page}&limit=${pageSize}`,
+	);
+
+	const items = result?.items ?? [];
+	const total = result?.total ?? 0;
+	const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
 	if (error) {
 		return (
@@ -109,7 +66,7 @@ export function Logs() {
 				}
 			/>
 
-			{loading ? (
+			{loading && !items.length ? (
 				<div className="mt-5 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
 					<div className="divide-y divide-gray-50 dark:divide-white/[0.03]">
 						{Array.from({ length: 8 }).map((_, i) => (
@@ -123,7 +80,7 @@ export function Logs() {
 						))}
 					</div>
 				</div>
-			) : !entries?.length ? (
+			) : !items.length ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 					{t("logs.no_data")}
 				</p>
@@ -149,7 +106,7 @@ export function Logs() {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-								{paged?.map((tx) => (
+								{items.map((tx) => (
 									<tr
 										key={tx.id}
 										className="even:bg-gray-50/50 dark:even:bg-white/[0.015]"
@@ -190,10 +147,10 @@ export function Logs() {
 					</div>
 					<div className="mt-3 flex items-center justify-between">
 						<span className="text-xs text-gray-500 dark:text-gray-400">
-							{entries.length} {t("logs.title").toLowerCase()}
+							{total.toLocaleString()} {t("logs.title").toLowerCase()}
 						</span>
 						<Pagination
-							page={safePage}
+							page={page}
 							totalPages={totalPages}
 							onChange={setPage}
 							pageSize={pageSize}

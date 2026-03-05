@@ -66,13 +66,25 @@ export class PaymentsDao {
 		return res.meta?.changes ?? 0;
 	}
 
-	async getHistory(ownerId: string, limit = 50): Promise<DbPayment[]> {
+	async getHistory(
+		ownerId: string,
+		limit: number,
+		offset = 0,
+	): Promise<DbPayment[]> {
 		const res = await this.db
 			.prepare(
-				"SELECT * FROM payments WHERE owner_id = ? ORDER BY created_at DESC LIMIT ?",
+				"SELECT * FROM payments WHERE owner_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
 			)
-			.bind(ownerId, limit)
+			.bind(ownerId, limit, offset)
 			.all<DbPayment>();
 		return res.results || [];
+	}
+
+	async countHistory(ownerId: string): Promise<number> {
+		const res = await this.db
+			.prepare("SELECT COUNT(*) AS total FROM payments WHERE owner_id = ?")
+			.bind(ownerId)
+			.first<{ total: number }>();
+		return res?.total ?? 0;
 	}
 }

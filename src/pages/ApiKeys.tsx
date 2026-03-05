@@ -185,7 +185,7 @@ export function ApiKeys() {
 					<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
 						{t("api_keys.title")}
 					</h1>
-					<p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
 						{t("api_keys.subtitle")}
 					</p>
 				</div>
