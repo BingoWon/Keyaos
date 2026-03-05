@@ -5,11 +5,14 @@ import {
 	MagnifyingGlassIcon,
 	ServerStackIcon,
 } from "@heroicons/react/24/outline";
-import { type FormEvent, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { isPlatform, UserMenu, useAuth } from "../auth";
+import { useFetch } from "../hooks/useFetch";
+import type { ModelEntry } from "../types/model";
 import { classNames } from "../utils/classNames";
+import { aggregateModels } from "../utils/models";
 import { LanguageSelector } from "./LanguageSelector";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -36,31 +39,161 @@ const NAV_LINKS = [
 	{ key: "nav.docs", href: "/docs", icon: BookOpenIcon },
 ] as const;
 
+const SEARCH_PREVIEW_LIMIT = 8;
+
 function ModelSearch() {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [q, setQ] = useState("");
+	const [open, setOpen] = useState(false);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [activeIdx, setActiveIdx] = useState(-1);
 
-	const onSubmit = (e: FormEvent) => {
-		e.preventDefault();
-		const trimmed = q.trim();
-		navigate(trimmed ? `/models?q=${encodeURIComponent(trimmed)}` : "/models");
+	const { data: raw } = useFetch<ModelEntry[]>("/api/models", {
+		requireAuth: false,
+	});
+	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
+
+	const results = useMemo(() => {
+		if (!q.trim()) return [];
+		const lower = q.toLowerCase();
+		return groups
+			.filter(
+				(g) =>
+					g.id.toLowerCase().includes(lower) ||
+					g.displayName.toLowerCase().includes(lower),
+			)
+			.slice(0, SEARCH_PREVIEW_LIMIT);
+	}, [q, groups]);
+
+	const showPanel = open && q.trim().length > 0;
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset selection on every keystroke
+	useEffect(() => setActiveIdx(-1), [q]);
+
+	useEffect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				containerRef.current &&
+				!containerRef.current.contains(e.target as Node)
+			) {
+				setOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
+
+	const go = (modelId: string) => {
+		navigate(`/models?q=${encodeURIComponent(modelId)}`);
 		setQ("");
+		setOpen(false);
+		inputRef.current?.blur();
+	};
+
+	const onKeyDown = (e: React.KeyboardEvent) => {
+		if (!showPanel || results.length === 0) {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				go(q.trim());
+			}
+			return;
+		}
+		if (e.key === "ArrowDown") {
+			e.preventDefault();
+			setActiveIdx((i) => (i + 1) % results.length);
+		} else if (e.key === "ArrowUp") {
+			e.preventDefault();
+			setActiveIdx((i) => (i <= 0 ? results.length - 1 : i - 1));
+		} else if (e.key === "Enter") {
+			e.preventDefault();
+			if (activeIdx >= 0 && results[activeIdx]) {
+				go(results[activeIdx].id);
+			} else {
+				go(q.trim());
+			}
+		} else if (e.key === "Escape") {
+			setOpen(false);
+		}
 	};
 
 	return (
-		<form onSubmit={onSubmit} className="hidden lg:flex">
-			<div className="relative">
-				<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-				<input
-					type="text"
-					value={q}
-					onChange={(e) => setQ(e.target.value)}
-					placeholder={t("models.search_placeholder")}
-					className="h-8 w-52 rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-brand-400 focus:bg-white focus:ring-1 focus:ring-brand-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-500 dark:focus:bg-white/10"
-				/>
-			</div>
-		</form>
+		<div ref={containerRef} className="relative hidden lg:block">
+			<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+			<input
+				ref={inputRef}
+				type="text"
+				value={q}
+				onChange={(e) => {
+					setQ(e.target.value);
+					setOpen(true);
+				}}
+				onFocus={() => setOpen(true)}
+				onKeyDown={onKeyDown}
+				placeholder={t("models.search_placeholder")}
+				className="h-8 w-72 rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-brand-400 focus:bg-white focus:ring-1 focus:ring-brand-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-500 dark:focus:bg-white/10"
+				role="combobox"
+				aria-expanded={showPanel}
+				aria-autocomplete="list"
+				aria-controls="model-search-listbox"
+			/>
+
+			{showPanel && (
+				<div
+					id="model-search-listbox"
+					role="listbox"
+					className="absolute left-0 top-full z-50 mt-1.5 w-96 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-white/10 dark:bg-gray-800"
+				>
+					{results.length > 0 ? (
+						<div className="max-h-80 overflow-y-auto py-1">
+							{results.map((g, i) => (
+								<div
+									key={g.id}
+									tabIndex={-1}
+									role="option"
+									aria-selected={i === activeIdx}
+									onMouseEnter={() => setActiveIdx(i)}
+									onClick={() => go(g.id)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") go(g.id);
+									}}
+									className={classNames(
+										"flex cursor-pointer items-baseline gap-2 px-3 py-2 text-sm transition-colors",
+										i === activeIdx
+											? "bg-brand-50 dark:bg-brand-500/15"
+											: "hover:bg-gray-50 dark:hover:bg-white/5",
+									)}
+								>
+									<span className="font-medium text-gray-900 dark:text-white truncate">
+										{g.displayName}
+									</span>
+									<span className="shrink-0 font-mono text-xs text-gray-400 dark:text-gray-500">
+										{g.id}
+									</span>
+									<span className="ml-auto shrink-0 text-xs text-gray-400 dark:text-gray-500">
+										{g.providers.length}p
+									</span>
+								</div>
+							))}
+						</div>
+					) : (
+						<div className="px-3 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
+							{t("models.no_match", { query: q.trim() })}
+						</div>
+					)}
+					<div className="border-t border-gray-100 px-3 py-2 dark:border-white/5">
+						<button
+							type="button"
+							onClick={() => go(q.trim())}
+							className="w-full text-left text-xs font-medium text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+						>
+							{t("landing.models_explore")} →
+						</button>
+					</div>
+				</div>
+			)}
+		</div>
 	);
 }
 

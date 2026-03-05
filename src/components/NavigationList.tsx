@@ -39,7 +39,7 @@ export function NavigationList({ onNavigate }: NavigationListProps) {
 	const groups: NavItem[][] = [
 		[
 			{
-				name: t("nav.dashboard"),
+				name: t("nav.overview"),
 				href: "/dashboard",
 				icon: HomeIcon,
 				activeIcon: HomeIconSolid,

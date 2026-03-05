@@ -41,7 +41,8 @@
 		"free": "Free"
 	},
 	"nav": {
-		"dashboard": "Overview",
+		"dashboard": "Dashboard",
+		"overview": "Overview",
 		"models": "Models",
 		"providers": "Providers",
 		"byok": "BYOK",

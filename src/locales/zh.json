@@ -41,7 +41,8 @@
 		"free": "免费"
 	},
 	"nav": {
-		"dashboard": "概览",
+		"dashboard": "控制台",
+		"overview": "概览",
 		"models": "模型",
 		"providers": "供应商",
 		"byok": "自有密钥",
