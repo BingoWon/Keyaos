@@ -36,6 +36,7 @@
 		"delete": "Delete",
 		"edit": "Edit",
 		"add": "Add",
+		"copy": "Copy",
 		"confirm": "Confirm",
 		"actions": "Actions",
 		"free": "Free"
@@ -81,7 +82,8 @@
 	"api_keys": {
 		"title": "API Keys",
 		"subtitle": "Downstream access keys for your clients",
-		"add_new": "Create API key",
+		"create": "Create API key",
+		"select": "Select API key",
 		"name": "Name",
 		"key": "Key",
 		"created_at": "Created",

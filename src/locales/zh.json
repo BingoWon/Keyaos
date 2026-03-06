@@ -36,6 +36,7 @@
 		"delete": "删除",
 		"edit": "编辑",
 		"add": "添加",
+		"copy": "复制",
 		"confirm": "确认",
 		"actions": "操作",
 		"free": "免费"
@@ -81,7 +82,8 @@
 	"api_keys": {
 		"title": "API 密钥",
 		"subtitle": "为下游客户端生成访问密钥",
-		"add_new": "创建 API Key",
+		"create": "创建 API Key",
+		"select": "选择 API Key",
 		"name": "名称",
 		"key": "密钥",
 		"created_at": "创建时间",

@@ -17,14 +17,7 @@ import { ToggleSwitch } from "../components/ToggleSwitch";
 import { Button } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
-
-interface ApiKeyInfo {
-	id: string;
-	name: string;
-	keyHint: string;
-	isEnabled: boolean;
-	createdAt: number;
-}
+import type { ApiKeyInfo } from "../types/api-key";
 
 export function ApiKeys() {
 	const { t } = useTranslation();
@@ -163,7 +156,7 @@ export function ApiKeys() {
 				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<Button onClick={() => setIsAddOpen(true)}>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
-						{t("api_keys.add_new")}
+						{t("api_keys.create")}
 					</Button>
 				</div>
 			</div>

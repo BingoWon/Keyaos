@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import type { Modality } from "../../worker/core/db/schema";
+import { useAuth } from "../auth";
 import { ApiKeyPicker } from "./ApiKeyPicker";
 
 /* ── Types ──────────────────────────────────────────── */
@@ -382,6 +383,7 @@ interface CodeSamplesProps {
 
 export function CodeSamples({ modelId, variant }: CodeSamplesProps) {
 	const { t } = useTranslation();
+	const { isSignedIn } = useAuth();
 	const tabs = getSnippets(modelId, variant);
 	const [activeIndex, setActiveIndex] = useState(getInitialTab);
 	const [copied, setCopied] = useState(false);
@@ -412,9 +414,11 @@ export function CodeSamples({ modelId, variant }: CodeSamplesProps) {
 				{t(`models.code_intro_${variant}`, INTRO[variant])}
 			</p>
 
-			<div className="mt-4 mb-4">
-				<ApiKeyPicker onChange={setApiKey} />
-			</div>
+			{isSignedIn && (
+				<div className="mt-4 mb-4">
+					<ApiKeyPicker onChange={setApiKey} />
+				</div>
+			)}
 
 			<TabGroup selectedIndex={activeIndex} onChange={handleTabChange}>
 				<div className="overflow-hidden rounded-xl">
@@ -443,12 +447,12 @@ export function CodeSamples({ modelId, variant }: CodeSamplesProps) {
 							{copied ? (
 								<>
 									<CheckIcon className="size-3.5 text-green-400" />
-									<span>Copied</span>
+									<span>{t("api_keys.copied")}</span>
 								</>
 							) : (
 								<>
 									<ClipboardDocumentIcon className="size-3.5" />
-									<span>Copy</span>
+									<span>{t("common.copy")}</span>
 								</>
 							)}
 						</button>

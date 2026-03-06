@@ -75,7 +75,7 @@ export function CreateApiKeyModal({
 		<Modal
 			open={open}
 			onClose={handleClose}
-			title={createdKey ? t("api_keys.key") : t("api_keys.add_new")}
+			title={createdKey ? t("api_keys.key") : t("api_keys.create")}
 			size="md"
 		>
 			{createdKey ? (
@@ -102,7 +102,7 @@ export function CreateApiKeyModal({
 							) : (
 								<span className="flex items-center gap-1">
 									<ClipboardDocumentIcon className="size-3.5" />
-									Copy
+									{t("common.copy")}
 								</span>
 							)}
 						</button>
