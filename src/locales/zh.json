@@ -188,6 +188,17 @@
 			]
 		}
 	},
+	"filters": {
+		"title": "筛选",
+		"clear_all": "清除全部",
+		"input_modalities": "输入模态",
+		"output_modalities": "输出模态",
+		"context_length": "上下文长度",
+		"organization": "组织",
+		"provider": "供应商",
+		"show_more": "展开 +{{count}}",
+		"show_less": "收起"
+	},
 	"models": {
 		"title": "模型",
 		"subtitle": "从上游供应商同步的模型定价",

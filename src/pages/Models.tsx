@@ -3,6 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
+import {
+	applyFilters,
+	EMPTY_FILTERS,
+	isFiltersEmpty,
+	ModelFilters,
+	type ModelFiltersState,
+} from "../components/ModelFilters";
 import { OrgLogo } from "../components/OrgLogo";
 import { Pagination } from "../components/Pagination";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -58,6 +65,7 @@ export function Models() {
 
 	const groups = useMemo(() => aggregateModels(raw ?? []), [raw]);
 
+	// ─── Search ──────────────────────────────────────────
 	const [searchParams] = useSearchParams();
 	const urlQ = searchParams.get("q");
 	const [query, setQuery] = useState(() => urlQ ?? "");
@@ -68,9 +76,21 @@ export function Models() {
 			setPage(1);
 		}
 	}, [urlQ]);
+
+	// ─── Filters ─────────────────────────────────────────
+	const [filters, setFilters] = useState<ModelFiltersState>(EMPTY_FILTERS);
+
+	const handleFiltersChange = useCallback((f: ModelFiltersState) => {
+		setFilters(f);
+		setPage(1);
+	}, []);
+
+	// ─── Pagination ──────────────────────────────────────
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-	const filtered = useMemo(() => {
+
+	// ─── Derived data ────────────────────────────────────
+	const searched = useMemo(() => {
 		if (!query.trim()) return groups;
 		const q = query.toLowerCase();
 		return groups.filter(
@@ -79,6 +99,12 @@ export function Models() {
 				g.displayName.toLowerCase().includes(q),
 		);
 	}, [groups, query]);
+
+	const filtered = useMemo(
+		() =>
+			isFiltersEmpty(filters) ? searched : applyFilters(searched, filters),
+		[searched, filters],
+	);
 
 	const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 	const safePage = Math.min(page, totalPages);
@@ -102,8 +128,12 @@ export function Models() {
 		);
 	}
 
+	const hasData = raw && groups.length > 0;
+	const filtersActive = !isFiltersEmpty(filters);
+
 	return (
 		<div>
+			{/* Header */}
 			<div className="sm:flex sm:items-end">
 				<div className="sm:flex-auto">
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -119,7 +149,7 @@ export function Models() {
 						lastUpdated={lastUpdated}
 						onRefresh={refetch}
 					/>
-					{raw && groups.length > 0 && (
+					{hasData && (
 						<SearchBar
 							value={query}
 							onChange={handleSearch}
@@ -130,209 +160,225 @@ export function Models() {
 			</div>
 
 			{!raw && loading ? (
-				<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
-					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-						<thead>
-							<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
-								<th className="py-2.5 pl-4 pr-2 sm:pl-5">
-									{t("models.model")}
-								</th>
-								<th className="px-2 hidden lg:table-cell">Modalities</th>
-								<th className="px-2 hidden md:table-cell">24h Chart</th>
-								<th className="px-2 hidden md:table-cell">24h Range</th>
-								<th className="px-2 text-right">Input /1M</th>
-								<th className="px-2 text-right">Output /1M</th>
-								<th className="px-2 text-right hidden sm:table-cell">
-									{t("models.context")}
-								</th>
-								<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
-									Providers
-								</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-							{Array.from({ length: 8 }).map((_, i) => (
-								// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
-								<tr key={i}>
-									<td className="py-2.5 pl-4 pr-2 sm:pl-5">
-										<div className="space-y-1.5">
-											<div className="h-4 w-36 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
-											<div className="h-3 w-52 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-										</div>
-									</td>
-									<td className="px-2 py-2.5 hidden lg:table-cell">
-										<div className="flex gap-1">
-											<div className="h-5 w-10 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-											<div className="h-5 w-10 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-										</div>
-									</td>
-									<td className="px-2 py-2.5 hidden md:table-cell">
-										<div className="h-6 w-[clamp(80px,11vw,160px)] rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-									</td>
-									<td className="px-2 py-2.5 hidden md:table-cell">
-										<div className="h-4 w-[clamp(80px,11vw,160px)] rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
-									</td>
-									<td className="px-2 py-2.5 text-right">
-										<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
-									</td>
-									<td className="px-2 py-2.5 text-right">
-										<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
-									</td>
-									<td className="px-2 py-2.5 hidden sm:table-cell text-right">
-										<div className="h-4 w-12 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
-									</td>
-									<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
-										<div className="h-5 w-7 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+				<SkeletonTable t={t} />
 			) : groups.length === 0 ? (
 				<p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
 					{t("models.no_data")}
 				</p>
 			) : (
-				<>
-					<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
-						<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
-							<thead>
-								<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
-									<th className="py-2.5 pl-4 pr-2 sm:pl-5">
-										{t("models.model")}
-									</th>
-									<th className="px-2 hidden lg:table-cell">Modalities</th>
-									<th className="px-2 hidden md:table-cell">24h Chart</th>
-									<th className="px-2 hidden md:table-cell">24h Range</th>
-									<th className="px-2 text-right">Input /1M</th>
-									<th className="px-2 text-right">Output /1M</th>
-									<th className="px-2 text-right hidden sm:table-cell">
-										{t("models.context")}
-									</th>
-									<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
-										Providers
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
-								{paged.map((g) => {
-									const best = g.providers[0];
-									const maxCtx = Math.max(
-										...g.providers.map((p) => p.contextLength),
-									);
-									const spark = inputSparks?.[g.id];
-									return (
-										<tr
-											key={g.id}
-											onClick={(e) => {
-												if ((e.target as HTMLElement).closest("a,button"))
-													return;
-												navigate(`/${g.id}`);
-											}}
-											className="even:bg-gray-50/50 hover:bg-gray-100/60 dark:even:bg-white/[0.015] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
-										>
-											<td className="py-2.5 pl-4 pr-2 sm:pl-5">
-												<div className="min-w-0">
-													<Link
-														to={`/${g.id}`}
-														className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors inline-flex items-center gap-1.5"
-													>
-														<OrgLogo modelId={g.id} />
-														{g.displayName}
-													</Link>
-													<div className="flex items-center gap-1.5 mt-0.5">
-														<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
-															{g.id}
-														</code>
-														<CopyButton text={g.id} />
-														{g.createdAt > 0 && (
-															<Badge variant="warning">
-																{formatRelativeTime(g.createdAt, i18n.language)}
-															</Badge>
-														)}
-													</div>
-												</div>
-											</td>
-											<td className="px-2 py-2.5 hidden lg:table-cell">
-												<ModalityBadges
-													input={g.inputModalities}
-													output={g.outputModalities}
-												/>
-											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell">
-												{spark && (
-													<div className="w-[clamp(80px,11vw,160px)]">
-														<Sparkline data={spark} />
-													</div>
-												)}
-											</td>
-											<td className="px-2 py-2.5 hidden md:table-cell whitespace-nowrap">
-												{spark && (
-													<div className="w-[clamp(80px,11vw,160px)]">
-														<PriceRange data={spark} format={formatPrice} />
-													</div>
-												)}
-											</td>
-											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
-												<DualPrice
-													original={best.inputPrice}
-													platform={best.platformInputPrice}
-												/>
-											</td>
-											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
-												<DualPrice
-													original={best.outputPrice}
-													platform={best.platformOutputPrice}
-												/>
-											</td>
-											<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 hidden sm:table-cell whitespace-nowrap">
-												{maxCtx > 0 ? formatContext(maxCtx) : "—"}
-											</td>
-											<td className="py-2.5 pl-2 pr-4 sm:pr-5">
-												<div className="flex items-center justify-end gap-1">
-													<span className="hidden sm:inline-flex items-center gap-0.5">
-														{g.providers.slice(0, 4).map((p) => {
-															const meta = providerMap.get(p.provider_id);
-															return meta ? (
-																<ProviderLogo
-																	key={p.provider_id}
-																	src={meta.logoUrl}
-																	name={meta.name}
-																	size={16}
-																/>
-															) : null;
-														})}
-													</span>
-													<Badge variant="brand">{g.providers.length}</Badge>
-												</div>
-											</td>
-										</tr>
-									);
-								})}
-							</tbody>
-						</table>
-					</div>
+				<div className="mt-5 flex gap-6">
+					{/* Sidebar filters */}
+					<ModelFilters
+						groups={groups}
+						providerMap={providerMap}
+						filters={filters}
+						onChange={handleFiltersChange}
+					/>
 
-					<div className="mt-3 flex items-center justify-between">
-						<span className="text-xs text-gray-500 dark:text-gray-400">
-							{query
-								? t("models.result_count", {
-										count: filtered.length,
-										total: groups.length,
-									})
-								: t("models.total_count", { count: filtered.length })}
-						</span>
-						<Pagination
-							page={safePage}
-							totalPages={totalPages}
-							onChange={setPage}
-							pageSize={pageSize}
-							onPageSizeChange={handlePageSizeChange}
-						/>
+					{/* Main table */}
+					<div className="min-w-0 flex-1">
+						<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
+							<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+								<thead>
+									<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
+										<th className="py-2.5 pl-4 pr-2 sm:pl-5">
+											{t("models.model")}
+										</th>
+										<th className="px-2 hidden lg:table-cell">Modalities</th>
+										<th className="px-2 hidden md:table-cell">24h Chart</th>
+										<th className="px-2 hidden md:table-cell">24h Range</th>
+										<th className="px-2 text-right">Input /1M</th>
+										<th className="px-2 text-right">Output /1M</th>
+										<th className="px-2 text-right hidden sm:table-cell">
+											{t("models.context")}
+										</th>
+										<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+											Providers
+										</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+									{paged.map((g) => {
+										const best = g.providers[0];
+										const maxCtx = Math.max(
+											...g.providers.map((p) => p.contextLength),
+										);
+										const spark = inputSparks?.[g.id];
+										return (
+											<tr
+												key={g.id}
+												onClick={(e) => {
+													if ((e.target as HTMLElement).closest("a,button"))
+														return;
+													navigate(`/${g.id}`);
+												}}
+												className="even:bg-gray-50/50 hover:bg-gray-100/60 dark:even:bg-white/[0.015] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
+											>
+												<td className="py-2.5 pl-4 pr-2 sm:pl-5">
+													<div className="min-w-0">
+														<Link
+															to={`/${g.id}`}
+															className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors inline-flex items-center gap-1.5"
+														>
+															<OrgLogo modelId={g.id} />
+															{g.displayName}
+														</Link>
+														<div className="flex items-center gap-1.5 mt-0.5">
+															<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
+																{g.id}
+															</code>
+															<CopyButton text={g.id} />
+															{g.createdAt > 0 && (
+																<Badge variant="warning">
+																	{formatRelativeTime(
+																		g.createdAt,
+																		i18n.language,
+																	)}
+																</Badge>
+															)}
+														</div>
+													</div>
+												</td>
+												<td className="px-2 py-2.5 hidden lg:table-cell">
+													<ModalityBadges
+														input={g.inputModalities}
+														output={g.outputModalities}
+													/>
+												</td>
+												<td className="px-2 py-2.5 hidden md:table-cell">
+													{spark && (
+														<div className="w-[clamp(80px,11vw,160px)]">
+															<Sparkline data={spark} />
+														</div>
+													)}
+												</td>
+												<td className="px-2 py-2.5 hidden md:table-cell whitespace-nowrap">
+													{spark && (
+														<div className="w-[clamp(80px,11vw,160px)]">
+															<PriceRange data={spark} format={formatPrice} />
+														</div>
+													)}
+												</td>
+												<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
+													<DualPrice
+														original={best.inputPrice}
+														platform={best.platformInputPrice}
+													/>
+												</td>
+												<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
+													<DualPrice
+														original={best.outputPrice}
+														platform={best.platformOutputPrice}
+													/>
+												</td>
+												<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400 hidden sm:table-cell whitespace-nowrap">
+													{maxCtx > 0 ? formatContext(maxCtx) : "—"}
+												</td>
+												<td className="py-2.5 pl-2 pr-4 sm:pr-5">
+													<div className="flex items-center justify-end gap-1">
+														<span className="hidden sm:inline-flex items-center gap-0.5">
+															{g.providers.slice(0, 4).map((p) => {
+																const meta = providerMap.get(p.provider_id);
+																return meta ? (
+																	<ProviderLogo
+																		key={p.provider_id}
+																		src={meta.logoUrl}
+																		name={meta.name}
+																		size={16}
+																	/>
+																) : null;
+															})}
+														</span>
+														<Badge variant="brand">{g.providers.length}</Badge>
+													</div>
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+
+						<div className="mt-3 flex items-center justify-between">
+							<span className="text-xs text-gray-500 dark:text-gray-400">
+								{query || filtersActive
+									? t("models.result_count", {
+											count: filtered.length,
+											total: groups.length,
+										})
+									: t("models.total_count", { count: filtered.length })}
+							</span>
+							<Pagination
+								page={safePage}
+								totalPages={totalPages}
+								onChange={setPage}
+								pageSize={pageSize}
+								onPageSizeChange={handlePageSizeChange}
+							/>
+						</div>
 					</div>
-				</>
+				</div>
 			)}
+		</div>
+	);
+}
+
+function SkeletonTable({ t }: { t: (key: string) => string }) {
+	return (
+		<div className="mt-5 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5 overflow-hidden">
+			<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+				<thead>
+					<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
+						<th className="py-2.5 pl-4 pr-2 sm:pl-5">{t("models.model")}</th>
+						<th className="px-2 hidden lg:table-cell">Modalities</th>
+						<th className="px-2 hidden md:table-cell">24h Chart</th>
+						<th className="px-2 hidden md:table-cell">24h Range</th>
+						<th className="px-2 text-right">Input /1M</th>
+						<th className="px-2 text-right">Output /1M</th>
+						<th className="px-2 text-right hidden sm:table-cell">
+							{t("models.context")}
+						</th>
+						<th className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">Providers</th>
+					</tr>
+				</thead>
+				<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+					{Array.from({ length: 8 }).map((_, i) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+						<tr key={i}>
+							<td className="py-2.5 pl-4 pr-2 sm:pl-5">
+								<div className="space-y-1.5">
+									<div className="h-4 w-36 rounded bg-gray-200 dark:bg-white/10 animate-pulse" />
+									<div className="h-3 w-52 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+								</div>
+							</td>
+							<td className="px-2 py-2.5 hidden lg:table-cell">
+								<div className="flex gap-1">
+									<div className="h-5 w-10 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+									<div className="h-5 w-10 rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+								</div>
+							</td>
+							<td className="px-2 py-2.5 hidden md:table-cell">
+								<div className="h-6 w-[clamp(80px,11vw,160px)] rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+							</td>
+							<td className="px-2 py-2.5 hidden md:table-cell">
+								<div className="h-4 w-[clamp(80px,11vw,160px)] rounded bg-gray-100 dark:bg-white/5 animate-pulse" />
+							</td>
+							<td className="px-2 py-2.5 text-right">
+								<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
+							</td>
+							<td className="px-2 py-2.5 text-right">
+								<div className="h-4 w-16 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
+							</td>
+							<td className="px-2 py-2.5 hidden sm:table-cell text-right">
+								<div className="h-4 w-12 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
+							</td>
+							<td className="py-2.5 pl-2 pr-4 sm:pr-5 text-right">
+								<div className="h-5 w-7 rounded bg-gray-100 dark:bg-white/5 animate-pulse ml-auto" />
+							</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
 		</div>
 	);
 }

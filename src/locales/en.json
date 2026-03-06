@@ -191,6 +191,17 @@
 			]
 		}
 	},
+	"filters": {
+		"title": "Filters",
+		"clear_all": "Clear all",
+		"input_modalities": "Input Modalities",
+		"output_modalities": "Output Modalities",
+		"context_length": "Context Length",
+		"organization": "Organization",
+		"provider": "Provider",
+		"show_more": "+{{count}} more",
+		"show_less": "Show less"
+	},
 	"models": {
 		"title": "Models",
 		"subtitle": "Model pricing synced from upstream providers",
