@@ -87,19 +87,27 @@ function ModelSearch() {
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
-	const go = (modelId: string) => {
-		const trimmed = modelId.trim();
-		navigate(trimmed ? `/${trimmed}` : "/models");
+	const goToModel = (modelId: string) => {
+		navigate(`/${modelId}`);
+		setQ("");
+		setOpen(false);
+		inputRef.current?.blur();
+	};
+
+	const goToSearch = (query: string) => {
+		navigate(query ? `/models?q=${encodeURIComponent(query)}` : "/models");
 		setQ("");
 		setOpen(false);
 		inputRef.current?.blur();
 	};
 
 	const onKeyDown = (e: React.KeyboardEvent) => {
+		if (e.nativeEvent.isComposing) return;
+
 		if (!showPanel || results.length === 0) {
 			if (e.key === "Enter") {
 				e.preventDefault();
-				go(q.trim());
+				goToSearch(q.trim());
 			}
 			return;
 		}
@@ -112,9 +120,9 @@ function ModelSearch() {
 		} else if (e.key === "Enter") {
 			e.preventDefault();
 			if (activeIdx >= 0 && results[activeIdx]) {
-				go(results[activeIdx].id);
+				goToModel(results[activeIdx].id);
 			} else {
-				go(q.trim());
+				goToSearch(q.trim());
 			}
 		} else if (e.key === "Escape") {
 			setOpen(false);
@@ -157,9 +165,9 @@ function ModelSearch() {
 									role="option"
 									aria-selected={i === activeIdx}
 									onMouseEnter={() => setActiveIdx(i)}
-									onClick={() => go(g.id)}
+									onClick={() => goToModel(g.id)}
 									onKeyDown={(e) => {
-										if (e.key === "Enter") go(g.id);
+										if (e.key === "Enter") goToModel(g.id);
 									}}
 									className={classNames(
 										"flex cursor-pointer items-center gap-2 px-3 py-2 text-sm font-medium text-gray-900 transition-colors dark:text-white",
