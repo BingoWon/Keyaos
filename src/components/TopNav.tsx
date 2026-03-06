@@ -87,6 +87,19 @@ function ModelSearch() {
 		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
+	useEffect(() => {
+		const handleSlash = (e: KeyboardEvent) => {
+			if (e.key !== "/") return;
+			const tag = (e.target as HTMLElement).tagName;
+			if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+			if ((e.target as HTMLElement).isContentEditable) return;
+			e.preventDefault();
+			inputRef.current?.focus();
+		};
+		document.addEventListener("keydown", handleSlash);
+		return () => document.removeEventListener("keydown", handleSlash);
+	}, []);
+
 	const goToModel = (modelId: string) => {
 		navigate(`/${modelId}`);
 		setQ("");
@@ -132,6 +145,11 @@ function ModelSearch() {
 	return (
 		<div ref={containerRef} className="relative hidden lg:block">
 			<MagnifyingGlassIcon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+			{!open && !q && (
+				<kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-medium text-gray-400 dark:border-white/10 dark:bg-white/10 dark:text-gray-500">
+					/
+				</kbd>
+			)}
 			<input
 				ref={inputRef}
 				type="text"
@@ -143,7 +161,7 @@ function ModelSearch() {
 				onFocus={() => setOpen(true)}
 				onKeyDown={onKeyDown}
 				placeholder={t("models.search_placeholder")}
-				className="h-8 w-72 rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-brand-400 focus:bg-white focus:ring-1 focus:ring-brand-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-500 dark:focus:bg-white/10"
+				className="h-8 w-72 rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-8 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-colors focus:border-brand-400 focus:bg-white focus:ring-1 focus:ring-brand-400/30 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-500 dark:focus:bg-white/10"
 				role="combobox"
 				aria-expanded={showPanel}
 				aria-autocomplete="list"
