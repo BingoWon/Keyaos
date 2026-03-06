@@ -88,7 +88,7 @@ function ModelSearch() {
 
 	const go = (modelId: string) => {
 		const trimmed = modelId.trim();
-		navigate(trimmed ? `/models?q=${encodeURIComponent(trimmed)}` : "/models");
+		navigate(trimmed ? `/${trimmed}` : "/models");
 		setQ("");
 		setOpen(false);
 		inputRef.current?.blur();

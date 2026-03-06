@@ -4,9 +4,9 @@ import {
 	CreditCardIcon,
 	DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import { Suspense, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { isPlatform } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { DirectionBadge } from "../components/DirectionBadge";
@@ -26,15 +26,8 @@ import {
 	formatSignedUSD,
 	formatUSD,
 } from "../utils/format";
-import { lazyWithRetry } from "../utils/lazyWithRetry";
-import { aggregateModels, type ModelGroup } from "../utils/models";
+import { aggregateModels } from "../utils/models";
 import { aggregateProviders } from "../utils/providers";
-
-const ModelDetailModal = lazyWithRetry(() =>
-	import("../components/ModelDetailModal").then((m) => ({
-		default: m.ModelDetailModal,
-	})),
-);
 
 const LATEST_MODELS_LIMIT = 8;
 
@@ -46,6 +39,7 @@ interface PoolStats {
 
 export function Dashboard() {
 	const { t, i18n } = useTranslation();
+	const navigate = useNavigate();
 	const formatDateTime = useFormatDateTime();
 	const { data: poolStats } = useFetch<PoolStats>("/api/pool/stats");
 	const { data: balance } = useFetch<{ balance: number }>(
@@ -91,8 +85,6 @@ export function Dashboard() {
 		() => new Map((providersData ?? []).map((m) => [m.id, m])),
 		[providersData],
 	);
-
-	const [selectedModel, setSelectedModel] = useState<ModelGroup | null>(null);
 
 	const statCards = [
 		...(isPlatform
@@ -260,7 +252,7 @@ export function Dashboard() {
 									return (
 										<tr
 											key={g.id}
-											onClick={() => setSelectedModel(g)}
+											onClick={() => navigate(`/${g.id}`)}
 											className="even:bg-gray-50/50 hover:bg-gray-100/60 dark:even:bg-white/[0.015] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
 										>
 											<td className="py-2.5 pl-5 pr-2">
@@ -387,16 +379,6 @@ export function Dashboard() {
 						</tbody>
 					</table>
 				</div>
-			)}
-
-			{selectedModel && (
-				<Suspense fallback={null}>
-					<ModelDetailModal
-						group={selectedModel}
-						providerMap={providerMap}
-						onClose={() => setSelectedModel(null)}
-					/>
-				</Suspense>
 			)}
 		</div>
 	);

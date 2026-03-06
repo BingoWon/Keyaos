@@ -24,6 +24,9 @@ const Dashboard = lazyWithRetry(() =>
 const Models = lazyWithRetry(() =>
 	import("./pages/Models").then((m) => ({ default: m.Models })),
 );
+const ModelDetail = lazyWithRetry(() =>
+	import("./pages/ModelDetail").then((m) => ({ default: m.ModelDetail })),
+);
 const Providers = lazyWithRetry(() =>
 	import("./pages/Providers").then((m) => ({ default: m.Providers })),
 );
@@ -215,6 +218,7 @@ export const router = createBrowserRouter([
 				children: [
 					{ path: "/models", element: <Models /> },
 					{ path: "/providers", element: <Providers /> },
+					{ path: "/:org/:model", element: <ModelDetail /> },
 				],
 			},
 

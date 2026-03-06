@@ -1,6 +1,6 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
 import { Pagination } from "../components/Pagination";
@@ -22,19 +22,13 @@ import {
 	formatPrice,
 	formatRelativeTime,
 } from "../utils/format";
-import { lazyWithRetry } from "../utils/lazyWithRetry";
-import { aggregateModels, type ModelGroup } from "../utils/models";
-
-const ModelDetailModal = lazyWithRetry(() =>
-	import("../components/ModelDetailModal").then((m) => ({
-		default: m.ModelDetailModal,
-	})),
-);
+import { aggregateModels } from "../utils/models";
 
 const DEFAULT_PAGE_SIZE = 20;
 
 export function Models() {
 	const { t, i18n } = useTranslation();
+	const navigate = useNavigate();
 	const {
 		data: raw,
 		loading,
@@ -75,8 +69,6 @@ export function Models() {
 	}, [urlQ]);
 	const [page, setPage] = useState(1);
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-	const [selected, setSelected] = useState<ModelGroup | null>(null);
-
 	const filtered = useMemo(() => {
 		if (!query.trim()) return groups;
 		const q = query.toLowerCase();
@@ -232,7 +224,7 @@ export function Models() {
 									return (
 										<tr
 											key={g.id}
-											onClick={() => setSelected(g)}
+											onClick={() => navigate(`/${g.id}`)}
 											className="even:bg-gray-50/50 hover:bg-gray-100/60 dark:even:bg-white/[0.015] dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
 										>
 											<td className="py-2.5 pl-4 pr-2 sm:pl-5">
@@ -331,16 +323,6 @@ export function Models() {
 						/>
 					</div>
 				</>
-			)}
-
-			{selected && (
-				<Suspense fallback={null}>
-					<ModelDetailModal
-						group={selected}
-						providerMap={providerMap}
-						onClose={() => setSelected(null)}
-					/>
-				</Suspense>
 			)}
 		</div>
 	);
