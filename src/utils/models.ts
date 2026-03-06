@@ -5,6 +5,7 @@ import { mergeModalities } from "./modalities";
 export interface ModelGroup {
 	id: string;
 	displayName: string;
+	description: string | null;
 	providers: ProviderRow[];
 	createdAt: number;
 	inputModalities: Modality[];
@@ -29,6 +30,7 @@ export function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 			group = {
 				id: e.id,
 				displayName: e.name || e.id,
+				description: e.description ?? null,
 				providers: [],
 				createdAt: 0,
 				inputModalities: e.input_modalities ?? ["text"],
@@ -38,6 +40,9 @@ export function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		}
 		if (e.name && group.displayName === group.id) {
 			group.displayName = e.name;
+		}
+		if (e.description && !group.description) {
+			group.description = e.description;
 		}
 		mergeModalities(group.inputModalities, e.input_modalities);
 		mergeModalities(group.outputModalities, e.output_modalities);

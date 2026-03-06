@@ -1,5 +1,8 @@
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
-import { useEffect, useMemo } from "react";
+import {
+	ChatBubbleLeftRightIcon,
+	ChevronDownIcon,
+} from "@heroicons/react/24/outline";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
@@ -54,6 +57,7 @@ export function ModelDetail() {
 						<div className="h-5 w-28 rounded bg-gray-100 dark:bg-white/5" />
 					</div>
 				</div>
+				<div className="h-16 rounded-xl bg-gray-100 dark:bg-white/5" />
 				<div className="h-64 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5" />
 				<div className="h-48 rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5" />
 			</div>
@@ -73,7 +77,7 @@ export function ModelDetail() {
 					to="/models"
 					className="mt-4 inline-block text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
 				>
-					← {t("models.back_to_list", "Back to models")}
+					&larr; {t("models.back_to_list", "Back to models")}
 				</Link>
 			</div>
 		);
@@ -118,6 +122,9 @@ export function ModelDetail() {
 					Chat
 				</Link>
 			</div>
+
+			{/* Collapsible Description */}
+			{group.description && <DescriptionSection text={group.description} />}
 
 			{/* Price Chart */}
 			<PriceChart dimension="model" value={group.id} />
@@ -193,5 +200,34 @@ export function ModelDetail() {
 				</table>
 			</div>
 		</div>
+	);
+}
+
+const COLLAPSED_HEIGHT = 72;
+
+function DescriptionSection({ text }: { text: string }) {
+	const [expanded, setExpanded] = useState(false);
+
+	return (
+		<button
+			type="button"
+			onClick={() => setExpanded((v) => !v)}
+			className="relative block w-full cursor-pointer text-left"
+		>
+			<div
+				className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+				style={{ maxHeight: expanded ? 600 : COLLAPSED_HEIGHT }}
+			>
+				<p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 whitespace-pre-line">
+					{text}
+				</p>
+			</div>
+			{!expanded && (
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white dark:from-gray-950" />
+			)}
+			<ChevronDownIcon
+				className={`absolute right-0 top-1/2 size-4 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+			/>
+		</button>
 	);
 }

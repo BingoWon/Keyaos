@@ -122,10 +122,12 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 
 	const data = all.map((m) => {
 		const mul = providerMuls.get(m.provider_id) ?? m.best_multiplier;
+		const meta = m.metadata ? JSON.parse(m.metadata) : null;
 		return {
 			id: m.model_id,
 			provider_id: m.provider_id,
 			name: m.name,
+			description: (meta?.description as string) ?? null,
 			input_price: m.input_price,
 			output_price: m.output_price,
 			...(mul != null &&

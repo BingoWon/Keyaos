@@ -9,6 +9,7 @@ import {
 import { Bars3Icon, ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import type { Modality } from "../../worker/core/db/schema";
 import { useAuth } from "../auth";
 import { CopyButton } from "../components/CopyButton";
@@ -35,14 +36,29 @@ const AUTO_PROVIDER = "auto";
 export function Chat() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
+	const [searchParams] = useSearchParams();
+	const urlModel = searchParams.get("model");
 	const [modelId, setModelId] = useState(
-		() => localStorage.getItem(LS_MODEL_KEY) || "",
+		() => urlModel || localStorage.getItem(LS_MODEL_KEY) || "",
 	);
 	const [providerId, setProviderId] = useState(
 		() => localStorage.getItem(LS_PROVIDER_KEY) || AUTO_PROVIDER,
 	);
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [systemPrompt, setSystemPrompt] = useState(loadSystemPrompt);
+
+	const handleModelIdChange = useCallback((v: string) => {
+		setModelId(v);
+		try {
+			localStorage.setItem(LS_MODEL_KEY, v);
+		} catch {
+			/* quota exceeded – ignore */
+		}
+	}, []);
+
+	useEffect(() => {
+		if (urlModel) handleModelIdChange(urlModel);
+	}, [urlModel, handleModelIdChange]);
 
 	const activeThreadModel = useActiveThreadModel();
 	useEffect(() => {
@@ -53,15 +69,6 @@ export function Chat() {
 			if (stored) setModelId(stored);
 		}
 	}, [activeThreadModel]);
-
-	const handleModelIdChange = useCallback((v: string) => {
-		setModelId(v);
-		try {
-			localStorage.setItem(LS_MODEL_KEY, v);
-		} catch {
-			/* quota exceeded – ignore */
-		}
-	}, []);
 
 	const handleProviderIdChange = useCallback((v: string) => {
 		setProviderId(v);

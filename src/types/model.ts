@@ -5,6 +5,7 @@ export interface ModelEntry {
 	id: string;
 	provider_id: string;
 	name?: string;
+	description?: string | null;
 	input_price?: number;
 	output_price?: number;
 	platform_input_price?: number;
