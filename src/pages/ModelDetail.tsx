@@ -9,7 +9,7 @@ import { ModalityBadges } from "../components/Modalities";
 import { OrgLogo } from "../components/OrgLogo";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge, buttonClass, DualPrice } from "../components/ui";
+import { Badge, Breadcrumb, buttonClass, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
@@ -91,6 +91,14 @@ export function ModelDetail() {
 
 	return (
 		<div className="space-y-8">
+			{/* Breadcrumb */}
+			<Breadcrumb
+				items={[
+					{ label: t("nav.models", "Models"), to: "/models" },
+					{ label: group.displayName },
+				]}
+			/>
+
 			{/* Header */}
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">

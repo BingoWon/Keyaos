@@ -84,7 +84,7 @@
 	animation: float-slow-reverse 25s ease-in-out infinite;
 }
 
-/* Context length slider — uses Tailwind sky CSS variables */
+/* Context length slider — uses Tailwind green CSS variables */
 .context-slider {
 	-webkit-appearance: none;
 	appearance: none;
@@ -92,9 +92,9 @@
 	border-radius: 9999px;
 	background: linear-gradient(
 		to right,
-		var(--color-sky-100),
-		var(--color-sky-500),
-		var(--color-sky-600)
+		var(--color-green-100),
+		var(--color-green-500),
+		var(--color-green-600)
 	);
 	outline: none;
 }
@@ -105,7 +105,7 @@
 	height: 18px;
 	border-radius: 9999px;
 	background: white;
-	border: 2px solid var(--color-sky-500);
+	border: 2px solid var(--color-green-500);
 	box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
 	cursor: pointer;
 	transition:
@@ -113,32 +113,32 @@
 		border-color 0.15s;
 }
 .context-slider::-webkit-slider-thumb:hover {
-	border-color: var(--color-sky-600);
+	border-color: var(--color-green-600);
 	box-shadow: 0 0 0 4px
-		color-mix(in srgb, var(--color-sky-500) 15%, transparent);
+		color-mix(in srgb, var(--color-green-500) 15%, transparent);
 }
 .context-slider::-moz-range-thumb {
 	width: 18px;
 	height: 18px;
 	border-radius: 9999px;
 	background: white;
-	border: 2px solid var(--color-sky-500);
+	border: 2px solid var(--color-green-500);
 	box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
 	cursor: pointer;
 }
 :is(.dark) .context-slider {
 	background: linear-gradient(
 		to right,
-		var(--color-sky-900),
-		var(--color-sky-500),
-		var(--color-sky-400)
+		var(--color-green-900),
+		var(--color-green-500),
+		var(--color-green-400)
 	);
 }
 :is(.dark) .context-slider::-webkit-slider-thumb {
 	background: var(--color-gray-800);
-	border-color: var(--color-sky-400);
+	border-color: var(--color-green-400);
 }
 :is(.dark) .context-slider::-moz-range-thumb {
 	background: var(--color-gray-800);
-	border-color: var(--color-sky-400);
+	border-color: var(--color-green-400);
 }

@@ -6,7 +6,7 @@ import { ModalityCell } from "../components/Modalities";
 import { OrgLogo } from "../components/OrgLogo";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge, DualPrice } from "../components/ui";
+import { Badge, Breadcrumb, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
@@ -79,6 +79,14 @@ export function ProviderDetail() {
 
 	return (
 		<div className="space-y-8">
+			{/* Breadcrumb */}
+			<Breadcrumb
+				items={[
+					{ label: t("nav.providers", "Providers"), to: "/providers" },
+					{ label: group.provider.name },
+				]}
+			/>
+
 			{/* Header */}
 			<div>
 				<h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900 dark:text-white">

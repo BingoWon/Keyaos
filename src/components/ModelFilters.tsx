@@ -126,11 +126,11 @@ function filterTheme(name: FilterTokenName): FilterTheme {
 	return { token: TOKENS[name], ...FILTER_EXTRAS[name] };
 }
 
-const TEAL = filterTheme("teal");
-const GREEN = filterTheme("green");
 const SKY = filterTheme("sky");
 const AMBER = filterTheme("amber");
+const GREEN = filterTheme("green");
 const ROSE = filterTheme("rose");
+const TEAL = filterTheme("teal");
 
 // ─── Modality icons ──────────────────────────────────────
 
@@ -251,7 +251,7 @@ export function ModelFilters({
 		tags.push({
 			key: `in:${m}`,
 			label: `In: ${m}`,
-			theme: TEAL,
+			theme: SKY,
 			onRemove: () => toggleModality("inputModalities", m),
 		});
 	}
@@ -259,7 +259,7 @@ export function ModelFilters({
 		tags.push({
 			key: `out:${m}`,
 			label: `Out: ${m}`,
-			theme: GREEN,
+			theme: AMBER,
 			onRemove: () => toggleModality("outputModalities", m),
 		});
 	}
@@ -268,7 +268,7 @@ export function ModelFilters({
 		tags.push({
 			key: "ctx",
 			label: `Context ≥ ${preset?.label ?? "?"}`,
-			theme: SKY,
+			theme: GREEN,
 			onRemove: () => onChange({ ...filters, contextMin: 0 }),
 		});
 	}
@@ -276,7 +276,7 @@ export function ModelFilters({
 		tags.push({
 			key: `org:${slug}`,
 			label: getOrgName(slug),
-			theme: AMBER,
+			theme: ROSE,
 			onRemove: () => toggleSet("orgs", slug),
 		});
 	}
@@ -284,7 +284,7 @@ export function ModelFilters({
 		tags.push({
 			key: `prov:${pid}`,
 			label: providerMap.get(pid)?.name ?? pid,
-			theme: ROSE,
+			theme: TEAL,
 			onRemove: () => toggleSet("providers", pid),
 		});
 	}
@@ -296,7 +296,7 @@ export function ModelFilters({
 				<FilterPopover
 					label={t("filters.input_modalities")}
 					count={filters.inputModalities.size}
-					theme={TEAL}
+					theme={SKY}
 					width="w-44"
 				>
 					<div className="flex flex-col gap-1 p-2">
@@ -306,7 +306,7 @@ export function ModelFilters({
 								modality={m}
 								icon={MODALITY_ICON[m]}
 								active={filters.inputModalities.has(m)}
-								theme={TEAL}
+								theme={SKY}
 								onClick={() => toggleModality("inputModalities", m)}
 							/>
 						))}
@@ -316,7 +316,7 @@ export function ModelFilters({
 				<FilterPopover
 					label={t("filters.output_modalities")}
 					count={filters.outputModalities.size}
-					theme={GREEN}
+					theme={AMBER}
 					width="w-44"
 				>
 					<div className="flex flex-col gap-1 p-2">
@@ -326,7 +326,7 @@ export function ModelFilters({
 								modality={m}
 								icon={MODALITY_ICON[m]}
 								active={filters.outputModalities.has(m)}
-								theme={GREEN}
+								theme={AMBER}
 								onClick={() => toggleModality("outputModalities", m)}
 							/>
 						))}
@@ -340,13 +340,13 @@ export function ModelFilters({
 							: t("filters.context_length")
 					}
 					count={filters.contextMin > 0 ? 1 : 0}
-					theme={SKY}
+					theme={GREEN}
 					width="w-72"
 				>
 					<div className="px-4 pt-3 pb-4">
 						<div className="mb-3 text-center">
 							<span
-								className={`inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${SKY.token.soft}`}
+								className={`inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${GREEN.token.soft}`}
 							>
 								≥ {contextLabel}
 							</span>
@@ -376,14 +376,14 @@ export function ModelFilters({
 				<FilterPopover
 					label={t("filters.organization")}
 					count={filters.orgs.size}
-					theme={AMBER}
+					theme={ROSE}
 					width="w-64"
 				>
 					<SearchableList
 						items={orgOptions}
 						selected={filters.orgs}
 						onToggle={(id) => toggleSet("orgs", id)}
-						theme={AMBER}
+						theme={ROSE}
 						renderIcon={(item) => <OrgLogo modelId={`${item.id}/`} size={16} />}
 					/>
 				</FilterPopover>
@@ -391,14 +391,14 @@ export function ModelFilters({
 				<FilterPopover
 					label={t("filters.provider")}
 					count={filters.providers.size}
-					theme={ROSE}
+					theme={TEAL}
 					width="w-64"
 				>
 					<SearchableList
 						items={providerOptions}
 						selected={filters.providers}
 						onToggle={(id) => toggleSet("providers", id)}
-						theme={ROSE}
+						theme={TEAL}
 						renderIcon={(item) =>
 							item.logoUrl ? (
 								<ProviderLogo src={item.logoUrl} name={item.name} size={16} />

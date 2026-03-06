@@ -40,13 +40,13 @@ const PALETTES: PaletteConfig[] = [
 ];
 
 const TOKEN_USAGE: Record<TokenName, string> = {
-	sky: "Filter: Context Length",
+	sky: "Filter: Input Modalities",
 	violet: "auto-topup category",
-	teal: "Filter: Input Modalities, grant category",
-	amber: "Filter: Organization, warnings, info boxes",
-	rose: "Filter: Provider",
+	teal: "Filter: Provider, grant category",
+	amber: "Filter: Output Modalities, warnings, info boxes",
+	rose: "Filter: Organization",
 	red: "Error, destructive, negative amounts, delete actions",
-	green: "Filter: Output Modalities, success, positive amounts, confirmations",
+	green: "Filter: Context Length, success, positive amounts, confirmations",
 	yellow: "Warning, pending status",
 	blue: "Info, cooldown, top-up category",
 };
