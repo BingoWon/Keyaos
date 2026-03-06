@@ -26,6 +26,17 @@ const sizeClass: Record<Size, string> = {
 	lg: "h-11 px-6 text-base gap-2",
 };
 
+const baseClass =
+	"inline-flex select-none items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:pointer-events-none disabled:opacity-50";
+
+export function buttonClass(
+	variant: Variant = "primary",
+	size: Size = "md",
+	className = "",
+) {
+	return `${baseClass} ${variantClass[variant]} ${sizeClass[size]} ${className}`.trim();
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	(
 		{
@@ -40,7 +51,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		<button
 			ref={ref}
 			type={type}
-			className={`inline-flex select-none items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 disabled:pointer-events-none disabled:opacity-50 ${variantClass[variant]} ${sizeClass[size]} ${className}`}
+			className={buttonClass(variant, size, className)}
 			{...props}
 		/>
 	),

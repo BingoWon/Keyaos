@@ -1,15 +1,13 @@
-import {
-	ChatBubbleLeftRightIcon,
-	ChevronDownIcon,
-} from "@heroicons/react/24/outline";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
-import { Badge, DualPrice } from "../components/ui";
+import { Badge, buttonClass, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
 import type { ProviderMeta } from "../types/provider";
@@ -47,7 +45,7 @@ export function ModelDetail() {
 
 	if (loading) {
 		return (
-			<div className="animate-pulse space-y-6">
+			<div className="animate-pulse space-y-8">
 				<div>
 					<div className="h-8 w-64 rounded bg-gray-200 dark:bg-white/10" />
 					<div className="mt-2 h-4 w-48 rounded bg-gray-100 dark:bg-white/5" />
@@ -86,14 +84,14 @@ export function ModelDetail() {
 	const maxCtx = Math.max(...group.providers.map((p) => p.contextLength));
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-8">
 			{/* Header */}
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">
 					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
 						{group.displayName}
 					</h1>
-					<div className="mt-1 flex items-center gap-2">
+					<div className="mt-1.5 flex items-center gap-2">
 						<code className="text-sm font-mono text-gray-500 dark:text-gray-400">
 							{group.id}
 						</code>
@@ -116,9 +114,9 @@ export function ModelDetail() {
 				</div>
 				<Link
 					to={`/chat?model=${encodeURIComponent(group.id)}`}
-					className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-600"
+					className={buttonClass("primary", "lg", "shrink-0")}
 				>
-					<ChatBubbleLeftRightIcon className="size-4" />
+					<ChatBubbleLeftRightIcon className="size-5" />
 					Chat
 				</Link>
 			</div>
@@ -207,28 +205,47 @@ const COLLAPSED_HEIGHT = 72;
 
 function DescriptionSection({ text }: { text: string }) {
 	const [expanded, setExpanded] = useState(false);
+	const innerRef = useRef<HTMLParagraphElement>(null);
+	const [naturalHeight, setNaturalHeight] = useState(COLLAPSED_HEIGHT);
+
+	const measure = useCallback(() => {
+		if (innerRef.current) {
+			setNaturalHeight(innerRef.current.scrollHeight);
+		}
+	}, []);
+
+	useEffect(measure, [measure]);
+
+	const needsCollapse = naturalHeight > COLLAPSED_HEIGHT;
 
 	return (
 		<button
 			type="button"
-			onClick={() => setExpanded((v) => !v)}
+			onClick={() => needsCollapse && setExpanded((v) => !v)}
 			aria-expanded={expanded}
-			className="relative block w-full cursor-pointer text-left"
+			className={`relative block w-full text-left ${needsCollapse ? "cursor-pointer" : "cursor-default"}`}
 		>
 			<div
-				className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
-				style={{ maxHeight: expanded ? 2000 : COLLAPSED_HEIGHT }}
+				className="overflow-hidden transition-[max-height] duration-300 ease-out"
+				style={{
+					maxHeight: expanded ? naturalHeight : COLLAPSED_HEIGHT,
+				}}
 			>
-				<p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 whitespace-pre-line">
+				<p
+					ref={innerRef}
+					className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 whitespace-pre-line"
+				>
 					{text}
 				</p>
 			</div>
-			{!expanded && (
+			{needsCollapse && !expanded && (
 				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white dark:from-gray-900" />
 			)}
-			<ChevronDownIcon
-				className={`absolute right-0 top-1/2 size-4 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
-			/>
+			{needsCollapse && (
+				<ChevronDownIcon
+					className={`absolute right-0 top-1/2 size-4 -translate-y-1/2 text-gray-400 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+				/>
+			)}
 		</button>
 	);
 }
