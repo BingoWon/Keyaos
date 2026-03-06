@@ -779,6 +779,7 @@ export function Byok() {
 																type="button"
 																onClick={() => setEditingSettingsId(null)}
 																className={`${TOKENS.red.text} ${TOKENS.red.textHover}`}
+																title={t("common.cancel")}
 															>
 																<XMarkIcon className="size-5" />
 															</button>

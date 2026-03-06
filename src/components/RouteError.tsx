@@ -1,5 +1,6 @@
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { isRouteErrorResponse, Link, useRouteError } from "react-router-dom";
+import { TOKENS } from "../utils/colors";
 
 export function RouteError() {
 	const error = useRouteError();
@@ -34,9 +35,11 @@ export function RouteError() {
 	return (
 		<main className="grid min-h-screen place-items-center bg-white px-6 py-24 dark:bg-gray-900">
 			<div className="text-center max-w-lg">
-				<div className="mx-auto flex size-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-500/10">
+				<div
+					className={`mx-auto flex size-14 items-center justify-center rounded-full ${TOKENS.red.soft}`}
+				>
 					<svg
-						className="size-6 text-red-600 dark:text-red-400"
+						className="size-6"
 						fill="none"
 						viewBox="0 0 24 24"
 						strokeWidth={1.5}

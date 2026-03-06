@@ -151,7 +151,3 @@ export const TOKENS = {
 } as const satisfies Record<string, ColorToken>;
 
 export const TOKEN_NAMES = Object.keys(TOKENS) as TokenName[];
-
-export function colorToken(name: TokenName): ColorToken {
-	return TOKENS[name];
-}

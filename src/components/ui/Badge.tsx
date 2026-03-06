@@ -23,8 +23,11 @@ const VARIANT_TO_TOKEN: Partial<Record<Variant, TokenName>> = {
 	info: "blue",
 };
 
+const DEFAULT_CLASS =
+	"bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300";
+
 const STATIC_VARIANTS: Partial<Record<Variant, string>> = {
-	default: "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300",
+	default: DEFAULT_CLASS,
 	brand: "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300",
 	accent:
 		"bg-accent-50 text-accent-700 dark:bg-accent-400/15 dark:text-accent-300",
@@ -33,10 +36,7 @@ const STATIC_VARIANTS: Partial<Record<Variant, string>> = {
 function variantClass(v: Variant): string {
 	const tokenName = VARIANT_TO_TOKEN[v];
 	if (tokenName) return TOKENS[tokenName].soft;
-	return (
-		STATIC_VARIANTS[v] ??
-		"bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300"
-	);
+	return STATIC_VARIANTS[v] ?? DEFAULT_CLASS;
 }
 
 export function Badge({

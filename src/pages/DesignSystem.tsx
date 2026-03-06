@@ -5,67 +5,63 @@ import {
 	TrashIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { ToggleSwitch } from "../components/ToggleSwitch";
 import { Badge, Button, Card, IconButton, Input } from "../components/ui";
 import { TOKEN_NAMES, TOKENS, type TokenName } from "../utils/colors";
 
-/* ── Color data ──────────────────────────────────────────── */
+/* ── Color palette config (single source of truth is globals.css) ── */
 
-interface ColorDef {
-	shade: string;
-	hex: string;
-	label?: string;
+const SHADES = [
+	"50",
+	"100",
+	"200",
+	"300",
+	"400",
+	"500",
+	"600",
+	"700",
+	"800",
+	"900",
+	"950",
+] as const;
+
+interface PaletteConfig {
+	name: string;
+	prefix: string;
+	labels: Partial<Record<string, string>>;
 }
 
-const brand: ColorDef[] = [
-	{ shade: "50", hex: "#faf5ff" },
-	{ shade: "100", hex: "#f3e8ff" },
-	{ shade: "200", hex: "#e9d4ff" },
-	{ shade: "300", hex: "#d4affe" },
-	{ shade: "400", hex: "#bb80f6" },
-	{ shade: "500", hex: "#9e52e0" },
-	{ shade: "600", hex: "#7f39ad", label: "Logo" },
-	{ shade: "700", hex: "#6b2f92" },
-	{ shade: "800", hex: "#572677" },
-	{ shade: "900", hex: "#481f62" },
-	{ shade: "950", hex: "#2d0f40" },
+const PALETTES: PaletteConfig[] = [
+	{ name: "Brand Purple", prefix: "brand", labels: { "600": "Logo" } },
+	{ name: "Accent Gold", prefix: "accent", labels: { "400": "Logo" } },
 ];
 
-const accent: ColorDef[] = [
-	{ shade: "50", hex: "#fff8f0" },
-	{ shade: "100", hex: "#feecd8" },
-	{ shade: "200", hex: "#f5d0a8" },
-	{ shade: "300", hex: "#e8ad78" },
-	{ shade: "400", hex: "#d09060", label: "Logo" },
-	{ shade: "500", hex: "#b87840" },
-	{ shade: "600", hex: "#9e6333" },
-	{ shade: "700", hex: "#844f2a" },
-	{ shade: "800", hex: "#6d4126" },
-	{ shade: "900", hex: "#5b3722" },
-	{ shade: "950", hex: "#311c0e" },
-];
-
-/* Semantic color usage — documents what each token is used for */
 const TOKEN_USAGE: Record<TokenName, string> = {
-	sky: "Filter: Input Modalities",
-	violet: "Filter: Output Modalities, auto-topup category",
-	teal: "Filter: Context Length, grant category",
+	sky: "Filter: Context Length",
+	violet: "auto-topup category",
+	teal: "Filter: Input Modalities, grant category",
 	amber: "Filter: Organization, warnings, info boxes",
 	rose: "Filter: Provider",
 	red: "Error, destructive, negative amounts, delete actions",
-	green: "Success, positive amounts, save actions, confirmations",
+	green: "Filter: Output Modalities, success, positive amounts, confirmations",
 	yellow: "Warning, pending status",
 	blue: "Info, cooldown, top-up category",
 };
 
 /* ── Helpers ─────────────────────────────────────────────── */
 
-function copy(hex: string) {
-	navigator.clipboard.writeText(hex).catch(() => {});
-	toast(`Copied ${hex}`, { duration: 1200 });
+function copy(text: string) {
+	navigator.clipboard.writeText(text).catch(() => {});
+	toast(`Copied ${text}`, { duration: 1200 });
+}
+
+function readCssVar(name: string): string {
+	return getComputedStyle(document.documentElement)
+		.getPropertyValue(name)
+		.trim();
 }
 
 /* ── Sub-components ──────────────────────────────────────── */
@@ -90,18 +86,34 @@ function Section({
 	);
 }
 
-function Swatch({ shade, hex, label }: ColorDef) {
+function Swatch({
+	shade,
+	prefix,
+	label,
+}: {
+	shade: string;
+	prefix: string;
+	label?: string;
+}) {
 	const isLight = Number.parseInt(shade, 10) <= 200;
+	const ref = useRef<HTMLDivElement>(null);
+	const [hex, setHex] = useState("");
+
+	useEffect(() => {
+		setHex(readCssVar(`--color-${prefix}-${shade}`));
+	}, [prefix, shade]);
+
 	return (
 		<button
 			type="button"
-			onClick={() => copy(hex)}
+			onClick={() => hex && copy(hex)}
 			className="group text-left"
-			title={`Copy ${hex}`}
+			title={hex ? `Copy ${hex}` : undefined}
 		>
 			<div
+				ref={ref}
 				className="flex h-12 items-start rounded-lg border border-black/5 ring-0 transition-all group-hover:ring-2 group-hover:ring-brand-500/40 dark:border-white/10"
-				style={{ backgroundColor: hex }}
+				style={{ backgroundColor: `var(--color-${prefix}-${shade})` }}
 			>
 				{label && (
 					<span
@@ -121,15 +133,7 @@ function Swatch({ shade, hex, label }: ColorDef) {
 	);
 }
 
-function ColorScale({
-	name,
-	prefix,
-	colors,
-}: {
-	name: string;
-	prefix: string;
-	colors: ColorDef[];
-}) {
+function ColorScale({ name, prefix, labels }: PaletteConfig) {
 	return (
 		<div>
 			<div className="mb-3 flex items-center gap-2">
@@ -141,8 +145,13 @@ function ColorScale({
 				</span>
 			</div>
 			<div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-11">
-				{colors.map((c) => (
-					<Swatch key={c.shade} {...c} />
+				{SHADES.map((shade) => (
+					<Swatch
+						key={shade}
+						shade={shade}
+						prefix={prefix}
+						label={labels[shade]}
+					/>
 				))}
 			</div>
 		</div>
@@ -220,8 +229,9 @@ export function DesignSystem() {
 					desc="Purple energy and golden key — the two brand anchors."
 				>
 					<div className="space-y-10">
-						<ColorScale name="Brand Purple" prefix="brand" colors={brand} />
-						<ColorScale name="Accent Gold" prefix="accent" colors={accent} />
+						{PALETTES.map((p) => (
+							<ColorScale key={p.prefix} {...p} />
+						))}
 					</div>
 				</Section>
 

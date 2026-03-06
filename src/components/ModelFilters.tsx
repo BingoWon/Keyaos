@@ -13,7 +13,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Modality } from "../../worker/core/db/schema";
 import type { ProviderMeta } from "../types/provider";
-import { type ColorToken, TOKENS, type TokenName } from "../utils/colors";
+import { type ColorToken, TOKENS } from "../utils/colors";
 import type { ModelGroup } from "../utils/models";
 import { getOrgName, getOrgSlug } from "../utils/orgMeta";
 import { OrgLogo } from "./OrgLogo";
@@ -85,28 +85,27 @@ interface FilterTheme {
 	tagX: string;
 }
 
-const FILTER_EXTRAS: Record<
-	"sky" | "violet" | "teal" | "amber" | "rose",
-	Omit<FilterTheme, "token">
-> = {
-	sky: {
-		openBorder: "data-[open]:border-sky-400 dark:data-[open]:border-sky-500",
-		openRing:
-			"data-[open]:ring-1 data-[open]:ring-sky-400/30 dark:data-[open]:ring-sky-500/20",
-		tagX: "hover:bg-sky-200/60 dark:hover:bg-sky-500/20",
-	},
-	violet: {
-		openBorder:
-			"data-[open]:border-violet-400 dark:data-[open]:border-violet-500",
-		openRing:
-			"data-[open]:ring-1 data-[open]:ring-violet-400/30 dark:data-[open]:ring-violet-500/20",
-		tagX: "hover:bg-violet-200/60 dark:hover:bg-violet-500/20",
-	},
+type FilterTokenName = "sky" | "teal" | "green" | "amber" | "rose";
+
+const FILTER_EXTRAS: Record<FilterTokenName, Omit<FilterTheme, "token">> = {
 	teal: {
 		openBorder: "data-[open]:border-teal-400 dark:data-[open]:border-teal-500",
 		openRing:
 			"data-[open]:ring-1 data-[open]:ring-teal-400/30 dark:data-[open]:ring-teal-500/20",
 		tagX: "hover:bg-teal-200/60 dark:hover:bg-teal-500/20",
+	},
+	green: {
+		openBorder:
+			"data-[open]:border-green-400 dark:data-[open]:border-green-500",
+		openRing:
+			"data-[open]:ring-1 data-[open]:ring-green-400/30 dark:data-[open]:ring-green-500/20",
+		tagX: "hover:bg-green-200/60 dark:hover:bg-green-500/20",
+	},
+	sky: {
+		openBorder: "data-[open]:border-sky-400 dark:data-[open]:border-sky-500",
+		openRing:
+			"data-[open]:ring-1 data-[open]:ring-sky-400/30 dark:data-[open]:ring-sky-500/20",
+		tagX: "hover:bg-sky-200/60 dark:hover:bg-sky-500/20",
 	},
 	amber: {
 		openBorder:
@@ -123,15 +122,13 @@ const FILTER_EXTRAS: Record<
 	},
 };
 
-function filterTheme(
-	name: TokenName & keyof typeof FILTER_EXTRAS,
-): FilterTheme {
+function filterTheme(name: FilterTokenName): FilterTheme {
 	return { token: TOKENS[name], ...FILTER_EXTRAS[name] };
 }
 
-const SKY = filterTheme("sky");
-const VIOLET = filterTheme("violet");
 const TEAL = filterTheme("teal");
+const GREEN = filterTheme("green");
+const SKY = filterTheme("sky");
 const AMBER = filterTheme("amber");
 const ROSE = filterTheme("rose");
 
@@ -254,7 +251,7 @@ export function ModelFilters({
 		tags.push({
 			key: `in:${m}`,
 			label: `In: ${m}`,
-			theme: SKY,
+			theme: TEAL,
 			onRemove: () => toggleModality("inputModalities", m),
 		});
 	}
@@ -262,7 +259,7 @@ export function ModelFilters({
 		tags.push({
 			key: `out:${m}`,
 			label: `Out: ${m}`,
-			theme: VIOLET,
+			theme: GREEN,
 			onRemove: () => toggleModality("outputModalities", m),
 		});
 	}
@@ -271,7 +268,7 @@ export function ModelFilters({
 		tags.push({
 			key: "ctx",
 			label: `Context ≥ ${preset?.label ?? "?"}`,
-			theme: TEAL,
+			theme: SKY,
 			onRemove: () => onChange({ ...filters, contextMin: 0 }),
 		});
 	}
@@ -299,7 +296,8 @@ export function ModelFilters({
 				<FilterPopover
 					label={t("filters.input_modalities")}
 					count={filters.inputModalities.size}
-					theme={SKY}
+					theme={TEAL}
+					width="w-44"
 				>
 					<div className="flex flex-col gap-1 p-2">
 						{ALL_MODALITIES.map((m) => (
@@ -308,7 +306,7 @@ export function ModelFilters({
 								modality={m}
 								icon={MODALITY_ICON[m]}
 								active={filters.inputModalities.has(m)}
-								theme={SKY}
+								theme={TEAL}
 								onClick={() => toggleModality("inputModalities", m)}
 							/>
 						))}
@@ -318,7 +316,8 @@ export function ModelFilters({
 				<FilterPopover
 					label={t("filters.output_modalities")}
 					count={filters.outputModalities.size}
-					theme={VIOLET}
+					theme={GREEN}
+					width="w-44"
 				>
 					<div className="flex flex-col gap-1 p-2">
 						{ALL_MODALITIES.map((m) => (
@@ -327,7 +326,7 @@ export function ModelFilters({
 								modality={m}
 								icon={MODALITY_ICON[m]}
 								active={filters.outputModalities.has(m)}
-								theme={VIOLET}
+								theme={GREEN}
 								onClick={() => toggleModality("outputModalities", m)}
 							/>
 						))}
@@ -341,13 +340,13 @@ export function ModelFilters({
 							: t("filters.context_length")
 					}
 					count={filters.contextMin > 0 ? 1 : 0}
-					theme={TEAL}
+					theme={SKY}
 					width="w-72"
 				>
 					<div className="px-4 pt-3 pb-4">
 						<div className="mb-3 text-center">
 							<span
-								className={`inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${TEAL.token.soft}`}
+								className={`inline-block rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${SKY.token.soft}`}
 							>
 								≥ {contextLabel}
 							</span>
@@ -412,7 +411,7 @@ export function ModelFilters({
 					<button
 						type="button"
 						onClick={() => onChange(EMPTY_FILTERS)}
-						className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition-colors hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+						className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition-colors dark:text-gray-400 ${TOKENS.red.textHover}`}
 					>
 						<XMarkIcon className="size-3.5" />
 						{t("filters.clear_all")}

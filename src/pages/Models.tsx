@@ -241,7 +241,7 @@ export function Models() {
 															</code>
 															<CopyButton text={g.id} />
 															{g.createdAt > 0 && (
-																<Badge variant="warning">
+																<Badge variant="brand">
 																	{formatRelativeTime(
 																		g.createdAt,
 																		i18n.language,
