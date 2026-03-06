@@ -3,6 +3,7 @@ import {
 	createBrowserRouter,
 	Navigate,
 	Outlet,
+	ScrollRestoration,
 	useLocation,
 	useNavigate,
 } from "react-router-dom";
@@ -126,6 +127,7 @@ function AppLayout() {
 	return (
 		<>
 			<TopNav />
+			<ScrollRestoration />
 			<Outlet />
 		</>
 	);
