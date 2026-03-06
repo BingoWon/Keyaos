@@ -80,7 +80,7 @@ export function ApiKeyPicker({ onChange }: ApiKeyPickerProps) {
 			{enabledKeys.length > 0 && (
 				<Listbox value={selectedId ?? NONE_SENTINEL} onChange={handleSelect}>
 					<div className="relative">
-						<ListboxButton className="relative w-64 cursor-pointer rounded-lg border border-gray-200 bg-white py-1.5 pl-3 pr-8 text-left text-sm shadow-sm transition-colors hover:border-gray-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+						<ListboxButton className="relative w-72 cursor-pointer rounded-lg border border-gray-200 bg-white py-1.5 pl-3 pr-8 text-left text-sm shadow-sm transition-colors hover:border-gray-300 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
 							<span
 								className={`block truncate ${
 									selectedKey

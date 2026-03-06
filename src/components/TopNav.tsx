@@ -15,6 +15,7 @@ import { classNames } from "../utils/classNames";
 import { aggregateModels } from "../utils/models";
 import { LanguageSelector } from "./LanguageSelector";
 import { Logo } from "./Logo";
+import { OrgLogo } from "./OrgLogo";
 import { ThemeToggle } from "./ThemeToggle";
 
 const GITHUB_URL = "https://github.com/BingoWon/Keyaos";
@@ -161,13 +162,14 @@ function ModelSearch() {
 										if (e.key === "Enter") go(g.id);
 									}}
 									className={classNames(
-										"cursor-pointer truncate px-3 py-2 text-sm font-medium text-gray-900 transition-colors dark:text-white",
+										"flex cursor-pointer items-center gap-2 px-3 py-2 text-sm font-medium text-gray-900 transition-colors dark:text-white",
 										i === activeIdx
 											? "bg-brand-50 dark:bg-brand-500/15"
 											: "hover:bg-gray-50 dark:hover:bg-white/5",
 									)}
 								>
-									{g.displayName}
+									<OrgLogo modelId={g.id} size={16} />
+									<span className="min-w-0 truncate">{g.displayName}</span>
 								</div>
 							))}
 						</div>

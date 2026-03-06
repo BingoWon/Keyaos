@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { DirectionBadge } from "../components/DirectionBadge";
+import { OrgLogo } from "../components/OrgLogo";
 import { Pagination } from "../components/Pagination";
 import { PromoBanner } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
@@ -118,7 +119,10 @@ export function Logs() {
 											<DirectionBadge direction={tx.direction} />
 										</td>
 										<td className="whitespace-nowrap px-2 py-2.5 text-sm font-medium text-gray-900 dark:text-white">
-											{tx.model_id}
+											<span className="inline-flex items-center gap-2">
+												<OrgLogo modelId={tx.model_id} size={16} />
+												{tx.model_id}
+											</span>
 										</td>
 										<td className="whitespace-nowrap px-2 py-2.5 text-sm text-gray-500 dark:text-gray-400">
 											{tx.provider_id}

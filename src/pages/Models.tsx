@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
+import { OrgLogo } from "../components/OrgLogo";
 import { Pagination } from "../components/Pagination";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { RefreshControl } from "../components/RefreshControl";
@@ -235,8 +236,9 @@ export function Models() {
 												<div className="min-w-0">
 													<Link
 														to={`/${g.id}`}
-														className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
+														className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors inline-flex items-center gap-1.5"
 													>
+														<OrgLogo modelId={g.id} />
 														{g.displayName}
 													</Link>
 													<div className="flex items-center gap-1.5 mt-0.5">

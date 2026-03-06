@@ -15,6 +15,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { Logo } from "../components/Logo";
+import { OrgLogo } from "../components/OrgLogo";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
@@ -188,8 +189,9 @@ function PlatformShowcase() {
 													<div className="min-w-0">
 														<Link
 															to={`/${g.id}`}
-															className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
+															className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
 														>
+															<OrgLogo modelId={g.id} size={16} />
 															{g.displayName}
 														</Link>
 														<div className="flex items-center gap-1.5 mt-0.5">

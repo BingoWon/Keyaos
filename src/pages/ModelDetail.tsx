@@ -6,6 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { CodeSamples, detectCodeVariant } from "../components/CodeSamples";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
+import { OrgLogo } from "../components/OrgLogo";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Badge, buttonClass, DualPrice } from "../components/ui";
@@ -93,7 +94,8 @@ export function ModelDetail() {
 			{/* Header */}
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0">
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+					<h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
+						<OrgLogo modelId={group.id} size={24} />
 						{group.displayName}
 					</h1>
 					<div className="mt-1.5 flex items-center gap-2">

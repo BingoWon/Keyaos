@@ -11,6 +11,7 @@ import { isPlatform } from "../auth";
 import { CopyButton } from "../components/CopyButton";
 import { DirectionBadge } from "../components/DirectionBadge";
 import { ModalityBadges } from "../components/Modalities";
+import { OrgLogo } from "../components/OrgLogo";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
@@ -263,8 +264,9 @@ export function Dashboard() {
 												<div className="min-w-0">
 													<Link
 														to={`/${g.id}`}
-														className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
+														className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
 													>
+														<OrgLogo modelId={g.id} size={16} />
 														{g.displayName}
 													</Link>
 													<div className="flex items-center gap-1.5 mt-0.5">
@@ -359,7 +361,10 @@ export function Dashboard() {
 										<DirectionBadge direction={tx.direction} />
 									</td>
 									<td className="whitespace-nowrap px-2 py-2.5 text-sm font-medium text-gray-900 dark:text-white">
-										{tx.model_id}
+										<span className="inline-flex items-center gap-2">
+											<OrgLogo modelId={tx.model_id} size={16} />
+											{tx.model_id}
+										</span>
 									</td>
 									<td className="whitespace-nowrap px-2 py-2.5 text-sm text-gray-500 dark:text-gray-400">
 										{tx.provider_id}

@@ -19,6 +19,7 @@ import {
 	loadSystemPrompt,
 	SystemPrompt,
 } from "../components/chat/SystemPrompt";
+import { OrgLogo } from "../components/OrgLogo";
 import { ProviderLogo } from "../components/ProviderLogo";
 import { useFetch } from "../hooks/useFetch";
 import {
@@ -283,6 +284,7 @@ function ModelPicker({
 		<Listbox value={value} onChange={onChange}>
 			<div className="relative">
 				<ListboxButton className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 dark:text-white dark:hover:bg-white/10">
+					{value && <OrgLogo modelId={value} size={16} />}
 					<span className="truncate">{display}</span>
 					<ChevronUpDownIcon className="size-4 text-gray-400" />
 				</ListboxButton>
@@ -293,6 +295,7 @@ function ModelPicker({
 							value={m.id}
 							className="group flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-gray-900 data-focus:bg-brand-50 data-selected:font-medium data-selected:text-brand-700 dark:text-gray-100 dark:data-focus:bg-brand-500/15 dark:data-selected:text-brand-300"
 						>
+							<OrgLogo modelId={m.id} size={16} />
 							<span className="min-w-0 flex-1 truncate">{m.name || m.id}</span>
 							<CopyButton text={m.id} />
 						</ListboxOption>
