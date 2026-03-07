@@ -189,12 +189,6 @@ export function ModelSettingsSection() {
 		});
 	};
 
-	const handleSelectAll = () => {
-		const all = new Set(allModels.map((m) => m.model));
-		setSelected(all);
-		setSelectedModels([...all]);
-	};
-
 	const handleClearAll = () => {
 		setSelected(new Set());
 		setSelectedModels([]);
@@ -287,14 +281,6 @@ export function ModelSettingsSection() {
 							/>
 						</div>
 						<div className="flex gap-1 px-2 py-1.5 border-b border-[var(--border-color)]">
-							<button
-								type="button"
-								onClick={handleSelectAll}
-								className="text-[10px] text-[var(--color-accent)] hover:underline"
-							>
-								{t("settings.models.selectAll")}
-							</button>
-							<span className="text-[10px] text-[var(--text-muted)]">·</span>
 							<button
 								type="button"
 								onClick={handleClearAll}
@@ -484,7 +470,7 @@ export function SettingsModal({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-[92vw] max-w-md max-h-[85vh] overflow-y-auto">
+			<DialogContent className="w-[92vw] max-w-lg max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="font-serif text-[var(--text-primary)]">
 						{view === "about"

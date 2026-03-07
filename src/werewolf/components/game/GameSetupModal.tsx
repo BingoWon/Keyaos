@@ -2,6 +2,7 @@ import {
 	ModelSettingsSection,
 	SoundSettingsSection,
 } from "@wolf/components/game/SettingsModal";
+import { Button } from "@wolf/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -17,9 +18,19 @@ import {
 	SelectValue,
 } from "@wolf/components/ui/select";
 import { Switch } from "@wolf/components/ui/switch";
+import {
+	clearApiKeys,
+	setGeneratorModel,
+	setReviewModel,
+	setSelectedModels,
+	setSummaryModel,
+} from "@wolf/lib/api-keys";
+import { getCachedModels } from "@wolf/lib/keyaos-models";
 import type { Role } from "@wolf/types/game";
+import { DEFAULT_PLAYER_MODELS, DEFAULT_UTILITY_MODEL } from "@wolf/types/game";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 /** Return the unique roles present in the default configuration for a given player count. */
 function getAvailableRoles(playerCount: number): Role[] {
@@ -101,6 +112,44 @@ export function GameSetupModal({
 	onAutoAdvanceDialogueEnabledChange,
 }: GameSetupModalProps) {
 	const t = useTranslations();
+	const [modelResetKey, setModelResetKey] = useState(0);
+
+	const handleResetAllSettings = useCallback(() => {
+		clearApiKeys();
+		const models = getCachedModels();
+		const available = new Set(models.map((m) => m.model));
+		const defaults = DEFAULT_PLAYER_MODELS.filter((m) => available.has(m));
+		setSelectedModels(defaults.length > 0 ? defaults : []);
+		const util = available.has(DEFAULT_UTILITY_MODEL)
+			? DEFAULT_UTILITY_MODEL
+			: (models[0]?.model ?? "");
+		setGeneratorModel(util);
+		setSummaryModel(util);
+		setReviewModel(util);
+		setModelResetKey((k) => k + 1);
+
+		onBgmVolumeChange(0.3);
+		onSoundEnabledChange(true);
+		onAiVoiceEnabledChange(false);
+		onAutoAdvanceDialogueEnabledChange(false);
+
+		onPlayerCountChange(10);
+		onPreferredRoleChange("");
+		onGenshinModeChange(false);
+		onSpectatorModeChange(false);
+
+		toast(t("settings.models.resetAllConfirm"));
+	}, [
+		t,
+		onBgmVolumeChange,
+		onSoundEnabledChange,
+		onAiVoiceEnabledChange,
+		onAutoAdvanceDialogueEnabledChange,
+		onPlayerCountChange,
+		onPreferredRoleChange,
+		onGenshinModeChange,
+		onSpectatorModeChange,
+	]);
 
 	const PLAYER_COUNT_OPTIONS = [
 		{
@@ -182,7 +231,7 @@ export function GameSetupModal({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-[92vw] max-w-md max-h-[85vh] overflow-y-auto">
+			<DialogContent className="w-[92vw] max-w-lg max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="font-serif text-[var(--text-primary)]">
 						{t("gameSetup.title")}
@@ -290,7 +339,7 @@ export function GameSetupModal({
 					</div>
 
 					<div className="border-t border-[var(--border-color)] pt-4">
-						<ModelSettingsSection />
+						<ModelSettingsSection key={modelResetKey} />
 					</div>
 
 					<div className="border-t border-[var(--border-color)] pt-4">
@@ -309,6 +358,17 @@ export function GameSetupModal({
 								onAutoAdvanceDialogueEnabledChange
 							}
 						/>
+					</div>
+
+					<div className="border-t border-[var(--border-color)] pt-4">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={handleResetAllSettings}
+							className="w-full"
+						>
+							{t("settings.models.resetAll")}
+						</Button>
 					</div>
 				</div>
 			</DialogContent>
