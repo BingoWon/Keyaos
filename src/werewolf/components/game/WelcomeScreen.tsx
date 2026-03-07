@@ -897,42 +897,63 @@ export function WelcomeScreen({
 					</Dialog>
 				)}
 
-				{/* AI Provider showcase cards */}
+				{/* AI Provider showcase cards — left 3, right 2 */}
 				<div
 					className="wc-sponsor-cards"
 					aria-label={t("welcome.sponsor.showcaseLabel")}
 				>
+					{/* Left column */}
 					<ProviderCard
 						href="https://openai.com"
-						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--top-left"
-						rotate="4deg"
+						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--left-top"
+						rotate="-3deg"
 						delay={0.15}
 						logoSrc="/game/models/openai.svg"
 						logoAlt="OpenAI"
 						name="OpenAI"
 						note={t("welcome.sponsor.cards.openai")}
 					/>
-
 					<ProviderCard
 						href="https://anthropic.com"
-						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--right-bottom"
-						rotate="-4deg"
-						delay={0.6}
+						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--left-mid"
+						rotate="4deg"
+						delay={0.35}
 						logoSrc="/game/models/claude.svg"
 						logoAlt="Anthropic"
 						name="Anthropic"
 						note={t("welcome.sponsor.cards.anthropic")}
 					/>
-
 					<ProviderCard
 						href="https://deepmind.google"
-						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--watcha"
-						rotate="5deg"
-						delay={0.45}
+						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--left-bottom"
+						rotate="-5deg"
+						delay={0.55}
 						logoSrc="/game/models/gemini.svg"
 						logoAlt="Google"
 						name="Google"
 						note={t("welcome.sponsor.cards.google")}
+					/>
+
+					{/* Right column */}
+					<ProviderCard
+						href="https://www.deepseek.com"
+						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--right-top"
+						rotate="5deg"
+						delay={0.25}
+						logoSrc="/game/models/deepseek.svg"
+						logoAlt="DeepSeek"
+						name="DeepSeek"
+						note={t("welcome.sponsor.cards.deepseek")}
+					/>
+					<ProviderCard
+						href="https://tongyi.aliyun.com"
+						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--right-bottom"
+						rotate="-4deg"
+						delay={0.45}
+						logoSrc="/game/models/qwen.svg"
+						logoAlt="Qwen"
+						name="Qwen"
+						note={t("welcome.sponsor.cards.qwen")}
 					/>
 				</div>
 
@@ -965,7 +986,7 @@ export function WelcomeScreen({
 					initial={{ opacity: 0, y: 14, scale: 0.99, filter: "blur(10px)" }}
 					animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
 					transition={{ duration: 0.65, ease: "easeOut" }}
-					className="relative z-10 w-full max-w-[460px] px-6"
+					className="relative z-10 w-full max-w-[460px]"
 				>
 					<div ref={paperRef} className="wc-contract-paper">
 						<div className="wc-contract-borders" aria-hidden="true" />
@@ -989,48 +1010,54 @@ export function WelcomeScreen({
 
 						{/* Mobile: inline provider stamps at top of paper */}
 						<div className="wc-paper-sponsors sm:hidden">
-							<a
-								href="https://openai.com"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="wc-paper-stamp"
-								style={{ "--stamp-rotate": "4deg" } as React.CSSProperties}
-							>
-								<img
-									src="/game/models/openai.svg"
-									alt="OpenAI"
-									className="wc-paper-stamp__logo"
-								/>
-								<span className="wc-paper-stamp__name">OpenAI</span>
-							</a>
-							<a
-								href="https://anthropic.com"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="wc-paper-stamp"
-								style={{ "--stamp-rotate": "-3deg" } as React.CSSProperties}
-							>
-								<img
-									src="/game/models/claude.svg"
-									alt="Anthropic"
-									className="wc-paper-stamp__logo"
-								/>
-								<span className="wc-paper-stamp__name">Anthropic</span>
-							</a>
-							<a
-								href="https://deepmind.google"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="wc-paper-stamp"
-								style={{ "--stamp-rotate": "6deg" } as React.CSSProperties}
-							>
-								<img
-									src="/game/models/gemini.svg"
-									alt="Google"
-									className="wc-paper-stamp__logo"
-								/>
-								<span className="wc-paper-stamp__name">Google</span>
-							</a>
+							{[
+								{
+									href: "https://openai.com",
+									logo: "openai",
+									name: "OpenAI",
+									rotate: "4deg",
+								},
+								{
+									href: "https://anthropic.com",
+									logo: "claude",
+									name: "Anthropic",
+									rotate: "-3deg",
+								},
+								{
+									href: "https://deepmind.google",
+									logo: "gemini",
+									name: "Google",
+									rotate: "5deg",
+								},
+								{
+									href: "https://www.deepseek.com",
+									logo: "deepseek",
+									name: "DeepSeek",
+									rotate: "-4deg",
+								},
+								{
+									href: "https://tongyi.aliyun.com",
+									logo: "qwen",
+									name: "Qwen",
+									rotate: "3deg",
+								},
+							].map((p) => (
+								<a
+									key={p.name}
+									href={p.href}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="wc-paper-stamp"
+									style={{ "--stamp-rotate": p.rotate } as React.CSSProperties}
+								>
+									<img
+										src={`/game/models/${p.logo}.svg`}
+										alt={p.name}
+										className="wc-paper-stamp__logo"
+									/>
+									<span className="wc-paper-stamp__name">{p.name}</span>
+								</a>
+							))}
 						</div>
 
 						<div className="mt-2 text-center">

@@ -102,7 +102,9 @@
 			"cards": {
 				"openai": "GPT-4o, o3-mini and more — the gold standard in language AI.",
 				"anthropic": "Claude Sonnet & Haiku — nuanced reasoning for every debate.",
-				"google": "Gemini 2.5 Pro & Flash — multimodal intelligence at scale."
+				"google": "Gemini 2.5 Pro & Flash — multimodal intelligence at scale.",
+				"deepseek": "Open-source AI pioneer",
+				"qwen": "Alibaba Cloud AI"
 			},
 			"copySuccess": "Link copied",
 			"copyFallback": "Platform URL",

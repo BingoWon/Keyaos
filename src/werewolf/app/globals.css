@@ -4742,79 +4742,57 @@
 	mix-blend-mode: multiply;
 }
 
-/* Card positions - scattered around the edges */
-.wc-sponsor-card--left-center {
-	top: 50%;
-	left: 12%;
-	translate: 0 -50%;
+/*
+ * Card positions — left 3, right 2.
+ * To fine-tune positions, adjust top/bottom/left/right percentages below.
+ */
+
+/* Left column (3 cards) */
+.wc-sponsor-card--left-top {
+	top: 14%;
+	left: 4%;
 }
 
-.wc-sponsor-card--left-center:hover {
-	translate: 4px -50%;
+.wc-sponsor-card--left-mid {
+	top: 42%;
+	left: 6%;
 }
 
+.wc-sponsor-card--left-bottom {
+	bottom: 14%;
+	left: 3%;
+}
+
+/* Right column (2 cards) */
 .wc-sponsor-card--right-top {
-	top: 22%;
-	right: 12%;
+	top: 20%;
+	right: 4%;
 }
 
 .wc-sponsor-card--right-bottom {
 	bottom: 20%;
-	right: 12%;
-}
-
-/* Legacy positions (kept for compatibility) */
-.wc-sponsor-card--top-left {
-	top: 18%;
-	left: 4%;
-}
-
-.wc-sponsor-card--bottom-left {
-	bottom: 22%;
-	left: 5%;
-}
-
-.wc-sponsor-card--top-right {
-	top: 16%;
-	right: 4%;
-}
-
-/* Watcha sponsor card: larger logo/name, more centered */
-.wc-sponsor-card--watcha {
-	top: 28%;
-	right: 14%;
-	width: 200px;
-}
-
-.wc-sponsor-card--watcha .wc-sponsor-card__logo {
-	width: 82px;
-	height: 82px;
-}
-
-.wc-sponsor-card--watcha .wc-sponsor-card__name {
-	font-size: 16px;
-}
-
-.wc-sponsor-card--bottom-right {
-	bottom: 18%;
-	right: 4%;
+	right: 5%;
 }
 
 @media (max-width: 1280px) {
-	.wc-sponsor-card--left-center {
-		left: 6%;
+	.wc-sponsor-card--left-top {
+		left: 2%;
+	}
+
+	.wc-sponsor-card--left-mid {
+		left: 3%;
+	}
+
+	.wc-sponsor-card--left-bottom {
+		left: 1%;
 	}
 
 	.wc-sponsor-card--right-top {
-		right: 6%;
+		right: 2%;
 	}
 
 	.wc-sponsor-card--right-bottom {
-		right: 6%;
-	}
-
-	.wc-sponsor-card--watcha {
-		right: 8%;
+		right: 2%;
 	}
 }
 
@@ -4835,8 +4813,8 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 16px;
-		padding: 12px 8px 8px;
+		gap: 8px;
+		padding: 12px 4px 8px;
 		margin-bottom: 4px;
 	}
 }
@@ -4900,22 +4878,25 @@
 	mix-blend-mode: multiply;
 }
 
-/* Responsive positioning for larger screens */
 @media (min-width: 1600px) {
-	.wc-sponsor-card--top-left {
+	.wc-sponsor-card--left-top {
 		left: 8%;
 	}
 
-	.wc-sponsor-card--bottom-left {
+	.wc-sponsor-card--left-mid {
 		left: 10%;
 	}
 
-	.wc-sponsor-card--top-right {
+	.wc-sponsor-card--left-bottom {
+		left: 7%;
+	}
+
+	.wc-sponsor-card--right-top {
 		right: 8%;
 	}
 
-	.wc-sponsor-card--bottom-right {
-		right: 10%;
+	.wc-sponsor-card--right-bottom {
+		right: 9%;
 	}
 }
 
