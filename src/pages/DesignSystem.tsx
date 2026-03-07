@@ -240,7 +240,7 @@ export function DesignSystem() {
 					title="Semantic Colors"
 					desc="Nine global color tokens (src/utils/colors.ts). Every colored UI element consumes from this system."
 				>
-					<div className="space-y-6">
+					<div className="grid gap-4 md:grid-cols-2">
 						{TOKEN_NAMES.map((name) => {
 							const t = TOKENS[name];
 							return (
@@ -259,7 +259,7 @@ export function DesignSystem() {
 											— {TOKEN_USAGE[name]}
 										</span>
 									</div>
-									<div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+									<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
 										{(
 											[
 												["solid", t.solid],
@@ -294,9 +294,9 @@ export function DesignSystem() {
 								className="h-32"
 								style={{
 									background: [
-										"radial-gradient(circle at 25% 20%, rgba(127,57,173,0.25), transparent 55%)",
-										"radial-gradient(circle at 80% 75%, rgba(208,144,96,0.18), transparent 55%)",
-										"linear-gradient(180deg, rgba(27,7,54,0.92), rgba(18,4,33,0.78))",
+										"radial-gradient(circle at 25% 20%, color-mix(in srgb, var(--color-brand-600) 25%, transparent), transparent 55%)",
+										"radial-gradient(circle at 80% 75%, color-mix(in srgb, var(--color-accent-400) 18%, transparent), transparent 55%)",
+										"linear-gradient(180deg, color-mix(in srgb, var(--color-brand-950) 92%, transparent), color-mix(in srgb, var(--color-brand-950) 78%, transparent))",
 									].join(", "),
 								}}
 							/>
