@@ -61,6 +61,8 @@ export interface DbLogEntry {
 	provider_earned: number;
 	platform_fee: number;
 	price_multiplier: number;
+	status: "ok" | "error";
+	error_code: number | null;
 	created_at: number;
 }
 

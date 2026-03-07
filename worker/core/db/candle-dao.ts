@@ -7,7 +7,7 @@ const RETENTION_DAYS = 30;
 export type CandleDimension = "model:input" | "model:output" | "provider";
 
 export class CandleDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	/**
 	 * Aggregate real trade data into candles.
@@ -27,7 +27,7 @@ export class CandleDao {
 				 FROM logs u
 				 JOIN model_pricing mp
 				   ON mp.provider_id = u.provider_id AND mp.model_id = u.model_id AND mp.is_active = 1
-				 WHERE u.created_at >= ? AND u.created_at < ?
+				 WHERE u.created_at >= ? AND u.created_at < ? AND u.status = 'ok'
 				 ORDER BY u.created_at ASC`,
 			)
 			.bind(windowStart, now)

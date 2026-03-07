@@ -76,12 +76,15 @@ CREATE TABLE IF NOT EXISTS logs (
     provider_earned REAL NOT NULL DEFAULT 0,
     platform_fee REAL NOT NULL DEFAULT 0,
     price_multiplier REAL NOT NULL DEFAULT 1.0,
+    status TEXT NOT NULL DEFAULT 'ok',
+    error_code INTEGER,
     created_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_logs_consumer_time ON logs(consumer_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_logs_credential_owner_time ON logs(credential_owner_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_logs_created ON logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_logs_status_time ON logs(status, created_at);
 
 -- 5. Pre-aggregated OHLC candle data for price trend charts
 CREATE TABLE IF NOT EXISTS price_candles (

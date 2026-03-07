@@ -72,6 +72,8 @@ export async function recordLog(
 			provider_earned: settlement.providerEarned,
 			platform_fee: settlement.platformFee,
 			price_multiplier: priceMultiplier,
+			status: "ok",
+			error_code: null,
 		});
 
 		await new CredentialsDao(db, encryptionKey).deductQuota(
@@ -81,6 +83,43 @@ export async function recordLog(
 	} catch (err) {
 		log.error("billing", "Log entry write failed", {
 			credentialId,
+			error: err instanceof Error ? err.message : String(err),
+		});
+	}
+}
+
+/** Record a failed upstream attempt (no quota deduction, no settlement). */
+export async function recordFailureLog(
+	db: D1Database,
+	params: {
+		consumerId: string;
+		credentialId: string;
+		credentialOwnerId: string;
+		providerId: string;
+		modelId: string;
+		priceMultiplier: number;
+		errorCode: number;
+	},
+): Promise<void> {
+	try {
+		await new LogsDao(db).createEntry({
+			consumer_id: params.consumerId,
+			credential_id: params.credentialId,
+			credential_owner_id: params.credentialOwnerId,
+			provider_id: params.providerId,
+			model_id: params.modelId,
+			input_tokens: 0,
+			output_tokens: 0,
+			base_cost: 0,
+			consumer_charged: 0,
+			provider_earned: 0,
+			platform_fee: 0,
+			price_multiplier: params.priceMultiplier,
+			status: "error",
+			error_code: params.errorCode,
+		});
+	} catch (err) {
+		log.error("billing", "Failure log write failed", {
 			error: err instanceof Error ? err.message : String(err),
 		});
 	}

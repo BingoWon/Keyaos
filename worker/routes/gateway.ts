@@ -8,7 +8,8 @@
  */
 
 import type { Context } from "hono";
-import { calculateBaseCost, recordLog } from "../core/billing";
+import { calculateBaseCost, recordFailureLog, recordLog } from "../core/billing";
+import * as cb from "../core/circuit-breaker";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { dispatchAll } from "../core/dispatcher";
 import { interceptResponse } from "../core/utils/stream";
@@ -77,6 +78,16 @@ export async function executeCompletion(
 		const { credential, provider, modelId, upstreamModelId, modelPrice } =
 			candidates[attempt];
 		const isSub = provider.info.isSubscription ?? false;
+
+		// Circuit breaker: skip known-bad (provider, model) pairs
+		if (cb.isOpen(provider.info.id, modelId)) {
+			rlog.info("gateway", "Circuit breaker open, skipping", {
+				attempt,
+				providerId: provider.info.id,
+			});
+			continue;
+		}
+
 		const upstreamBody = {
 			...req.body,
 			model: upstreamModelId ?? modelId,
@@ -90,11 +101,27 @@ export async function executeCompletion(
 
 			if (!response.ok) {
 				await credDao.reportFailure(credential.id, response.status, isSub);
+				cb.recordFailure(provider.info.id, modelId);
+
 				rlog.warn("gateway", "Upstream error, retrying", {
 					attempt,
 					providerId: provider.info.id,
 					status: response.status,
 				});
+
+				// Record failure log asynchronously
+				c.executionCtx.waitUntil(
+					recordFailureLog(c.env.DB, {
+						consumerId,
+						credentialId: credential.id,
+						credentialOwnerId: credential.owner_id,
+						providerId: credential.provider_id,
+						modelId,
+						priceMultiplier: credential.price_multiplier,
+						errorCode: response.status,
+					}),
+				);
+
 				lastError = new Error(
 					`Upstream ${provider.info.id} returned ${response.status}`,
 				);
@@ -120,10 +147,10 @@ export async function executeCompletion(
 							const settlement = isPlatform
 								? calculateSettlement(baseCost, isSelfUse)
 								: {
-										consumerCharged: 0,
-										providerEarned: 0,
-										platformFee: 0,
-									};
+									consumerCharged: 0,
+									providerEarned: 0,
+									platformFee: 0,
+								};
 
 							await recordLog(c.env.DB, encryptionKey, {
 								consumerId,
@@ -168,6 +195,7 @@ export async function executeCompletion(
 					);
 				},
 				onStreamDone: () => {
+					cb.recordSuccess(provider.info.id, modelId);
 					c.executionCtx.waitUntil(credDao.reportSuccess(credential.id));
 				},
 				onStreamError: (err) => {
@@ -190,6 +218,7 @@ export async function executeCompletion(
 			};
 		} catch (err) {
 			await credDao.reportFailure(credential.id, undefined, isSub);
+			cb.recordFailure(provider.info.id, modelId);
 			rlog.warn("gateway", "Provider threw, retrying", {
 				attempt,
 				providerId: provider.info.id,

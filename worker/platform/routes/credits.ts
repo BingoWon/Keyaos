@@ -108,6 +108,7 @@ credits.get("/transactions", async (c) => {
 		FROM logs
 		WHERE (consumer_id = ?1 OR credential_owner_id = ?1)
 			AND NOT (consumer_id = ?1 AND credential_owner_id = ?1)
+			AND status = 'ok'
 
 		UNION ALL
 

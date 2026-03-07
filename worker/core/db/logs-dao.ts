@@ -1,7 +1,7 @@
 import type { DbLogEntry } from "./schema";
 
 export class LogsDao {
-	constructor(private db: D1Database) {}
+	constructor(private db: D1Database) { }
 
 	async createEntry(
 		tx: Omit<DbLogEntry, "id" | "created_at">,
@@ -13,8 +13,9 @@ export class LogsDao {
 				`INSERT INTO logs (
 					id, consumer_id, credential_id, credential_owner_id, provider_id, model_id,
 					input_tokens, output_tokens, base_cost,
-					consumer_charged, provider_earned, platform_fee, price_multiplier, created_at
-				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+					consumer_charged, provider_earned, platform_fee, price_multiplier,
+					status, error_code, created_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			)
 			.bind(
 				id,
@@ -30,6 +31,8 @@ export class LogsDao {
 				tx.provider_earned,
 				tx.platform_fee,
 				tx.price_multiplier,
+				tx.status,
+				tx.error_code,
 				Date.now(),
 			)
 			.run();
@@ -45,7 +48,8 @@ export class LogsDao {
 		const res = await this.db
 			.prepare(
 				`SELECT * FROM logs
-				 WHERE consumer_id = ?1 OR credential_owner_id = ?1
+				 WHERE (consumer_id = ?1 OR credential_owner_id = ?1)
+				   AND status = 'ok'
 				 ORDER BY created_at DESC
 				 LIMIT ?2 OFFSET ?3`,
 			)
@@ -59,7 +63,8 @@ export class LogsDao {
 		const res = await this.db
 			.prepare(
 				`SELECT COUNT(*) AS total FROM logs
-				 WHERE consumer_id = ? OR credential_owner_id = ?`,
+				 WHERE (consumer_id = ? OR credential_owner_id = ?)
+				   AND status = 'ok'`,
 			)
 			.bind(userId, userId)
 			.first<{ total: number }>();
@@ -76,7 +81,8 @@ export class LogsDao {
 					COALESCE(SUM(CASE WHEN credential_owner_id = ?1 AND consumer_id != ?1 THEN provider_earned ELSE 0 END), 0) AS earnings,
 					COUNT(CASE WHEN consumer_id = ?1 THEN 1 END) AS api_calls
 				 FROM logs
-				 WHERE created_at >= ?2 AND (consumer_id = ?1 OR credential_owner_id = ?1)`,
+				 WHERE created_at >= ?2 AND (consumer_id = ?1 OR credential_owner_id = ?1)
+				   AND status = 'ok'`,
 			)
 			.bind(userId, since)
 			.first<{ earnings: number; api_calls: number }>();
@@ -92,7 +98,7 @@ export class LogsDao {
 		const res = await this.db
 			.prepare(
 				`SELECT credential_id, SUM(provider_earned) as total
-				 FROM logs WHERE credential_owner_id = ?
+				 FROM logs WHERE credential_owner_id = ? AND status = 'ok'
 				 GROUP BY credential_id`,
 			)
 			.bind(credentialOwnerId)
