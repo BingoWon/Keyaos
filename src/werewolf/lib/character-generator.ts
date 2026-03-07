@@ -3,6 +3,7 @@ import { getGeneratorModel } from "@wolf/lib/api-keys";
 import { getSelectedModels } from "@wolf/lib/keyaos-models";
 import {
 	ALL_MODELS,
+	DEFAULT_PLAYER_MODELS,
 	type GameScenario,
 	GENERATOR_MODEL,
 	type ModelRef,
@@ -62,12 +63,18 @@ export const sampleModelRefs = (count: number): ModelRef[] => {
 			: [{ provider: "keyaos", model: GENERATOR_MODEL }];
 
 	const selectedModels = getSelectedModels();
-	const pool =
+	const userPool =
 		selectedModels.length > 0
 			? fullPool.filter((ref) => selectedModels.includes(ref.model))
-			: fullPool;
+			: [];
 
-	const effectivePool = pool.length > 0 ? pool : fullPool.slice(0, 3);
+	const defaultPool =
+		userPool.length > 0
+			? userPool
+			: fullPool.filter((ref) => DEFAULT_PLAYER_MODELS.includes(ref.model));
+
+	const effectivePool =
+		defaultPool.length > 0 ? defaultPool : fullPool.slice(0, 3);
 
 	if (!Number.isFinite(count) || count <= 0) return [];
 

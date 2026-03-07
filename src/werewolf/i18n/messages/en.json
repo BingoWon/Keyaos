@@ -254,15 +254,15 @@
 			"playerModels": "Player Models",
 			"playerModelsDesc": "AI players are randomly assigned from these models. Different models create diverse play styles.",
 			"playerModelsPlaceholder": "Search models...",
-			"playerModelsAll": "All models ({count})",
 			"playerModelsSelected": "{count} models selected",
-			"playerModelsNone": "Using all available models",
+			"playerModelsNone": "Using default models",
 			"selectAll": "Select All",
 			"clearAll": "Clear All",
 			"reset": "Reset",
 			"resetAll": "Reset All Settings",
-			"resetAllDesc": "Restore all model settings to defaults",
-			"resetAllConfirm": "Settings have been reset to defaults"
+			"resetAllDesc": "Restore all settings to their default values",
+			"resetAllConfirm": "All settings have been reset to defaults",
+			"playerModelsDefault": "Default models ({count})"
 		}
 	},
 	"playerCount": {

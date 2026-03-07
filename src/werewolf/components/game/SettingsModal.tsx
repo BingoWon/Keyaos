@@ -267,8 +267,8 @@ export function ModelSettingsSection() {
 					className="w-full rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2.5 py-1.5 text-left text-xs text-[var(--text-primary)] hover:border-[var(--color-accent)] transition-colors"
 				>
 					{selected.size === 0
-						? t("settings.models.playerModelsAll", {
-								count: allModels.length,
+						? t("settings.models.playerModelsDefault", {
+								count: DEFAULT_PLAYER_MODELS.length,
 							})
 						: t("settings.models.playerModelsSelected", {
 								count: selected.size,
@@ -369,15 +369,12 @@ export function SettingsModal({
 	const [modelResetKey, setModelResetKey] = useState(0);
 
 	const handleResetAllSettings = useCallback(() => {
+		// Reset model settings
 		clearApiKeys();
 		const models = getCachedModels();
 		const available = new Set(models.map((m) => m.model));
 		const defaults = DEFAULT_PLAYER_MODELS.filter((m) => available.has(m));
-		if (defaults.length > 0) {
-			setSelectedModels(defaults);
-		} else {
-			setSelectedModels([]);
-		}
+		setSelectedModels(defaults.length > 0 ? defaults : []);
 		const util = available.has(DEFAULT_UTILITY_MODEL)
 			? DEFAULT_UTILITY_MODEL
 			: (models[0]?.model ?? "");
@@ -385,8 +382,21 @@ export function SettingsModal({
 		setSummaryModel(util);
 		setReviewModel(util);
 		setModelResetKey((k) => k + 1);
+
+		// Reset sound settings
+		onBgmVolumeChange(0.3);
+		onSoundEnabledChange(true);
+		onAiVoiceEnabledChange(false);
+		onAutoAdvanceDialogueEnabledChange(false);
+
 		toast(t("settings.models.resetAllConfirm"));
-	}, [t]);
+	}, [
+		t,
+		onBgmVolumeChange,
+		onSoundEnabledChange,
+		onAiVoiceEnabledChange,
+		onAutoAdvanceDialogueEnabledChange,
+	]);
 
 	// Handle exit game confirmation
 	const handleExitConfirm = useCallback(() => {

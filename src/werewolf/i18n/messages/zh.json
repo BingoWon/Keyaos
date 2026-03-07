@@ -254,15 +254,15 @@
 			"playerModels": "玩家模型",
 			"playerModelsDesc": "AI 玩家将从这些模型中随机分配。不同的模型会带来不同的游戏风格。",
 			"playerModelsPlaceholder": "搜索模型...",
-			"playerModelsAll": "全部模型（{count}个）",
 			"playerModelsSelected": "已选择 {count} 个模型",
-			"playerModelsNone": "使用所有可用模型",
+			"playerModelsNone": "使用默认模型",
 			"selectAll": "全选",
 			"clearAll": "清除",
 			"reset": "复位",
 			"resetAll": "恢复默认设置",
-			"resetAllDesc": "将所有模型设置恢复为默认值",
-			"resetAllConfirm": "设置已恢复为默认值"
+			"resetAllDesc": "将所有设置恢复为默认值",
+			"resetAllConfirm": "所有设置已恢复为默认值",
+			"playerModelsDefault": "默认模型（{count}个）"
 		}
 	},
 	"playerCount": {
