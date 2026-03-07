@@ -34,9 +34,7 @@ export interface OpenAICompatibleConfig {
 	credentialGuide?: CredentialGuide;
 }
 
-/** USD dollars → integer cents per 1M tokens */
-export const dollarsToCentsPerM = (usd: number): number =>
-	Math.round(usd * 100);
+
 
 function defaultParseModels(
 	raw: Record<string, unknown>,

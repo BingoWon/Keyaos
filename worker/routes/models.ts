@@ -24,8 +24,8 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 		candleDao.getLatestPrices("model:output"),
 	]);
 
-	// cents-per-M-tokens → USD-per-token string (OpenRouter format)
-	const toUsdPerToken = (centsPerM: number) => String(centsPerM / 100_000_000);
+	// USD-per-M-tokens → USD-per-token string (OpenRouter format)
+	const toUsdPerToken = (usdPerM: number) => String(usdPerM / 1_000_000);
 
 	// Group by model_id (Map preserves insertion order = sort_order)
 	const groups = new Map<
@@ -72,7 +72,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 
 			// Derive discount ratio for multi-modal pricing
 			const originalPrompt =
-				Number.parseFloat(basePricing.prompt || "0") * 100_000_000;
+				Number.parseFloat(basePricing.prompt || "0") * 1_000_000;
 			if (originalPrompt > 0) {
 				const ratio = inputClose / originalPrompt;
 				for (const [key, val] of Object.entries(basePricing)) {
@@ -132,9 +132,9 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 			output_price: m.output_price,
 			...(mul != null &&
 				mul < 1 && {
-					platform_input_price: m.input_price * mul,
-					platform_output_price: m.output_price * mul,
-				}),
+				platform_input_price: m.input_price * mul,
+				platform_output_price: m.output_price * mul,
+			}),
 			context_length: m.context_length,
 			created_at: m.created_at || null,
 			input_modalities: m.input_modalities

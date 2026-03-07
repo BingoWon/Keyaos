@@ -20,7 +20,7 @@ import type {
 	ProviderCredits,
 	ProviderInfo,
 } from "./interface";
-import { dollarsToCentsPerM } from "./openai-compatible";
+
 
 // ─── Config ─────────────────────────────────────────────
 
@@ -127,7 +127,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 				const json = (await res.json()) as Record<string, string>;
 				const projectId = json.cloudaicompanionProject ?? json.billingProject;
 				if (projectId) return { baseUrl, projectId };
-			} catch {}
+			} catch { }
 		}
 		throw new Error(`All ${this.cfg.id} base URLs failed`);
 	}
@@ -202,7 +202,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 						body: "{}",
 					});
 					if (res.ok) return true;
-				} catch {}
+				} catch { }
 			}
 			return false;
 		} catch {
@@ -286,8 +286,8 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 			provider_id: this.cfg.id,
 			model_id: m.id,
 			name: m.name,
-			input_price: dollarsToCentsPerM(m.input_usd),
-			output_price: dollarsToCentsPerM(m.output_usd),
+			input_price: m.input_usd,
+			output_price: m.output_usd,
 			context_length: m.context_length,
 			input_modalities: null,
 			output_modalities: null,
