@@ -3,7 +3,6 @@ import {
 	GearSix,
 	GithubLogo,
 	Sparkle,
-	Star,
 	UsersFour,
 	Wrench,
 } from "@phosphor-icons/react";
@@ -306,7 +305,6 @@ export function WelcomeScreen({
 	const [difficulty, _setDifficulty] = useAtom(difficultyAtom);
 	const [playerCount, setPlayerCount] = useAtom(playerCountAtom);
 	const [preferredRole, setPreferredRole] = useAtom(preferredRoleAtom);
-	const [githubStars, setGithubStars] = useState<number | null>(null);
 	const springCampaignRemainingQuota = springCampaign?.remainingQuota ?? 0;
 	const springCampaignTotalQuota = springCampaign?.totalQuota ?? 0;
 	const springCampaignActiveNow =
@@ -448,20 +446,6 @@ export function WelcomeScreen({
 	useEffect(() => {
 		setFixedRoles(buildDefaultRoles(playerCount));
 	}, [playerCount]);
-
-	// Fetch GitHub stars
-	useEffect(() => {
-		fetch("https://api.github.com/repos/oil-oil/wolfcha")
-			.then((res) => res.json())
-			.then((data) => {
-				if (data.stargazers_count !== undefined) {
-					setGithubStars(data.stargazers_count);
-				}
-			})
-			.catch(() => {
-				// Silently fail, stars will remain null
-			});
-	}, []);
 
 	const roleConfigValid = useMemo(() => {
 		if (fixedRoles.length !== playerCount) return false;
@@ -955,32 +939,16 @@ export function WelcomeScreen({
 				<div className="wc-welcome-actions absolute top-5 right-5 z-20 flex items-center gap-2">
 					<div className="flex items-center gap-2">
 						<LocaleSwitcher className="shrink-0" />
-						<a
-							href="https://github.com/oil-oil/wolfcha"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="flex items-center gap-1.5 rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2 py-1 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all group"
-							title="View on GitHub"
-						>
-							<GithubLogo
-								size={15}
-								className="group-hover:scale-110 transition-transform"
-							/>
-							<span className="hidden lg:inline">GitHub</span>
-							<span className="flex items-center gap-1 text-[var(--color-gold)]">
-								<Star
-									size={12}
-									weight="fill"
-									className="group-hover:scale-110 transition-transform"
-								/>
-								<span
-									className="font-serif text-xs font-bold tabular-nums tracking-tight"
-									style={{ textShadow: "0 1px 2px rgba(0,0,0,0.1)" }}
-								>
-									{githubStars !== null ? githubStars.toLocaleString() : "···"}
-								</span>
-							</span>
-						</a>
+						<Button asChild variant="outline" className="h-8 text-xs gap-2">
+							<a
+								href="https://github.com/oil-oil/wolfcha"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<GithubLogo size={16} />
+								<span className="hidden sm:inline">GitHub</span>
+							</a>
+						</Button>
 						<Button
 							type="button"
 							variant="outline"

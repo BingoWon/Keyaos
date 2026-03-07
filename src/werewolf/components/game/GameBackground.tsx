@@ -29,7 +29,7 @@ export function GameBackground({
 }: GameBackgroundProps) {
 	const fadeDuration = isBlinking ? 0 : 1.5;
 	return (
-		<div className="fixed inset-0 -z-10 overflow-hidden">
+		<div className="absolute inset-0 z-0 overflow-hidden">
 			{/* Day Background */}
 			<motion.div
 				className="absolute inset-0"
