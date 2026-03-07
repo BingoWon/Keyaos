@@ -11,9 +11,11 @@ import {
 } from "@wolf/lib/keyaos-models";
 import { setAuthTokenGetter } from "@wolf/lib/llm";
 import { setModelPool } from "@wolf/types/game";
+import { Crisp } from "crisp-sdk-web";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { useAuth } from "@/auth";
+import { hasCrisp } from "@/lib/analytics";
 import "@wolf/app/globals.css";
 import WerewolfPage from "@wolf/app/page";
 
@@ -22,6 +24,13 @@ loadLocaleFromStorage();
 export default function WerewolfEntry() {
 	const { getToken } = useAuth();
 	const [ready, setReady] = useState(false);
+
+	useEffect(() => {
+		if (hasCrisp) Crisp.chat.hide();
+		return () => {
+			if (hasCrisp) Crisp.chat.show();
+		};
+	}, []);
 
 	useEffect(() => {
 		setAuthTokenGetter(getToken);
