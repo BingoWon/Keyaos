@@ -4,13 +4,20 @@ import {
 	CubeTransparentIcon,
 	ServerStackIcon,
 } from "@heroicons/react/24/outline";
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/solid";
+import {
+	ChatBubbleLeftRightIcon,
+	DocumentArrowUpIcon,
+	MicrophoneIcon,
+	PhotoIcon,
+	VideoCameraIcon,
+} from "@heroicons/react/24/solid";
+import { Icon } from "@iconify/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
+import type { Modality } from "../../worker/core/db/schema";
 import { CodeSamples, detectCodeVariant } from "../components/CodeSamples";
 import { CopyButton } from "../components/CopyButton";
-import { ModalityBadges } from "../components/Modalities";
 import { OrgLogo } from "../components/OrgLogo";
 import { PriceChart } from "../components/PriceChart";
 import { ProviderLogo } from "../components/ProviderLogo";
@@ -142,7 +149,7 @@ export function ModelDetail() {
 							{group.providers.length}{" "}
 							{group.providers.length === 1 ? "provider" : "providers"}
 						</span>
-						<ModalityBadges
+						<ModalityPills
 							input={group.inputModalities}
 							output={group.outputModalities}
 						/>
@@ -239,6 +246,65 @@ export function ModelDetail() {
 		</div>
 	);
 }
+
+// ─── Modality pills (detail page only) ───────────────────
+
+const MODALITY_ORDER: Modality[] = ["text", "image", "file", "audio", "video"];
+
+const MODALITY_ICON: Record<Modality, React.FC<{ className?: string }>> = {
+	text: ({ className }) => (
+		<Icon icon="solar:text-square-bold" className={className} />
+	),
+	image: PhotoIcon,
+	file: DocumentArrowUpIcon,
+	audio: MicrophoneIcon,
+	video: VideoCameraIcon,
+};
+
+function ModalityPills({
+	input,
+	output,
+}: {
+	input: Modality[];
+	output: Modality[];
+}) {
+	const sorted = (mods: Modality[]) =>
+		MODALITY_ORDER.filter((m) => mods.includes(m));
+
+	return (
+		<>
+			{sorted(input).map((m) => {
+				const Ico = MODALITY_ICON[m];
+				return (
+					<span
+						key={`in:${m}`}
+						className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TOKENS.rose.soft}`}
+					>
+						<Ico className="size-3.5" />
+						{m}
+					</span>
+				);
+			})}
+			<span className="text-[10px] font-medium text-gray-300 dark:text-gray-600 select-none">
+				→
+			</span>
+			{sorted(output).map((m) => {
+				const Ico = MODALITY_ICON[m];
+				return (
+					<span
+						key={`out:${m}`}
+						className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TOKENS.violet.soft}`}
+					>
+						<Ico className="size-3.5" />
+						{m}
+					</span>
+				);
+			})}
+		</>
+	);
+}
+
+// ─── Collapsible description ─────────────────────────────
 
 const COLLAPSED_HEIGHT = 72;
 
