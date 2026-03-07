@@ -103,8 +103,8 @@
 				"openai": "GPT-4o, o3-mini and more — the gold standard in language AI.",
 				"anthropic": "Claude Sonnet & Haiku — nuanced reasoning for every debate.",
 				"google": "Gemini 2.5 Pro & Flash — multimodal intelligence at scale.",
-				"deepseek": "Open-source AI pioneer",
-				"qwen": "Alibaba Cloud AI"
+				"deepseek": "DeepSeek-V3.2 & R1 — open-source reasoning at frontier scale.",
+				"qwen": "Qwen3-Max & Qwen3-Coder — Alibaba's flagship thinking models."
 			},
 			"copySuccess": "Link copied",
 			"copyFallback": "Platform URL",

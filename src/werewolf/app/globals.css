@@ -4743,56 +4743,95 @@
 }
 
 /*
- * Card positions — left 3, right 2.
- * To fine-tune positions, adjust top/bottom/left/right percentages below.
+ * Card positions & sizes — left 3, right 2.
+ * Sizes are deliberately varied for visual rhythm.
+ * To fine-tune: adjust top/bottom/left/right + width below.
  */
 
-/* Left column (3 cards) */
+/* Left column (3 cards) — OpenAI (large), Anthropic (small), Google (medium) */
 .wc-sponsor-card--left-top {
-	top: 14%;
-	left: 4%;
+	top: 10%;
+	left: 3%;
+	width: 192px;
+}
+
+.wc-sponsor-card--left-top .wc-sponsor-card__logo {
+	width: 62px;
+	height: 62px;
 }
 
 .wc-sponsor-card--left-mid {
-	top: 42%;
-	left: 6%;
+	top: 46%;
+	left: 8%;
+	width: 148px;
+}
+
+.wc-sponsor-card--left-mid .wc-sponsor-card__logo {
+	width: 42px;
+	height: 42px;
+}
+
+.wc-sponsor-card--left-mid .wc-sponsor-card__name {
+	font-size: 11px;
 }
 
 .wc-sponsor-card--left-bottom {
-	bottom: 14%;
-	left: 3%;
+	bottom: 10%;
+	left: 2%;
+	width: 168px;
 }
 
-/* Right column (2 cards) */
+/* Right column (2 cards) — DeepSeek (medium-large), Qwen (small) */
 .wc-sponsor-card--right-top {
-	top: 20%;
-	right: 4%;
+	top: 16%;
+	right: 3%;
+	width: 180px;
+}
+
+.wc-sponsor-card--right-top .wc-sponsor-card__logo {
+	width: 58px;
+	height: 58px;
 }
 
 .wc-sponsor-card--right-bottom {
-	bottom: 20%;
-	right: 5%;
+	bottom: 16%;
+	right: 6%;
+	width: 152px;
+}
+
+.wc-sponsor-card--right-bottom .wc-sponsor-card__logo {
+	width: 44px;
+	height: 44px;
+}
+
+.wc-sponsor-card--right-bottom .wc-sponsor-card__name {
+	font-size: 11px;
 }
 
 @media (max-width: 1280px) {
 	.wc-sponsor-card--left-top {
-		left: 2%;
+		left: 1%;
+		width: 160px;
 	}
 
 	.wc-sponsor-card--left-mid {
 		left: 3%;
+		width: 130px;
 	}
 
 	.wc-sponsor-card--left-bottom {
-		left: 1%;
+		left: 0%;
+		width: 145px;
 	}
 
 	.wc-sponsor-card--right-top {
-		right: 2%;
+		right: 1%;
+		width: 155px;
 	}
 
 	.wc-sponsor-card--right-bottom {
 		right: 2%;
+		width: 132px;
 	}
 }
 
@@ -4884,19 +4923,19 @@
 	}
 
 	.wc-sponsor-card--left-mid {
-		left: 10%;
+		left: 12%;
 	}
 
 	.wc-sponsor-card--left-bottom {
-		left: 7%;
+		left: 6%;
 	}
 
 	.wc-sponsor-card--right-top {
-		right: 8%;
+		right: 7%;
 	}
 
 	.wc-sponsor-card--right-bottom {
-		right: 9%;
+		right: 10%;
 	}
 }
 

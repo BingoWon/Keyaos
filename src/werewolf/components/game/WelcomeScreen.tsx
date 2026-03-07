@@ -902,11 +902,11 @@ export function WelcomeScreen({
 					className="wc-sponsor-cards"
 					aria-label={t("welcome.sponsor.showcaseLabel")}
 				>
-					{/* Left column */}
+					{/* Left column — large, small, medium */}
 					<ProviderCard
 						href="https://openai.com"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--left-top"
-						rotate="-3deg"
+						rotate="-2deg"
 						delay={0.15}
 						logoSrc="/game/models/openai.svg"
 						logoAlt="OpenAI"
@@ -916,8 +916,8 @@ export function WelcomeScreen({
 					<ProviderCard
 						href="https://anthropic.com"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--left-mid"
-						rotate="4deg"
-						delay={0.35}
+						rotate="7deg"
+						delay={0.4}
 						logoSrc="/game/models/claude.svg"
 						logoAlt="Anthropic"
 						name="Anthropic"
@@ -927,18 +927,18 @@ export function WelcomeScreen({
 						href="https://deepmind.google"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--left-bottom"
 						rotate="-5deg"
-						delay={0.55}
+						delay={0.6}
 						logoSrc="/game/models/gemini.svg"
 						logoAlt="Google"
 						name="Google"
 						note={t("welcome.sponsor.cards.google")}
 					/>
 
-					{/* Right column */}
+					{/* Right column — medium-large, small */}
 					<ProviderCard
 						href="https://www.deepseek.com"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--right-top"
-						rotate="5deg"
+						rotate="4deg"
 						delay={0.25}
 						logoSrc="/game/models/deepseek.svg"
 						logoAlt="DeepSeek"
@@ -948,8 +948,8 @@ export function WelcomeScreen({
 					<ProviderCard
 						href="https://tongyi.aliyun.com"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--right-bottom"
-						rotate="-4deg"
-						delay={0.45}
+						rotate="-6deg"
+						delay={0.5}
 						logoSrc="/game/models/qwen.svg"
 						logoAlt="Qwen"
 						name="Qwen"

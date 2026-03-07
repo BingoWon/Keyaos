@@ -103,8 +103,8 @@
 				"openai": "GPT-4o、o3-mini 等 —— 语言 AI 的黄金标准。",
 				"anthropic": "Claude Sonnet & Haiku —— 为每场辩论注入细腻推理。",
 				"google": "Gemini 2.5 Pro & Flash —— 大规模多模态智能。",
-				"deepseek": "开源 AI 先锋",
-				"qwen": "阿里云通义千问"
+				"deepseek": "DeepSeek-V3.2 & R1 — 开源推理，前沿水准。",
+				"qwen": "Qwen3-Max & Qwen3-Coder — 阿里旗舰思考模型。"
 			},
 			"copySuccess": "已复制链接",
 			"copyFallback": "平台地址",
