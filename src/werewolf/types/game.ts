@@ -283,9 +283,27 @@ export function setModelPool(models: ModelRef[]) {
 	ALL_MODELS = models;
 	AVAILABLE_MODELS = models;
 	PLAYER_MODELS = models;
+
 	if (models.length > 0) {
-		GENERATOR_MODEL = models[0].model;
-		SUMMARY_MODEL = models[0].model;
-		REVIEW_MODEL = models[0].model;
+		const ids = new Set(models.map((m) => m.model));
+		const fallback = models[0].model;
+
+		const stored = {
+			gen: safeRead("wolfcha_generator_model"),
+			sum: safeRead("wolfcha_summary_model"),
+			rev: safeRead("wolfcha_review_model"),
+		};
+
+		GENERATOR_MODEL = ids.has(stored.gen) ? stored.gen : fallback;
+		SUMMARY_MODEL = ids.has(stored.sum) ? stored.sum : fallback;
+		REVIEW_MODEL = ids.has(stored.rev) ? stored.rev : fallback;
+	}
+}
+
+function safeRead(key: string): string {
+	try {
+		return localStorage.getItem(key)?.trim() ?? "";
+	} catch {
+		return "";
 	}
 }

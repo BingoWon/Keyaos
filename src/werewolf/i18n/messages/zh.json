@@ -245,6 +245,20 @@
 			"exitConfirmDescription": "当前游戏进度将丢失，无法恢复。",
 			"exitConfirmButton": "确认退出",
 			"exitCancelButton": "继续游戏"
+		},
+		"models": {
+			"title": "AI 模型",
+			"description": "配置游戏使用的模型",
+			"utilityModel": "工具模型",
+			"utilityModelDesc": "用于角色生成、每日总结和战后复盘。推荐使用快速且实惠的模型。",
+			"playerModels": "玩家模型",
+			"playerModelsDesc": "AI 玩家将从这些模型中随机分配。不同的模型会带来不同的游戏风格。",
+			"playerModelsPlaceholder": "搜索模型...",
+			"playerModelsAll": "全部模型（{count}个）",
+			"playerModelsSelected": "已选择 {count} 个模型",
+			"playerModelsNone": "使用所有可用模型",
+			"selectAll": "全选",
+			"clearAll": "清除"
 		}
 	},
 	"playerCount": {

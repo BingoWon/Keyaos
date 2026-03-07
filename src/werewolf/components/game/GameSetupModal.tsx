@@ -1,4 +1,7 @@
-import { SoundSettingsSection } from "@wolf/components/game/SettingsModal";
+import {
+	ModelSettingsSection,
+	SoundSettingsSection,
+} from "@wolf/components/game/SettingsModal";
 import {
 	Dialog,
 	DialogContent,
@@ -179,7 +182,7 @@ export function GameSetupModal({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-[92vw] max-w-md">
+			<DialogContent className="w-[92vw] max-w-md max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="font-serif text-[var(--text-primary)]">
 						{t("gameSetup.title")}
@@ -284,6 +287,10 @@ export function GameSetupModal({
 							checked={isSpectatorMode}
 							onCheckedChange={onSpectatorModeChange}
 						/>
+					</div>
+
+					<div className="border-t border-[var(--border-color)] pt-4">
+						<ModelSettingsSection />
 					</div>
 
 					<div className="border-t border-[var(--border-color)] pt-4">

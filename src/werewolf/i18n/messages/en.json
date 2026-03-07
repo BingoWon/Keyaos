@@ -245,6 +245,20 @@
 			"exitConfirmDescription": "Your current game progress will be lost and cannot be recovered.",
 			"exitConfirmButton": "Exit",
 			"exitCancelButton": "Continue Playing"
+		},
+		"models": {
+			"title": "AI Models",
+			"description": "Configure which models the game uses",
+			"utilityModel": "Utility Model",
+			"utilityModelDesc": "Used for character generation, summaries, and reviews. A fast, affordable model works best.",
+			"playerModels": "Player Models",
+			"playerModelsDesc": "AI players are randomly assigned from these models. Different models create diverse play styles.",
+			"playerModelsPlaceholder": "Search models...",
+			"playerModelsAll": "All models ({count})",
+			"playerModelsSelected": "{count} models selected",
+			"playerModelsNone": "Using all available models",
+			"selectAll": "Select All",
+			"clearAll": "Clear All"
 		}
 	},
 	"playerCount": {

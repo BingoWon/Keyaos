@@ -10,9 +10,18 @@ import { Slider } from "@wolf/components/ui/slider";
 import { Switch } from "@wolf/components/ui/switch";
 import { useAppLocale } from "@wolf/i18n/useAppLocale";
 import { type AILogEntry, aiLogger } from "@wolf/lib/ai-logger";
-import type { GameState } from "@wolf/types/game";
+import {
+	getGeneratorModel,
+	getSelectedModels,
+	setGeneratorModel,
+	setReviewModel,
+	setSelectedModels,
+	setSummaryModel,
+} from "@wolf/lib/api-keys";
+import { getCachedModels } from "@wolf/lib/keyaos-models";
+import type { GameState, ModelRef } from "@wolf/types/game";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface SoundSettingsSectionProps {
@@ -120,6 +129,185 @@ export function SoundSettingsSection({
 					/>
 				</div>
 			)}
+		</div>
+	);
+}
+
+export function ModelSettingsSection() {
+	const t = useTranslations();
+	const allModels: ModelRef[] = getCachedModels();
+	const [utilityModel, setUtilityModel] = useState(() => getGeneratorModel());
+	const [selected, setSelected] = useState<Set<string>>(
+		() => new Set(getSelectedModels()),
+	);
+	const [search, setSearch] = useState("");
+	const [expanded, setExpanded] = useState(false);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!expanded) return;
+		const onClick = (e: MouseEvent) => {
+			if (
+				dropdownRef.current &&
+				!dropdownRef.current.contains(e.target as Node)
+			)
+				setExpanded(false);
+		};
+		document.addEventListener("mousedown", onClick);
+		return () => document.removeEventListener("mousedown", onClick);
+	}, [expanded]);
+
+	const filtered = useMemo(() => {
+		if (!search) return allModels;
+		const q = search.toLowerCase();
+		return allModels.filter((m) => m.model.toLowerCase().includes(q));
+	}, [allModels, search]);
+
+	const handleUtilityChange = (model: string) => {
+		setUtilityModel(model);
+		setGeneratorModel(model);
+		setSummaryModel(model);
+		setReviewModel(model);
+	};
+
+	const toggleModel = (modelId: string) => {
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (next.has(modelId)) next.delete(modelId);
+			else next.add(modelId);
+			setSelectedModels([...next]);
+			return next;
+		});
+	};
+
+	const handleSelectAll = () => {
+		const all = new Set(allModels.map((m) => m.model));
+		setSelected(all);
+		setSelectedModels([...all]);
+	};
+
+	const handleClearAll = () => {
+		setSelected(new Set());
+		setSelectedModels([]);
+	};
+
+	return (
+		<div className="space-y-4">
+			<div>
+				<div className="text-sm font-medium text-[var(--text-primary)]">
+					{t("settings.models.title")}
+				</div>
+				<div className="text-xs text-[var(--text-muted)]">
+					{t("settings.models.description")}
+				</div>
+			</div>
+
+			{/* Utility Model */}
+			<div className="space-y-1.5">
+				<label className="text-xs font-medium text-[var(--text-secondary)]">
+					{t("settings.models.utilityModel")}
+				</label>
+				<select
+					value={utilityModel}
+					onChange={(e) => handleUtilityChange(e.target.value)}
+					className="w-full rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:border-[var(--color-accent)] focus:outline-none"
+				>
+					{allModels.map((m) => (
+						<option key={m.model} value={m.model}>
+							{m.model}
+						</option>
+					))}
+				</select>
+				<div className="text-[10px] text-[var(--text-muted)]">
+					{t("settings.models.utilityModelDesc")}
+				</div>
+			</div>
+
+			{/* Player Models */}
+			<div className="space-y-1.5" ref={dropdownRef}>
+				<div className="flex items-center justify-between">
+					<label className="text-xs font-medium text-[var(--text-secondary)]">
+						{t("settings.models.playerModels")}
+					</label>
+					<span className="text-[10px] text-[var(--text-muted)]">
+						{selected.size === 0
+							? t("settings.models.playerModelsNone")
+							: t("settings.models.playerModelsSelected", {
+									count: selected.size,
+								})}
+					</span>
+				</div>
+
+				<button
+					type="button"
+					onClick={() => setExpanded(!expanded)}
+					className="w-full rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2.5 py-1.5 text-left text-xs text-[var(--text-primary)] hover:border-[var(--color-accent)] transition-colors"
+				>
+					{selected.size === 0
+						? t("settings.models.playerModelsAll", {
+								count: allModels.length,
+							})
+						: t("settings.models.playerModelsSelected", {
+								count: selected.size,
+							})}
+				</button>
+
+				{expanded && (
+					<div className="rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden">
+						<div className="p-2 border-b border-[var(--border-color)]">
+							<input
+								type="text"
+								value={search}
+								onChange={(e) => setSearch(e.target.value)}
+								placeholder={t("settings.models.playerModelsPlaceholder")}
+								className="w-full rounded border border-[var(--border-color)] bg-[var(--bg-secondary)] px-2 py-1 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--color-accent)] focus:outline-none"
+							/>
+						</div>
+						<div className="flex gap-1 px-2 py-1.5 border-b border-[var(--border-color)]">
+							<button
+								type="button"
+								onClick={handleSelectAll}
+								className="text-[10px] text-[var(--color-accent)] hover:underline"
+							>
+								{t("settings.models.selectAll")}
+							</button>
+							<span className="text-[10px] text-[var(--text-muted)]">·</span>
+							<button
+								type="button"
+								onClick={handleClearAll}
+								className="text-[10px] text-[var(--color-accent)] hover:underline"
+							>
+								{t("settings.models.clearAll")}
+							</button>
+						</div>
+						<div className="max-h-40 overflow-y-auto">
+							{filtered.map((m) => (
+								<label
+									key={m.model}
+									className="flex items-center gap-2 px-2 py-1 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] cursor-pointer"
+								>
+									<input
+										type="checkbox"
+										checked={selected.has(m.model)}
+										onChange={() => toggleModel(m.model)}
+										className="rounded border-[var(--border-color)] accent-[var(--color-accent)]"
+									/>
+									<span className="truncate">{m.model}</span>
+								</label>
+							))}
+							{filtered.length === 0 && (
+								<div className="px-2 py-3 text-center text-xs text-[var(--text-muted)]">
+									No models found
+								</div>
+							)}
+						</div>
+					</div>
+				)}
+
+				<div className="text-[10px] text-[var(--text-muted)]">
+					{t("settings.models.playerModelsDesc")}
+				</div>
+			</div>
 		</div>
 	);
 }
@@ -360,6 +548,10 @@ export function SettingsModal({
 								onAutoAdvanceDialogueEnabledChange
 							}
 						/>
+
+						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-secondary)] p-3">
+							<ModelSettingsSection />
+						</div>
 
 						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-secondary)] p-3 space-y-3">
 							<div>
