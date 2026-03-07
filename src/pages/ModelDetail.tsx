@@ -149,7 +149,7 @@ export function ModelDetail() {
 							{group.providers.length}{" "}
 							{group.providers.length === 1 ? "provider" : "providers"}
 						</span>
-						<ModalityPills
+						<ModalityPill
 							input={group.inputModalities}
 							output={group.outputModalities}
 						/>
@@ -261,7 +261,7 @@ const MODALITY_ICON: Record<Modality, React.FC<{ className?: string }>> = {
 	video: VideoCameraIcon,
 };
 
-function ModalityPills({
+function ModalityPill({
 	input,
 	output,
 }: {
@@ -271,36 +271,24 @@ function ModalityPills({
 	const sorted = (mods: Modality[]) =>
 		MODALITY_ORDER.filter((m) => mods.includes(m));
 
+	const renderIcons = (mods: Modality[]) =>
+		sorted(mods).map((m) => {
+			const Ico = MODALITY_ICON[m];
+			return <Ico key={m} className="size-3.5" />;
+		});
+
 	return (
-		<>
-			{sorted(input).map((m) => {
-				const Ico = MODALITY_ICON[m];
-				return (
-					<span
-						key={`in:${m}`}
-						className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TOKENS.rose.soft}`}
-					>
-						<Ico className="size-3.5" />
-						{m}
-					</span>
-				);
-			})}
-			<span className="text-[10px] font-medium text-gray-300 dark:text-gray-600 select-none">
-				→
+		<span
+			className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${TOKENS.rose.soft}`}
+		>
+			<span className="inline-flex items-center gap-0.5">
+				{renderIcons(input)}
 			</span>
-			{sorted(output).map((m) => {
-				const Ico = MODALITY_ICON[m];
-				return (
-					<span
-						key={`out:${m}`}
-						className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TOKENS.violet.soft}`}
-					>
-						<Ico className="size-3.5" />
-						{m}
-					</span>
-				);
-			})}
-		</>
+			<span className="opacity-40 select-none">→</span>
+			<span className="inline-flex items-center gap-0.5">
+				{renderIcons(output)}
+			</span>
+		</span>
 	);
 }
 
