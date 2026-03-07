@@ -258,7 +258,11 @@
 			"playerModelsSelected": "已选择 {count} 个模型",
 			"playerModelsNone": "使用所有可用模型",
 			"selectAll": "全选",
-			"clearAll": "清除"
+			"clearAll": "清除",
+			"reset": "复位",
+			"resetAll": "恢复默认设置",
+			"resetAllDesc": "将所有模型设置恢复为默认值",
+			"resetAllConfirm": "设置已恢复为默认值"
 		}
 	},
 	"playerCount": {

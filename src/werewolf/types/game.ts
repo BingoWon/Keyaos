@@ -260,13 +260,36 @@ export interface DailySummaryVoteData {
 	execution_vote?: { eliminated: number; votes: Record<string, number[]> };
 }
 
-// Utility model used for character generation, summaries, and reviews.
-// In Keyaos this can be any model; users configure via selected models.
-export let GENERATOR_MODEL = "google/gemini-2.5-flash";
-export let SUMMARY_MODEL = "google/gemini-2.5-flash";
-export let REVIEW_MODEL = "google/gemini-2.5-flash";
+export const DEFAULT_UTILITY_MODEL = "google/gemini-3.1-flash-lite-preview";
 
-// Populated dynamically from Keyaos /v1/models API at runtime.
+export let GENERATOR_MODEL = DEFAULT_UTILITY_MODEL;
+export let SUMMARY_MODEL = DEFAULT_UTILITY_MODEL;
+export let REVIEW_MODEL = DEFAULT_UTILITY_MODEL;
+
+/**
+ * Default player model pool — derived from the original wolfcha project's
+ * ALL_MODELS list. On startup we intersect with actually available Keyaos models.
+ */
+export const DEFAULT_PLAYER_MODELS: string[] = [
+	"deepseek/deepseek-v3.2",
+	"qwen/qwen3-max",
+	"google/gemini-3-flash-preview",
+	"google/gemini-2.5-flash-lite",
+	"google/gemini-3-pro-preview",
+	"google/gemini-3.1-pro-preview",
+	"moonshotai/kimi-k2-0905",
+	"volcengine/doubao-seed-1.8",
+	"openai/gpt-5.2-chat",
+	"anthropic/claude-haiku-4.5",
+	"anthropic/claude-sonnet-4.5",
+	"x-ai/grok-4",
+	"zhipu-ai/glm-4.7",
+	"minimax/minimax-m2.1",
+	"alibaba/qwen-flash",
+	"alibaba/qwen-plus-2025-12-01",
+	"google/gemini-2.5-flash",
+];
+
 export let AVAILABLE_MODELS: ModelRef[] = [];
 export let ALL_MODELS: ModelRef[] = [];
 
@@ -286,7 +309,8 @@ export function setModelPool(models: ModelRef[]) {
 
 	if (models.length > 0) {
 		const ids = new Set(models.map((m) => m.model));
-		const fallback = models[0].model;
+		const fallback = DEFAULT_UTILITY_MODEL;
+		const safeFallback = ids.has(fallback) ? fallback : models[0].model;
 
 		const stored = {
 			gen: safeRead("wolfcha_generator_model"),
@@ -294,10 +318,24 @@ export function setModelPool(models: ModelRef[]) {
 			rev: safeRead("wolfcha_review_model"),
 		};
 
-		GENERATOR_MODEL = ids.has(stored.gen) ? stored.gen : fallback;
-		SUMMARY_MODEL = ids.has(stored.sum) ? stored.sum : fallback;
-		REVIEW_MODEL = ids.has(stored.rev) ? stored.rev : fallback;
+		GENERATOR_MODEL = ids.has(stored.gen) ? stored.gen : safeFallback;
+		SUMMARY_MODEL = ids.has(stored.sum) ? stored.sum : safeFallback;
+		REVIEW_MODEL = ids.has(stored.rev) ? stored.rev : safeFallback;
+
+		initDefaultPlayerSelection(ids);
 	}
+}
+
+/** If user has never customized player models, auto-select the defaults. */
+function initDefaultPlayerSelection(available: Set<string>) {
+	const STORAGE_KEY = "wolfcha_selected_models";
+	try {
+		if (localStorage.getItem(STORAGE_KEY) !== null) return;
+		const matched = DEFAULT_PLAYER_MODELS.filter((m) => available.has(m));
+		if (matched.length > 0) {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(matched));
+		}
+	} catch {}
 }
 
 function safeRead(key: string): string {

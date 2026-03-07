@@ -258,7 +258,11 @@
 			"playerModelsSelected": "{count} models selected",
 			"playerModelsNone": "Using all available models",
 			"selectAll": "Select All",
-			"clearAll": "Clear All"
+			"clearAll": "Clear All",
+			"reset": "Reset",
+			"resetAll": "Reset All Settings",
+			"resetAllDesc": "Restore all model settings to defaults",
+			"resetAllConfirm": "Settings have been reset to defaults"
 		}
 	},
 	"playerCount": {

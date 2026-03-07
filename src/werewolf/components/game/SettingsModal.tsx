@@ -11,6 +11,7 @@ import { Switch } from "@wolf/components/ui/switch";
 import { useAppLocale } from "@wolf/i18n/useAppLocale";
 import { type AILogEntry, aiLogger } from "@wolf/lib/ai-logger";
 import {
+	clearApiKeys,
 	getGeneratorModel,
 	getSelectedModels,
 	setGeneratorModel,
@@ -20,6 +21,7 @@ import {
 } from "@wolf/lib/api-keys";
 import { getCachedModels } from "@wolf/lib/keyaos-models";
 import type { GameState, ModelRef } from "@wolf/types/game";
+import { DEFAULT_PLAYER_MODELS, DEFAULT_UTILITY_MODEL } from "@wolf/types/game";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -157,11 +159,18 @@ export function ModelSettingsSection() {
 		return () => document.removeEventListener("mousedown", onClick);
 	}, [expanded]);
 
-	const filtered = useMemo(() => {
-		if (!search) return allModels;
-		const q = search.toLowerCase();
-		return allModels.filter((m) => m.model.toLowerCase().includes(q));
-	}, [allModels, search]);
+	const sorted = useMemo(() => {
+		const base = search
+			? allModels.filter((m) =>
+					m.model.toLowerCase().includes(search.toLowerCase()),
+				)
+			: allModels;
+		return [...base].sort((a, b) => {
+			const aSelected = selected.has(a.model) ? 0 : 1;
+			const bSelected = selected.has(b.model) ? 0 : 1;
+			return aSelected - bSelected;
+		});
+	}, [allModels, search, selected]);
 
 	const handleUtilityChange = (model: string) => {
 		setUtilityModel(model);
@@ -189,6 +198,20 @@ export function ModelSettingsSection() {
 	const handleClearAll = () => {
 		setSelected(new Set());
 		setSelectedModels([]);
+	};
+
+	const handleReset = () => {
+		const available = new Set(allModels.map((m) => m.model));
+		const defaults = new Set(
+			DEFAULT_PLAYER_MODELS.filter((m) => available.has(m)),
+		);
+		setSelected(defaults);
+		setSelectedModels([...defaults]);
+
+		const utilDefault = available.has(DEFAULT_UTILITY_MODEL)
+			? DEFAULT_UTILITY_MODEL
+			: (allModels[0]?.model ?? "");
+		handleUtilityChange(utilDefault);
 	};
 
 	return (
@@ -279,9 +302,17 @@ export function ModelSettingsSection() {
 							>
 								{t("settings.models.clearAll")}
 							</button>
+							<span className="text-[10px] text-[var(--text-muted)]">·</span>
+							<button
+								type="button"
+								onClick={handleReset}
+								className="text-[10px] text-[var(--color-accent)] hover:underline"
+							>
+								{t("settings.models.reset")}
+							</button>
 						</div>
 						<div className="max-h-40 overflow-y-auto">
-							{filtered.map((m) => (
+							{sorted.map((m) => (
 								<label
 									key={m.model}
 									className="flex items-center gap-2 px-2 py-1 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-hover)] cursor-pointer"
@@ -295,7 +326,7 @@ export function ModelSettingsSection() {
 									<span className="truncate">{m.model}</span>
 								</label>
 							))}
-							{filtered.length === 0 && (
+							{sorted.length === 0 && (
 								<div className="px-2 py-3 text-center text-xs text-[var(--text-muted)]">
 									No models found
 								</div>
@@ -335,6 +366,27 @@ export function SettingsModal({
 	);
 	const [groupImgOk, setGroupImgOk] = useState<boolean | null>(null);
 	const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
+	const [modelResetKey, setModelResetKey] = useState(0);
+
+	const handleResetAllSettings = useCallback(() => {
+		clearApiKeys();
+		const models = getCachedModels();
+		const available = new Set(models.map((m) => m.model));
+		const defaults = DEFAULT_PLAYER_MODELS.filter((m) => available.has(m));
+		if (defaults.length > 0) {
+			setSelectedModels(defaults);
+		} else {
+			setSelectedModels([]);
+		}
+		const util = available.has(DEFAULT_UTILITY_MODEL)
+			? DEFAULT_UTILITY_MODEL
+			: (models[0]?.model ?? "");
+		setGeneratorModel(util);
+		setSummaryModel(util);
+		setReviewModel(util);
+		setModelResetKey((k) => k + 1);
+		toast(t("settings.models.resetAllConfirm"));
+	}, [t]);
 
 	// Handle exit game confirmation
 	const handleExitConfirm = useCallback(() => {
@@ -550,7 +602,7 @@ export function SettingsModal({
 						/>
 
 						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-secondary)] p-3">
-							<ModelSettingsSection />
+							<ModelSettingsSection key={modelResetKey} />
 						</div>
 
 						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-secondary)] p-3 space-y-3">
@@ -602,7 +654,24 @@ export function SettingsModal({
 							</Button>
 						</div>
 
-						{/* Exit Game Button - only show when game is in progress */}
+						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-card)] p-3 flex items-center justify-between gap-3">
+							<div>
+								<div className="text-sm font-medium text-[var(--text-primary)]">
+									{t("settings.models.resetAll")}
+								</div>
+								<div className="text-xs text-[var(--text-muted)]">
+									{t("settings.models.resetAllDesc")}
+								</div>
+							</div>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleResetAllSettings}
+							>
+								{t("settings.models.reset")}
+							</Button>
+						</div>
+
 						{isGameInProgress && onExitGame && (
 							<div className="rounded-lg border-2 border-red-500/30 bg-red-500/5 p-3 flex items-center justify-between gap-3">
 								<div>
