@@ -6,13 +6,14 @@ import type {
 	CustomCharacter,
 	CustomCharacterInput,
 } from "@wolf/types/custom-character";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { MAX_CUSTOM_CHARACTERS } from "@wolf/types/custom-character";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/auth";
 
 export function useCustomCharacters(_user: unknown) {
 	const { getToken } = useAuth();
 	const [characters, setCharacters] = useState<CustomCharacter[]>([]);
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const getTokenRef = useRef(getToken);
 	getTokenRef.current = getToken;
@@ -63,7 +64,7 @@ export function useCustomCharacters(_user: unknown) {
 		fetchCharacters();
 	}, [fetchCharacters]);
 
-	const addCharacter = useCallback(
+	const createCharacter = useCallback(
 		async (input: CustomCharacterInput): Promise<CustomCharacter | null> => {
 			const id = crypto.randomUUID?.() ?? `${Date.now()}`;
 			try {
@@ -142,12 +143,24 @@ export function useCustomCharacters(_user: unknown) {
 		[headers],
 	);
 
+	const canAddMore = useMemo(
+		() => characters.length < MAX_CUSTOM_CHARACTERS,
+		[characters.length],
+	);
+
+	const remainingSlots = useMemo(
+		() => Math.max(0, MAX_CUSTOM_CHARACTERS - characters.length),
+		[characters.length],
+	);
+
 	return {
 		characters,
 		loading,
 		error,
+		canAddMore,
+		remainingSlots,
 		fetchCharacters,
-		addCharacter,
+		createCharacter,
 		updateCharacter,
 		deleteCharacter,
 	};
