@@ -24,7 +24,7 @@ export function setModelTokenGetter(getter: () => Promise<string | null>) {
 
 function toModelRef(m: KeyaosModel): ModelRef {
 	return {
-		provider: "zenmux" as const,
+		provider: m.provider_id || "keyaos",
 		model: m.id,
 	};
 }

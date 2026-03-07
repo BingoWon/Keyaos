@@ -43,17 +43,6 @@ import {
 	isCustomKeyEnabled,
 } from "@wolf/lib/api-keys";
 import {
-	getShanghaiDateKey,
-	isSpringCampaignActive,
-	SPRING_CAMPAIGN_CODE,
-	SPRING_CAMPAIGN_DAILY_QUOTA,
-} from "@wolf/lib/spring-campaign";
-import {
-	FREE_ROUNDS_PROMO_ENABLED,
-	REFERRAL_BONUS_ENABLED,
-	SPRING_CAMPAIGN_ENABLED,
-} from "@wolf/lib/welfare-config";
-import {
 	difficultyAtom,
 	playerCountAtom,
 	preferredRoleAtom,

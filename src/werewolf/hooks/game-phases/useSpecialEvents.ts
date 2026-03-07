@@ -8,7 +8,6 @@ import {
 	killPlayer,
 	transitionPhase,
 } from "@wolf/lib/game-master";
-import { gameSessionTracker } from "@wolf/lib/game-session-tracker";
 import { getSystemMessages } from "@wolf/lib/game-texts";
 import { playNarrator } from "@wolf/lib/narrator-audio-player";
 import { gameStateAtom } from "@wolf/store/game-machine";
@@ -119,12 +118,6 @@ export function useSpecialEvents(
 			);
 
 			setGameState(currentState);
-
-			// 更新游戏会话数据（前端直接调用 Supabase）
-			const winnerType = winner === "village" ? "villager" : "wolf";
-			gameSessionTracker.end(winnerType, true).catch((err) => {
-				console.error("[game-session] Failed to end:", err);
-			});
 
 			// 播放游戏结束语音
 			await playNarrator(winner === "village" ? "villageWin" : "wolfWin");
@@ -309,9 +302,6 @@ export function useSpecialEvents(
 			);
 			setGameState(currentState);
 			setDialogue(texts.speakerHost, texts.systemMessages.dayBreak, false);
-
-			// 天亮时同步游戏进度到数据库
-			gameSessionTracker.syncProgress().catch(() => {});
 
 			// 播放旁白语音
 			await playNarrator("dayBreak");

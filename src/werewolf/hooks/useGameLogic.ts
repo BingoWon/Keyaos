@@ -15,7 +15,7 @@
 import { PhaseManager } from "@wolf/game/core/PhaseManager";
 import { gameStatsTracker } from "@wolf/hooks/useGameStats";
 import { aiLogger } from "@wolf/lib/ai-logger";
-import { getGeneratorModel, isCustomKeyEnabled } from "@wolf/lib/api-keys";
+import { getGeneratorModel } from "@wolf/lib/api-keys";
 import {
 	buildGenshinModelRefs,
 	type GeneratedCharacter,
@@ -36,12 +36,10 @@ import {
 	transitionPhase as rawTransitionPhase,
 	setupPlayers,
 } from "@wolf/lib/game-master";
-import { gameSessionTracker } from "@wolf/lib/game-session-tracker";
 import { getSystemMessages, getUiText } from "@wolf/lib/game-texts";
 import { isQuotaExhaustedMessage } from "@wolf/lib/llm";
 import { playNarrator } from "@wolf/lib/narrator-audio-player";
 import { getRandomScenario } from "@wolf/lib/scenarios";
-import { supabase } from "@wolf/lib/supabase";
 import { generateUUID } from "@wolf/lib/utils";
 import {
 	clearPersistedGameState,
@@ -611,56 +609,7 @@ export function useGameLogic() {
 	// ============================================
 	// 特殊事件处理
 	// ============================================
-	// 缓存 access token 用于游戏会话保存
-	const accessTokenRef = useRef<string | null>(null);
-	useEffect(() => {
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			accessTokenRef.current = session?.access_token ?? null;
-		});
-		const {
-			data: { subscription },
-		} = supabase.auth.onAuthStateChange((_, session) => {
-			accessTokenRef.current = session?.access_token ?? null;
-		});
-		return () => subscription.unsubscribe();
-	}, []);
-
-	const getAccessToken = useCallback((): string | null => {
-		return accessTokenRef.current;
-	}, []);
-
-	// 监听页面卸载，记录中断的游戏会话
-	useEffect(() => {
-		const handleBeforeUnload = () => {
-			const summary = gameSessionTracker.getSummary();
-			const accessToken = accessTokenRef.current;
-			if (!summary || !accessToken) return;
-
-			// 使用 sendBeacon 确保页面关闭时请求能发出
-			// 由于 sendBeacon 无法等待异步操作，仍使用 API 路由
-			const payload = JSON.stringify({
-				action: "update",
-				sessionId: summary.sessionId,
-				accessToken,
-				winner: null,
-				completed: false,
-				roundsPlayed: summary.roundsPlayed,
-				durationSeconds: summary.durationSeconds,
-				aiCallsCount: summary.aiCallsCount,
-				aiInputChars: summary.aiInputChars,
-				aiOutputChars: summary.aiOutputChars,
-				aiPromptTokens: summary.aiPromptTokens,
-				aiCompletionTokens: summary.aiCompletionTokens,
-			});
-			navigator.sendBeacon?.(
-				"/api/game-sessions",
-				new Blob([payload], { type: "application/json" }),
-			);
-		};
-
-		window.addEventListener("beforeunload", handleBeforeUnload);
-		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-	}, []);
+	const getAccessToken = useCallback((): string | null => null, []);
 
 	const specialEvents = useSpecialEvents({
 		setDialogue,
@@ -950,9 +899,6 @@ export function useGameLogic() {
 		async (state: GameState, token: ReturnType<typeof getToken>) => {
 			if (!isTokenValid(token)) return;
 			if (isAwaitingRoleRevealRef.current) return;
-
-			// 天黑时同步游戏进度到数据库（incrementRound 内部会立即同步）
-			gameSessionTracker.incrementRound().catch(() => {});
 
 			const systemMessages = getSystemMessages();
 			const lastGuardTarget =
@@ -1736,30 +1682,11 @@ export function useGameLogic() {
 
 			setIsLoading(true);
 			try {
-				// 初始化游戏统计追踪器
-				const statsConfig = {
+				gameStatsTracker.start({
 					playerCount,
 					difficulty,
-					usedCustomKey: isCustomKeyEnabled(),
-				};
-				gameStatsTracker.start(statsConfig);
-
-				// 创建游戏会话记录（前端直接调用 Supabase）
-				gameSessionTracker
-					.start({
-						playerCount,
-						difficulty,
-						usedCustomKey: isCustomKeyEnabled(),
-						modelUsed: getGeneratorModel(),
-					})
-					.then((sessionId) => {
-						if (sessionId) {
-							gameStatsTracker.setSessionId(sessionId);
-						}
-					})
-					.catch((err) => {
-						console.error("[game-session] Failed to create:", err);
-					});
+					usedCustomKey: false,
+				});
 
 				const systemMessages = getSystemMessages();
 				const scenario = isGenshinMode ? undefined : getRandomScenario();

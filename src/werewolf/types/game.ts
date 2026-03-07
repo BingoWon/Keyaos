@@ -74,7 +74,7 @@ export interface GameScenario {
 }
 
 export interface ModelRef {
-	provider: "zenmux" | "dashscope" | "newapi";
+	provider: string;
 	model: string;
 	/** Override call-time temperature for this model (e.g. some models only support 1) */
 	temperature?: number;

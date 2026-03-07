@@ -4,6 +4,7 @@ import {
 	CpuChipIcon,
 	MagnifyingGlassIcon,
 	ServerStackIcon,
+	UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -37,7 +38,7 @@ const NAV_LINKS = [
 	{ key: "nav.models", href: "/models", icon: CpuChipIcon },
 	{ key: "nav.providers", href: "/providers", icon: ServerStackIcon },
 	{ key: "nav.chat", href: "/chat", icon: ChatBubbleLeftRightIcon },
-	{ key: "nav.werewolf", href: "/werewolf", icon: CpuChipIcon },
+	{ key: "nav.werewolf", href: "/werewolf", icon: UserGroupIcon },
 	{ key: "nav.docs", href: "/docs", icon: BookOpenIcon },
 ] as const;
 
