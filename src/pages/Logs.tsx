@@ -10,6 +10,9 @@ import type { LogEntry } from "../types/log";
 import { TOKENS } from "../utils/colors";
 import { formatSignedUSD } from "../utils/format";
 
+import { RefreshControl } from "../components/RefreshControl";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+
 const DEFAULT_PAGE_SIZE = 20;
 
 export function Logs() {
@@ -22,9 +25,12 @@ export function Logs() {
 		data: result,
 		loading,
 		error,
+		refetch,
 	} = useFetch<{ items: LogEntry[]; total: number }>(
 		`/api/logs?page=${page}&limit=${pageSize}`,
 	);
+
+	const lastUpdated = useAutoRefresh(refetch, result);
 
 	const items = result?.items ?? [];
 	const total = result?.total ?? 0;
@@ -40,12 +46,23 @@ export function Logs() {
 
 	return (
 		<div>
-			<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-				{t("logs.title")}
-			</h1>
-			<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-				{t("logs.subtitle")}
-			</p>
+			<div className="sm:flex sm:items-center sm:justify-between">
+				<div>
+					<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+						{t("logs.title")}
+					</h1>
+					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						{t("logs.subtitle")}
+					</p>
+				</div>
+				<div className="mt-4 flex sm:mt-0 sm:ml-4">
+					<RefreshControl
+						loading={loading}
+						lastUpdated={lastUpdated}
+						onRefresh={refetch}
+					/>
+				</div>
+			</div>
 
 			<PromoBanner
 				id="logs"
@@ -135,13 +152,12 @@ export function Logs() {
 											{tx.outputTokens.toLocaleString()}
 										</td>
 										<td
-											className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${
-												tx.netCredits > 0
-													? TOKENS.green.text
-													: tx.netCredits < 0
-														? TOKENS.red.text
-														: "text-gray-400 dark:text-gray-500"
-											}`}
+											className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${tx.netCredits > 0
+												? TOKENS.green.text
+												: tx.netCredits < 0
+													? TOKENS.red.text
+													: "text-gray-400 dark:text-gray-500"
+												}`}
 										>
 											{formatSignedUSD(tx.netCredits)}
 										</td>

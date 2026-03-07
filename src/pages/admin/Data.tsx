@@ -11,7 +11,13 @@ const TABLES = [
 	"payments",
 	"api_keys",
 	"model_pricing",
+	"price_candles",
 	"credit_adjustments",
+	"auto_topup_config",
+	"chat_threads",
+	"chat_messages",
+	"werewolf_sessions",
+	"werewolf_characters",
 ];
 
 function formatCell(value: unknown): string {

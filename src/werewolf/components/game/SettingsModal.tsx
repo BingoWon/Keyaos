@@ -8,7 +8,6 @@ import {
 } from "@wolf/components/ui/dialog";
 import { Slider } from "@wolf/components/ui/slider";
 import { Switch } from "@wolf/components/ui/switch";
-import { useAppLocale } from "@wolf/i18n/useAppLocale";
 import { type AILogEntry, aiLogger } from "@wolf/lib/ai-logger";
 import {
 	clearApiKeys,
@@ -162,8 +161,8 @@ export function ModelSettingsSection() {
 	const sorted = useMemo(() => {
 		const base = search
 			? allModels.filter((m) =>
-					m.model.toLowerCase().includes(search.toLowerCase()),
-				)
+				m.model.toLowerCase().includes(search.toLowerCase()),
+			)
 			: allModels;
 		return [...base].sort((a, b) => {
 			const aSelected = selected.has(a.model) ? 0 : 1;
@@ -250,8 +249,8 @@ export function ModelSettingsSection() {
 						{selected.size === 0
 							? t("settings.models.playerModelsNone")
 							: t("settings.models.playerModelsSelected", {
-									count: selected.size,
-								})}
+								count: selected.size,
+							})}
 					</span>
 				</div>
 
@@ -262,11 +261,11 @@ export function ModelSettingsSection() {
 				>
 					{selected.size === 0
 						? t("settings.models.playerModelsDefault", {
-								count: DEFAULT_PLAYER_MODELS.length,
-							})
+							count: DEFAULT_PLAYER_MODELS.length,
+						})
 						: t("settings.models.playerModelsSelected", {
-								count: selected.size,
-							})}
+							count: selected.size,
+						})}
 				</button>
 
 				{expanded && (
@@ -345,12 +344,7 @@ export function SettingsModal({
 	onExitGame,
 }: SettingsModalProps) {
 	const t = useTranslations();
-	const { locale } = useAppLocale();
-	const discordInviteUrl = "https://discord.gg/ETkdZWgy";
-	const [view, setView] = useState<"settings" | "about" | "exitConfirm">(
-		"settings",
-	);
-	const [groupImgOk, setGroupImgOk] = useState<boolean | null>(null);
+	const [view, setView] = useState<"settings" | "exitConfirm">("settings");
 	const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
 	const [modelResetKey, setModelResetKey] = useState(0);
 
@@ -394,8 +388,6 @@ export function SettingsModal({
 	const handleExitCancel = useCallback(() => {
 		setView("settings");
 	}, []);
-
-	const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0";
 
 	// Reset view to settings when modal closes
 	useEffect(() => {
@@ -473,18 +465,14 @@ export function SettingsModal({
 			<DialogContent className="w-[92vw] max-w-lg max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="font-serif text-[var(--text-primary)]">
-						{view === "about"
-							? t("settings.about.title")
-							: view === "exitConfirm"
-								? t("settings.game.exitConfirmTitle")
-								: t("settings.title")}
+						{view === "exitConfirm"
+							? t("settings.game.exitConfirmTitle")
+							: t("settings.title")}
 					</DialogTitle>
 					<DialogDescription className="text-[var(--text-muted)]">
-						{view === "about"
-							? t("settings.about.description")
-							: view === "exitConfirm"
-								? t("settings.game.exitConfirmDescription")
-								: t("settings.description")}
+						{view === "exitConfirm"
+							? t("settings.game.exitConfirmDescription")
+							: t("settings.description")}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -513,74 +501,6 @@ export function SettingsModal({
 								{t("settings.game.exitConfirmButton")}
 							</Button>
 						</div>
-					</div>
-				) : view === "about" ? (
-					<div className="space-y-5">
-						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-card)] p-3">
-							<div className="flex items-center gap-3">
-								<img
-									src="/game/logo.png"
-									alt={t("settings.about.appName")}
-									className="h-12 w-12 shrink-0 rounded-xl border-2 border-[var(--border-color)] bg-[var(--bg-card)] object-cover"
-								/>
-								<div className="min-w-0">
-									<div className="text-sm text-[var(--text-primary)] font-medium leading-tight">
-										{t("settings.about.appName")}
-									</div>
-									<div className="text-xs text-[var(--text-muted)] mt-0.5">
-										{t("settings.about.version", { version: appVersion })}
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-secondary)] p-3">
-							<div className="text-sm font-medium text-[var(--text-primary)]">
-								{t("settings.about.group.title")}
-							</div>
-							<div className="text-xs text-[var(--text-muted)] mt-1">
-								{t("settings.about.group.description")}
-							</div>
-							<div className="mt-3 flex items-center justify-center">
-								{locale === "en" ? (
-									<Button asChild variant="outline">
-										<a
-											href={discordInviteUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-										>
-											Discord
-										</a>
-									</Button>
-								) : (
-									<>
-										{groupImgOk !== false && (
-											<img
-												src="/game/group.png"
-												alt={t("settings.about.group.alt")}
-												className="w-full max-w-[260px] max-h-[34vh] sm:max-w-[300px] sm:max-h-[42vh] rounded-md border-2 border-[var(--border-color)] bg-white object-contain"
-												onLoad={() => setGroupImgOk(true)}
-												onError={() => setGroupImgOk(false)}
-											/>
-										)}
-										{groupImgOk === false && (
-											<div className="text-xs text-[var(--text-muted)]">
-												{t("settings.about.group.missing")}
-											</div>
-										)}
-									</>
-								)}
-							</div>
-						</div>
-
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => setView("settings")}
-							className="w-full"
-						>
-							{t("settings.about.back")}
-						</Button>
 					</div>
 				) : (
 					<div className="space-y-6">
@@ -630,24 +550,6 @@ export function SettingsModal({
 									{t("settings.logs.export")}
 								</Button>
 							</div>
-						</div>
-
-						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-card)] p-3 flex items-center justify-between gap-3">
-							<div>
-								<div className="text-sm font-medium text-[var(--text-primary)]">
-									{t("settings.about.cardTitle")}
-								</div>
-								<div className="text-xs text-[var(--text-muted)]">
-									{t("settings.about.cardDescription")}
-								</div>
-							</div>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={() => setView("about")}
-							>
-								{t("settings.about.view")}
-							</Button>
 						</div>
 
 						<div className="rounded-lg border-2 border-[var(--border-color)] bg-[var(--bg-card)] p-3 flex items-center justify-between gap-3">

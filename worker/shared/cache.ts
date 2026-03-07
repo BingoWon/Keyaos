@@ -11,6 +11,12 @@ import type { AppEnv } from "./types";
  */
 export const edgeCache = (ttl = 60) =>
 	createMiddleware<AppEnv>(async (c, next) => {
+		const url = new URL(c.req.url);
+		// Bypass caching entirely for manual refreshes (cache buster)
+		if (url.searchParams.has("_t")) {
+			return await next();
+		}
+
 		const cache = caches.default;
 		const key = new Request(c.req.url, { method: "GET" });
 

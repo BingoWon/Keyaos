@@ -31,6 +31,9 @@ import {
 import { aggregateModels } from "../utils/models";
 import { aggregateProviders } from "../utils/providers";
 
+import { RefreshControl } from "../components/RefreshControl";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+
 const LATEST_MODELS_LIMIT = 8;
 
 interface PoolStats {
@@ -43,29 +46,43 @@ export function Dashboard() {
 	const { t, i18n } = useTranslation();
 	const navigate = useNavigate();
 	const formatDateTime = useFormatDateTime();
-	const { data: poolStats } = useFetch<PoolStats>("/api/pool/stats");
-	const { data: balance } = useFetch<{ balance: number }>(
+
+	const { data: poolStats, loading: statsLoading, refetch: refetchStats } = useFetch<PoolStats>("/api/pool/stats");
+	const { data: balance, loading: balanceLoading, refetch: refetchBalance } = useFetch<{ balance: number }>(
 		"/api/credits/balance",
 		{ skip: !isPlatform },
 	);
-	const { data: rawModels, loading: modelsLoading } = useFetch<ModelEntry[]>(
+	const { data: rawModels, loading: modelsLoading, refetch: refetchModels } = useFetch<ModelEntry[]>(
 		"/api/models",
 		{ requireAuth: false },
 	);
-	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers", {
+	const { data: providersData, loading: providersLoading, refetch: refetchProviders } = useFetch<ProviderMeta[]>("/api/providers", {
 		requireAuth: false,
 	});
-	const { data: recentLogsResult } = useFetch<{
+	const { data: recentLogsResult, loading: logsLoading, refetch: refetchLogs } = useFetch<{
 		items: LogEntry[];
 		total: number;
 	}>("/api/logs?page=1&limit=10", {
 		skip: !isPlatform,
 	});
 	const recentLogs = recentLogsResult?.items;
-	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
+	const { data: inputSparks, loading: sparksLoading, refetch: refetchSparks } = useFetch<Record<string, SparklineData>>(
 		"/api/sparklines/model:input",
 		{ requireAuth: false },
 	);
+
+	const isRefreshing = statsLoading || balanceLoading || modelsLoading || providersLoading || logsLoading || sparksLoading;
+
+	const handleRefresh = useCallback(() => {
+		refetchStats();
+		if (isPlatform) refetchBalance();
+		refetchModels();
+		refetchProviders();
+		if (isPlatform) refetchLogs();
+		refetchSparks();
+	}, [refetchStats, refetchBalance, refetchModels, refetchProviders, refetchLogs, refetchSparks]);
+
+	const lastUpdated = useAutoRefresh(handleRefresh, rawModels);
 
 	const uniqueModelCount = useMemo(() => {
 		if (!rawModels) return 0;
@@ -91,13 +108,13 @@ export function Dashboard() {
 	const statCards = [
 		...(isPlatform
 			? [
-					{
-						name: t("dashboard.credits_balance"),
-						stat: balance ? formatUSD(balance.balance) : null,
-						icon: CreditCardIcon,
-						href: "/dashboard/credits",
-					},
-				]
+				{
+					name: t("dashboard.credits_balance"),
+					stat: balance ? formatUSD(balance.balance) : null,
+					icon: CreditCardIcon,
+					href: "/dashboard/credits",
+				},
+			]
 			: []),
 		{
 			name: t("dashboard.credits_earnings"),
@@ -121,9 +138,20 @@ export function Dashboard() {
 
 	return (
 		<div className="space-y-6">
-			<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-				{t("dashboard.title")}
-			</h1>
+			<div className="sm:flex sm:items-center sm:justify-between">
+				<div>
+					<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+						{t("dashboard.title")}
+					</h1>
+				</div>
+				<div className="mt-4 flex sm:mt-0 sm:ml-4">
+					<RefreshControl
+						loading={isRefreshing}
+						lastUpdated={lastUpdated}
+						onRefresh={handleRefresh}
+					/>
+				</div>
+			</div>
 
 			{/* Stats Cards */}
 			<dl
@@ -377,13 +405,12 @@ export function Dashboard() {
 										{tx.outputTokens.toLocaleString()}
 									</td>
 									<td
-										className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${
-											tx.netCredits > 0
+										className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${tx.netCredits > 0
 												? TOKENS.green.text
 												: tx.netCredits < 0
 													? TOKENS.red.text
 													: "text-gray-400 dark:text-gray-500"
-										}`}
+											}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>

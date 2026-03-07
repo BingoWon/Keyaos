@@ -45,6 +45,9 @@ interface CredentialInfo {
 	earnings: number;
 }
 
+import { RefreshControl } from "../components/RefreshControl";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+
 export function Byok() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
@@ -53,6 +56,8 @@ export function Byok() {
 	const { data, loading, refetch } =
 		useFetch<CredentialInfo[]>("/api/credentials");
 	const credentials = data || [];
+
+	const lastUpdated = useAutoRefresh(refetch, data);
 
 	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers", {
 		requireAuth: false,
@@ -284,7 +289,12 @@ export function Byok() {
 						{t("credentials.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+				<div className="mt-4 flex sm:mt-0 sm:ml-16 sm:flex-none items-end gap-3">
+					<RefreshControl
+						loading={loading}
+						lastUpdated={lastUpdated}
+						onRefresh={refetch}
+					/>
 					<Button
 						onClick={() => {
 							const pid = providers[0]?.id ?? "openrouter";
@@ -448,11 +458,10 @@ export function Byok() {
 						{/* Smart format detection hint */}
 						{secretHint.type && (
 							<p
-								className={`mt-1.5 flex items-center gap-1 text-xs ${
-									secretHint.type === "json"
-										? TOKENS.green.text
-										: TOKENS.amber.text
-								}`}
+								className={`mt-1.5 flex items-center gap-1 text-xs ${secretHint.type === "json"
+									? TOKENS.green.text
+									: TOKENS.amber.text
+									}`}
 							>
 								<InformationCircleIcon className="size-4 shrink-0" />
 								{secretHint.message}
@@ -705,15 +714,14 @@ export function Byok() {
 														</div>
 													) : (
 														<span
-															className={`font-mono flex items-center ${
-																isSubscription(cred)
-																	? "text-brand-500 dark:text-brand-400"
-																	: cred.quota == null
-																		? "text-gray-400 dark:text-gray-500"
-																		: cred.quota > 0
-																			? TOKENS.green.text
-																			: TOKENS.red.text
-															}`}
+															className={`font-mono flex items-center ${isSubscription(cred)
+																? "text-brand-500 dark:text-brand-400"
+																: cred.quota == null
+																	? "text-gray-400 dark:text-gray-500"
+																	: cred.quota > 0
+																		? TOKENS.green.text
+																		: TOKENS.red.text
+																}`}
 														>
 															{formatQuota(cred)}
 															{cred.quotaSource === "auto" && (

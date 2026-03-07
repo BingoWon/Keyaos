@@ -272,22 +272,15 @@ export let REVIEW_MODEL = DEFAULT_UTILITY_MODEL;
  */
 export const DEFAULT_PLAYER_MODELS: string[] = [
 	"deepseek/deepseek-v3.2",
-	"qwen/qwen3-max",
-	"google/gemini-3-flash-preview",
-	"google/gemini-2.5-flash-lite",
-	"google/gemini-3-pro-preview",
-	"google/gemini-3.1-pro-preview",
-	"moonshotai/kimi-k2-0905",
-	"volcengine/doubao-seed-1.8",
-	"openai/gpt-5.2-chat",
-	"anthropic/claude-haiku-4.5",
-	"anthropic/claude-sonnet-4.5",
-	"x-ai/grok-4",
-	"zhipu-ai/glm-4.7",
-	"minimax/minimax-m2.1",
-	"alibaba/qwen-flash",
-	"alibaba/qwen-plus-2025-12-01",
-	"google/gemini-2.5-flash",
+	"qwen/qwen3.5-flash-02-23",
+	"google/gemini-3.1-flash-lite-preview",
+	"anthropic/claude-sonnet-4.6",
+	"z-ai/glm-4.7-flash",
+	"openai/gpt-5.3-chat",
+	"x-ai/grok-4.1-fast",
+	"openai/gpt-5.4",
+	"minimax/minimax-m2.5",
+	"bytedance-seed/seed-2.0-mini",
 ];
 
 export let AVAILABLE_MODELS: ModelRef[] = [];
