@@ -9,7 +9,7 @@ import {
 } from "@wolf/components/ui/dialog";
 import { useTranslations } from "next-intl";
 
-const ZENMUX_URL = "https://zenmux.ai/aboutus?ref=wolfcha";
+const KEYAOS_CREDITS_URL = "/credits";
 const LOW_CREDIT_THRESHOLD = 3;
 
 interface LowCreditModalProps {
@@ -30,7 +30,7 @@ export function LowCreditModal({
 	const t = useTranslations("lowCreditModal");
 
 	const handleBuyApiKey = () => {
-		window.open(ZENMUX_URL, "_blank", "noopener,noreferrer");
+		window.open(KEYAOS_CREDITS_URL, "_self");
 	};
 
 	const handleRecharge = () => {

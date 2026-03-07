@@ -47,7 +47,7 @@ function getRandomModelRef(): ModelRef {
 	if (fallback) return fallback;
 	if (PLAYER_MODELS.length === 0) {
 		// Fallback to GENERATOR_MODEL if no models available
-		return { provider: "zenmux" as const, model: getGeneratorModel() };
+		return { provider: "keyaos", model: getGeneratorModel() };
 	}
 	const randomIndex = Math.floor(Math.random() * PLAYER_MODELS.length);
 	return PLAYER_MODELS[randomIndex];

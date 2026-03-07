@@ -1036,13 +1036,11 @@ export function UserProfileModal({
 												</Button>
 											</div>
 											<a
-												href="https://zenmux.ai/invite/DMMBVZ"
-												target="_blank"
-												rel="noopener noreferrer"
+												href="/credits"
 												className="flex items-center gap-2 rounded-md border-2 border-[var(--color-accent)] bg-[var(--color-accent-bg)] px-2.5 py-2 transition-all hover:shadow-md"
 											>
 												<img
-													src="/sponsor/zenmux.png"
+													src="/game/models/openai.svg"
 													alt=""
 													className="h-6 w-6 shrink-0 rounded object-contain"
 												/>
@@ -1127,13 +1125,11 @@ export function UserProfileModal({
 											</div>
 
 											<a
-												href="https://bailian.console.aliyun.com/"
-												target="_blank"
-												rel="noopener noreferrer"
+												href="/credits"
 												className="flex items-center gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-secondary)] px-2.5 py-2 transition-colors hover:bg-[var(--bg-hover)]"
 											>
 												<img
-													src="/sponsor/bailian.png"
+													src="/game/models/claude.svg"
 													alt=""
 													className="h-6 w-6 shrink-0 rounded object-contain"
 												/>

@@ -276,23 +276,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 					{/* OAuth 登录 */}
 					{passwordView === "sign_in" && (
 						<div className="pb-4">
-							{process.env.NEXT_PUBLIC_WATCHA_CLIENT_ID && (
-								<a href="/api/auth/watcha" className="block mb-3">
-									<Button
-										type="button"
-										variant="outline"
-										className="w-full flex items-center justify-center gap-2"
-										disabled={loading}
-									>
-										<img
-											src="https://watcha.tos-cn-beijing.volces.com/products/logo/1752064513_guan-cha-insights.png?x-tos-process=image/resize,w_720/format,webp"
-											alt="观猹"
-											className="h-5 w-5 rounded"
-										/>
-										{t("authModal.actions.signInWithWatcha")}
-									</Button>
-								</a>
-							)}
+							{/* Keyaos uses Clerk for authentication — no third-party OAuth here */}
 
 							<div
 								onClick={async () => {

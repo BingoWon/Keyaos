@@ -65,69 +65,35 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type SponsorCardProps = {
-	sponsorId: string;
+type ProviderCardProps = {
 	href: string;
 	className: string;
 	rotate: string;
 	delay: number;
 	logoSrc?: string;
 	logoAlt?: string;
-	label?: string;
 	name?: string;
 	note?: string;
-	children?: React.ReactNode;
 };
 
 const CUSTOM_CHARACTER_SELECTION_STORAGE_KEY =
 	"wolfcha_custom_character_selection";
 
-// Track sponsor click
-async function trackSponsorClick(sponsorId: string) {
-	try {
-		await fetch("/api/sponsor/click", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ sponsorId, ref: "homepage" }),
-		});
-	} catch {
-		// Silently fail - don't block navigation
-	}
-}
-
-function SponsorCard({
-	sponsorId,
+function ProviderCard({
 	href,
 	className,
 	rotate,
 	delay,
 	logoSrc,
 	logoAlt,
-	label,
 	name,
 	note,
-	children,
-}: SponsorCardProps) {
-	const ariaLabel = [label, name, note].filter(Boolean).join(" · ");
-
-	const handleClick = () => {
-		void trackSponsorClick(sponsorId);
-	};
-
-	// Add ref parameter to href for tracking on sponsor's side
-	// Special handling for OpenCreator: use promo parameter instead of ref
-	const hrefWithRef =
-		sponsorId === "opencreator"
-			? href.includes("?")
-				? `${href}&promo=wolfcha`
-				: `${href}?promo=wolfcha`
-			: href.includes("?")
-				? `${href}&ref=wolfcha`
-				: `${href}?ref=wolfcha`;
+}: ProviderCardProps) {
+	const ariaLabel = [name, note].filter(Boolean).join(" · ");
 
 	return (
 		<motion.a
-			href={hrefWithRef}
+			href={href}
 			target="_blank"
 			rel="noopener noreferrer"
 			initial={{ opacity: 0 }}
@@ -137,7 +103,6 @@ function SponsorCard({
 			style={{ "--card-rotate": rotate } as React.CSSProperties}
 			aria-label={ariaLabel || undefined}
 			title={ariaLabel || undefined}
-			onClick={handleClick}
 		>
 			<span className="wc-sponsor-card__border" aria-hidden="true" />
 			<div className="wc-sponsor-card__content">
@@ -148,10 +113,8 @@ function SponsorCard({
 						className="wc-sponsor-card__logo"
 					/>
 				)}
-				{label && <div className="wc-sponsor-card__label">{label}</div>}
 				{name && <div className="wc-sponsor-card__name">{name}</div>}
 				{note && <div className="wc-sponsor-card__note">{note}</div>}
-				{children}
 			</div>
 		</motion.a>
 	);
@@ -294,12 +257,7 @@ export function WelcomeScreen({
 	const t = useTranslations();
 	const { locale } = useAppLocale();
 	const discordInviteUrl = "https://discord.gg/ETkdZWgy";
-	const sponsorEmail = "zhihuang.oiloil@gmail.com";
-	const sponsorMailto = useMemo(() => {
-		const subject = t("welcome.sponsor.mailSubject");
-		const body = t("welcome.sponsor.mailBody");
-		return `mailto:${sponsorEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-	}, [t]);
+	const keyaosUrl = window.location.origin;
 
 	const {
 		user,
@@ -668,14 +626,14 @@ export function WelcomeScreen({
 		}
 	};
 
-	const handleCopySponsorEmail = async () => {
+	const handleCopyKeyaosUrl = async () => {
 		try {
-			await navigator.clipboard.writeText(sponsorEmail);
+			await navigator.clipboard.writeText(keyaosUrl);
 			toast.success(t("welcome.sponsor.copySuccess"), {
-				description: sponsorEmail,
+				description: keyaosUrl,
 			});
 		} catch {
-			toast(t("welcome.sponsor.copyFallback"), { description: sponsorEmail });
+			toast(t("welcome.sponsor.copyFallback"), { description: keyaosUrl });
 		}
 	};
 
@@ -1013,18 +971,14 @@ export function WelcomeScreen({
 							<Button
 								type="button"
 								variant="outline"
-								onClick={handleCopySponsorEmail}
+								onClick={handleCopyKeyaosUrl}
 								className="gap-2"
 							>
 								<EnvelopeSimple size={16} />
 								{t("welcome.sponsor.copyEmail")}
 							</Button>
 							<Button asChild className="gap-2">
-								<a
-									href={sponsorMailto}
-									target="_blank"
-									rel="noopener noreferrer"
-								>
+								<a href="/" rel="noopener noreferrer">
 									<EnvelopeSimple size={16} />
 									{t("welcome.sponsor.sendEmail")}
 								</a>
@@ -1159,7 +1113,7 @@ export function WelcomeScreen({
 							)}
 							<Button asChild variant="outline" className="justify-start">
 								<a
-									href="https://github.com/oil-oil/wolfcha"
+									href="https://github.com/BingoWon/Keyaos"
 									target="_blank"
 									rel="noopener noreferrer"
 									onClick={() => setIsMobileMenuOpen(false)}
@@ -1172,48 +1126,42 @@ export function WelcomeScreen({
 					</DialogContent>
 				</Dialog>
 
-				{/* Scattered sponsor cards */}
+				{/* AI Provider showcase cards */}
 				<div
 					className="wc-sponsor-cards"
 					aria-label={t("welcome.sponsor.showcaseLabel")}
 				>
-					{/* Sponsor card - Bailian (左上) */}
-					<SponsorCard
-						sponsorId="bailian"
-						href="https://bailian.console.aliyun.com/"
+					<ProviderCard
+						href="https://openai.com"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--top-left"
 						rotate="4deg"
 						delay={0.15}
-						logoSrc="/sponsor/bailian.png"
-						logoAlt="Bailian"
-						name="Bailian"
-						note={t("welcome.sponsor.cards.bailian")}
+						logoSrc="/game/models/openai.svg"
+						logoAlt="OpenAI"
+						name="OpenAI"
+						note={t("welcome.sponsor.cards.openai")}
 					/>
 
-					{/* Sponsor card - ZenMux (右下) */}
-					<SponsorCard
-						sponsorId="zenmux"
-						href="https://zenmux.ai/aboutus"
+					<ProviderCard
+						href="https://anthropic.com"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--right-bottom"
 						rotate="-4deg"
 						delay={0.6}
-						logoSrc="/sponsor/zenmux.png"
-						logoAlt="ZenMux"
-						name="ZenMux"
-						note={t("welcome.sponsor.cards.zenmux")}
+						logoSrc="/game/models/claude.svg"
+						logoAlt="Anthropic"
+						name="Anthropic"
+						note={t("welcome.sponsor.cards.anthropic")}
 					/>
 
-					{/* Sponsor card - Watcha (右侧居中) */}
-					<SponsorCard
-						sponsorId="watcha"
-						href="https://watcha.cn/"
+					<ProviderCard
+						href="https://deepmind.google"
 						className="wc-sponsor-card wc-sponsor-card--with-logo wc-sponsor-card--watcha"
 						rotate="5deg"
 						delay={0.45}
-						logoSrc="/sponsor/watcha.svg"
-						logoAlt="观猹"
-						name="观猹"
-						note={t("welcome.sponsor.cards.watcha")}
+						logoSrc="/game/models/gemini.svg"
+						logoAlt="Google"
+						name="Google"
+						note={t("welcome.sponsor.cards.google")}
 					/>
 				</div>
 
@@ -1221,7 +1169,7 @@ export function WelcomeScreen({
 					<div className="hidden sm:flex items-center gap-2">
 						<LocaleSwitcher className="shrink-0" />
 						<a
-							href="https://github.com/oil-oil/wolfcha"
+							href="https://github.com/BingoWon/Keyaos"
 							target="_blank"
 							rel="noopener noreferrer"
 							className="hidden sm:flex items-center gap-1.5 rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] px-2 py-1 text-[11px] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] transition-all group"
@@ -1385,52 +1333,49 @@ export function WelcomeScreen({
 							</a>
 						)}
 
-						{/* Mobile: inline sponsor stamps at top of paper */}
+						{/* Mobile: inline provider stamps at top of paper */}
 						<div className="wc-paper-sponsors sm:hidden">
 							<a
-								href="https://bailian.console.aliyun.com/?ref=wolfcha"
+								href="https://openai.com"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="wc-paper-stamp"
 								style={{ "--stamp-rotate": "4deg" } as React.CSSProperties}
-								onClick={() => void trackSponsorClick("bailian")}
 							>
 								<img
-									src="/sponsor/bailian.png"
-									alt="百炼"
+									src="/game/models/openai.svg"
+									alt="OpenAI"
 									className="wc-paper-stamp__logo"
 								/>
-								<span className="wc-paper-stamp__name">百炼</span>
+								<span className="wc-paper-stamp__name">OpenAI</span>
 							</a>
 							<a
-								href="https://zenmux.ai/aboutus?ref=wolfcha"
+								href="https://anthropic.com"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="wc-paper-stamp"
 								style={{ "--stamp-rotate": "-3deg" } as React.CSSProperties}
-								onClick={() => void trackSponsorClick("zenmux")}
 							>
 								<img
-									src="/sponsor/zenmux.png"
-									alt="ZenMux"
+									src="/game/models/claude.svg"
+									alt="Anthropic"
 									className="wc-paper-stamp__logo"
 								/>
-								<span className="wc-paper-stamp__name">ZenMux</span>
+								<span className="wc-paper-stamp__name">Anthropic</span>
 							</a>
 							<a
-								href="https://watcha.cn/?ref=wolfcha"
+								href="https://deepmind.google"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="wc-paper-stamp"
 								style={{ "--stamp-rotate": "6deg" } as React.CSSProperties}
-								onClick={() => void trackSponsorClick("watcha")}
 							>
 								<img
-									src="/sponsor/watcha.svg"
-									alt="观猹"
+									src="/game/models/gemini.svg"
+									alt="Google"
 									className="wc-paper-stamp__logo"
 								/>
-								<span className="wc-paper-stamp__name">观猹</span>
+								<span className="wc-paper-stamp__name">Google</span>
 							</a>
 						</div>
 

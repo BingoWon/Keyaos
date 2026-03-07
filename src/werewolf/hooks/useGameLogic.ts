@@ -73,7 +73,7 @@ function getRandomModelRef(): ModelRef {
 	if (fallback) return fallback;
 	if (PLAYER_MODELS.length === 0) {
 		// Fallback to GENERATOR_MODEL if no models available
-		return { provider: "zenmux" as const, model: getGeneratorModel() };
+		return { provider: "keyaos", model: getGeneratorModel() };
 	}
 	const randomIndex = Math.floor(Math.random() * PLAYER_MODELS.length);
 	return PLAYER_MODELS[randomIndex];
@@ -2050,10 +2050,7 @@ export function useGameLogic() {
 						description: t("gameLogicMessages.quotaExhausted.description"),
 						duration: 10000,
 					});
-				} else if (
-					msg.includes("ZenMux API error: 401") ||
-					msg.includes(" 401")
-				) {
+				} else if (msg.includes(" 401")) {
 					toast.error(t("gameLogicMessages.zenmux401"));
 				} else {
 					toast.error(t("gameLogicMessages.requestFailed"), {

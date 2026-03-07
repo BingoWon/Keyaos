@@ -84,31 +84,30 @@
 			"ariaLabel": "打开 Wolfcha 的 Product Hunt 页面（投票）"
 		},
 		"sponsor": {
-			"title": "成为赞助商",
-			"subtitle": "你的支持会直接帮助 Wolfcha 跑得更稳、让更多人可以免费玩到。",
-			"description": "Wolfcha 是一个公益性质的 AI 狼人杀项目。我们把成本主要花在模型调用、语音合成、服务器与内容生产上。如果你愿意帮我们一把，无论支持多少、以什么形式，我们都会非常感激。",
+			"title": "Powered by Keyaos",
+			"subtitle": "300+ AI 模型，统一 API —— 用 Keyaos 驱动每一局对决。",
+			"description": "这款 AI 狼人杀由 Keyaos AI 网关驱动。Keyaos 聚合了来自 OpenAI、Anthropic、Google、DeepSeek 等顶级供应商的模型，自动将每次请求路由到最优惠的可用供应商。",
 			"items": {
-				"credits": "模型额度 / 算力 / 服务器资源",
-				"media": "语音、音效、立绘等素材支持",
-				"collaboration": "设计、产品、运营协作与建议",
-				"community": "渠道与社区传播（转发也很有帮助）"
+				"credits": "覆盖 300+ 全球顶级 AI 模型",
+				"media": "智能路由，自动选择最低价供应商",
+				"collaboration": "兼容 OpenAI 接口，即插即用",
+				"community": "按量计费，价格透明实时结算"
 			},
-			"note": "我们会在首页以“印章”的方式向赞助方致谢；如需匿名，也完全没问题。",
-			"copyEmail": "复制邮箱",
-			"sendEmail": "发邮件联系",
-			"action": "成为赞助商",
-			"short": "赞助",
-			"showcaseLabel": "赞助商展示",
+			"note": "游戏中的每一次 AI 调用都通过 Keyaos 网关完成，您的额度将被透明地实时计费。",
+			"copyEmail": "复制链接",
+			"sendEmail": "访问 Keyaos",
+			"action": "关于 Keyaos",
+			"short": "Keyaos",
+			"showcaseLabel": "Keyaos 驱动的 AI 供应商",
 			"cards": {
-				"openCreator": "OpenCreator 帮助我们生成夜晚所有的角色立绘",
-				"bailian": "百炼为我们提供部分 AI 模型能力支持",
-				"zenmux": "聚合全球顶尖大模型，为每一场逻辑博弈注入敏锐灵魂。",
-				"watcha": "观猹为猹杀提供AI模型能力与展示平台"
+				"openai": "GPT-4o、o3-mini 等 —— 语言 AI 的黄金标准。",
+				"anthropic": "Claude Sonnet & Haiku —— 为每场辩论注入细腻推理。",
+				"google": "Gemini 2.5 Pro & Flash —— 大规模多模态智能。"
 			},
-			"copySuccess": "已复制邮箱",
-			"copyFallback": "邮箱地址",
-			"mailSubject": "Wolfcha 赞助合作",
-			"mailBody": "你好，我对 Wolfcha 项目很感兴趣，希望能够提供以下支持：\n\n-（模型额度/算力）\n-（语音/音效资源）\n-（设计/产品协作）\n-（其他）\n\n我的联系方式：\n\n"
+			"copySuccess": "已复制链接",
+			"copyFallback": "平台地址",
+			"mailSubject": "Keyaos AI Gateway",
+			"mailBody": ""
 		},
 		"settings": "设置",
 		"tutorial": "玩法教学",
@@ -147,7 +146,7 @@
 			},
 			"keyExhausted": {
 				"title": "API Key 余额已耗尽",
-				"description": "请前往对应平台（zenmux.ai 或阿里云百炼）充值后再开始游戏。"
+				"description": "请先充值 Keyaos 额度后再开始游戏。"
 			},
 			"keyInvalid": {
 				"title": "API Key 验证失败",
@@ -484,7 +483,7 @@
 			"signUp": "注册",
 			"sendReset": "发送重置邮件",
 			"waitCooldown": "请稍候（{seconds}s）",
-			"signInWithWatcha": "使用观猹账号登录",
+			"signInWithWatcha": "登录",
 			"signInWithGoogle": "使用 Google 账号登录"
 		},
 		"divider": {
@@ -1099,9 +1098,15 @@
 		"tiePk": "放逐平票，进入PK发言"
 	},
 	"phase": {
-		"lobby": { "description": "准备开始" },
-		"setup": { "description": "生成角色中..." },
-		"nightStart": { "description": "夜晚降临" },
+		"lobby": {
+			"description": "准备开始"
+		},
+		"setup": {
+			"description": "生成角色中..."
+		},
+		"nightStart": {
+			"description": "夜晚降临"
+		},
 		"nightGuard": {
 			"description": "守卫行动中",
 			"human": "点击玩家卡片选择要保护的玩家"
@@ -1110,31 +1115,51 @@
 			"description": "狼人行动中",
 			"human": "点击玩家卡片选择击杀目标"
 		},
-		"nightWitch": { "description": "女巫行动中", "human": "是否使用药水？" },
+		"nightWitch": {
+			"description": "女巫行动中",
+			"human": "是否使用药水？"
+		},
 		"nightSeer": {
 			"description": "预言家行动中",
 			"human": "点击玩家卡片选择查验目标"
 		},
-		"nightResolve": { "description": "天亮了" },
-		"dayStart": { "description": "白天开始" },
-		"badgeSignup": { "description": "警徽竞选报名", "human": "是否竞选警长" },
-		"badgeSpeech": { "description": "警徽竞选发言" },
+		"nightResolve": {
+			"description": "天亮了"
+		},
+		"dayStart": {
+			"description": "白天开始"
+		},
+		"badgeSignup": {
+			"description": "警徽竞选报名",
+			"human": "是否竞选警长"
+		},
+		"badgeSpeech": {
+			"description": "警徽竞选发言"
+		},
 		"badgeElection": {
 			"description": "警徽评选",
 			"human": "点击玩家卡片投票选警徽",
 			"noVote": "你是候选人，无需投票"
 		},
-		"pkSpeech": { "description": "PK发言" },
-		"daySpeech": { "description": "发言阶段" },
+		"pkSpeech": {
+			"description": "PK发言"
+		},
+		"daySpeech": {
+			"description": "发言阶段"
+		},
 		"speechYourTurn": "轮到你发言",
-		"lastWords": { "description": "遗言阶段" },
+		"lastWords": {
+			"description": "遗言阶段"
+		},
 		"dayVote": {
 			"description": "投票阶段",
 			"human": "点击玩家卡片投票",
 			"noVotePk": "你是PK参与者，无需投票",
 			"noVoteIdiot": "白痴已翻牌，无投票权"
 		},
-		"dayResolve": { "description": "处决结算" },
+		"dayResolve": {
+			"description": "处决结算"
+		},
 		"badgeTransfer": {
 			"description": "警长移交警徽",
 			"human": "点击玩家卡片选择移交对象"
@@ -1913,10 +1938,10 @@
 	"api": {
 		"errors": {
 			"batchNoStream": "批量请求不支持 stream=true",
-			"zenmuxKeyRequired": "此模型需要您提供 Zenmux API Key",
-			"bailianKeyRequired": "此模型需要您提供百炼 API Key",
-			"dashscopeNotConfigured": "服务器未配置 DASHSCOPE_API_KEY",
-			"zenmuxNotConfigured": "服务器未配置 ZENMUX_API_KEY",
+			"zenmuxKeyRequired": "API Key 未配置",
+			"bailianKeyRequired": "API Key 未配置",
+			"dashscopeNotConfigured": "服务器未配置 API Key",
+			"zenmuxNotConfigured": "服务器未配置 API Key",
 			"unknownError": "未知错误",
 			"serverMisconfiguration": "服务器配置缺失：缺少 SUPABASE_SERVICE_ROLE_KEY",
 			"failedToReadCredits": "读取积分失败",
@@ -2022,7 +2047,7 @@
 		"dayBreak": "天亮了",
 		"voteStart": "进入投票环节",
 		"you": "你",
-		"zenmux401": "ZenMux 401 Unauthorized",
+		"zenmux401": "供应商 401 认证失败",
 		"requestFailed": "请求失败",
 		"errorOccurred": "出错了: {error}",
 		"guardNoRepeat": "守卫不能连续两晚守护同一人",
@@ -2100,24 +2125,24 @@
 		"validate": "验证",
 		"llmKey": {
 			"title": "语言模型 Key",
-			"description": "至少配置 Zenmux 或百炼其一，用于对局与人物生成"
+			"description": "所有模型由 Keyaos 统一管理，无需手动配置 API Key"
 		},
 		"zenmux": {
-			"label": "Zenmux API Key",
-			"placeholder": "请输入 Zenmux API Key",
-			"hide": "隐藏 Zenmux API Key",
-			"show": "显示 Zenmux API Key",
-			"get": "获取 Zenmux Key",
+			"label": "Keyaos API Key",
+			"placeholder": "由 Keyaos 管理",
+			"hide": "隐藏 API Key",
+			"show": "显示 API Key",
+			"get": "访问 Keyaos",
 			"note": "支持国内外大部分模型"
 		},
 		"dashscope": {
-			"label": "百炼 API Key",
-			"placeholder": "可选：百炼（DeepSeek / Qwen / Kimi）",
-			"hide": "隐藏百炼 API Key",
-			"show": "显示百炼 API Key",
-			"get": "获取百炼 Key",
+			"label": "Keyaos API Key",
+			"placeholder": "由 Keyaos 管理",
+			"hide": "隐藏 API Key",
+			"show": "显示 API Key",
+			"get": "访问 Keyaos",
 			"note": "DeepSeek / Qwen / Kimi 等",
-			"short": "百炼"
+			"short": "Keyaos"
 		},
 		"modelConfig": {
 			"title": "模型配置",
@@ -2151,7 +2176,7 @@
 			"notValidated": "未通过验证，无法保存",
 			"notValidatedDesc": "请先点击「验证配置」",
 			"needLlmKey": "请至少配置一个 LLM Key",
-			"needLlmKeyDesc": "Zenmux 或百炼二选一即可",
+			"needLlmKeyDesc": "由 Keyaos 统一管理",
 			"modelsAdjusted": "部分模型不可用，已自动调整",
 			"modelsAdjustedDesc": "请检查所选模型与已配置的 Key 是否匹配",
 			"saved": "已保存 API Key",

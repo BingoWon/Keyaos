@@ -84,31 +84,30 @@
 			"ariaLabel": "Open Wolfcha on Product Hunt (vote)"
 		},
 		"sponsor": {
-			"title": "Become a sponsor",
-			"subtitle": "Your support keeps Wolfcha running smoothly and free for everyone.",
-			"description": "Wolfcha is a community-driven AI Werewolf project. Our costs go toward AI models, voice synthesis, servers, and content creation. Any support—big or small—means the world to us.",
+			"title": "Powered by Keyaos",
+			"subtitle": "300+ AI models, one unified API — play smarter with Keyaos.",
+			"description": "This AI Werewolf game is powered by the Keyaos AI Gateway. Keyaos aggregates models from OpenAI, Anthropic, Google, DeepSeek and more, routing each request to the cheapest available provider automatically.",
 			"items": {
-				"credits": "Model credits / compute / server resources",
-				"media": "Voice, sound effects, character art assets",
-				"collaboration": "Design, product, or operations collaboration",
-				"community": "Community and channel sharing"
+				"credits": "300+ models from top AI providers worldwide",
+				"media": "Intelligent cheapest-first routing across all providers",
+				"collaboration": "OpenAI-compatible API — plug and play",
+				"community": "Pay-per-token billing with transparent pricing"
 			},
-			"note": "Sponsors are featured on our homepage with a seal. Anonymous contributions are also welcome.",
-			"copyEmail": "Copy email",
-			"sendEmail": "Send an email",
-			"action": "Become a Sponsor",
-			"short": "Sponsor",
-			"showcaseLabel": "Sponsor showcase",
+			"note": "Every AI call in this game goes through Keyaos. Your credits are used transparently with real-time billing.",
+			"copyEmail": "Copy link",
+			"sendEmail": "Visit Keyaos",
+			"action": "About Keyaos",
+			"short": "Keyaos",
+			"showcaseLabel": "AI providers powered by Keyaos",
 			"cards": {
-				"openCreator": "OpenCreator helps us generate all night-time character art",
-				"bailian": "Dashscope provides us with AI model capabilities",
-				"zenmux": "Aggregating top global AI models to power every strategic showdown.",
-				"watcha": "Watcha provides AI model capabilities and showcase platform"
+				"openai": "GPT-4o, o3-mini and more — the gold standard in language AI.",
+				"anthropic": "Claude Sonnet & Haiku — nuanced reasoning for every debate.",
+				"google": "Gemini 2.5 Pro & Flash — multimodal intelligence at scale."
 			},
-			"copySuccess": "Email copied",
-			"copyFallback": "Email address",
-			"mailSubject": "Wolfcha sponsorship inquiry",
-			"mailBody": "Hi, I'm interested in supporting Wolfcha and would like to offer help in the following ways:\n\n- (Model credits / compute)\n- (Voice / SFX assets)\n- (Design / product collaboration)\n- (Other)\n\nMy contact info:\n\n"
+			"copySuccess": "Link copied",
+			"copyFallback": "Platform URL",
+			"mailSubject": "Keyaos AI Gateway",
+			"mailBody": ""
 		},
 		"settings": "Settings",
 		"tutorial": "How to play",
@@ -147,7 +146,7 @@
 			},
 			"keyExhausted": {
 				"title": "API Key balance exhausted",
-				"description": "Please top up at the respective platform (zenmux.ai or Alibaba Cloud Dashscope) before starting the game."
+				"description": "Please top up your Keyaos credits before starting the game."
 			},
 			"keyInvalid": {
 				"title": "API Key validation failed",
@@ -484,7 +483,7 @@
 			"signUp": "Sign up",
 			"sendReset": "Send reset email",
 			"waitCooldown": "Please wait ({seconds}s)",
-			"signInWithWatcha": "Sign in with Watcha",
+			"signInWithWatcha": "Sign in",
 			"signInWithGoogle": "Sign in with Google"
 		},
 		"divider": {
@@ -1122,9 +1121,15 @@
 		"tiePk": "Execution tied. Enter PK speeches."
 	},
 	"phase": {
-		"lobby": { "description": "Ready to start" },
-		"setup": { "description": "Generating roles..." },
-		"nightStart": { "description": "Night falls" },
+		"lobby": {
+			"description": "Ready to start"
+		},
+		"setup": {
+			"description": "Generating roles..."
+		},
+		"nightStart": {
+			"description": "Night falls"
+		},
 		"nightGuard": {
 			"description": "Guard in action",
 			"human": "Tap a player card to choose who to protect"
@@ -1141,29 +1146,43 @@
 			"description": "Seer in action",
 			"human": "Tap a player card to choose who to check"
 		},
-		"nightResolve": { "description": "Day breaks" },
-		"dayStart": { "description": "Day begins" },
+		"nightResolve": {
+			"description": "Day breaks"
+		},
+		"dayStart": {
+			"description": "Day begins"
+		},
 		"badgeSignup": {
 			"description": "Sheriff signup",
 			"human": "Run for sheriff?"
 		},
-		"badgeSpeech": { "description": "Sheriff speeches" },
+		"badgeSpeech": {
+			"description": "Sheriff speeches"
+		},
 		"badgeElection": {
 			"description": "Sheriff election",
 			"human": "Tap a player card to vote for sheriff",
 			"noVote": "You're a candidate; no vote needed"
 		},
-		"pkSpeech": { "description": "PK speeches" },
-		"daySpeech": { "description": "Discussion phase" },
+		"pkSpeech": {
+			"description": "PK speeches"
+		},
+		"daySpeech": {
+			"description": "Discussion phase"
+		},
 		"speechYourTurn": "Your turn to speak",
-		"lastWords": { "description": "Last words" },
+		"lastWords": {
+			"description": "Last words"
+		},
 		"dayVote": {
 			"description": "Vote phase",
 			"human": "Tap a player card to vote",
 			"noVotePk": "You are in the PK; no vote needed",
 			"noVoteIdiot": "Idiot revealed — no voting rights"
 		},
-		"dayResolve": { "description": "Execution resolution" },
+		"dayResolve": {
+			"description": "Execution resolution"
+		},
 		"badgeTransfer": {
 			"description": "Sheriff badge transfer",
 			"human": "Tap a player card to choose a transfer target"
@@ -1948,10 +1967,10 @@
 	"api": {
 		"errors": {
 			"batchNoStream": "Batch request does not support stream=true",
-			"zenmuxKeyRequired": "This model requires you to provide Zenmux API Key",
-			"bailianKeyRequired": "This model requires you to provide Dashscope API Key",
-			"dashscopeNotConfigured": "DASHSCOPE_API_KEY not configured on server",
-			"zenmuxNotConfigured": "ZENMUX_API_KEY not configured on server",
+			"zenmuxKeyRequired": "API key not configured",
+			"bailianKeyRequired": "API key not configured",
+			"dashscopeNotConfigured": "API key not configured on server",
+			"zenmuxNotConfigured": "API key not configured on server",
 			"unknownError": "Unknown error",
 			"serverMisconfiguration": "Server misconfiguration: missing SUPABASE_SERVICE_ROLE_KEY",
 			"failedToReadCredits": "Failed to read credits",
@@ -2057,7 +2076,7 @@
 		"dayBreak": "Day breaks",
 		"voteStart": "Voting begins",
 		"you": "You",
-		"zenmux401": "ZenMux 401 Unauthorized",
+		"zenmux401": "Provider 401 Unauthorized",
 		"requestFailed": "Request failed",
 		"errorOccurred": "Error occurred: {error}",
 		"guardNoRepeat": "Guard cannot protect the same player twice in a row",
@@ -2135,24 +2154,24 @@
 		"validate": "Validate",
 		"llmKey": {
 			"title": "Language Model Key",
-			"description": "Configure at least Zenmux or Dashscope for gameplay and character generation"
+			"description": "All models are managed by Keyaos — no manual API key needed"
 		},
 		"zenmux": {
-			"label": "Zenmux API Key",
-			"placeholder": "Enter Zenmux API Key",
-			"hide": "Hide Zenmux API Key",
-			"show": "Show Zenmux API Key",
-			"get": "Get Zenmux Key",
+			"label": "Keyaos API Key",
+			"placeholder": "Enter Keyaos API Key",
+			"hide": "Hide Keyaos API Key",
+			"show": "Show Keyaos API Key",
+			"get": "Visit Keyaos",
 			"note": "Supports most domestic and international models"
 		},
 		"dashscope": {
-			"label": "Dashscope API Key",
-			"placeholder": "Optional: Dashscope (DeepSeek / Qwen / Kimi)",
-			"hide": "Hide Dashscope API Key",
-			"show": "Show Dashscope API Key",
-			"get": "Get Dashscope Key",
+			"label": "Keyaos API Key",
+			"placeholder": "Managed by Keyaos",
+			"hide": "Hide Keyaos API Key",
+			"show": "Show Keyaos API Key",
+			"get": "Visit Keyaos",
 			"note": "DeepSeek / Qwen / Kimi, etc.",
-			"short": "Dashscope"
+			"short": "Keyaos"
 		},
 		"modelConfig": {
 			"title": "Model Configuration",
@@ -2186,7 +2205,7 @@
 			"notValidated": "Validation failed. Cannot save.",
 			"notValidatedDesc": "Please click 'Validate' first.",
 			"needLlmKey": "Please configure at least one LLM Key",
-			"needLlmKeyDesc": "Either Zenmux or Dashscope is required",
+			"needLlmKeyDesc": "Managed by Keyaos",
 			"modelsAdjusted": "Some models unavailable. Auto-adjusted.",
 			"modelsAdjustedDesc": "Check if selected models match your configured keys.",
 			"saved": "API Key saved",

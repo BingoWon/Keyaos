@@ -59,7 +59,7 @@ export const sampleModelRefs = (count: number): ModelRef[] => {
 	const fullPool =
 		ALL_MODELS.length > 0
 			? ALL_MODELS
-			: [{ provider: "zenmux" as const, model: GENERATOR_MODEL }];
+			: [{ provider: "keyaos", model: GENERATOR_MODEL }];
 
 	const selectedModels = getSelectedModels();
 	const pool =
@@ -819,7 +819,7 @@ export async function generateCharacters(
 	for (let attempt = 0; attempt < 2; attempt += 1) {
 		try {
 			console.log(
-				`[character-gen] Attempt ${attempt + 1}/2, customKeyEnabled: ${isCustomKeyEnabled()}, hasZenmux: ${hasZenmuxKey()}, hasDashscope: ${hasDashscopeKey()}, hasNewapi: ${hasNewapiKey()}`,
+				`[character-gen] Attempt ${attempt + 1}/2, models available: ${ALL_MODELS.length}`,
 			);
 			return await runOnce();
 		} catch (error) {
@@ -833,10 +833,8 @@ export async function generateCharacters(
 				errorMsg.includes("insufficient") ||
 				errorMsg.includes("余额");
 
-			if (isCustomKeyEnabled() && isQuotaError) {
-				console.error(
-					"[character-gen] Custom key quota exhausted, aborting retry",
-				);
+			if (isQuotaError) {
+				console.error("[character-gen] Quota exhausted, aborting retry");
 				throw error;
 			}
 
