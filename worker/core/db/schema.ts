@@ -94,3 +94,35 @@ export interface DbChatMessage {
 	model_id: string | null;
 	created_at: number;
 }
+
+export interface DbWerewolfSession {
+	id: string;
+	owner_id: string;
+	player_count: number;
+	difficulty: string;
+	model_used: string | null;
+	winner: string | null;
+	completed: number;
+	rounds_played: number;
+	duration_seconds: number;
+	ai_calls_count: number;
+	ai_input_tokens: number;
+	ai_output_tokens: number;
+	created_at: number;
+	updated_at: number;
+}
+
+export interface DbWerewolfCharacter {
+	id: string;
+	owner_id: string;
+	display_name: string;
+	gender: string;
+	age: number;
+	mbti: string;
+	basic_info: string | null;
+	style_label: string | null;
+	avatar_seed: string | null;
+	is_deleted: number;
+	created_at: number;
+	updated_at: number;
+}

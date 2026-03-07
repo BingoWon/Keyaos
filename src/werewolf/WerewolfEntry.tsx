@@ -4,6 +4,7 @@
  */
 
 import { loadLocaleFromStorage } from "@wolf/i18n/locale-store";
+import { setSessionTokenGetter } from "@wolf/lib/game-session-tracker";
 import {
 	fetchKeyaosModels,
 	setModelTokenGetter,
@@ -25,6 +26,7 @@ export default function WerewolfEntry() {
 	useEffect(() => {
 		setAuthTokenGetter(getToken);
 		setModelTokenGetter(getToken);
+		setSessionTokenGetter(getToken);
 
 		fetchKeyaosModels()
 			.then((models) => {

@@ -169,3 +169,41 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 );
 
 CREATE INDEX IF NOT EXISTS idx_chat_messages_thread ON chat_messages(thread_id, created_at);
+
+-- 12. Werewolf game sessions (per-game analytics)
+CREATE TABLE IF NOT EXISTS werewolf_sessions (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    player_count INTEGER NOT NULL,
+    difficulty TEXT NOT NULL DEFAULT 'normal',
+    model_used TEXT,
+    winner TEXT,
+    completed INTEGER NOT NULL DEFAULT 0,
+    rounds_played INTEGER NOT NULL DEFAULT 0,
+    duration_seconds INTEGER NOT NULL DEFAULT 0,
+    ai_calls_count INTEGER NOT NULL DEFAULT 0,
+    ai_input_tokens INTEGER NOT NULL DEFAULT 0,
+    ai_output_tokens INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_werewolf_sessions_owner ON werewolf_sessions(owner_id, created_at DESC);
+
+-- 13. Werewolf custom characters (user-created AI personas)
+CREATE TABLE IF NOT EXISTS werewolf_characters (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    gender TEXT NOT NULL DEFAULT 'male',
+    age INTEGER NOT NULL DEFAULT 25,
+    mbti TEXT NOT NULL DEFAULT '',
+    basic_info TEXT,
+    style_label TEXT,
+    avatar_seed TEXT,
+    is_deleted INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_werewolf_characters_owner ON werewolf_characters(owner_id, is_deleted);

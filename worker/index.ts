@@ -16,6 +16,7 @@ import messagesRouter from "./routes/messages";
 import { dashboardModelsRouter, publicModelsRouter } from "./routes/models";
 import systemRouter from "./routes/system";
 import threadsRouter from "./routes/threads";
+import werewolfRouter from "./routes/werewolf";
 import { sha256 } from "./shared/crypto";
 import { ApiError, AuthenticationError } from "./shared/errors";
 import { log } from "./shared/logger";
@@ -142,6 +143,7 @@ app.route("/api", systemRouter);
 
 app.route("/api/chat", assistantRouter);
 app.route("/api/threads", threadsRouter);
+app.route("/api/werewolf", werewolfRouter);
 
 // ─── Platform-only routes (gated at request time) ───────
 const platformNotFound = (c: Context) =>
