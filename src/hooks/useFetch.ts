@@ -98,7 +98,8 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 	}, [execute]);
 
 	const refetch = useCallback(() => {
-		cache.delete(url);
+		const hit = cache.get(url);
+		if (hit) hit.ts = 0;
 		const controller = new AbortController();
 		execute(controller.signal);
 	}, [execute, url]);
