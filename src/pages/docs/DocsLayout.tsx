@@ -102,13 +102,13 @@ function SidebarNav({
 }) {
 	return (
 		<nav className="flex flex-1 flex-col">
-			<ul className="flex flex-1 flex-col gap-y-7">
+			<ul className="flex flex-1 flex-col gap-y-5">
 				{sections.map((section) => (
 					<li key={section.label}>
-						<h3 className="mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+						<h3 className="mb-1 px-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
 							{section.label}
 						</h3>
-						<ul className="space-y-1">
+						<ul className="space-y-0.5">
 							{section.items.map((item) => (
 								<li key={item.href}>
 									<NavLink
@@ -120,7 +120,7 @@ function SidebarNav({
 												isActive
 													? "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
 													: "text-gray-700 hover:bg-gray-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-												"group flex gap-x-3 rounded-lg px-2 py-2 text-sm font-medium",
+												"group flex gap-x-3 rounded-lg px-2 py-1.5 text-[13px] leading-6 font-medium",
 											)
 										}
 									>
@@ -134,7 +134,7 @@ function SidebarNav({
 															isActive
 																? "text-brand-600 dark:text-brand-300"
 																: "text-gray-400 group-hover:text-brand-600 dark:group-hover:text-white",
-															"size-[18px] shrink-0",
+															"size-4 shrink-0",
 														)}
 													/>
 													{item.name}
