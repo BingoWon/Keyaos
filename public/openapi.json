@@ -65,6 +65,65 @@
                     "max_tokens": 256
                   }
                 },
+                "reasoning": {
+                  "summary": "With reasoning control",
+                  "value": {
+                    "model": "openai/o3-mini",
+                    "messages": [
+                      { "role": "user", "content": "Solve: x^2 + 3x - 10 = 0" }
+                    ],
+                    "reasoning": { "effort": "high" }
+                  }
+                },
+                "structuredOutput": {
+                  "summary": "Structured JSON output",
+                  "value": {
+                    "model": "openai/gpt-4o",
+                    "messages": [
+                      { "role": "user", "content": "Extract the name and age from: John is 30 years old." }
+                    ],
+                    "response_format": {
+                      "type": "json_schema",
+                      "json_schema": {
+                        "name": "person",
+                        "strict": true,
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string" },
+                            "age": { "type": "integer" }
+                          },
+                          "required": ["name", "age"]
+                        }
+                      }
+                    }
+                  }
+                },
+                "toolCalling": {
+                  "summary": "Function calling",
+                  "value": {
+                    "model": "openai/gpt-4o",
+                    "messages": [
+                      { "role": "user", "content": "What's the weather in Tokyo?" }
+                    ],
+                    "tools": [
+                      {
+                        "type": "function",
+                        "function": {
+                          "name": "get_weather",
+                          "description": "Get the current weather in a location",
+                          "parameters": {
+                            "type": "object",
+                            "properties": {
+                              "location": { "type": "string" }
+                            },
+                            "required": ["location"]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
                 "providerFilter": {
                   "summary": "With provider filtering",
                   "value": {
@@ -107,7 +166,7 @@
       "post": {
         "operationId": "createMessage",
         "summary": "Create message",
-        "description": "Creates a message using the Anthropic Messages API format. Keyaos translates between Anthropic and OpenAI formats internally, so you can use **any model** through this endpoint — not just Anthropic models.\n\nSupports text, images, tool use, and extended thinking.",
+        "description": "Creates a message using the Anthropic Messages API format. Keyaos translates between Anthropic and OpenAI formats internally, so you can use **any model** through this endpoint — not just Anthropic models.\n\nSupports text, images, PDFs, tool use, and extended thinking.",
         "tags": ["Anthropic Messages"],
         "requestBody": {
           "required": true,
@@ -133,6 +192,29 @@
                     "thinking": { "type": "enabled", "budget_tokens": 4096 },
                     "messages": [
                       { "role": "user", "content": "What is 27 * 453?" }
+                    ]
+                  }
+                },
+                "structuredOutput": {
+                  "summary": "Structured output via output_config",
+                  "value": {
+                    "model": "anthropic/claude-sonnet-4.6",
+                    "max_tokens": 1024,
+                    "output_config": {
+                      "format": {
+                        "type": "json_schema",
+                        "schema": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string" },
+                            "age": { "type": "integer" }
+                          },
+                          "required": ["name", "age"]
+                        }
+                      }
+                    },
+                    "messages": [
+                      { "role": "user", "content": "Extract: John is 30 years old." }
                     ]
                   }
                 },
@@ -295,59 +377,35 @@
           "messages": {
             "type": "array",
             "description": "Conversation messages",
-            "items": {
-              "type": "object",
-              "required": ["role", "content"],
-              "properties": {
-                "role": { "type": "string", "enum": ["system", "user", "assistant", "tool"], "description": "Message role" },
-                "content": {
-                  "description": "Message content — string or array of content parts",
-                  "oneOf": [
-                    { "type": "string" },
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "type": { "type": "string", "enum": ["text", "image_url"] },
-                          "text": { "type": "string" },
-                          "image_url": {
-                            "type": "object",
-                            "properties": {
-                              "url": { "type": "string" },
-                              "detail": { "type": "string", "enum": ["auto", "low", "high"] }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  ]
-                },
-                "tool_calls": { "type": "array", "items": { "type": "object" }, "description": "Tool calls (assistant messages)" },
-                "tool_call_id": { "type": "string", "description": "Tool call ID (tool messages)" }
-              }
-            }
+            "items": { "$ref": "#/components/schemas/ChatMessage" }
           },
           "stream": { "type": "boolean", "default": false, "description": "Enable Server-Sent Events streaming" },
-          "temperature": { "type": "number", "minimum": 0, "maximum": 2, "default": 1, "description": "Sampling temperature" },
-          "top_p": { "type": "number", "minimum": 0, "maximum": 1, "description": "Nucleus sampling" },
-          "max_tokens": { "type": "integer", "description": "Maximum tokens to generate" },
+          "temperature": { "type": "number", "minimum": 0, "maximum": 2, "default": 1, "description": "Sampling temperature (0–2)" },
+          "top_p": { "type": "number", "minimum": 0, "maximum": 1, "default": 1, "description": "Nucleus sampling (0–1)" },
+          "frequency_penalty": { "type": "number", "minimum": -2, "maximum": 2, "default": 0, "description": "Penalize tokens by frequency (-2 to 2)" },
+          "presence_penalty": { "type": "number", "minimum": -2, "maximum": 2, "default": 0, "description": "Penalize tokens already present (-2 to 2)" },
+          "max_tokens": { "type": "integer", "description": "Maximum tokens to generate (deprecated, prefer `max_completion_tokens`)" },
+          "max_completion_tokens": { "type": "integer", "description": "Maximum tokens in the completion" },
+          "seed": { "type": "integer", "nullable": true, "description": "Seed for deterministic outputs (best-effort)" },
           "stop": {
-            "description": "Stop sequences",
+            "description": "Stop sequences (up to 4)",
             "oneOf": [
               { "type": "string" },
-              { "type": "array", "items": { "type": "string" } }
+              { "type": "array", "items": { "type": "string" }, "maxItems": 4 }
             ]
           },
-          "tools": { "type": "array", "items": { "type": "object" }, "description": "Tool definitions (function calling)" },
-          "tool_choice": { "description": "Tool selection strategy", "oneOf": [{ "type": "string" }, { "type": "object" }] },
-          "response_format": {
-            "type": "object",
-            "description": "Response format constraint",
-            "properties": {
-              "type": { "type": "string", "enum": ["text", "json_object", "json_schema"] }
-            }
+          "logprobs": { "type": "boolean", "nullable": true, "description": "Return log probabilities of output tokens" },
+          "top_logprobs": { "type": "integer", "minimum": 0, "maximum": 20, "nullable": true, "description": "Number of most likely tokens to return (requires `logprobs: true`)" },
+          "reasoning": { "$ref": "#/components/schemas/ReasoningConfig" },
+          "response_format": { "$ref": "#/components/schemas/ResponseFormat" },
+          "tools": {
+            "type": "array",
+            "description": "Available tools for function calling",
+            "items": { "$ref": "#/components/schemas/ToolDefinition" }
           },
+          "tool_choice": { "$ref": "#/components/schemas/ToolChoice" },
+          "parallel_tool_calls": { "type": "boolean", "nullable": true, "description": "Allow parallel tool calls" },
+          "user": { "type": "string", "description": "Unique end-user identifier for abuse monitoring" },
           "provider": {
             "description": "Keyaos extension — restrict routing to specific provider(s)",
             "oneOf": [
@@ -357,17 +415,179 @@
           }
         }
       },
+      "ChatMessage": {
+        "type": "object",
+        "required": ["role"],
+        "properties": {
+          "role": { "type": "string", "enum": ["system", "developer", "user", "assistant", "tool"], "description": "Message role" },
+          "content": {
+            "description": "Message content — string, null (for tool-call-only assistant messages), or array of content parts",
+            "oneOf": [
+              { "type": "string" },
+              { "type": "null" },
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/ContentPart" }
+              }
+            ]
+          },
+          "name": { "type": "string", "description": "Optional participant name" },
+          "tool_calls": {
+            "type": "array",
+            "description": "Tool calls (assistant messages only)",
+            "items": { "$ref": "#/components/schemas/ToolCall" }
+          },
+          "tool_call_id": { "type": "string", "description": "Tool call ID this message responds to (tool messages only)" },
+          "refusal": { "type": "string", "nullable": true, "description": "Refusal message if content was refused" }
+        }
+      },
+      "ContentPart": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string", "enum": ["text", "image_url", "input_audio"], "description": "Content part type" },
+          "text": { "type": "string", "description": "Text content (for type: text)" },
+          "image_url": {
+            "type": "object",
+            "description": "Image reference (for type: image_url)",
+            "properties": {
+              "url": { "type": "string", "description": "Image URL or base64 data URI" },
+              "detail": { "type": "string", "enum": ["auto", "low", "high"], "default": "auto" }
+            },
+            "required": ["url"]
+          },
+          "input_audio": {
+            "type": "object",
+            "description": "Audio input (for type: input_audio)",
+            "properties": {
+              "data": { "type": "string", "description": "Base64-encoded audio data" },
+              "format": { "type": "string", "description": "Audio format (wav, mp3, etc.)" }
+            },
+            "required": ["data", "format"]
+          }
+        }
+      },
+      "ToolCall": {
+        "type": "object",
+        "required": ["id", "type", "function"],
+        "properties": {
+          "id": { "type": "string", "description": "Tool call identifier" },
+          "type": { "type": "string", "enum": ["function"] },
+          "function": {
+            "type": "object",
+            "required": ["name", "arguments"],
+            "properties": {
+              "name": { "type": "string", "description": "Function name" },
+              "arguments": { "type": "string", "description": "Function arguments as JSON string" }
+            }
+          }
+        }
+      },
+      "ToolDefinition": {
+        "type": "object",
+        "required": ["type", "function"],
+        "properties": {
+          "type": { "type": "string", "enum": ["function"] },
+          "function": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string", "description": "Function name (a-z, A-Z, 0-9, underscores, dashes, max 64 chars)" },
+              "description": { "type": "string", "description": "Function description for the model" },
+              "parameters": { "type": "object", "description": "Function parameters as JSON Schema object" },
+              "strict": { "type": "boolean", "nullable": true, "description": "Enable strict schema adherence" }
+            }
+          }
+        }
+      },
+      "ToolChoice": {
+        "description": "Tool selection strategy",
+        "oneOf": [
+          { "type": "string", "enum": ["none", "auto", "required"] },
+          {
+            "type": "object",
+            "required": ["type", "function"],
+            "properties": {
+              "type": { "type": "string", "enum": ["function"] },
+              "function": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "description": "Force call to this specific function" }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ReasoningConfig": {
+        "type": "object",
+        "description": "Configuration for reasoning models (e.g., o3, o3-mini)",
+        "properties": {
+          "effort": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Reasoning effort level"
+          },
+          "summary": {
+            "description": "Reasoning summary verbosity",
+            "oneOf": [
+              { "type": "string", "enum": ["auto", "concise", "detailed"] },
+              { "type": "null" }
+            ]
+          }
+        }
+      },
+      "ResponseFormat": {
+        "description": "Response format constraint",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string", "enum": ["text"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "type": { "type": "string", "enum": ["json_object"] }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "json_schema"],
+            "properties": {
+              "type": { "type": "string", "enum": ["json_schema"] },
+              "json_schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "description": "Schema name" },
+                  "description": { "type": "string", "description": "Schema description" },
+                  "schema": { "type": "object", "description": "JSON Schema definition" },
+                  "strict": { "type": "boolean", "nullable": true, "description": "Enable strict schema adherence" }
+                }
+              }
+            }
+          }
+        ]
+      },
       "ChatCompletionResponse": {
         "type": "object",
+        "required": ["id", "choices", "created", "model", "object"],
         "properties": {
           "id": { "type": "string", "example": "chatcmpl-abc123" },
           "object": { "type": "string", "enum": ["chat.completion"] },
-          "created": { "type": "integer" },
+          "created": { "type": "integer", "description": "Unix timestamp" },
           "model": { "type": "string", "example": "openai/gpt-4o" },
+          "system_fingerprint": { "type": "string", "nullable": true, "description": "System fingerprint for determinism tracking" },
           "choices": {
             "type": "array",
             "items": {
               "type": "object",
+              "required": ["index", "message", "finish_reason"],
               "properties": {
                 "index": { "type": "integer" },
                 "message": {
@@ -375,10 +595,45 @@
                   "properties": {
                     "role": { "type": "string", "enum": ["assistant"] },
                     "content": { "type": "string", "nullable": true },
-                    "tool_calls": { "type": "array", "items": { "type": "object" } }
+                    "tool_calls": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ToolCall" }
+                    },
+                    "refusal": { "type": "string", "nullable": true },
+                    "reasoning": { "type": "string", "nullable": true, "description": "Reasoning output (for reasoning models)" }
                   }
                 },
-                "finish_reason": { "type": "string", "enum": ["stop", "length", "tool_calls", "content_filter"] }
+                "finish_reason": { "type": "string", "enum": ["stop", "length", "tool_calls", "content_filter", "error"] },
+                "logprobs": {
+                  "type": "object",
+                  "nullable": true,
+                  "description": "Log probability information",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "token": { "type": "string" },
+                          "logprob": { "type": "number" },
+                          "bytes": { "type": "array", "nullable": true, "items": { "type": "integer" } },
+                          "top_logprobs": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "token": { "type": "string" },
+                                "logprob": { "type": "number" },
+                                "bytes": { "type": "array", "nullable": true, "items": { "type": "integer" } }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           },
@@ -387,10 +642,28 @@
       },
       "OpenAIUsage": {
         "type": "object",
+        "required": ["prompt_tokens", "completion_tokens", "total_tokens"],
         "properties": {
           "prompt_tokens": { "type": "integer" },
           "completion_tokens": { "type": "integer" },
-          "total_tokens": { "type": "integer" }
+          "total_tokens": { "type": "integer" },
+          "completion_tokens_details": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "reasoning_tokens": { "type": "integer", "nullable": true },
+              "accepted_prediction_tokens": { "type": "integer", "nullable": true },
+              "rejected_prediction_tokens": { "type": "integer", "nullable": true }
+            }
+          },
+          "prompt_tokens_details": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "cached_tokens": { "type": "integer" },
+              "audio_tokens": { "type": "integer" }
+            }
+          }
         }
       },
       "AnthropicMessageRequest": {
@@ -415,14 +688,26 @@
                       "type": "array",
                       "items": {
                         "type": "object",
+                        "required": ["type"],
                         "properties": {
-                          "type": { "type": "string", "enum": ["text", "image", "tool_use", "tool_result"] },
+                          "type": { "type": "string", "enum": ["text", "image", "document", "tool_use", "tool_result", "thinking", "redacted_thinking"] },
                           "text": { "type": "string" },
-                          "source": { "type": "object", "description": "Image source (for type: image)" },
-                          "id": { "type": "string", "description": "Tool use ID" },
-                          "name": { "type": "string", "description": "Tool name" },
-                          "input": { "description": "Tool input" },
-                          "tool_use_id": { "type": "string", "description": "For tool_result blocks" }
+                          "source": { "type": "object", "description": "Media source (for image/document blocks)" },
+                          "id": { "type": "string", "description": "Block ID (tool_use)" },
+                          "name": { "type": "string", "description": "Tool name (tool_use)" },
+                          "input": { "description": "Tool input (tool_use)" },
+                          "tool_use_id": { "type": "string", "description": "Referenced tool_use ID (tool_result)" },
+                          "content": { "description": "Result content (tool_result)" },
+                          "thinking": { "type": "string", "description": "Thinking text (thinking)" },
+                          "signature": { "type": "string", "description": "Thinking signature (thinking)" },
+                          "data": { "type": "string", "description": "Encrypted data (redacted_thinking)" },
+                          "cache_control": {
+                            "type": "object",
+                            "properties": {
+                              "type": { "type": "string", "enum": ["ephemeral"] },
+                              "ttl": { "type": "string", "enum": ["5m", "1h"] }
+                            }
+                          }
                         }
                       }
                     }
@@ -432,26 +717,116 @@
             }
           },
           "system": {
-            "description": "System prompt",
+            "description": "System prompt — string or array of text blocks with optional cache_control",
             "oneOf": [
               { "type": "string" },
-              { "type": "array", "items": { "type": "object", "properties": { "type": { "type": "string" }, "text": { "type": "string" } } } }
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["type", "text"],
+                  "properties": {
+                    "type": { "type": "string", "enum": ["text"] },
+                    "text": { "type": "string" },
+                    "cache_control": {
+                      "type": "object",
+                      "properties": {
+                        "type": { "type": "string", "enum": ["ephemeral"] },
+                        "ttl": { "type": "string", "enum": ["5m", "1h"] }
+                      }
+                    }
+                  }
+                }
+              }
             ]
           },
           "stream": { "type": "boolean", "default": false },
           "temperature": { "type": "number", "minimum": 0, "maximum": 2, "description": "Sampling temperature (Anthropic models cap at 1.0)" },
           "top_p": { "type": "number", "minimum": 0, "maximum": 1 },
+          "top_k": { "type": "integer", "description": "Top-K sampling (Anthropic-specific)" },
           "stop_sequences": { "type": "array", "items": { "type": "string" } },
-          "thinking": {
+          "metadata": {
             "type": "object",
-            "description": "Extended thinking configuration",
             "properties": {
-              "type": { "type": "string", "enum": ["enabled", "disabled"] },
-              "budget_tokens": { "type": "integer", "description": "Token budget for thinking" }
+              "user_id": { "type": "string", "nullable": true, "description": "End-user identifier" }
             }
           },
-          "tools": { "type": "array", "items": { "type": "object" }, "description": "Tool definitions" },
-          "tool_choice": { "type": "object", "description": "Tool selection strategy" },
+          "thinking": {
+            "description": "Extended thinking configuration",
+            "oneOf": [
+              {
+                "type": "object",
+                "required": ["type", "budget_tokens"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["enabled"] },
+                  "budget_tokens": { "type": "integer", "description": "Token budget for thinking" }
+                }
+              },
+              {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["disabled"] }
+                }
+              },
+              {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["adaptive"] }
+                }
+              }
+            ]
+          },
+          "output_config": {
+            "type": "object",
+            "description": "Output configuration (effort control and structured output)",
+            "properties": {
+              "effort": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "max"],
+                "description": "Effort level for response thoroughness"
+              },
+              "format": {
+                "type": "object",
+                "description": "Structured output format",
+                "required": ["type", "schema"],
+                "properties": {
+                  "type": { "type": "string", "enum": ["json_schema"] },
+                  "schema": { "type": "object", "description": "JSON Schema definition" }
+                }
+              }
+            }
+          },
+          "tools": {
+            "type": "array",
+            "description": "Tool definitions",
+            "items": {
+              "type": "object",
+              "required": ["name", "input_schema"],
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "input_schema": { "type": "object", "description": "JSON Schema for tool parameters" },
+                "type": { "type": "string", "enum": ["custom"], "description": "Tool type (defaults to custom)" },
+                "cache_control": {
+                  "type": "object",
+                  "properties": {
+                    "type": { "type": "string", "enum": ["ephemeral"] }
+                  }
+                }
+              }
+            }
+          },
+          "tool_choice": {
+            "description": "Tool selection strategy",
+            "oneOf": [
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string", "enum": ["auto"] }, "disable_parallel_tool_use": { "type": "boolean" } } },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string", "enum": ["any"] }, "disable_parallel_tool_use": { "type": "boolean" } } },
+              { "type": "object", "required": ["type"], "properties": { "type": { "type": "string", "enum": ["none"] } } },
+              { "type": "object", "required": ["type", "name"], "properties": { "type": { "type": "string", "enum": ["tool"] }, "name": { "type": "string" }, "disable_parallel_tool_use": { "type": "boolean" } } }
+            ]
+          },
           "provider": {
             "description": "Keyaos extension — restrict routing to specific provider(s)",
             "oneOf": [
@@ -463,6 +838,7 @@
       },
       "AnthropicMessageResponse": {
         "type": "object",
+        "required": ["id", "type", "role", "content", "model", "stop_reason", "stop_sequence", "usage"],
         "properties": {
           "id": { "type": "string", "example": "msg_abc123" },
           "type": { "type": "string", "enum": ["message"] },
@@ -472,33 +848,42 @@
             "type": "array",
             "items": {
               "type": "object",
+              "required": ["type"],
               "properties": {
-                "type": { "type": "string", "enum": ["text", "thinking", "tool_use"] },
-                "text": { "type": "string" },
-                "thinking": { "type": "string" },
-                "id": { "type": "string" },
-                "name": { "type": "string" },
-                "input": {}
+                "type": { "type": "string", "enum": ["text", "tool_use", "thinking", "redacted_thinking"] },
+                "text": { "type": "string", "description": "Text content (for type: text)" },
+                "citations": { "type": "array", "nullable": true, "description": "Source citations (for type: text)" },
+                "id": { "type": "string", "description": "Tool use ID (for type: tool_use)" },
+                "name": { "type": "string", "description": "Tool name (for type: tool_use)" },
+                "input": { "description": "Tool input (for type: tool_use)" },
+                "thinking": { "type": "string", "description": "Thinking text (for type: thinking)" },
+                "signature": { "type": "string", "description": "Thinking signature (for type: thinking)" },
+                "data": { "type": "string", "description": "Encrypted data (for type: redacted_thinking)" }
               }
             }
           },
-          "stop_reason": { "type": "string", "enum": ["end_turn", "max_tokens", "stop_sequence", "tool_use"], "nullable": true },
+          "stop_reason": { "type": "string", "enum": ["end_turn", "max_tokens", "stop_sequence", "tool_use", "pause_turn", "refusal"], "nullable": true },
           "stop_sequence": { "type": "string", "nullable": true },
           "usage": {
             "type": "object",
+            "required": ["input_tokens", "output_tokens"],
             "properties": {
               "input_tokens": { "type": "integer" },
-              "output_tokens": { "type": "integer" }
+              "output_tokens": { "type": "integer" },
+              "cache_creation_input_tokens": { "type": "integer", "nullable": true, "description": "Tokens written to cache" },
+              "cache_read_input_tokens": { "type": "integer", "nullable": true, "description": "Tokens read from cache" }
             }
           }
         }
       },
       "AnthropicError": {
         "type": "object",
+        "required": ["type", "error"],
         "properties": {
           "type": { "type": "string", "enum": ["error"] },
           "error": {
             "type": "object",
+            "required": ["type", "message"],
             "properties": {
               "type": { "type": "string" },
               "message": { "type": "string" }
@@ -538,9 +923,11 @@
       },
       "OpenAIError": {
         "type": "object",
+        "required": ["error"],
         "properties": {
           "error": {
             "type": "object",
+            "required": ["message", "type"],
             "properties": {
               "message": { "type": "string" },
               "type": { "type": "string" },
