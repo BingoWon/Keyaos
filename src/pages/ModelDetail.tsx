@@ -20,7 +20,7 @@ import { CodeSamples, detectCodeVariant } from "../components/CodeSamples";
 import { CopyButton } from "../components/CopyButton";
 import { OrgLogo } from "../components/OrgLogo";
 import { PriceChart } from "../components/PriceChart";
-import { ProviderLogo } from "../components/ProviderLogo";
+import { ProviderChip } from "../components/ProviderLogo";
 import { Badge, Breadcrumb, buttonClass, DualPrice } from "../components/ui";
 import { useFetch } from "../hooks/useFetch";
 import type { ModelEntry } from "../types/model";
@@ -178,6 +178,7 @@ export function ModelDetail() {
 							<th className="py-2.5 pl-4 pr-2 sm:pl-5">
 								{t("models.provider", "Provider")}
 							</th>
+							<th className="px-2 py-2.5">ID</th>
 							<th className="px-2 py-2.5 text-right">
 								{t("models.input_price", "Input /1M")}
 							</th>
@@ -201,23 +202,29 @@ export function ModelDetail() {
 											: "even:bg-gray-50/50 dark:even:bg-white/[0.015]"
 									}
 								>
-									<td className="py-2.5 pl-4 pr-2 text-sm text-gray-700 dark:text-gray-300 sm:pl-5">
+									<td className="py-2.5 pl-4 pr-2 sm:pl-5 whitespace-nowrap">
 										<span className="inline-flex items-center gap-1.5">
-											{meta && (
-												<ProviderLogo
-													src={meta.logoUrl}
-													name={meta.name}
+											<Link to={`/providers/${p.provider_id}`}>
+												<ProviderChip
+													src={meta?.logoUrl ?? ""}
+													name={meta?.name ?? p.provider_id}
 													size={16}
 												/>
-											)}
-											<span>{meta?.name ?? p.provider_id}</span>
-											<CopyButton text={p.provider_id} />
+											</Link>
 											{i === 0 && (
 												<Badge variant="brand">
 													{t("models.best_price", "Best")}
 												</Badge>
 											)}
 										</span>
+									</td>
+									<td className="px-2 py-2.5 whitespace-nowrap">
+										<div className="flex items-center gap-1">
+											<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
+												{p.provider_id}
+											</code>
+											<CopyButton text={p.provider_id} />
+										</div>
 									</td>
 									<td className="px-2 py-2.5 text-sm font-mono text-right text-gray-600 dark:text-gray-400">
 										<DualPrice
