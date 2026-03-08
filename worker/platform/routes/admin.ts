@@ -102,6 +102,13 @@ admin.post("/gift-cards", async (c) => {
 	return c.json(result);
 });
 
+admin.get("/gift-cards", async (c) => {
+	const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
+	const offset = Math.max(Number(c.req.query("offset")) || 0, 0);
+	const cards = await new GiftCardDao(c.env.DB).listAll(limit, offset);
+	return c.json(cards);
+});
+
 admin.get("/gift-cards/:batchId", async (c) => {
 	const cards = await new GiftCardDao(c.env.DB).listBatch(
 		c.req.param("batchId"),

@@ -82,6 +82,24 @@ export class GiftCardDao {
 		return { batchId, codes };
 	}
 
+	async listAll(
+		limit: number,
+		offset: number,
+	): Promise<{ rows: DbGiftCard[]; total: number }> {
+		const [data, countRow] = await this.db.batch([
+			this.db
+				.prepare(
+					"SELECT * FROM gift_cards ORDER BY created_at DESC LIMIT ? OFFSET ?",
+				)
+				.bind(limit, offset),
+			this.db.prepare("SELECT COUNT(*) as cnt FROM gift_cards"),
+		]);
+		return {
+			rows: (data.results as DbGiftCard[]) ?? [],
+			total: (countRow.results?.[0] as { cnt: number })?.cnt ?? 0,
+		};
+	}
+
 	async listBatch(batchId: string): Promise<DbGiftCard[]> {
 		const result = await this.db
 			.prepare(

@@ -7,12 +7,14 @@ import type { AppEnv } from "../shared/types";
 /** Strip markdown links and bare URLs from model descriptions */
 function cleanDescription(raw: unknown): string | null {
 	if (typeof raw !== "string" || !raw) return null;
-	return raw
-		.replace(/\[([^\]]*)\]\([^)]+\)/g, "") // [text](url) → removed entirely
-		.replace(/https?:\/\/\S+/g, "") // bare URLs
-		.replace(/ {2,}/g, " ") // collapse multiple spaces
-		.replace(/\n{3,}/g, "\n\n") // collapse excess blank lines
-		.trim() || null;
+	return (
+		raw
+			.replace(/\[([^\]]*)\]\([^)]+\)/g, "") // [text](url) → removed entirely
+			.replace(/https?:\/\/\S+/g, "") // bare URLs
+			.replace(/ {2,}/g, " ") // collapse multiple spaces
+			.replace(/\n{3,}/g, "\n\n") // collapse excess blank lines
+			.trim() || null
+	);
 }
 
 /**

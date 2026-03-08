@@ -72,6 +72,9 @@ const Users = lazyWithRetry(() =>
 const Data = lazyWithRetry(() =>
 	import("./pages/admin/Data").then((m) => ({ default: m.Data })),
 );
+const GiftCards = lazyWithRetry(() =>
+	import("./pages/admin/GiftCards").then((m) => ({ default: m.GiftCards })),
+);
 
 // ─── Lazy-loaded layouts ─────────────────────────────────
 
@@ -287,6 +290,7 @@ export const router = createBrowserRouter([
 							children: [
 								{ index: true, element: <Overview /> },
 								{ path: "users", element: <Users /> },
+								{ path: "gift-cards", element: <GiftCards /> },
 								{ path: "data", element: <Data /> },
 							],
 						},

@@ -1,6 +1,7 @@
 import {
 	ArrowLeftIcon,
 	ChartBarIcon,
+	GiftIcon,
 	TableCellsIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/outline";
@@ -21,6 +22,11 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
 			end: true,
 		},
 		{ name: t("admin.users"), href: "/admin/users", icon: UserGroupIcon },
+		{
+			name: t("admin.gift_cards_title"),
+			href: "/admin/gift-cards",
+			icon: GiftIcon,
+		},
 		{
 			name: t("admin.data_explorer"),
 			href: "/admin/data",

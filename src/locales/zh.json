@@ -39,7 +39,8 @@
 		"copy": "复制",
 		"confirm": "确认",
 		"actions": "操作",
-		"free": "免费"
+		"free": "免费",
+		"copied": "已复制"
 	},
 	"nav": {
 		"dashboard": "控制台",
@@ -261,6 +262,7 @@
 		"balance": "账户余额",
 		"faq_what_are_credits": "什么是 Credits？",
 		"faq_credits_run_out": "Credits 用完会怎样？",
+		"faq_gift_cards": "礼品卡如何使用？",
 		"buy_credits": "购买额度",
 		"buy_credits_desc": "一次性购买，即刻到账。",
 		"rate": "$1 USD = $1 Credits",
@@ -337,7 +339,29 @@
 		"no_data": "此表暂无数据",
 		"showing": "第 {{from}}–{{to}} 条，共 {{total}} 条",
 		"prev": "上一页",
-		"next": "下一页"
+		"next": "下一页",
+		"gift_cards_title": "礼品卡",
+		"gift_cards_subtitle": "生成、管理和追踪礼品卡密钥",
+		"gift_cards_total": "总计",
+		"gift_cards_available": "可用",
+		"gift_cards_redeemed": "已兑换",
+		"gift_cards_unredeemed_value": "未兑换价值",
+		"gift_cards_generate": "生成礼品卡",
+		"gift_cards_generate_desc": "批量创建指定额度的礼品卡密钥",
+		"gift_cards_amount_label": "每张额度",
+		"gift_cards_count_label": "数量",
+		"gift_cards_generate_btn": "生成",
+		"gift_cards_generated": "已生成 {{count}} 张礼品卡（每张 {{amount}}）",
+		"gift_cards_copy_all": "全部复制",
+		"gift_cards_copied": "已复制 {{count}} 个密钥",
+		"gift_cards_batch_result": "批次 {{batchId}} — {{count}} 张 × {{amount}}",
+		"gift_cards_code": "密钥",
+		"gift_cards_redeemed_by": "兑换者",
+		"gift_cards_batch": "批次",
+		"gift_cards_used": "已使用",
+		"gift_cards_expired": "已过期",
+		"gift_cards_active": "可用",
+		"gift_cards_empty": "暂无礼品卡"
 	},
 	"guide": {
 		"title": "快速开始",

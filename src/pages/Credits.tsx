@@ -326,8 +326,8 @@ export function Credits() {
 						{t("credits.subtitle")}
 					</p>
 				</div>
-			<div className="mt-4 sm:mt-0 flex items-end gap-3">
-				<RefreshControl
+				<div className="mt-4 sm:mt-0 flex items-end gap-3">
+					<RefreshControl
 						loading={isRefreshing}
 						lastUpdated={lastUpdated}
 						onRefresh={refetchAll}
@@ -403,8 +403,8 @@ export function Credits() {
 				{/* Redeem Gift Card */}
 				<div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
 					<div className="flex items-center gap-3">
-						<div className="rounded-lg bg-violet-500/10 p-2.5 dark:bg-violet-500/15">
-							<GiftIcon className="size-5 text-violet-500" />
+						<div className="rounded-lg bg-brand-500/10 p-2.5 dark:bg-brand-500/15">
+							<GiftIcon className="size-5 text-brand-500" />
 						</div>
 						<div>
 							<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -433,7 +433,13 @@ export function Credits() {
 									onClick={() => setRedeemCode("")}
 									className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 dark:text-gray-600 dark:hover:text-gray-400 transition-colors"
 								>
-									<svg className="size-4" viewBox="0 0 20 20" fill="currentColor">
+									<svg
+										className="size-4"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+										aria-label="Clear"
+										role="img"
+									>
 										<path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
 									</svg>
 								</button>
@@ -442,11 +448,18 @@ export function Credits() {
 						<Button
 							disabled={redeeming || !redeemCode.trim()}
 							onClick={handleRedeem}
-							size="sm"
 						>
 							{t("credits.redeem")}
 						</Button>
 					</div>
+					<a
+						href="/docs/credits#gift-cards"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="mt-3 inline-block text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
+					>
+						{t("credits.faq_gift_cards", "How do gift cards work?")} →
+					</a>
 				</div>
 			</div>
 

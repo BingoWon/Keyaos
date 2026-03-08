@@ -39,7 +39,8 @@
 		"copy": "Copy",
 		"confirm": "Confirm",
 		"actions": "Actions",
-		"free": "Free"
+		"free": "Free",
+		"copied": "Copied"
 	},
 	"nav": {
 		"dashboard": "Dashboard",
@@ -264,6 +265,7 @@
 		"balance": "Credits Balance",
 		"faq_what_are_credits": "What are Credits?",
 		"faq_credits_run_out": "What happens when credits run out?",
+		"faq_gift_cards": "How do gift cards work?",
 		"buy_credits": "Buy Credits",
 		"buy_credits_desc": "One-time purchase, instant delivery.",
 		"rate": "$1 USD = $1 Credits",
@@ -340,7 +342,29 @@
 		"no_data": "No rows in this table",
 		"showing": "{{from}}–{{to}} of {{total}}",
 		"prev": "Prev",
-		"next": "Next"
+		"next": "Next",
+		"gift_cards_title": "Gift Cards",
+		"gift_cards_subtitle": "Generate, manage, and track gift card codes",
+		"gift_cards_total": "Total Cards",
+		"gift_cards_available": "Available",
+		"gift_cards_redeemed": "Redeemed",
+		"gift_cards_unredeemed_value": "Unredeemed Value",
+		"gift_cards_generate": "Generate Gift Cards",
+		"gift_cards_generate_desc": "Create a batch of gift card codes with a fixed credit amount",
+		"gift_cards_amount_label": "Amount per card",
+		"gift_cards_count_label": "Quantity",
+		"gift_cards_generate_btn": "Generate",
+		"gift_cards_generated": "Generated {{count}} gift cards ({{amount}} each)",
+		"gift_cards_copy_all": "Copy All",
+		"gift_cards_copied": "{{count}} codes copied to clipboard",
+		"gift_cards_batch_result": "Batch {{batchId}} — {{count}} cards × {{amount}}",
+		"gift_cards_code": "Code",
+		"gift_cards_redeemed_by": "Redeemed By",
+		"gift_cards_batch": "Batch",
+		"gift_cards_used": "Used",
+		"gift_cards_expired": "Expired",
+		"gift_cards_active": "Active",
+		"gift_cards_empty": "No gift cards generated yet"
 	},
 	"guide": {
 		"title": "Quick Start",
