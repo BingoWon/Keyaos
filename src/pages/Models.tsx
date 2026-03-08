@@ -144,7 +144,7 @@ export function Models() {
 						{t("models.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 sm:mt-0 flex justify-end items-end gap-3">
+				<div className="mt-4 sm:mt-0 flex items-end gap-3">
 					<RefreshControl
 						loading={loading}
 						lastUpdated={lastUpdated}
@@ -235,20 +235,20 @@ export function Models() {
 															<OrgLogo modelId={g.id} />
 															{g.displayName}
 														</Link>
-														<div className="flex items-center gap-1.5 mt-0.5">
-															<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
-																{g.id}
-															</code>
-															<CopyButton text={g.id} />
-															{g.createdAt > 0 && (
-																<Badge variant="brand">
-																	{formatRelativeTime(
-																		g.createdAt,
-																		i18n.language,
-																	)}
-																</Badge>
-															)}
-														</div>
+													<div className="hidden items-center gap-1.5 mt-0.5 sm:flex">
+														<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
+															{g.id}
+														</code>
+														<CopyButton text={g.id} />
+														{g.createdAt > 0 && (
+															<Badge variant="brand">
+																{formatRelativeTime(
+																	g.createdAt,
+																	i18n.language,
+																)}
+															</Badge>
+														)}
+													</div>
 													</div>
 												</td>
 												<td className="px-2 py-2.5 hidden lg:table-cell">
