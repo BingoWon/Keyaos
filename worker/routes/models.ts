@@ -4,6 +4,16 @@ import { PricingDao } from "../core/db/pricing-dao";
 import { edgeCache } from "../shared/cache";
 import type { AppEnv } from "../shared/types";
 
+/** Strip markdown links and bare URLs from model descriptions */
+function cleanDescription(raw: unknown): string | null {
+	if (typeof raw !== "string" || !raw) return null;
+	return raw
+		.replace(/\[([^\]]*)\]\([^)]+\)/g, "$1") // [text](url) → text
+		.replace(/https?:\/\/\S+/g, "") // bare URLs
+		.replace(/\n{3,}/g, "\n\n") // collapse excess blank lines
+		.trim() || null;
+}
+
 /**
  * /v1/models — Public API, one entry per model.
  *
@@ -90,7 +100,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 			id,
 			name: (m?.name as string) ?? g.name ?? id,
 			created: (m?.created as number) ?? 0,
-			description: (m?.description as string) ?? null,
+			description: cleanDescription(m?.description),
 			hugging_face_id: (m?.hugging_face_id as string) ?? null,
 			context_length: (m?.context_length as number) ?? g.contextLength,
 			pricing,
@@ -127,7 +137,7 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 			id: m.model_id,
 			provider_id: m.provider_id,
 			name: m.name,
-			description: (meta?.description as string) ?? null,
+			description: cleanDescription(meta?.description),
 			input_price: m.input_price,
 			output_price: m.output_price,
 			...(mul != null &&
