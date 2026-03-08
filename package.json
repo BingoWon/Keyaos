@@ -1,6 +1,6 @@
 {
 	"name": "keyaos",
-	"version": "0.32.4",
+	"version": "0.33.0",
 	"private": true,
 	"license": "BUSL-1.1",
 	"type": "module",
