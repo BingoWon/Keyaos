@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const DEFAULT_INTERVAL = 60_000;
+const DEFAULT_INTERVAL = 30_000;
 
 /**
  * Auto-refresh on a fixed interval and track when data last arrived.

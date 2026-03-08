@@ -38,16 +38,13 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 	const [error, setError] = useState<Error | null>(null);
 
 	const execute = useCallback(
-		async (signal: AbortSignal, fetchUrl = url) => {
+		async (signal: AbortSignal) => {
 			if (skip) {
 				setLoading(false);
 				return;
 			}
 
-			// Only use local cache hit if we are using the base url (not a cache bust)
-			const isCacheBust = fetchUrl !== url;
-			const hit = !isCacheBust ? cache.get(url) : undefined;
-
+			const hit = cache.get(url);
 			if (hit) {
 				setData(hit.data as T);
 				if (Date.now() - hit.ts < staleTime) {
@@ -67,7 +64,7 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 					if (token) headers.set("Authorization", `Bearer ${token}`);
 				}
 
-				const res = await fetch(fetchUrl, {
+				const res = await fetch(url, {
 					...optionsRef.current,
 					headers,
 					signal,
@@ -103,8 +100,7 @@ export function useFetch<T>(url: string, options: FetchOptions = {}) {
 	const refetch = useCallback(() => {
 		cache.delete(url);
 		const controller = new AbortController();
-		const separator = url.includes("?") ? "&" : "?";
-		execute(controller.signal, `${url}${separator}_t=${Date.now()}`);
+		execute(controller.signal);
 	}, [execute, url]);
 
 	return { data, loading, error, refetch };
