@@ -338,12 +338,12 @@ export function TopNav() {
 							</div>
 						</TransitionChild>
 
-						<div className="flex h-full flex-col overflow-y-auto px-5 py-5">
+						<div className="flex h-full flex-col overflow-y-auto px-5 py-6">
 							<div className="flex items-center justify-between">
 								<Logo size="md" />
 							</div>
 
-							<nav className="mt-6 flex flex-col gap-1">
+							<nav className="mt-8 flex flex-col gap-1.5">
 								{NAV_LINKS.map(({ key, href, icon: Icon }) => (
 									<NavLink
 										key={href}
@@ -351,7 +351,7 @@ export function TopNav() {
 										onClick={() => setMobileMenuOpen(false)}
 										className={({ isActive }) =>
 											classNames(
-												"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+												"flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors",
 												isActive
 													? "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
 													: "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
@@ -364,12 +364,12 @@ export function TopNav() {
 								))}
 							</nav>
 
-							<div className="mt-auto border-t border-gray-200 pt-4 dark:border-white/10">
+							<div className="mt-auto border-t border-gray-200 pt-5 dark:border-white/10">
 								<a
 									href={GITHUB_URL}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+									className="flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
 								>
 									<GitHubIcon className="size-5" />
 									GitHub
