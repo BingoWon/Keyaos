@@ -27,7 +27,8 @@ export function formatSignedUSD(value: number): string {
 /** Format model pricing (input is USD per million tokens) */
 export function formatPrice(price: number, freeLabel = "Free"): string {
 	if (price === 0) return freeLabel;
-	const raw = price >= 0.1 ? price.toFixed(2) : Number(price.toPrecision(3)).toString();
+	const raw =
+		price >= 0.1 ? price.toFixed(2) : Number(price.toPrecision(3)).toString();
 	const [int, dec] = raw.split(".");
 	if (!dec) return `$${int}.00`;
 	const trimmed = dec.replace(/0+$/, "");

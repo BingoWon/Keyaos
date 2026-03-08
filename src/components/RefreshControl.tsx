@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TOKENS } from "../utils/colors";
 import { formatTimestamp } from "../utils/format";
+import { Button } from "./ui";
 
 interface RefreshControlProps {
 	loading: boolean;
@@ -13,7 +14,6 @@ interface RefreshControlProps {
 /**
  * Shared refresh control with loading spinner and brief success indicator.
  * Only shows the check icon after user-initiated refreshes, not auto-refreshes.
- * Uses a neutral ghost style to avoid conflict with primary action buttons.
  */
 export function RefreshControl({
 	loading,
@@ -48,21 +48,16 @@ export function RefreshControl({
 					{t("common_updated_at", { time: formatTimestamp(lastUpdated) })}
 				</span>
 			)}
-			<button
-				type="button"
-				onClick={handleClick}
-				className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 shadow-xs transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-white/10 dark:bg-white/5 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
-			>
+			<Button onClick={handleClick} className="shrink-0">
 				{showCheck ? (
-					<CheckIcon className={`-ml-0.5 size-4 ${TOKENS.green.text}`} />
+					<CheckIcon className={`-ml-0.5 size-5 ${TOKENS.green.text}`} />
 				) : (
 					<ArrowPathIcon
-						className={`-ml-0.5 size-4 ${loading ? "animate-spin" : ""}`}
+						className={`-ml-0.5 size-5 ${loading ? "animate-spin" : ""}`}
 					/>
 				)}
 				{t("common_refresh")}
-			</button>
+			</Button>
 		</>
 	);
 }
-

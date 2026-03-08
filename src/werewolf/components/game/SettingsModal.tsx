@@ -161,8 +161,8 @@ export function ModelSettingsSection() {
 	const sorted = useMemo(() => {
 		const base = search
 			? allModels.filter((m) =>
-				m.model.toLowerCase().includes(search.toLowerCase()),
-			)
+					m.model.toLowerCase().includes(search.toLowerCase()),
+				)
 			: allModels;
 		return [...base].sort((a, b) => {
 			const aSelected = selected.has(a.model) ? 0 : 1;
@@ -249,8 +249,8 @@ export function ModelSettingsSection() {
 						{selected.size === 0
 							? t("settings.models.playerModelsNone")
 							: t("settings.models.playerModelsSelected", {
-								count: selected.size,
-							})}
+									count: selected.size,
+								})}
 					</span>
 				</div>
 
@@ -261,11 +261,11 @@ export function ModelSettingsSection() {
 				>
 					{selected.size === 0
 						? t("settings.models.playerModelsDefault", {
-							count: DEFAULT_PLAYER_MODELS.length,
-						})
+								count: DEFAULT_PLAYER_MODELS.length,
+							})
 						: t("settings.models.playerModelsSelected", {
-							count: selected.size,
-						})}
+								count: selected.size,
+							})}
 				</button>
 
 				{expanded && (

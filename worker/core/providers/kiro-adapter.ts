@@ -19,7 +19,6 @@ import type {
 	ProviderInfo,
 } from "./interface";
 
-
 // ─── Constants ──────────────────────────────────────────
 
 const REGION = "us-east-1";

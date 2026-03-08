@@ -15,14 +15,13 @@ import { Trans, useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth";
 import { Pagination } from "../components/Pagination";
+import { RefreshControl } from "../components/RefreshControl";
 import { Badge, Button, Input, PromoBanner } from "../components/ui";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { TOKENS, type TokenName } from "../utils/colors";
 import { formatSignedUSD, formatUSD } from "../utils/format";
-
-import { RefreshControl } from "../components/RefreshControl";
-import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
 const THRESHOLD_PRESETS = [5, 10, 25] as const;
@@ -104,9 +103,10 @@ function CategoryBadge({ category }: { category: string }) {
 /* ─── Tab buttons ─── */
 
 const tabClass = (active: boolean) =>
-	`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg border-b-2 ${active
-		? "border-brand-500 text-brand-600 dark:text-brand-400"
-		: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+	`px-4 py-2 text-sm font-medium transition-colors rounded-t-lg border-b-2 ${
+		active
+			? "border-brand-500 text-brand-600 dark:text-brand-400"
+			: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 	}`;
 
 /* ─── Main page ─── */
@@ -147,7 +147,11 @@ export function Credits() {
 		loading: autoLoading,
 		refetch: refetchAuto,
 	} = useFetch<AutoTopUpConfig>("/api/credits/auto-topup");
-	const { data: txResult, loading: transactionsLoading, refetch: refetchTx } = useFetch<{
+	const {
+		data: txResult,
+		loading: transactionsLoading,
+		refetch: refetchTx,
+	} = useFetch<{
 		items: TransactionEntry[];
 		total: number;
 	}>(`/api/credits/transactions?page=${txPage}&limit=${txSize}`, {
@@ -252,7 +256,8 @@ export function Credits() {
 		[getToken, autoEnabled, autoThreshold, autoAmount, refetchAuto, t],
 	);
 
-	const isRefreshing = walletLoading || paymentsLoading || autoLoading || transactionsLoading;
+	const isRefreshing =
+		walletLoading || paymentsLoading || autoLoading || transactionsLoading;
 	const refetchAll = useCallback(() => {
 		refetchWallet();
 		refetchPayments();
@@ -262,10 +267,12 @@ export function Credits() {
 
 	const lastUpdated = useAutoRefresh(refetchAll, paymentsResult);
 
+	const customCents = Math.round(Number.parseFloat(customAmount || "0") * 100);
+
 	return (
 		<div>
-			<div className="sm:flex sm:items-center sm:justify-between">
-				<div>
+			<div className="sm:flex sm:items-end">
+				<div className="sm:flex-auto">
 					<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
 						{t("credits.title")}
 					</h1>
@@ -273,7 +280,7 @@ export function Credits() {
 						{t("credits.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 flex sm:mt-0 sm:ml-4">
+				<div className="mt-4 sm:mt-0 flex items-end gap-3">
 					<RefreshControl
 						loading={isRefreshing}
 						lastUpdated={lastUpdated}
@@ -517,10 +524,11 @@ export function Credits() {
 												key={v}
 												type="button"
 												onClick={() => setAutoThreshold(String(v))}
-												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${autoThreshold === String(v)
-													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-													}`}
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+													autoThreshold === String(v)
+														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+												}`}
 											>
 												${v}
 											</button>
@@ -550,10 +558,11 @@ export function Credits() {
 												key={v}
 												type="button"
 												onClick={() => setAutoAmount(String(v))}
-												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${autoAmount === String(v)
-													? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-													: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
-													}`}
+												className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+													autoAmount === String(v)
+														? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
+														: "text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+												}`}
 											>
 												${v}
 											</button>
@@ -710,12 +719,13 @@ function TransactionsTable({
 											: "—")}
 								</td>
 								<td
-									className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${e.amount > 0
-										? TOKENS.green.text
-										: e.amount < 0
-											? TOKENS.red.text
-											: "text-gray-400 dark:text-gray-500"
-										}`}
+									className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${
+										e.amount > 0
+											? TOKENS.green.text
+											: e.amount < 0
+												? TOKENS.red.text
+												: "text-gray-400 dark:text-gray-500"
+									}`}
 								>
 									{formatSignedUSD(e.amount)}
 								</td>

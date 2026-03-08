@@ -76,6 +76,7 @@
 	},
 	"dashboard": {
 		"title": "概览",
+		"subtitle": "数据概览、模型、供应商与近期活动一览",
 		"credits_balance": "额度余额",
 		"credits_earnings": "额度收益（24h）",
 		"api_calls": "API 调用（24h）",

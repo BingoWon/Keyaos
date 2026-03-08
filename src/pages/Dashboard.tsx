@@ -4,7 +4,7 @@ import {
 	CreditCardIcon,
 	DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { isPlatform } from "../auth";
@@ -14,8 +14,10 @@ import { ModalityBadges } from "../components/Modalities";
 import { OrgLogo } from "../components/OrgLogo";
 import { ProviderGrid } from "../components/ProviderGrid";
 import { ProviderLogo } from "../components/ProviderLogo";
+import { RefreshControl } from "../components/RefreshControl";
 import { Sparkline, type SparklineData } from "../components/Sparkline";
 import { Badge, DualPrice } from "../components/ui";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { LogEntry } from "../types/log";
@@ -31,9 +33,6 @@ import {
 import { aggregateModels } from "../utils/models";
 import { aggregateProviders } from "../utils/providers";
 
-import { RefreshControl } from "../components/RefreshControl";
-import { useAutoRefresh } from "../hooks/useAutoRefresh";
-
 const LATEST_MODELS_LIMIT = 8;
 
 interface PoolStats {
@@ -47,31 +46,56 @@ export function Dashboard() {
 	const navigate = useNavigate();
 	const formatDateTime = useFormatDateTime();
 
-	const { data: poolStats, loading: statsLoading, refetch: refetchStats } = useFetch<PoolStats>("/api/pool/stats");
-	const { data: balance, loading: balanceLoading, refetch: refetchBalance } = useFetch<{ balance: number }>(
-		"/api/credits/balance",
-		{ skip: !isPlatform },
-	);
-	const { data: rawModels, loading: modelsLoading, refetch: refetchModels } = useFetch<ModelEntry[]>(
-		"/api/models",
-		{ requireAuth: false },
-	);
-	const { data: providersData, loading: providersLoading, refetch: refetchProviders } = useFetch<ProviderMeta[]>("/api/providers", {
+	const {
+		data: poolStats,
+		loading: statsLoading,
+		refetch: refetchStats,
+	} = useFetch<PoolStats>("/api/pool/stats");
+	const {
+		data: balance,
+		loading: balanceLoading,
+		refetch: refetchBalance,
+	} = useFetch<{ balance: number }>("/api/credits/balance", {
+		skip: !isPlatform,
+	});
+	const {
+		data: rawModels,
+		loading: modelsLoading,
+		refetch: refetchModels,
+	} = useFetch<ModelEntry[]>("/api/models", { requireAuth: false });
+	const {
+		data: providersData,
+		loading: providersLoading,
+		refetch: refetchProviders,
+	} = useFetch<ProviderMeta[]>("/api/providers", {
 		requireAuth: false,
 	});
-	const { data: recentLogsResult, loading: logsLoading, refetch: refetchLogs } = useFetch<{
+	const {
+		data: recentLogsResult,
+		loading: logsLoading,
+		refetch: refetchLogs,
+	} = useFetch<{
 		items: LogEntry[];
 		total: number;
 	}>("/api/logs?page=1&limit=10", {
 		skip: !isPlatform,
 	});
 	const recentLogs = recentLogsResult?.items;
-	const { data: inputSparks, loading: sparksLoading, refetch: refetchSparks } = useFetch<Record<string, SparklineData>>(
-		"/api/sparklines/model:input",
-		{ requireAuth: false },
-	);
+	const {
+		data: inputSparks,
+		loading: sparksLoading,
+		refetch: refetchSparks,
+	} = useFetch<Record<string, SparklineData>>("/api/sparklines/model:input", {
+		requireAuth: false,
+	});
 
-	const isRefreshing = statsLoading || balanceLoading || modelsLoading || providersLoading || logsLoading || sparksLoading;
+	const isRefreshing =
+		statsLoading ||
+		(isPlatform ? balanceLoading : false) ||
+		modelsLoading ||
+		providersLoading ||
+		logsLoading ||
+		sparksLoading;
 
 	const handleRefresh = useCallback(() => {
 		refetchStats();
@@ -80,7 +104,14 @@ export function Dashboard() {
 		refetchProviders();
 		if (isPlatform) refetchLogs();
 		refetchSparks();
-	}, [refetchStats, refetchBalance, refetchModels, refetchProviders, refetchLogs, refetchSparks]);
+	}, [
+		refetchStats,
+		refetchBalance,
+		refetchModels,
+		refetchProviders,
+		refetchLogs,
+		refetchSparks,
+	]);
 
 	const lastUpdated = useAutoRefresh(handleRefresh, rawModels);
 
@@ -108,13 +139,13 @@ export function Dashboard() {
 	const statCards = [
 		...(isPlatform
 			? [
-				{
-					name: t("dashboard.credits_balance"),
-					stat: balance ? formatUSD(balance.balance) : null,
-					icon: CreditCardIcon,
-					href: "/dashboard/credits",
-				},
-			]
+					{
+						name: t("dashboard.credits_balance"),
+						stat: balance ? formatUSD(balance.balance) : null,
+						icon: CreditCardIcon,
+						href: "/dashboard/credits",
+					},
+				]
 			: []),
 		{
 			name: t("dashboard.credits_earnings"),
@@ -138,13 +169,16 @@ export function Dashboard() {
 
 	return (
 		<div className="space-y-6">
-			<div className="sm:flex sm:items-center sm:justify-between">
-				<div>
+			<div className="sm:flex sm:items-end">
+				<div className="sm:flex-auto">
 					<h1 className="text-xl font-semibold text-gray-900 dark:text-white">
 						{t("dashboard.title")}
 					</h1>
+					<p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						{t("dashboard.subtitle")}
+					</p>
 				</div>
-				<div className="mt-4 flex sm:mt-0 sm:ml-4">
+				<div className="mt-4 sm:mt-0 flex items-end gap-3">
 					<RefreshControl
 						loading={isRefreshing}
 						lastUpdated={lastUpdated}
@@ -405,12 +439,13 @@ export function Dashboard() {
 										{tx.outputTokens.toLocaleString()}
 									</td>
 									<td
-										className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${tx.netCredits > 0
+										className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${
+											tx.netCredits > 0
 												? TOKENS.green.text
 												: tx.netCredits < 0
 													? TOKENS.red.text
 													: "text-gray-400 dark:text-gray-500"
-											}`}
+										}`}
 									>
 										{formatSignedUSD(tx.netCredits)}
 									</td>

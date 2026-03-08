@@ -7,7 +7,7 @@ const RETENTION_DAYS = 30;
 export type CandleDimension = "model:input" | "model:output" | "provider";
 
 export class CandleDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	/**
 	 * Aggregate real trade data into candles.

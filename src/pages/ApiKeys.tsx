@@ -20,9 +20,6 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { ApiKeyInfo } from "../types/api-key";
 import { TOKENS } from "../utils/colors";
 
-import { RefreshControl } from "../components/RefreshControl";
-import { useAutoRefresh } from "../hooks/useAutoRefresh";
-
 export function ApiKeys() {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
@@ -33,8 +30,6 @@ export function ApiKeys() {
 		loading,
 		refetch,
 	} = useFetch<ApiKeyInfo[]>("/api/api-keys");
-
-	const lastUpdated = useAutoRefresh(refetch, apiKeys);
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [revealedKeys, setRevealedKeys] = useState<Map<string, string>>(
@@ -159,12 +154,7 @@ export function ApiKeys() {
 						{t("api_keys.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 flex sm:mt-0 sm:ml-16 sm:flex-none items-end gap-3">
-					<RefreshControl
-						loading={loading}
-						lastUpdated={lastUpdated}
-						onRefresh={refetch}
-					/>
+				<div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
 					<Button onClick={() => setIsAddOpen(true)}>
 						<PlusIcon aria-hidden="true" className="-ml-0.5 size-5" />
 						{t("api_keys.create")}

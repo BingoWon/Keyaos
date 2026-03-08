@@ -8,7 +8,11 @@
  */
 
 import type { Context } from "hono";
-import { calculateBaseCost, recordFailureLog, recordLog } from "../core/billing";
+import {
+	calculateBaseCost,
+	recordFailureLog,
+	recordLog,
+} from "../core/billing";
 import * as cb from "../core/circuit-breaker";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { dispatchAll } from "../core/dispatcher";
@@ -152,10 +156,10 @@ export async function executeCompletion(
 							const settlement = isPlatform
 								? calculateSettlement(baseCost, isSelfUse)
 								: {
-									consumerCharged: 0,
-									providerEarned: 0,
-									platformFee: 0,
-								};
+										consumerCharged: 0,
+										providerEarned: 0,
+										platformFee: 0,
+									};
 
 							await recordLog(c.env.DB, encryptionKey, {
 								consumerId,

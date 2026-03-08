@@ -76,6 +76,7 @@
 	},
 	"dashboard": {
 		"title": "Overview",
+		"subtitle": "At-a-glance stats, models, providers, and recent activity",
 		"credits_balance": "Credits Balance",
 		"credits_earnings": "Credits Earnings (24h)",
 		"api_calls": "API Calls (24h)",

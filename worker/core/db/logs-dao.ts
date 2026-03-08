@@ -1,7 +1,7 @@
 import type { DbLogEntry } from "./schema";
 
 export class LogsDao {
-	constructor(private db: D1Database) { }
+	constructor(private db: D1Database) {}
 
 	async createEntry(
 		tx: Omit<DbLogEntry, "id" | "created_at">,
