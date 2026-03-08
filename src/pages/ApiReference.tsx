@@ -19,8 +19,9 @@ export function ApiReference() {
 	}, []);
 
 	return (
-		<div className="fixed inset-0 top-14 z-0">
+		<div className="fixed inset-0 top-14 overflow-hidden">
 			<ApiReferenceReact
+				key={String(darkMode)}
 				configuration={{
 					url: "/openapi.json",
 					hideDownloadButton: false,
