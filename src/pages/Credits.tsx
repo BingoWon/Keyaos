@@ -25,26 +25,44 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { TOKENS, type TokenName } from "../utils/colors";
 import { formatSignedUSD, formatUSD } from "../utils/format";
 
+const CONFETTI_COLORS = [
+	"#ff6b6b",
+	"#ffd93d",
+	"#6bcb77",
+	"#4d96ff",
+	"#c084fc",
+	"#ff85a2",
+	"#38bdf8",
+];
+
 function fireConfetti() {
-	const end = Date.now() + 600;
-	const frame = () => {
+	confetti({
+		particleCount: 80,
+		spread: 100,
+		origin: { x: 0.5, y: 0.4 },
+		colors: CONFETTI_COLORS,
+		startVelocity: 35,
+		gravity: 0.8,
+		ticks: 200,
+	});
+	setTimeout(() => {
 		confetti({
-			particleCount: 3,
+			particleCount: 50,
 			angle: 60,
-			spread: 55,
-			origin: { x: 0, y: 0.6 },
-			colors: ["#6366f1", "#22c55e", "#f59e0b"],
+			spread: 70,
+			origin: { x: 0.15, y: 0.5 },
+			colors: CONFETTI_COLORS,
+			startVelocity: 30,
 		});
 		confetti({
-			particleCount: 3,
+			particleCount: 50,
 			angle: 120,
-			spread: 55,
-			origin: { x: 1, y: 0.6 },
-			colors: ["#6366f1", "#22c55e", "#f59e0b"],
+			spread: 70,
+			origin: { x: 0.85, y: 0.5 },
+			colors: CONFETTI_COLORS,
+			startVelocity: 30,
 		});
-		if (Date.now() < end) requestAnimationFrame(frame);
-	};
-	frame();
+	}, 150);
 }
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
@@ -201,7 +219,6 @@ export function Credits() {
 	useEffect(() => {
 		if (searchParams.get("success") === "true") {
 			toast.success(t("credits.success"));
-			fireConfetti();
 			refetchWallet();
 			refetchDeposits();
 			refetchAuto();
