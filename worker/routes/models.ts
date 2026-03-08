@@ -8,8 +8,9 @@ import type { AppEnv } from "../shared/types";
 function cleanDescription(raw: unknown): string | null {
 	if (typeof raw !== "string" || !raw) return null;
 	return raw
-		.replace(/\[([^\]]*)\]\([^)]+\)/g, "$1") // [text](url) → text
+		.replace(/\[([^\]]*)\]\([^)]+\)/g, "") // [text](url) → removed entirely
 		.replace(/https?:\/\/\S+/g, "") // bare URLs
+		.replace(/ {2,}/g, " ") // collapse multiple spaces
 		.replace(/\n{3,}/g, "\n\n") // collapse excess blank lines
 		.trim() || null;
 }

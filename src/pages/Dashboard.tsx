@@ -178,7 +178,7 @@ export function Dashboard() {
 						{t("dashboard.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 sm:mt-0 flex items-end gap-3">
+				<div className="mt-4 sm:mt-0 flex items-center gap-3">
 					<RefreshControl
 						loading={isRefreshing}
 						lastUpdated={lastUpdated}

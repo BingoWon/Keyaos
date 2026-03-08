@@ -102,7 +102,7 @@
 		"title": "Bring Your Own Key",
 		"subtitle": "Manage your upstream provider credentials",
 		"promo_title": "🚀 Zero routing fees for your own credentials.",
-		"promo_desc": "When our engine routes a request through your own credentials, Keyaos takes $0.00. Unlike <OpenRouterLink>OpenRouter's 5% BYOK markup</OpenRouterLink>, self-matched routing is proudly 100% free forever. No toll booths, just raw upstream cost.",
+		"promo_desc": "When our engine routes a request through your own credentials, Keyaos takes $0. Unlike <OpenRouterLink>OpenRouter's 5% BYOK markup</OpenRouterLink>, self-matched routing is proudly 100% free forever. No toll booths, just raw upstream cost.",
 		"add_new": "Add Credential",
 		"provider": "Provider",
 		"secret": "Credential",
