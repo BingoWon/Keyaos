@@ -966,8 +966,8 @@ export function WelcomeScreen({
 								target="_blank"
 								rel="noopener noreferrer"
 							>
-								<GithubLogo size={16} />
-								<span className="hidden sm:inline">GitHub</span>
+							<GithubLogo size={16} />
+							GitHub
 							</a>
 						</Button>
 						<Button
@@ -977,7 +977,7 @@ export function WelcomeScreen({
 							className="h-8 text-xs gap-2"
 						>
 							<GearSix size={16} />
-							<span className="hidden sm:inline">{t("welcome.settings")}</span>
+						{t("welcome.settings")}
 						</Button>
 					</div>
 				</div>

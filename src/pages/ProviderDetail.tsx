@@ -148,7 +148,7 @@ export function ProviderDetail() {
 									<td className="py-2.5 pl-4 pr-2 sm:pl-5">
 										<Link
 											to={modelPath}
-											className="inline-flex items-center gap-2 text-sm text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
+											className="inline-flex items-center gap-2 text-sm text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors whitespace-nowrap"
 										>
 											<OrgLogo modelId={m.id} />
 											<span className="font-medium">{m.name}</span>

@@ -447,7 +447,7 @@
 
 .wc-contract-screen {
 	position: relative;
-	height: 100vh;
+	height: 100%;
 	width: 100%;
 	display: flex;
 	align-items: center;
@@ -2129,7 +2129,7 @@
 }
 
 .wc-role-reveal-card {
-	max-height: calc(100vh - 32px);
+	max-height: calc(100vh - 88px);
 }
 
 .wc-role-reveal-card .glass-panel {
@@ -2470,7 +2470,7 @@
 		transform: none;
 		width: 100%;
 		height: min(75vh, 560px);
-		max-height: calc(100vh - 80px);
+		max-height: calc(100vh - 136px);
 		border-radius: 16px 16px 0 0;
 	}
 }
@@ -2666,7 +2666,7 @@
 	}
 
 	.wc-role-reveal-card .glass-panel {
-		max-height: calc(100vh - 24px);
+		max-height: calc(100vh - 80px);
 		overflow-y: auto;
 	}
 

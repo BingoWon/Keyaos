@@ -189,7 +189,7 @@ function PlatformShowcase() {
 													<div className="min-w-0">
 														<Link
 															to={`/${g.id}`}
-															className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
+															className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors whitespace-nowrap"
 														>
 															<OrgLogo modelId={g.id} size={16} />
 															{g.displayName}

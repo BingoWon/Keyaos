@@ -325,13 +325,13 @@ export function Dashboard() {
 										>
 										<td className="py-2.5 pl-5 pr-2">
 											<div className="min-w-0">
-												<Link
-													to={`/${g.id}`}
-													className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors"
-												>
-													<OrgLogo modelId={g.id} size={16} />
-													{g.displayName}
-												</Link>
+											<Link
+												to={`/${g.id}`}
+												className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors whitespace-nowrap"
+											>
+												<OrgLogo modelId={g.id} size={16} />
+												{g.displayName}
+											</Link>
 												<div className="hidden items-center gap-1.5 mt-0.5 sm:flex">
 													<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
 														{g.id}

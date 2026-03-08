@@ -230,7 +230,7 @@ export function Models() {
 													<div className="min-w-0">
 														<Link
 															to={`/${g.id}`}
-															className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors inline-flex items-center gap-1.5"
+															className="text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors inline-flex items-center gap-1.5 whitespace-nowrap"
 														>
 															<OrgLogo modelId={g.id} />
 															{g.displayName}
