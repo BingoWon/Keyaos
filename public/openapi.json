@@ -20,8 +20,8 @@
     { "apiKeyHeader": [] }
   ],
   "tags": [
-    { "name": "Chat Completions", "description": "OpenAI-compatible chat completions endpoint" },
-    { "name": "Messages", "description": "Anthropic-compatible messages endpoint" },
+    { "name": "OpenAI Chat Completions", "description": "OpenAI SDK-compatible chat completions endpoint" },
+    { "name": "Anthropic Messages", "description": "Anthropic SDK-compatible messages endpoint" },
     { "name": "Models", "description": "List available models and pricing" },
     { "name": "Credits", "description": "Check credit balance" },
     { "name": "Health", "description": "Service health check" }
@@ -32,7 +32,7 @@
         "operationId": "createChatCompletion",
         "summary": "Create chat completion",
         "description": "Creates a chat completion using the OpenAI-compatible format. Keyaos automatically routes to the best available provider for the requested model.\n\nSupports streaming via `stream: true` (Server-Sent Events).",
-        "tags": ["Chat Completions"],
+        "tags": ["OpenAI Chat Completions"],
         "requestBody": {
           "required": true,
           "content": {
@@ -104,7 +104,7 @@
         "operationId": "createMessage",
         "summary": "Create message",
         "description": "Creates a message using the Anthropic Messages API format. Keyaos translates between Anthropic and OpenAI formats internally, so you can use **any model** through this endpoint — not just Anthropic models.\n\nSupports text, images, tool use, and extended thinking.",
-        "tags": ["Messages"],
+        "tags": ["Anthropic Messages"],
         "requestBody": {
           "required": true,
           "content": {
