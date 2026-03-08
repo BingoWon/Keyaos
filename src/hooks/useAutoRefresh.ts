@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const DEFAULT_INTERVAL = 30_000;
+import { REFRESH_INTERVAL_MS } from "../config";
 
 /**
  * Auto-refresh on a fixed interval and track when data last arrived.
@@ -9,7 +8,7 @@ const DEFAULT_INTERVAL = 30_000;
 export function useAutoRefresh(
 	refetch: () => void,
 	data: unknown,
-	intervalMs = DEFAULT_INTERVAL,
+	intervalMs = REFRESH_INTERVAL_MS,
 ): Date | null {
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 

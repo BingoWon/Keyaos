@@ -9,6 +9,9 @@ import type { AppEnv } from "./types";
  * Browser caching is explicitly disabled (`no-store`) so the browser always
  * sends a real request to the CDN edge, which serves from Workers Cache API.
  *
+ * Keep `ttl` in sync with the frontend auto-refresh interval in `src/config.ts`
+ * (REFRESH_INTERVAL_MS) so cache expiry aligns with the polling cadence.
+ *
  * On custom domains the Cache API is functional; on *.workers.dev it no-ops
  * silently (cache.match returns undefined, cache.put is ignored).
  */
