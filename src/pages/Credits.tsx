@@ -19,7 +19,7 @@ import { Pagination } from "../components/Pagination";
 import { RefreshControl } from "../components/RefreshControl";
 import { Badge, Button, Input, PromoBanner } from "../components/ui";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
-import { useFetch } from "../hooks/useFetch";
+import { invalidateCache, useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { TOKENS, type TokenName } from "../utils/colors";
 import { formatSignedUSD, formatUSD } from "../utils/format";
@@ -284,7 +284,9 @@ export function Credits() {
 					t("credits.redeem_success", { amount: formatUSD(json.amount) }),
 				);
 				setRedeemCode("");
+				invalidateCache("/api/credits/balance");
 				refetchWallet();
+				refetchTx();
 			} else {
 				const errCode = json.error?.code;
 				toast.error(
@@ -300,7 +302,7 @@ export function Credits() {
 		} finally {
 			setRedeeming(false);
 		}
-	}, [redeemCode, getToken, refetchWallet, t]);
+	}, [redeemCode, getToken, refetchWallet, refetchTx, t]);
 
 	const isRefreshing =
 		walletLoading || paymentsLoading || autoLoading || transactionsLoading;
@@ -407,8 +409,17 @@ export function Credits() {
 							<GiftIcon className="size-5 text-brand-500" />
 						</div>
 						<div>
-							<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+							<h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
 								{t("credits.redeem_title")}
+								<a
+									href="/docs/credits#gift-cards"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-gray-300 hover:text-brand-500 transition-colors dark:text-gray-600 dark:hover:text-brand-400"
+									title="Documentation"
+								>
+									<BookOpenIcon className="size-3.5" />
+								</a>
 							</h4>
 							<p className="text-xs text-gray-500 dark:text-gray-400">
 								{t("credits.redeem_desc")}
@@ -452,14 +463,6 @@ export function Credits() {
 							{t("credits.redeem")}
 						</Button>
 					</div>
-					<a
-						href="/docs/credits#gift-cards"
-						target="_blank"
-						rel="noopener noreferrer"
-						className="mt-3 inline-block text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
-					>
-						{t("credits.faq_gift_cards", "How do gift cards work?")} →
-					</a>
 				</div>
 			</div>
 
@@ -920,7 +923,7 @@ function PaymentsTable({
 								key={p.id}
 								className="even:bg-gray-50/50 dark:even:bg-white/[0.015]"
 							>
-								<td className="whitespace-nowrap py-2.5 pl-4 pr-2 text-sm text-gray-700 dark:text-gray-300 sm:pl-5">
+								<td className="whitespace-nowrap py-2.5 pl-4 pr-2 text-sm text-gray-500 dark:text-gray-400 sm:pl-5">
 									{formatDateTime(p.created_at)}
 								</td>
 								<td className="whitespace-nowrap px-2 py-2.5 text-sm font-medium text-gray-900 dark:text-white">
