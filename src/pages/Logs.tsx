@@ -54,13 +54,13 @@ export function Logs() {
 						{t("logs.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 sm:mt-0 flex items-end gap-3">
-					<RefreshControl
-						loading={loading}
-						lastUpdated={lastUpdated}
-						onRefresh={refetch}
-					/>
-				</div>
+			<div className="mt-4 sm:mt-0 flex justify-end items-end gap-3">
+				<RefreshControl
+					loading={loading}
+					lastUpdated={lastUpdated}
+					onRefresh={refetch}
+				/>
+			</div>
 			</div>
 
 			<PromoBanner

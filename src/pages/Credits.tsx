@@ -363,13 +363,13 @@ export function Credits() {
 						{t("credits.subtitle")}
 					</p>
 				</div>
-				<div className="mt-4 sm:mt-0 flex items-end gap-3">
-					<RefreshControl
-						loading={isRefreshing}
-						lastUpdated={lastUpdated}
-						onRefresh={refetchAll}
-					/>
-				</div>
+			<div className="mt-4 sm:mt-0 flex justify-end items-end gap-3">
+				<RefreshControl
+					loading={isRefreshing}
+					lastUpdated={lastUpdated}
+					onRefresh={refetchAll}
+				/>
+			</div>
 			</div>
 
 			{/* Promo Banner */}
