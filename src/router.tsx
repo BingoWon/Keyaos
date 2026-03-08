@@ -103,17 +103,6 @@ const CreditsMdx = lazyWithRetry(() => import("./pages/docs/credits.mdx"));
 const AuthenticationMdx = lazyWithRetry(
 	() => import("./pages/docs/authentication.mdx"),
 );
-const OpenaiApiMdx = lazyWithRetry(() => import("./pages/docs/openai-api.mdx"));
-const AnthropicApiMdx = lazyWithRetry(
-	() => import("./pages/docs/anthropic-api.mdx"),
-);
-const ModelsApiMdx = lazyWithRetry(() => import("./pages/docs/models-api.mdx"));
-const CreditsApiMdx = lazyWithRetry(
-	() => import("./pages/docs/credits-api.mdx"),
-);
-const ErrorCodesMdx = lazyWithRetry(
-	() => import("./pages/docs/error-codes.mdx"),
-);
 const PrivacyPolicyMdx = lazyWithRetry(
 	() => import("./pages/docs/privacy-policy.mdx"),
 );
@@ -197,14 +186,6 @@ const docsChildren = [
 		path: "authentication",
 		element: <MdxPage Component={AuthenticationMdx} />,
 	},
-	{ path: "openai-api", element: <MdxPage Component={OpenaiApiMdx} /> },
-	{
-		path: "anthropic-api",
-		element: <MdxPage Component={AnthropicApiMdx} />,
-	},
-	{ path: "models-api", element: <MdxPage Component={ModelsApiMdx} /> },
-	{ path: "credits-api", element: <MdxPage Component={CreditsApiMdx} /> },
-	{ path: "error-codes", element: <MdxPage Component={ErrorCodesMdx} /> },
 	{ path: "api-reference", element: <ApiReference /> },
 	{
 		path: "privacy-policy",
