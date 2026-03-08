@@ -300,7 +300,15 @@
 		"auto_topup_no_card": "Complete a manual payment first to save your card.",
 		"auto_topup_paused": "Auto Top-Up paused: {{reason}}",
 		"auto_topup_failing": "{{count}} consecutive failure(s) — next retry in {{delay}}",
-		"auto_topup_saved": "Auto Top-Up settings saved"
+		"auto_topup_saved": "Auto Top-Up settings saved",
+		"gift_card": "Gift Card",
+		"redeem": "Redeem",
+		"redeem_title": "Redeem Gift Card",
+		"redeem_desc": "Enter a gift card code to add credits instantly.",
+		"redeem_placeholder": "KAOS-XXXX-XXXX-XXXX-XXXX",
+		"redeem_success": "Redeemed {{amount}} credits!",
+		"redeem_error_invalid": "Invalid or already redeemed code",
+		"redeem_error_expired": "This code has expired"
 	},
 	"admin": {
 		"title": "Admin",

@@ -6,6 +6,7 @@ import {
 	BookOpenIcon,
 	CreditCardIcon,
 	ExclamationTriangleIcon,
+	GiftIcon,
 	WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
@@ -77,6 +78,11 @@ const CATEGORY_CONFIG: Record<
 		color: "violet",
 		labelKey: "credits.auto_topup_label",
 	},
+	gift_card: {
+		icon: GiftIcon,
+		color: "violet",
+		labelKey: "credits.gift_card",
+	},
 	grant: { icon: BanknotesIcon, color: "teal", labelKey: "credits.grant" },
 	revoke: {
 		icon: WrenchScrewdriverIcon,
@@ -120,6 +126,8 @@ export function Credits() {
 	const [tab, setTab] = useState<HistoryTab>("payments");
 	const [loading, setLoading] = useState(false);
 	const [customAmount, setCustomAmount] = useState("");
+	const [redeemCode, setRedeemCode] = useState("");
+	const [redeeming, setRedeeming] = useState(false);
 	const [autoEnabled, setAutoEnabled] = useState(false);
 	const [autoThreshold, setAutoThreshold] = useState("5");
 	const [autoAmount, setAutoAmount] = useState("10");
@@ -256,6 +264,44 @@ export function Credits() {
 		[getToken, autoEnabled, autoThreshold, autoAmount, refetchAuto, t],
 	);
 
+	const handleRedeem = useCallback(async () => {
+		const code = redeemCode.trim();
+		if (!code) return;
+		setRedeeming(true);
+		try {
+			const token = await getToken();
+			const res = await fetch("/api/credits/redeem", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ code }),
+			});
+			const json = await res.json();
+			if (json.ok) {
+				toast.success(
+					t("credits.redeem_success", { amount: formatUSD(json.amount) }),
+				);
+				setRedeemCode("");
+				refetchWallet();
+			} else {
+				const errCode = json.error?.code;
+				toast.error(
+					t(
+						errCode === "expired"
+							? "credits.redeem_error_expired"
+							: "credits.redeem_error_invalid",
+					),
+				);
+			}
+		} catch {
+			toast.error("Network error");
+		} finally {
+			setRedeeming(false);
+		}
+	}, [redeemCode, getToken, refetchWallet, t]);
+
 	const isRefreshing =
 		walletLoading || paymentsLoading || autoLoading || transactionsLoading;
 	const refetchAll = useCallback(() => {
@@ -311,43 +357,79 @@ export function Credits() {
 				}
 			/>
 
-			{/* Balance Card */}
-			<div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<div className="rounded-lg bg-brand-500/10 p-3 dark:bg-brand-500/15">
-							<CreditCardIcon className="size-6 text-brand-500" />
+			{/* Balance + Redeem */}
+			<div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+				{/* Balance Card */}
+				<div className="lg:col-span-2 rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-4">
+							<div className="rounded-lg bg-brand-500/10 p-3 dark:bg-brand-500/15">
+								<CreditCardIcon className="size-6 text-brand-500" />
+							</div>
+							<div>
+								<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+									{t("credits.balance")}
+								</p>
+								<p className="text-3xl font-semibold text-gray-900 dark:text-white">
+									{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
+								</p>
+							</div>
+						</div>
+						<div className="hidden sm:flex flex-col gap-1.5 text-right">
+							<a
+								href="/docs/credits#what-are-credits"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
+							>
+								{t("credits.faq_what_are_credits", "What are Credits?")} →
+							</a>
+							<a
+								href="/docs/credits#what-happens-when-credits-run-out"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
+							>
+								{t(
+									"credits.faq_credits_run_out",
+									"What happens when credits run out?",
+								)}{" "}
+								→
+							</a>
+						</div>
+					</div>
+				</div>
+
+				{/* Redeem Gift Card */}
+				<div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-white/10 dark:bg-white/5">
+					<div className="flex items-center gap-3">
+						<div className="rounded-lg bg-violet-500/10 p-2.5 dark:bg-violet-500/15">
+							<GiftIcon className="size-5 text-violet-500" />
 						</div>
 						<div>
-							<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-								{t("credits.balance")}
-							</p>
-							<p className="text-3xl font-semibold text-gray-900 dark:text-white">
-								{walletLoading ? "$—" : formatUSD(wallet?.balance ?? 0)}
+							<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+								{t("credits.redeem_title")}
+							</h4>
+							<p className="text-xs text-gray-500 dark:text-gray-400">
+								{t("credits.redeem_desc")}
 							</p>
 						</div>
 					</div>
-					<div className="hidden sm:flex flex-col gap-1.5 text-right">
-						<a
-							href="/docs/credits#what-are-credits"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
+					<div className="mt-4 flex items-center gap-2">
+						<Input
+							placeholder={t("credits.redeem_placeholder")}
+							value={redeemCode}
+							onChange={(e) => setRedeemCode(e.target.value)}
+							onKeyDown={(e) => e.key === "Enter" && handleRedeem()}
+							className="flex-1 font-mono uppercase tracking-wider"
+						/>
+						<Button
+							disabled={redeeming || !redeemCode.trim()}
+							onClick={handleRedeem}
+							size="sm"
 						>
-							{t("credits.faq_what_are_credits", "What are Credits?")} →
-						</a>
-						<a
-							href="/docs/credits#what-happens-when-credits-run-out"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-xs text-gray-400 hover:text-brand-500 transition-colors dark:text-gray-500 dark:hover:text-brand-400"
-						>
-							{t(
-								"credits.faq_credits_run_out",
-								"What happens when credits run out?",
-							)}{" "}
-							→
-						</a>
+							{t("credits.redeem")}
+						</Button>
 					</div>
 				</div>
 			</div>

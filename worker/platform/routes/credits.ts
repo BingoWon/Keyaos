@@ -3,6 +3,7 @@ import { BadRequestError } from "../../shared/errors";
 import { log } from "../../shared/logger";
 import type { AppEnv } from "../../shared/types";
 import { AutoTopUpDao } from "../billing/auto-topup-dao";
+import { GiftCardDao } from "../billing/gift-card-dao";
 import { PaymentsDao } from "../billing/payments-dao";
 import {
 	centsToCredits,
@@ -69,6 +70,36 @@ credits.post("/checkout", async (c) => {
 	return c.json({ url });
 });
 
+// ─── POST /redeem ────────────────────────────────────────
+credits.post("/redeem", async (c) => {
+	const { code } = await c.req.json<{ code: string }>();
+	if (!code || typeof code !== "string" || code.trim().length < 4) {
+		throw new BadRequestError("A valid redemption code is required");
+	}
+
+	const result = await new GiftCardDao(c.env.DB).redeem(
+		code,
+		c.get("owner_id"),
+	);
+	if (!result.ok) {
+		return c.json(
+			{
+				error: {
+					message:
+						result.reason === "expired"
+							? "This code has expired"
+							: "Invalid or already redeemed code",
+					type: "invalid_request_error",
+					code: result.reason,
+				},
+			},
+			400,
+		);
+	}
+
+	return c.json({ ok: true, amount: result.amount });
+});
+
 // ─── GET /payments ───────────────────────────────────────
 credits.get("/payments", async (c) => {
 	const page = Math.max(1, Number(c.req.query("page")) || 1);
@@ -130,7 +161,18 @@ credits.get("/transactions", async (c) => {
 			amount,
 			created_at
 		FROM credit_adjustments
-		WHERE owner_id = ?1`;
+		WHERE owner_id = ?1
+
+		UNION ALL
+
+		SELECT
+			code AS id, 'gift_card' AS type,
+			'gift_card' AS category,
+			'Gift Card' AS description,
+			amount,
+			redeemed_at AS created_at
+		FROM gift_cards
+		WHERE redeemed_by = ?1 AND redeemed_at IS NOT NULL`;
 
 	const [items, countRes] = await Promise.all([
 		db

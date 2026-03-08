@@ -174,7 +174,22 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 
 CREATE INDEX IF NOT EXISTS idx_chat_messages_thread ON chat_messages(thread_id, created_at);
 
--- 12. Werewolf game sessions (per-game analytics)
+-- 12. Gift cards / redemption codes
+CREATE TABLE IF NOT EXISTS gift_cards (
+    code TEXT PRIMARY KEY,
+    amount REAL NOT NULL,
+    redeemed_by TEXT,
+    redeemed_at INTEGER,
+    created_by TEXT NOT NULL,
+    batch_id TEXT,
+    expires_at INTEGER,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_gift_cards_batch ON gift_cards(batch_id);
+CREATE INDEX IF NOT EXISTS idx_gift_cards_redeemed ON gift_cards(redeemed_by);
+
+-- 13. Werewolf game sessions (per-game analytics)
 CREATE TABLE IF NOT EXISTS werewolf_sessions (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL,

@@ -297,7 +297,15 @@
 		"auto_topup_no_card": "请先完成一次手动充值以保存支付方式。",
 		"auto_topup_paused": "自动充值已暂停：{{reason}}",
 		"auto_topup_failing": "连续失败 {{count}} 次 — 下次重试在 {{delay}} 后",
-		"auto_topup_saved": "自动充值设置已保存"
+		"auto_topup_saved": "自动充值设置已保存",
+		"gift_card": "礼品卡",
+		"redeem": "兑换",
+		"redeem_title": "兑换礼品卡",
+		"redeem_desc": "输入礼品卡兑换码，即刻充入余额。",
+		"redeem_placeholder": "KAOS-XXXX-XXXX-XXXX-XXXX",
+		"redeem_success": "成功兑换 {{amount}} 额度！",
+		"redeem_error_invalid": "兑换码无效或已被使用",
+		"redeem_error_expired": "此兑换码已过期"
 	},
 	"admin": {
 		"title": "管理后台",

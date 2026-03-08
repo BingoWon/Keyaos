@@ -98,6 +98,17 @@ export interface DbChatMessage {
 	created_at: number;
 }
 
+export interface DbGiftCard {
+	code: string;
+	amount: number;
+	redeemed_by: string | null;
+	redeemed_at: number | null;
+	created_by: string;
+	batch_id: string | null;
+	expires_at: number | null;
+	created_at: number;
+}
+
 export interface DbWerewolfSession {
 	id: string;
 	owner_id: string;

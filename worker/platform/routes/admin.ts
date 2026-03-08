@@ -5,6 +5,7 @@ import { briefHint, decrypt, mask } from "../../shared/crypto";
 import { BadRequestError } from "../../shared/errors";
 import type { AppEnv } from "../../shared/types";
 import { AdminDao } from "../billing/admin-dao";
+import { GiftCardDao } from "../billing/gift-card-dao";
 
 const admin = new Hono<AppEnv>();
 
@@ -75,6 +76,37 @@ admin.get("/activity", async (c) => {
 	const hours = Math.min(Number(c.req.query("hours")) || 24, 168);
 	const data = await new AdminDao(c.env.DB).getActivity(hours);
 	return c.json({ data });
+});
+
+// ─── Gift cards ──────────────────────────────────────────
+
+admin.post("/gift-cards", async (c) => {
+	const { amount, count, expiresAt } = await c.req.json<{
+		amount: number;
+		count: number;
+		expiresAt?: number;
+	}>();
+
+	if (!amount || amount <= 0) throw new BadRequestError("amount must be > 0");
+	if (!count || !Number.isInteger(count) || count < 1 || count > 500) {
+		throw new BadRequestError("count must be 1–500");
+	}
+
+	const dao = new GiftCardDao(c.env.DB);
+	const result = await dao.createBatch(
+		c.get("owner_id"),
+		amount,
+		count,
+		expiresAt,
+	);
+	return c.json(result);
+});
+
+admin.get("/gift-cards/:batchId", async (c) => {
+	const cards = await new GiftCardDao(c.env.DB).listBatch(
+		c.req.param("batchId"),
+	);
+	return c.json({ data: cards });
 });
 
 // ─── One-off maintenance ─────────────────────────────────
