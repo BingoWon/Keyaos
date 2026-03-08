@@ -10,6 +10,7 @@ import {
 	WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { Icon } from "@iconify/react";
+import confetti from "canvas-confetti";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Trans, useTranslation } from "react-i18next";
@@ -23,6 +24,28 @@ import { invalidateCache, useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { TOKENS, type TokenName } from "../utils/colors";
 import { formatSignedUSD, formatUSD } from "../utils/format";
+
+function fireConfetti() {
+	const end = Date.now() + 600;
+	const frame = () => {
+		confetti({
+			particleCount: 3,
+			angle: 60,
+			spread: 55,
+			origin: { x: 0, y: 0.6 },
+			colors: ["#6366f1", "#22c55e", "#f59e0b"],
+		});
+		confetti({
+			particleCount: 3,
+			angle: 120,
+			spread: 55,
+			origin: { x: 1, y: 0.6 },
+			colors: ["#6366f1", "#22c55e", "#f59e0b"],
+		});
+		if (Date.now() < end) requestAnimationFrame(frame);
+	};
+	frame();
+}
 
 const PRESETS = [500, 1000, 2000, 5000] as const;
 const THRESHOLD_PRESETS = [5, 10, 25] as const;
@@ -47,7 +70,7 @@ interface DepositEntry {
 
 interface TransactionEntry {
 	id: string;
-	type: "log" | "top_up" | "adjustment";
+	type: "log" | "top_up" | "adjustment" | "gift_card";
 	category: string;
 	description: string;
 	amount: number;
@@ -80,7 +103,7 @@ const CATEGORY_CONFIG: Record<
 	},
 	gift_card: {
 		icon: GiftIcon,
-		color: "violet",
+		color: "green",
 		labelKey: "credits.gift_card",
 	},
 	grant: { icon: BanknotesIcon, color: "teal", labelKey: "credits.grant" },
@@ -98,7 +121,7 @@ function CategoryBadge({ category }: { category: string }) {
 
 	return (
 		<span
-			className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${TOKENS[config.color].soft}`}
+			className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${TOKENS[config.color].soft}`}
 		>
 			<Ic className="size-3" />
 			{t(config.labelKey)}
@@ -178,6 +201,7 @@ export function Credits() {
 	useEffect(() => {
 		if (searchParams.get("success") === "true") {
 			toast.success(t("credits.success"));
+			fireConfetti();
 			refetchWallet();
 			refetchDeposits();
 			refetchAuto();
@@ -283,6 +307,7 @@ export function Credits() {
 				toast.success(
 					t("credits.redeem_success", { amount: formatUSD(json.amount) }),
 				);
+				fireConfetti();
 				setRedeemCode("");
 				invalidateCache("/api/credits/balance");
 				refetchWallet();
@@ -819,7 +844,7 @@ function TransactionsTable({
 								<td className="whitespace-nowrap px-2 py-2.5">
 									<CategoryBadge category={e.category} />
 								</td>
-								<td className="whitespace-nowrap px-2 py-2.5 text-sm text-gray-900 dark:text-white max-w-48 truncate">
+								<td className="whitespace-nowrap px-2 py-2.5 text-sm text-gray-900 dark:text-white">
 									{e.description ||
 										(e.type === "adjustment"
 											? t("credits.admin_adjustment")
@@ -915,10 +940,10 @@ function DepositsTable({
 					<thead>
 						<tr className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 whitespace-nowrap">
 							<th className="py-2.5 pl-4 pr-2 sm:pl-5">{t("credits.time")}</th>
-							<th className="px-2 py-2.5 text-right">{t("credits.amount")}</th>
 							<th className="px-2 py-2.5">{t("credits.source")}</th>
-							<th className="py-2.5 pl-2 pr-4 sm:pr-5">
-								{t("credits.status")}
+							<th className="px-2 py-2.5">{t("credits.status")}</th>
+							<th className="py-2.5 pl-2 pr-4 text-right sm:pr-5">
+								{t("credits.amount")}
 							</th>
 						</tr>
 					</thead>
@@ -933,13 +958,10 @@ function DepositsTable({
 									<td className="whitespace-nowrap py-2.5 pl-4 pr-2 text-sm text-gray-500 dark:text-gray-400 sm:pl-5">
 										{formatDateTime(d.created_at)}
 									</td>
-									<td className="whitespace-nowrap px-2 py-2.5 text-sm font-medium text-right text-gray-900 dark:text-white">
-										{formatSignedUSD(d.amount)}
-									</td>
 									<td className="whitespace-nowrap px-2 py-2.5 text-sm">
 										<Badge variant={src.variant}>{t(src.labelKey)}</Badge>
 									</td>
-									<td className="whitespace-nowrap py-2.5 pl-2 pr-4 text-sm sm:pr-5">
+									<td className="whitespace-nowrap px-2 py-2.5 text-sm">
 										<span
 											className={
 												d.status === "completed"
@@ -953,6 +975,11 @@ function DepositsTable({
 										>
 											{t(`credits.status_${d.status}`)}
 										</span>
+									</td>
+									<td
+										className={`whitespace-nowrap py-2.5 pl-2 pr-4 text-sm text-right font-medium sm:pr-5 ${TOKENS.green.text}`}
+									>
+										{formatSignedUSD(d.amount)}
 									</td>
 								</tr>
 							);
