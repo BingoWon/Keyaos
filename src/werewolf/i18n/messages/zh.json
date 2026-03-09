@@ -112,6 +112,8 @@
 			"mailBody": ""
 		},
 		"settings": "设置",
+		"mute": "静音",
+		"unmute": "取消静音",
 		"tutorial": "玩法教学",
 		"subtitle": "AI 狼人杀游戏",
 		"oath": {
@@ -1207,6 +1209,8 @@
 		"settings": "设置",
 		"rolePending": "待揭晓",
 		"audioSettings": "声音设置",
+		"mute": "静音",
+		"unmute": "取消静音",
 		"closeNotebook": "关闭笔记",
 		"openNotebook": "打开笔记",
 		"witchPoisonUsed": {

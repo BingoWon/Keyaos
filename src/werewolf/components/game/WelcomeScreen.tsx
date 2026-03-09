@@ -2,6 +2,8 @@ import {
 	FingerprintSimple,
 	GearSix,
 	GithubLogo,
+	SpeakerSimpleHigh,
+	SpeakerSimpleSlash,
 	Sparkle,
 	UsersFour,
 	Wrench,
@@ -623,6 +625,20 @@ export function WelcomeScreen({
 				</div>
 
 				<div className="wc-welcome-actions absolute top-5 right-5 z-20 flex items-center gap-2">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => onSoundEnabledChange(!isSoundEnabled)}
+						className="h-8 w-8 p-0 shrink-0"
+						title={t(isSoundEnabled ? "welcome.mute" : "welcome.unmute")}
+						aria-label={t(isSoundEnabled ? "welcome.mute" : "welcome.unmute")}
+					>
+						{isSoundEnabled ? (
+							<SpeakerSimpleHigh size={16} />
+						) : (
+							<SpeakerSimpleSlash size={16} />
+						)}
+					</Button>
 					<LocaleSwitcher className="shrink-0" />
 					<Button asChild variant="outline" className="h-8 text-xs gap-2">
 						<a

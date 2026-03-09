@@ -112,6 +112,8 @@
 			"mailBody": ""
 		},
 		"settings": "Settings",
+		"mute": "Mute",
+		"unmute": "Unmute",
 		"tutorial": "How to play",
 		"subtitle": "AI Werewolf Game",
 		"oath": {
@@ -1230,6 +1232,8 @@
 		"settings": "Settings",
 		"rolePending": "Hidden",
 		"audioSettings": "Audio settings",
+		"mute": "Mute",
+		"unmute": "Unmute",
 		"closeNotebook": "Close notes",
 		"openNotebook": "Open notes",
 		"witchPoisonUsed": {

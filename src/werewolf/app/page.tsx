@@ -6,6 +6,8 @@ import {
 	NotePencil,
 	Shield,
 	Skull,
+	SpeakerSimpleHigh,
+	SpeakerSimpleSlash,
 	Users,
 	X,
 } from "@phosphor-icons/react";
@@ -370,7 +372,6 @@ export default function Home() {
 	const bgmFadeAnimationRef = useRef<number | null>(null);
 	const bgmLoopFadeRef = useRef(false);
 	const bgmManualFadeRef = useRef(false);
-	const showTableRef = useRef(showTable);
 	const isNightRef = useRef(isNight);
 	const bgmVolumeRef = useRef(bgmVolume);
 	const isSoundEnabledRef = useRef(isSoundEnabled);
@@ -383,9 +384,6 @@ export default function Home() {
 			return src;
 		}
 	}, []);
-	useEffect(() => {
-		showTableRef.current = showTable;
-	}, [showTable]);
 	useEffect(() => {
 		isNightRef.current = isNight;
 	}, [isNight]);
@@ -442,7 +440,7 @@ export default function Home() {
 		(audio: HTMLAudioElement) => {
 			const handleTimeUpdate = () => {
 				if (bgmManualFadeRef.current) return;
-				if (!showTableRef.current || !isSoundEnabledRef.current) return;
+				if (!isSoundEnabledRef.current) return;
 				if (bgmLoopFadeRef.current) return;
 				const duration = audio.duration;
 				if (!Number.isFinite(duration) || duration <= 0) return;
@@ -452,7 +450,7 @@ export default function Home() {
 				bgmLoopFadeRef.current = true;
 				fadeAudio(audio, 0, LOOP_FADE_DURATION_MS, () => {
 					if (!bgmAudioRef.current) return;
-					if (!showTableRef.current || !isSoundEnabledRef.current) {
+					if (!isSoundEnabledRef.current) {
 						bgmLoopFadeRef.current = false;
 						return;
 					}
@@ -504,13 +502,7 @@ export default function Home() {
 			}
 
 			audio.volume = bgmVolumeRef.current;
-			// 必须在用户手势内触发一次 play 才能解锁后续自动播放
 			void audio.play().catch(() => {});
-
-			// 如果还没进入游戏界面，立刻暂停，避免欢迎页响起
-			if (!showTableRef.current) {
-				audio.pause();
-			}
 		};
 		window.addEventListener("pointerdown", unlock, { passive: true });
 		return () => window.removeEventListener("pointerdown", unlock);
@@ -522,8 +514,7 @@ export default function Home() {
 
 		const desiredVolume = isSoundEnabled ? bgmVolume : 0;
 
-		if (!showTable || !isSoundEnabled) {
-			// Fade out when hiding table or muting
+		if (!isSoundEnabled) {
 			bgmManualFadeRef.current = true;
 			fadeAudio(audio, 0, 800, () => {
 				audio.pause();
@@ -532,7 +523,7 @@ export default function Home() {
 			return;
 		}
 
-		const desiredSrc = isNight ? nightBgm : dayBgm;
+		const desiredSrc = (showTable ? isNight : false) ? nightBgm : dayBgm;
 		const desiredResolved = resolveAudioSrc(desiredSrc);
 		const currentResolved = audio.currentSrc || resolveAudioSrc(audio.src);
 		const isSwitching = currentResolved && currentResolved !== desiredResolved;
@@ -1740,16 +1731,26 @@ export default function Home() {
 										<span>WOLFCHA</span>
 									</div>
 
-									{/* 移动端设置按钮 - 只显示图标 */}
+								<div className="md:hidden flex items-center gap-1.5">
+									<button
+										type="button"
+										onClick={() => setSoundEnabled(!isSoundEnabled)}
+										title={t(isSoundEnabled ? "page.mute" : "page.unmute")}
+										aria-label={t(isSoundEnabled ? "page.mute" : "page.unmute")}
+										className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-bg)]"
+									>
+										{isSoundEnabled ? <SpeakerSimpleHigh size={16} /> : <SpeakerSimpleSlash size={16} />}
+									</button>
 									<button
 										type="button"
 										onClick={() => setIsSettingsOpen(true)}
 										title={t("page.audioSettings")}
 										aria-label={t("page.audioSettings")}
-										className="md:hidden inline-flex items-center justify-center w-8 h-8 rounded-md border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-bg)]"
+										className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-bg)]"
 									>
 										<GearSix size={16} />
 									</button>
+								</div>
 								</div>
 
 								<div className="wc-topbar__info">
@@ -1837,6 +1838,15 @@ export default function Home() {
 												: t("page.rolePending")}
 										</span>
 									</div>
+									<button
+										type="button"
+										onClick={() => setSoundEnabled(!isSoundEnabled)}
+										title={t(isSoundEnabled ? "page.mute" : "page.unmute")}
+										aria-label={t(isSoundEnabled ? "page.mute" : "page.unmute")}
+										className="inline-flex items-center justify-center w-8 h-8 rounded-md border-2 border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] transition-colors hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-bg)]"
+									>
+										{isSoundEnabled ? <SpeakerSimpleHigh size={16} /> : <SpeakerSimpleSlash size={16} />}
+									</button>
 									<button
 										type="button"
 										onClick={() => setIsSettingsOpen(true)}
