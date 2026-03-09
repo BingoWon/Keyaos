@@ -31,73 +31,7 @@
 		"wins": "win"
 	},
 	"welcome": {
-		"group": {
-			"title": "Join Game Group",
-			"description": "Scan to join the group and share feedback.",
-			"short": "Group"
-		},
-		"mobileMenu": {
-			"title": "Quick Actions",
-			"description": "Quickly access settings and account info.",
-			"more": "More actions"
-		},
-		"account": {
-			"viewInfo": "View account details",
-			"loggedIn": "Signed in",
-			"remaining": "{count} games remaining",
-			"tempQuotaShort": "Spring {count}",
-			"info": "Account Info"
-		},
-		"springCampaign": {
-			"title": "Lunar New Year Login Bonus",
-			"range": "Ends Feb 18",
-			"claimedStatus": "Today's Spring quota: {count}/{total} (valid for today only)",
-			"signInHint": "Sign in to automatically claim 10 Spring quota for today.",
-			"modal": {
-				"badge": "LUNAR EVENT",
-				"title": "Happy Lunar New Year",
-				"subtitle": "Wishing you luck and great reads in every match.",
-				"line1": "During the event, sign in daily to receive 10 Spring quota. They are consumed first when a match starts.",
-				"line2": "We also want to be honest: after the Lunar New Year maintenance window, we may have to pause Wolfcha due to operational pressure.",
-				"line3": "Thank you for being with us all this way. We hope Wolfcha has kept you company through some joyful and relaxing moments.",
-				"note": "Event window: Feb 12 - Feb 17 (Asia/Shanghai, ends at 00:00 on Feb 18)",
-				"action": "Continue to Match"
-			},
-			"toast": {
-				"claimed": {
-					"title": "Lunar New Year bonus claimed",
-					"description": "You received +10 Spring quota for today."
-				}
-			}
-		},
-		"auth": {
-			"signIn": "Sign In / Sign Up"
-		},
-		"github": {
-			"title": "GitHub Project"
-		},
-		"productHunt": {
-			"title": "Vote for Wolfcha on Product Hunt",
-			"description": "If you enjoyed this game, an upvote helps a lot and takes only a moment.",
-			"hint": "~10s",
-			"cta": "UPVOTE",
-			"ariaLabel": "Open Wolfcha on Product Hunt (vote)"
-		},
 		"sponsor": {
-			"title": "Powered by Keyaos",
-			"subtitle": "300+ AI models, one unified API — play smarter with Keyaos.",
-			"description": "This AI Werewolf game is powered by the Keyaos AI Gateway. Keyaos aggregates models from OpenAI, Anthropic, Google, DeepSeek and more, routing each request to the cheapest available provider automatically.",
-			"items": {
-				"credits": "300+ models from top AI providers worldwide",
-				"media": "Intelligent cheapest-first routing across all providers",
-				"collaboration": "OpenAI-compatible API — plug and play",
-				"community": "Pay-per-token billing with transparent pricing"
-			},
-			"note": "Every AI call in this game goes through Keyaos. Your credits are used transparently with real-time billing.",
-			"copyEmail": "Copy link",
-			"sendEmail": "Visit Keyaos",
-			"action": "About Keyaos",
-			"short": "Keyaos",
 			"showcaseLabel": "AI providers powered by Keyaos",
 			"cards": {
 				"openai": "GPT-4o, o3-mini and more — the gold standard in language AI.",
@@ -105,16 +39,11 @@
 				"google": "Gemini 2.5 Pro & Flash — multimodal intelligence at scale.",
 				"deepseek": "DeepSeek-V3.2 — open-source reasoning at frontier scale.",
 				"qwen": "Qwen3.5 — hybrid attention with mixture-of-experts efficiency."
-			},
-			"copySuccess": "Link copied",
-			"copyFallback": "Platform URL",
-			"mailSubject": "Keyaos AI Gateway",
-			"mailBody": ""
+			}
 		},
 		"settings": "Settings",
 		"mute": "Mute",
 		"unmute": "Unmute",
-		"tutorial": "How to play",
 		"subtitle": "AI Werewolf Game",
 		"oath": {
 			"line1": "I willingly enter this game of deception and truth.",
@@ -137,29 +66,6 @@
 			"godLabelFull": "Seer/Witch/Hunter/Guard",
 			"godLabelNoGuard": "Seer/Witch/Hunter",
 			"hint": "Required: {wolfCount} wolves, {godLabel}, {villagerCount} villagers"
-		},
-		"toast": {
-			"signInFirst": "Please sign in or register first.",
-			"noCredits": {
-				"title": "Not enough credits",
-				"description": "Please recharge credits or add your API key to keep playing."
-			},
-			"creditFail": {
-				"title": "Failed to deduct credits",
-				"description": "Please try again or recharge your credits."
-			},
-			"keyExhausted": {
-				"title": "API Key balance exhausted",
-				"description": "Please top up your Keyaos credits before starting the game."
-			},
-			"keyInvalid": {
-				"title": "API Key validation failed",
-				"description": "Please check if your API Key is configured correctly."
-			},
-			"keyValidationFailed": {
-				"title": "Validation request failed",
-				"description": "Network error, please try again later."
-			}
 		},
 		"dev": {
 			"title": "Developer mode",
@@ -2122,121 +2028,6 @@
 		"quotaExhausted": {
 			"title": "Credits ran out",
 			"description": "Top up credits or add a credential to keep playing."
-		}
-	},
-	"customKey": {
-		"title": "Use my own key",
-		"description": "Enable to enter your API Key. Stored locally in browser only.",
-		"dailyBonus": "Promo is currently unavailable.",
-		"springCampaign": {
-			"active": "Promo is currently unavailable.",
-			"ended": "Promo is currently unavailable."
-		},
-		"tabs": {
-			"profile": "Profile",
-			"custom": "Use my own key",
-			"payAsYouGo": "Top Up"
-		},
-		"payAsYouGo": {
-			"title": "Buy Game Credits",
-			"description": "Purchase single-game credits without a subscription. Each credit grants one game session.",
-			"wechatPayHint": "WeChat/Alipay (¥2/game) - contact developer",
-			"contactDeveloper": "Contact",
-			"wechatQrTitle": "Developer WeChat",
-			"wechatQrDescription": "Scan to add developer on WeChat, note 'Wolfcha credits'",
-			"longPressToSave": "Long press to save image",
-			"pricePerGame": "${price} per game",
-			"quantity": "Quantity",
-			"quantityPlaceholder": "Enter quantity",
-			"total": "Total",
-			"purchase": "Purchase",
-			"minQuantity": "Minimum 10 credits",
-			"maxQuantity": "Maximum 100 credits",
-			"minQuantityHint": "Minimum purchase is 10 credits per transaction",
-			"redirecting": "Redirecting to Stripe...",
-			"error": "Failed to create payment link",
-			"purchaseTitle": "Purchase Redemption Code",
-			"purchaseDesc": "Scan or click the link below to purchase a redemption code",
-			"openPurchaseLink": "Open Purchase Link (¥1.5/game)",
-			"redeemTitle": "Redeem Code",
-			"redeemPlaceholder": "wolf-XXXX-XXXX",
-			"redeemButton": "Redeem",
-			"redeemHint": "Each code grants 5 game credits",
-			"redeeming": "Redeeming...",
-			"redeemSuccess": "Redeemed! You received {count} game credits",
-			"redeemError": {
-				"invalid_code": "Invalid code, please check and try again",
-				"already_redeemed": "This code has already been used",
-				"disabled": "Redemption is currently unavailable",
-				"default": "Redemption failed, please try again later"
-			}
-		},
-		"selectModel": "Select model",
-		"modelJoiner": ", ",
-		"modelCount": "{preview} and {count} more",
-		"validating": "Validating",
-		"validate": "Validate",
-		"llmKey": {
-			"title": "Language Model Key",
-			"description": "All models are managed by Keyaos — no manual API key needed"
-		},
-		"zenmux": {
-			"label": "Keyaos API Key",
-			"placeholder": "Enter Keyaos API Key",
-			"hide": "Hide Keyaos API Key",
-			"show": "Show Keyaos API Key",
-			"get": "Visit Keyaos",
-			"note": "Supports most domestic and international models"
-		},
-		"dashscope": {
-			"label": "Keyaos API Key",
-			"placeholder": "Managed by Keyaos",
-			"hide": "Hide Keyaos API Key",
-			"show": "Show Keyaos API Key",
-			"get": "Visit Keyaos",
-			"note": "DeepSeek / Qwen / Kimi, etc.",
-			"short": "Keyaos"
-		},
-		"modelConfig": {
-			"title": "Model Configuration",
-			"description": "Character generation, daily summary, and AI player selection",
-			"generator": "Character Generator Model",
-			"summary": "Daily Summary Model",
-			"review": "Post-Game Review Model",
-			"candidates": "AI Player Candidates",
-			"candidatesDesc": "Select models for AI players"
-		},
-		"voice": {
-			"title": "Voice & Sound (Optional)",
-			"description": "Configure Minimax to enable voice narration and sound effects"
-		},
-		"minimax": {
-			"get": "Get Minimax Key",
-			"note": "Voice and sound effects",
-			"keyLabel": "Minimax API Key",
-			"groupLabel": "Minimax Group ID",
-			"hide": "Hide Minimax API Key",
-			"show": "Show Minimax API Key",
-			"hideGroup": "Hide Minimax Group ID",
-			"showGroup": "Show Minimax Group ID"
-		},
-		"optionalPlaceholder": "Optional",
-		"actions": {
-			"clear": "Clear",
-			"save": "Save"
-		},
-		"toasts": {
-			"notValidated": "Validation failed. Cannot save.",
-			"notValidatedDesc": "Please click 'Validate' first.",
-			"needLlmKey": "Please configure at least one LLM Key",
-			"needLlmKeyDesc": "Managed by Keyaos",
-			"modelsAdjusted": "Some models unavailable. Auto-adjusted.",
-			"modelsAdjustedDesc": "Check if selected models match your configured keys.",
-			"saved": "API Key saved",
-			"savedDesc": "Stored locally in this browser only",
-			"validateFailed": "Validation failed",
-			"validateFailedDesc": "Check if the API Key is correct or has sufficient credits.",
-			"cleared": "API Key cleared"
 		}
 	},
 	"customCharacter": {

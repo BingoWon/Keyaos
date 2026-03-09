@@ -1,7 +1,6 @@
 /**
- * API key management — simplified for Keyaos.
+ * Model selection persistence.
  * Keyaos handles auth via Clerk tokens; no user-managed API keys needed.
- * Only model selection persistence is retained.
  */
 
 import {
@@ -29,64 +28,6 @@ function writeStorage(key: string, value: string) {
 		else localStorage.setItem(key, trimmed);
 	} catch {}
 }
-
-export function isCustomKeyEnabled(): boolean {
-	return false;
-}
-
-export function setCustomKeyEnabled(_value: boolean) {}
-
-export function hasZenmuxKey(): boolean {
-	return false;
-}
-export function hasDashscopeKey(): boolean {
-	return false;
-}
-export function hasNewapiKey(): boolean {
-	return false;
-}
-export function hasMinimaxKey(): boolean {
-	return false;
-}
-
-export function getZenmuxApiKey(): string {
-	return "";
-}
-export function getDashscopeApiKey(): string {
-	return "";
-}
-export function getMinimaxApiKey(): string {
-	return "";
-}
-export function getMinimaxGroupId(): string {
-	return "";
-}
-export function getNewapiApiKey(): string {
-	return "";
-}
-export function getNewapiBaseUrl(): string {
-	return "";
-}
-
-export function setZenmuxApiKey(_key: string) {}
-export function setDashscopeApiKey(_key: string) {}
-export function setMinimaxApiKey(_key: string) {}
-export function setMinimaxGroupId(_id: string) {}
-export function setNewapiApiKey(_key: string) {}
-export function setNewapiBaseUrl(_url: string) {}
-
-export function getValidatedZenmuxKey(): string {
-	return "";
-}
-export function setValidatedZenmuxKey(_key: string) {}
-export function getValidatedDashscopeKey(): string {
-	return "";
-}
-export function setValidatedDashscopeKey(_key: string) {}
-export function getValidatedNewapiKey(): string {
-	return "";
-}
-export function setValidatedNewapiKey(_key: string) {}
 
 export function getSelectedModels(): string[] {
 	return getKeyaosSelectedModels();
@@ -126,14 +67,4 @@ export function clearApiKeys() {
 		localStorage.removeItem(SUMMARY_MODEL_STORAGE);
 		localStorage.removeItem(REVIEW_MODEL_STORAGE);
 	} catch {}
-}
-
-export interface KeyValidationResult {
-	valid: boolean;
-	error?: string;
-	errorCode?: string;
-}
-
-export async function validateApiKeyBalance(): Promise<KeyValidationResult> {
-	return { valid: true };
 }

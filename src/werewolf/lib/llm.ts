@@ -468,8 +468,6 @@ export async function generateCompletion(options: GenerateOptions): Promise<{
 	}
 
 	gameSessionTracker.trackAICall(
-		0,
-		0,
 		result.usage?.prompt_tokens,
 		result.usage?.completion_tokens,
 	);
@@ -577,8 +575,6 @@ export async function* generateCompletionStream(
 	}
 
 	gameSessionTracker.trackAICall(
-		0,
-		0,
 		streamUsage?.prompt_tokens,
 		streamUsage?.completion_tokens,
 	);

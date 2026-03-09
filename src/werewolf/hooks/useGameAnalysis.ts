@@ -3,7 +3,7 @@
  * 在 GAME_END 时自动触发分析数据生成
  */
 
-import { gameStatsTracker } from "@wolf/hooks/useGameStats";
+import { gameSessionTracker } from "@wolf/lib/game-session-tracker";
 import { getReviewModel } from "@wolf/lib/api-keys";
 import { generateGameAnalysis } from "@wolf/lib/game-analysis";
 import {
@@ -37,9 +37,8 @@ export function useGameAnalysis() {
 			if (gameState.startTime) {
 				durationSeconds = Math.round((Date.now() - gameState.startTime) / 1000);
 			} else {
-				// 降级方案：尝试从 gameStatsTracker 获取
-				const statsSummary = gameStatsTracker.getSummary(winner, true);
-				durationSeconds = statsSummary?.durationSeconds ?? 0;
+			const summary = gameSessionTracker.getSummary();
+			durationSeconds = summary?.durationSeconds ?? 0;
 			}
 
 			const reviewModel = getReviewModel();

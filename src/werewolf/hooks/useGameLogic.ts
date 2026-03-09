@@ -14,7 +14,6 @@
 
 import { PhaseManager } from "@wolf/game/core/PhaseManager";
 import { gameSessionTracker } from "@wolf/lib/game-session-tracker";
-import { gameStatsTracker } from "@wolf/hooks/useGameStats";
 import { aiLogger } from "@wolf/lib/ai-logger";
 import { getGeneratorModel } from "@wolf/lib/api-keys";
 import {
@@ -1686,16 +1685,10 @@ export function useGameLogic() {
 
 			setIsLoading(true);
 			try {
-				gameStatsTracker.start({
-					playerCount,
-					difficulty,
-					usedCustomKey: false,
-				});
-				void gameSessionTracker.start({
-					playerCount,
-					difficulty,
-					usedCustomKey: false,
-				});
+			void gameSessionTracker.start({
+				playerCount,
+				difficulty,
+			});
 
 				const systemMessages = getSystemMessages();
 				const scenario = isGenshinMode ? undefined : getRandomScenario();

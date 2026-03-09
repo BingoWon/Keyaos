@@ -1,10 +1,3 @@
-import {
-	getMinimaxApiKey,
-	getMinimaxGroupId,
-	hasMinimaxKey,
-	isCustomKeyEnabled,
-} from "@wolf/lib/api-keys";
-
 export interface AudioTask {
 	id: string; // unique message id
 	text: string;
@@ -24,22 +17,14 @@ class AudioManager {
 	private currentAudio: HTMLAudioElement | null = null;
 	private state: PlayState = "idle";
 	private cache = new Map<string, { blob: Blob; durationMs?: number }>();
-	private enabled = isCustomKeyEnabled() && hasMinimaxKey();
+	private enabled = false;
 
 	// Callbacks
 	private onPlayStart: ((playerId: string) => void) | null = null;
 	private onPlayEnd: ((playerId: string) => void) | null = null;
 
 	private buildTtsHeaders(): Record<string, string> {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		if (!isCustomKeyEnabled()) return headers;
-		const apiKey = getMinimaxApiKey();
-		const groupId = getMinimaxGroupId();
-		if (apiKey) headers["X-Minimax-Api-Key"] = apiKey;
-		if (groupId) headers["X-Minimax-Group-Id"] = groupId;
-		return headers;
+		return { "Content-Type": "application/json" };
 	}
 
 	setCallbacks(
@@ -80,10 +65,7 @@ class AudioManager {
 
 	private async prefetchTask(task: AudioTask) {
 		if (this.cache.has(task.id)) return;
-		if (!isCustomKeyEnabled() || !hasMinimaxKey()) {
-			this.setEnabled(false);
-			return;
-		}
+		if (!this.enabled) return;
 
 		const response = await fetch("/api/tts", {
 			method: "POST",
@@ -176,11 +158,6 @@ class AudioManager {
 		if (!this.enabled) return;
 		if (this.state !== "idle") return;
 		if (this.queue.length === 0) return;
-		if (!isCustomKeyEnabled() || !hasMinimaxKey()) {
-			this.setEnabled(false);
-			return;
-		}
-
 		const task = this.queue.shift();
 		if (!task) return;
 

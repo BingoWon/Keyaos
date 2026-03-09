@@ -5,7 +5,6 @@
 export interface GameSessionConfig {
 	playerCount: number;
 	difficulty?: string;
-	usedCustomKey: boolean;
 	modelUsed?: string;
 }
 
@@ -110,33 +109,7 @@ export const gameSessionTracker = {
 		state.roundsPlayed += 1;
 	},
 
-	async syncProgress(): Promise<void> {
-		if (!state.sessionId) return;
-		const duration = Math.round((Date.now() - state.startTime) / 1000);
-		try {
-			await fetch(`/api/werewolf/sessions/${state.sessionId}`, {
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-					...(await authHeaders()),
-				},
-				body: JSON.stringify({
-					rounds_played: state.roundsPlayed,
-					duration_seconds: duration,
-					ai_calls_count: state.aiCallsCount,
-					ai_input_tokens: state.aiInputTokens,
-					ai_output_tokens: state.aiOutputTokens,
-				}),
-			});
-		} catch {}
-	},
-
-	trackAICall(
-		_inputChars: number,
-		_outputChars: number,
-		promptTokens?: number,
-		completionTokens?: number,
-	): void {
+	trackAICall(promptTokens?: number, completionTokens?: number): void {
 		state.aiCallsCount += 1;
 		if (promptTokens) state.aiInputTokens += promptTokens;
 		if (completionTokens) state.aiOutputTokens += completionTokens;
@@ -149,8 +122,6 @@ export const gameSessionTracker = {
 			roundsPlayed: state.roundsPlayed,
 			durationSeconds: Math.round((Date.now() - state.startTime) / 1000),
 			aiCallsCount: state.aiCallsCount,
-			aiInputChars: 0,
-			aiOutputChars: 0,
 			aiPromptTokens: state.aiInputTokens,
 			aiCompletionTokens: state.aiOutputTokens,
 		};

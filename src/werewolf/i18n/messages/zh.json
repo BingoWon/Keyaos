@@ -31,73 +31,7 @@
 		"wins": "胜利"
 	},
 	"welcome": {
-		"group": {
-			"title": "加入游戏群",
-			"description": "扫码入群，反馈问题与建议。",
-			"short": "入群"
-		},
-		"mobileMenu": {
-			"title": "快捷操作",
-			"description": "在这里快速进入设置与账号信息。",
-			"more": "更多操作"
-		},
-		"account": {
-			"viewInfo": "查看账号信息",
-			"loggedIn": "已登录",
-			"remaining": "剩余 {count} 局",
-			"tempQuotaShort": "新春 {count} 局",
-			"info": "账号信息"
-		},
-		"springCampaign": {
-			"title": "新春登录福利",
-			"range": "截止 2月18日",
-			"claimedStatus": "今日新春额度：{count}/{total}（仅当日有效）",
-			"signInHint": "登录后自动发放今日 10 把新春额度（仅当日有效）",
-			"modal": {
-				"badge": "LUNAR EVENT",
-				"title": "新年快乐",
-				"subtitle": "愿你新岁顺遂，局局高光。",
-				"line1": "活动期间每日登录可领取 10 把新春额度，开局将优先消耗。",
-				"line2": "也想真诚告诉你：新年维护结束后，Wolfcha 可能会因为运营压力暂停维护。",
-				"line3": "谢谢你一路以来的支持与陪伴，也希望这段时间猹杀有陪你度过一些开心、放松的时刻。",
-				"note": "活动时间：2月12日 - 2月17日（北京时间，18日零点结束）",
-				"action": "收下祝福，继续对局"
-			},
-			"toast": {
-				"claimed": {
-					"title": "新春福利已到账",
-					"description": "今日新春额度 +10，本日内有效。"
-				}
-			}
-		},
-		"auth": {
-			"signIn": "登录/注册"
-		},
-		"github": {
-			"title": "GitHub 项目"
-		},
-		"productHunt": {
-			"title": "来 Product Hunt 给 Wolfcha 投一票",
-			"description": "如果你玩得开心，帮忙点个 Upvote，让更多人看见我们~",
-			"hint": "约10s",
-			"cta": "去投票",
-			"ariaLabel": "打开 Wolfcha 的 Product Hunt 页面（投票）"
-		},
 		"sponsor": {
-			"title": "Powered by Keyaos",
-			"subtitle": "300+ AI 模型，统一 API —— 用 Keyaos 驱动每一局对决。",
-			"description": "这款 AI 狼人杀由 Keyaos AI 网关驱动。Keyaos 聚合了来自 OpenAI、Anthropic、Google、DeepSeek 等顶级供应商的模型，自动将每次请求路由到最优惠的可用供应商。",
-			"items": {
-				"credits": "覆盖 300+ 全球顶级 AI 模型",
-				"media": "智能路由，自动选择最低价供应商",
-				"collaboration": "兼容 OpenAI 接口，即插即用",
-				"community": "按量计费，价格透明实时结算"
-			},
-			"note": "游戏中的每一次 AI 调用都通过 Keyaos 网关完成，您的额度将被透明地实时计费。",
-			"copyEmail": "复制链接",
-			"sendEmail": "访问 Keyaos",
-			"action": "关于 Keyaos",
-			"short": "Keyaos",
 			"showcaseLabel": "Keyaos 驱动的 AI 供应商",
 			"cards": {
 				"openai": "GPT-4o、o3-mini 等 —— 语言 AI 的黄金标准。",
@@ -105,16 +39,11 @@
 				"google": "Gemini 2.5 Pro & Flash —— 大规模多模态智能。",
 				"deepseek": "DeepSeek-V3.2 — 开源推理，前沿水准。",
 				"qwen": "千问3.5 — 混合注意力与专家混合，高效推理。"
-			},
-			"copySuccess": "已复制链接",
-			"copyFallback": "平台地址",
-			"mailSubject": "Keyaos AI Gateway",
-			"mailBody": ""
+			}
 		},
 		"settings": "设置",
 		"mute": "静音",
 		"unmute": "取消静音",
-		"tutorial": "玩法教学",
 		"subtitle": "AI 狼人杀游戏",
 		"oath": {
 			"line1": "我自愿加入这场关于谎言与真相的游戏。",
@@ -137,29 +66,6 @@
 			"godLabelFull": "预女猎守",
 			"godLabelNoGuard": "预女猎",
 			"hint": "需满足：{wolfCount}狼 {godLabel} {villagerCount}民"
-		},
-		"toast": {
-			"signInFirst": "请先登录或注册",
-			"noCredits": {
-				"title": "额度不足",
-				"description": "请充值额度或配置 API Key 后继续游戏。"
-			},
-			"creditFail": {
-				"title": "扣除额度失败",
-				"description": "请稍后重试或前往充值额度。"
-			},
-			"keyExhausted": {
-				"title": "API Key 余额已耗尽",
-				"description": "请先充值 Keyaos 额度后再开始游戏。"
-			},
-			"keyInvalid": {
-				"title": "API Key 验证失败",
-				"description": "请检查您的 API Key 是否正确配置。"
-			},
-			"keyValidationFailed": {
-				"title": "验证请求失败",
-				"description": "网络异常，请稍后重试。"
-			}
 		},
 		"dev": {
 			"title": "开发者模式",
@@ -2093,121 +1999,6 @@
 		"quotaExhausted": {
 			"title": "额度已用完",
 			"description": "充值额度或添加凭证即可继续游戏。"
-		}
-	},
-	"customKey": {
-		"title": "用我自己的 key 玩",
-		"description": "开启后填写 API Key，仅保存在本地浏览器",
-		"dailyBonus": "活动暂不可用。",
-		"springCampaign": {
-			"active": "活动暂不可用。",
-			"ended": "活动暂不可用。"
-		},
-		"tabs": {
-			"profile": "信息",
-			"custom": "用我自己的 key 玩",
-			"payAsYouGo": "充值兑换"
-		},
-		"payAsYouGo": {
-			"title": "购买游戏额度",
-			"description": "无需订阅，按需购买单次游戏额度。每个额度可进行一局游戏。",
-			"wechatPayHint": "微信/支付宝支付（每局¥2）可联系开发人员",
-			"contactDeveloper": "联系开发者",
-			"wechatQrTitle": "开发者微信",
-			"wechatQrDescription": "扫码添加开发者微信，备注「狼人杀充值」即可",
-			"longPressToSave": "长按图片可保存到相册",
-			"pricePerGame": "每局 ${price}",
-			"quantity": "购买数量",
-			"quantityPlaceholder": "输入数量",
-			"total": "合计",
-			"purchase": "立即购买",
-			"minQuantity": "最少购买 10 次",
-			"maxQuantity": "最多购买 100 次",
-			"minQuantityHint": "每次购买最少需要 10 个额度",
-			"redirecting": "正在跳转到 Stripe...",
-			"error": "创建支付链接失败",
-			"purchaseTitle": "购买兑换码",
-			"purchaseDesc": "扫码或点击下方链接前往链动小铺购买兑换码",
-			"openPurchaseLink": "打开购买链接（每局 ¥1.5）",
-			"redeemTitle": "兑换码兑换",
-			"redeemPlaceholder": "wolf-XXXX-XXXX",
-			"redeemButton": "兑换",
-			"redeemHint": "每个兑换码可获得 5 局游戏额度",
-			"redeeming": "兑换中...",
-			"redeemSuccess": "兑换成功！获得 {count} 局游戏额度",
-			"redeemError": {
-				"invalid_code": "兑换码无效，请检查后重试",
-				"already_redeemed": "该兑换码已被使用",
-				"disabled": "兑换功能暂未开放",
-				"default": "兑换失败，请稍后重试"
-			}
-		},
-		"selectModel": "选择模型",
-		"modelJoiner": "、",
-		"modelCount": "{preview} 等 {count} 个",
-		"validating": "验证中",
-		"validate": "验证",
-		"llmKey": {
-			"title": "语言模型 Key",
-			"description": "所有模型由 Keyaos 统一管理，无需手动配置 API Key"
-		},
-		"zenmux": {
-			"label": "Keyaos API Key",
-			"placeholder": "由 Keyaos 管理",
-			"hide": "隐藏 API Key",
-			"show": "显示 API Key",
-			"get": "访问 Keyaos",
-			"note": "支持国内外大部分模型"
-		},
-		"dashscope": {
-			"label": "Keyaos API Key",
-			"placeholder": "由 Keyaos 管理",
-			"hide": "隐藏 API Key",
-			"show": "显示 API Key",
-			"get": "访问 Keyaos",
-			"note": "DeepSeek / Qwen / Kimi 等",
-			"short": "Keyaos"
-		},
-		"modelConfig": {
-			"title": "模型配置",
-			"description": "人物生成、每日总结与 AI 玩家抽选",
-			"generator": "人物生成模型",
-			"summary": "每日总结模型",
-			"review": "复盘报告模型",
-			"candidates": "AI 玩家候选",
-			"candidatesDesc": "从中抽取 AI 玩家，可多选"
-		},
-		"voice": {
-			"title": "语音与音效（可选）",
-			"description": "配置 Minimax 后可启用语音播报与音效"
-		},
-		"minimax": {
-			"get": "获取 Minimax Key",
-			"note": "语音与音效",
-			"keyLabel": "Minimax API Key",
-			"groupLabel": "Minimax Group ID",
-			"hide": "隐藏 Minimax API Key",
-			"show": "显示 Minimax API Key",
-			"hideGroup": "隐藏 Minimax Group ID",
-			"showGroup": "显示 Minimax Group ID"
-		},
-		"optionalPlaceholder": "可选",
-		"actions": {
-			"clear": "清除",
-			"save": "保存"
-		},
-		"toasts": {
-			"notValidated": "未通过验证，无法保存",
-			"notValidatedDesc": "请先点击「验证配置」",
-			"needLlmKey": "请至少配置一个 LLM Key",
-			"needLlmKeyDesc": "由 Keyaos 统一管理",
-			"modelsAdjusted": "部分模型不可用，已自动调整",
-			"modelsAdjustedDesc": "请检查所选模型与已配置的 Key 是否匹配",
-			"saved": "已保存 API Key",
-			"savedDesc": "仅保存在当前浏览器",
-			"validateFailed": "验证失败",
-			"validateFailedDesc": "请检查当前API Key 是否填写错误或是否有充足额度。",
-			"cleared": "已清除 API Key"
 		}
 	},
 	"customCharacter": {
