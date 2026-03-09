@@ -30,6 +30,35 @@ import {
 import { requestLogger } from "../shared/logger";
 import type { AppEnv } from "../shared/types";
 
+/**
+ * Strip non-standard `cache_control` fields from message content parts.
+ * This is an Anthropic-specific extension that causes 400 errors on some
+ * upstream providers (e.g. ZenMux → Google) when they attempt conversion.
+ */
+function sanitizeMessages(
+	body: Record<string, unknown>,
+): Record<string, unknown> {
+	const messages = body.messages;
+	if (!Array.isArray(messages)) return body;
+
+	let changed = false;
+	const cleaned = messages.map((msg: Record<string, unknown>) => {
+		const content = msg.content;
+		if (!Array.isArray(content)) return msg;
+
+		const parts = content.map((part: Record<string, unknown>) => {
+			if (!part.cache_control) return part;
+			changed = true;
+			const { cache_control: _, ...rest } = part;
+			return rest;
+		});
+
+		return { ...msg, content: parts };
+	});
+
+	return changed ? { ...body, messages: cleaned } : body;
+}
+
 export interface CompletionRequest {
 	modelId: string;
 	body: Record<string, unknown>;
@@ -93,7 +122,7 @@ export async function executeCompletion(
 		}
 
 		const upstreamBody = {
-			...req.body,
+			...sanitizeMessages(req.body),
 			model: upstreamModelId ?? modelId,
 			stream_options: req.body.stream ? { include_usage: true } : undefined,
 		};
