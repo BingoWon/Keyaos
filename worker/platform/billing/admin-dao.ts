@@ -25,6 +25,8 @@ const QUERYABLE_TABLES: Record<string, string> = {
 	api_keys: "created_at",
 	model_pricing: "provider",
 	credit_adjustments: "created_at",
+	werewolf_sessions: "created_at",
+	werewolf_characters: "created_at",
 };
 
 export class AdminDao {

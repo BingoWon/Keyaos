@@ -13,6 +13,7 @@
  */
 
 import { PhaseManager } from "@wolf/game/core/PhaseManager";
+import { gameSessionTracker } from "@wolf/lib/game-session-tracker";
 import { gameStatsTracker } from "@wolf/hooks/useGameStats";
 import { aiLogger } from "@wolf/lib/ai-logger";
 import { getGeneratorModel } from "@wolf/lib/api-keys";
@@ -629,6 +630,7 @@ export function useGameLogic() {
 			setIsWaitingForAI(false);
 			setWaitingForNextRound(false);
 			await endGame(state, winner);
+			void gameSessionTracker.end(winner, true);
 		},
 		[
 			clearDialogue,
@@ -914,6 +916,7 @@ export function useGameLogic() {
 					...(seerHistory ? { seerHistory } : {}),
 				},
 			};
+			void gameSessionTracker.incrementRound();
 			nextState = transitionPhase(nextState, "NIGHT_START");
 			nextState = addSystemMessage(
 				nextState,
@@ -1688,6 +1691,11 @@ export function useGameLogic() {
 					difficulty,
 					usedCustomKey: false,
 				});
+				void gameSessionTracker.start({
+					playerCount,
+					difficulty,
+					usedCustomKey: false,
+				});
 
 				const systemMessages = getSystemMessages();
 				const scenario = isGenshinMode ? undefined : getRandomScenario();
@@ -2108,8 +2116,8 @@ export function useGameLogic() {
 	/** 重新开始 */
 	const restartGame = useCallback(() => {
 		flowController.current.interrupt();
+		void gameSessionTracker.end(null, false);
 
-		// Clear persisted game state from localStorage
 		clearPersistedGameState();
 
 		setGameState(createInitialGameState());

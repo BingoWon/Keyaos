@@ -41,6 +41,16 @@ export class WerewolfSessionsDao {
 			.run();
 	}
 
+	private static readonly UPDATABLE_COLS = new Set([
+		"winner",
+		"completed",
+		"rounds_played",
+		"duration_seconds",
+		"ai_calls_count",
+		"ai_input_tokens",
+		"ai_output_tokens",
+	]);
+
 	async update(
 		id: string,
 		ownerId: string,
@@ -60,7 +70,7 @@ export class WerewolfSessionsDao {
 		const sets: string[] = [];
 		const vals: unknown[] = [];
 		for (const [k, v] of Object.entries(patch)) {
-			if (v !== undefined) {
+			if (v !== undefined && WerewolfSessionsDao.UPDATABLE_COLS.has(k)) {
 				sets.push(`${k} = ?`);
 				vals.push(v);
 			}

@@ -37,6 +37,16 @@ export class WerewolfCharactersDao {
 			.run();
 	}
 
+	private static readonly UPDATABLE_COLS = new Set([
+		"display_name",
+		"gender",
+		"age",
+		"mbti",
+		"basic_info",
+		"style_label",
+		"avatar_seed",
+	]);
+
 	async update(
 		id: string,
 		ownerId: string,
@@ -56,7 +66,7 @@ export class WerewolfCharactersDao {
 		const sets: string[] = [];
 		const vals: unknown[] = [];
 		for (const [k, v] of Object.entries(patch)) {
-			if (v !== undefined) {
+			if (v !== undefined && WerewolfCharactersDao.UPDATABLE_COLS.has(k)) {
 				sets.push(`${k} = ?`);
 				vals.push(v);
 			}

@@ -10,8 +10,8 @@ import { MAX_CUSTOM_CHARACTERS } from "@wolf/types/custom-character";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/auth";
 
-export function useCustomCharacters(_user: unknown) {
-	const { getToken } = useAuth();
+export function useCustomCharacters() {
+	const { getToken, isSignedIn } = useAuth();
 	const [characters, setCharacters] = useState<CustomCharacter[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -28,6 +28,11 @@ export function useCustomCharacters(_user: unknown) {
 	}, []);
 
 	const fetchCharacters = useCallback(async () => {
+		if (!isSignedIn) {
+			setCharacters([]);
+			setLoading(false);
+			return;
+		}
 		setLoading(true);
 		setError(null);
 		try {
@@ -58,7 +63,7 @@ export function useCustomCharacters(_user: unknown) {
 		} finally {
 			setLoading(false);
 		}
-	}, [headers]);
+	}, [headers, isSignedIn]);
 
 	useEffect(() => {
 		fetchCharacters();

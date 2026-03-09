@@ -256,9 +256,7 @@ export function WelcomeScreen({
 		() => readSelectionFromStorage(),
 	);
 
-	const customCharacters = useCustomCharacters(
-		gate.isSignedIn ? { id: "keyaos" } : null,
-	);
+	const customCharacters = useCustomCharacters();
 	const [difficulty, _setDifficulty] = useAtom(difficultyAtom);
 	const [playerCount, setPlayerCount] = useAtom(playerCountAtom);
 	const [preferredRole, setPreferredRole] = useAtom(preferredRoleAtom);

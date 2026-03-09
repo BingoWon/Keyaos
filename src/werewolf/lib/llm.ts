@@ -3,6 +3,7 @@
  * All provider-specific logic removed; Keyaos gateway handles model routing.
  */
 
+import { gameSessionTracker } from "@wolf/lib/game-session-tracker";
 import type { ModelRef } from "@wolf/types/game";
 
 export type LLMContentPart =
@@ -466,6 +467,13 @@ export async function generateCompletion(options: GenerateOptions): Promise<{
 		);
 	}
 
+	gameSessionTracker.trackAICall(
+		0,
+		0,
+		result.usage?.prompt_tokens,
+		result.usage?.completion_tokens,
+	);
+
 	return {
 		content: assistantMessage.content,
 		reasoning_details: assistantMessage.reasoning_details,
@@ -545,6 +553,7 @@ export async function* generateCompletionStream(
 
 	const decoder = new TextDecoder();
 	let buffer = "";
+	let streamUsage: { prompt_tokens?: number; completion_tokens?: number } | undefined;
 
 	while (true) {
 		const { done, value } = await reader.read();
@@ -558,6 +567,7 @@ export async function* generateCompletionStream(
 			if (!trimmed.startsWith("data: ")) continue;
 			try {
 				const json = JSON.parse(trimmed.slice(6));
+				if (json.usage) streamUsage = json.usage;
 				const delta = json.choices?.[0]?.delta?.content;
 				if (delta) yield delta;
 			} catch {
@@ -565,6 +575,13 @@ export async function* generateCompletionStream(
 			}
 		}
 	}
+
+	gameSessionTracker.trackAICall(
+		0,
+		0,
+		streamUsage?.prompt_tokens,
+		streamUsage?.completion_tokens,
+	);
 }
 
 export async function generateJSON<T>(
