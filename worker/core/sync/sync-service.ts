@@ -1,15 +1,23 @@
 /**
  * Model & Credential Sync Service
  *
- * Two-phase OpenRouter-first sync:
- * Phase 1 — Sync OpenRouter (canonical catalog, sets sort_order).
- * Phase 2 — Sync remaining providers in parallel, filtered to OpenRouter allowlist.
+ * Three-phase OpenRouter-first sync:
+ * Phase 1 — Sync OpenRouter chat models (canonical catalog, sets sort_order).
+ * Phase 2 — Sync OpenRouter embedding models (separate endpoint).
+ * Phase 3 — Sync remaining providers in parallel, filtered to OpenRouter allowlist.
  */
 
 import { log } from "../../shared/logger";
 import { CredentialsDao } from "../db/credentials-dao";
 import { PricingDao } from "../db/pricing-dao";
-import { getAllProviders, getProvider } from "../providers/registry";
+import {
+	getAllProviders,
+	getProvider,
+	parseOpenRouterModels,
+} from "../providers/registry";
+
+const OPENROUTER_EMBEDDINGS_URL =
+	"https://openrouter.ai/api/v1/embeddings/models";
 
 export async function syncAllModels(
 	db: D1Database,
@@ -18,7 +26,7 @@ export async function syncAllModels(
 	const dao = new PricingDao(db);
 	const allProviders = getAllProviders();
 
-	// ─── Phase 1: Sync OpenRouter first (canonical model catalog) ───
+	// ─── Phase 1: Sync OpenRouter chat models (canonical catalog) ───
 	const orProvider = allProviders.find((p) => p.info.id === "openrouter");
 	if (!orProvider) {
 		log.error("sync", "OpenRouter provider not found in registry");
@@ -32,17 +40,45 @@ export async function syncAllModels(
 	}
 
 	await dao.upsertPricing(orModels);
-	await dao.deactivateMissing(
-		"openrouter",
-		orModels.map((m) => m.id),
+	log.info("sync", "OpenRouter chat synced", { count: orModels.length });
+
+	// ─── Phase 2: Sync OpenRouter embedding models ──────────────
+	let orEmbedModels: typeof orModels = [];
+	try {
+		const res = await fetch(OPENROUTER_EMBEDDINGS_URL);
+		if (res.ok) {
+			const raw = (await res.json()) as Record<string, unknown>;
+			orEmbedModels = parseOpenRouterModels(raw, "embedding");
+			if (orEmbedModels.length > 0) {
+				await dao.upsertPricing(orEmbedModels);
+			}
+			log.info("sync", "OpenRouter embeddings synced", {
+				count: orEmbedModels.length,
+			});
+		}
+	} catch (err) {
+		log.error("sync", "Embedding sync failed", {
+			error: err instanceof Error ? err.message : String(err),
+		});
+	}
+
+	// Deactivate missing OpenRouter models (chat + embedding combined)
+	const allOrIds = [
+		...orModels.map((m) => m.id),
+		...orEmbedModels.map((m) => m.id),
+	];
+	await dao.deactivateMissing("openrouter", allOrIds);
+
+	// Build the canonical model_id allowlist (chat + embedding)
+	const allowedModelIds = new Set([
+		...orModels.map((m) => m.model_id),
+		...orEmbedModels.map((m) => m.model_id),
+	]);
+
+	// ─── Phase 3: Sync other providers, filtering to allowlist ──
+	const otherProviders = allProviders.filter(
+		(p) => p.info.id !== "openrouter",
 	);
-	log.info("sync", "OpenRouter synced (canonical)", { count: orModels.length });
-
-	// Build the canonical model_id allowlist
-	const allowedModelIds = new Set(orModels.map((m) => m.model_id));
-
-	// ─── Phase 2: Sync all other providers, filtering to allowlist ──
-	const otherProviders = allProviders.filter((p) => p.info.id !== "openrouter");
 	const results = await Promise.allSettled(
 		otherProviders.map(async (provider) => {
 			const models = await provider.fetchModels(cnyUsdRate);
@@ -53,8 +89,9 @@ export async function syncAllModels(
 				return;
 			}
 
-			// Only keep models that OpenRouter also provides
-			const filtered = models.filter((m) => allowedModelIds.has(m.model_id));
+			const filtered = models.filter((m) =>
+				allowedModelIds.has(m.model_id),
+			);
 
 			if (filtered.length > 0) {
 				await dao.upsertPricing(filtered);
@@ -75,7 +112,8 @@ export async function syncAllModels(
 	for (const r of results) {
 		if (r.status === "rejected") {
 			log.error("sync", "Provider failed", {
-				error: r.reason instanceof Error ? r.reason.message : String(r.reason),
+				error:
+					r.reason instanceof Error ? r.reason.message : String(r.reason),
 			});
 		}
 	}

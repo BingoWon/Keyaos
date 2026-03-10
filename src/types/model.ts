@@ -1,8 +1,9 @@
-import type { Modality } from "../../worker/core/db/schema";
+import type { Modality, ModelType } from "../../worker/core/db/schema";
 
 /** Dashboard model entry — one per provider × model_id offering */
 export interface ModelEntry {
 	id: string;
+	type?: ModelType;
 	provider_id: string;
 	name?: string;
 	description?: string | null;

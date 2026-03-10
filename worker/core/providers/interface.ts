@@ -40,5 +40,10 @@ export interface ProviderAdapter {
 		body: Record<string, unknown>,
 	): Promise<Response>;
 
+	forwardEmbedding?(
+		secret: string,
+		body: Record<string, unknown>,
+	): Promise<Response>;
+
 	fetchModels(cnyUsdRate?: number): Promise<ParsedModel[]>;
 }

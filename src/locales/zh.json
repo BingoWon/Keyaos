@@ -250,7 +250,10 @@
 		"search_placeholder": "搜索模型…",
 		"result_count": "{{count}} / {{total}} 个模型",
 		"total_count": "共 {{count}} 个模型",
-		"no_match": "没有匹配 \"{{query}}\" 的模型"
+		"no_match": "没有匹配 \"{{query}}\" 的模型",
+		"type_all": "全部",
+		"type_chat": "对话",
+		"type_embedding": "向量化"
 	},
 	"providers": {
 		"title": "供应商",

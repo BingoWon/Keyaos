@@ -12,6 +12,7 @@ import apiKeysRouter from "./routes/api-keys";
 import assistantRouter from "./routes/assistant";
 import chatRouter from "./routes/chat";
 import credentialsRouter from "./routes/credentials";
+import embeddingsRouter from "./routes/embeddings";
 import messagesRouter from "./routes/messages";
 import { dashboardModelsRouter, publicModelsRouter } from "./routes/models";
 import systemRouter from "./routes/system";
@@ -197,6 +198,7 @@ app.route("/api/webhooks", webhookRouter);
 
 // ─── OpenAI-compatible API ──────────────────────────────
 app.route("/v1/chat", chatRouter);
+app.route("/v1/embeddings", embeddingsRouter);
 app.route("/v1/models", publicModelsRouter);
 
 app.get("/v1/credits", async (c) => {

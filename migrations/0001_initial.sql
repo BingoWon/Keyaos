@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     provider_id TEXT NOT NULL,
     model_id TEXT NOT NULL,
     name TEXT,
+    model_type TEXT NOT NULL DEFAULT 'chat',
     input_price REAL NOT NULL,
     output_price REAL NOT NULL,
     context_length INTEGER,

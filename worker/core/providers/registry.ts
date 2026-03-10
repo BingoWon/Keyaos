@@ -5,6 +5,7 @@
  * Native-protocol providers (e.g. Gemini CLI): register separately below.
  */
 
+import type { ModelType } from "../db/schema";
 import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
 import oaiproModels from "../models/oaipro.json";
@@ -33,8 +34,11 @@ function serializeModalities(arr: unknown): string | null {
 
 // ─── Dynamic parsers (parse upstream API response) ──────────
 
-/** OpenRouter: pricing.prompt/completion are USD per token (strings) */
-function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
+/** OpenRouter: pricing.prompt/completion are USD per token (strings). Shared by chat and embedding endpoints. */
+export function parseOpenRouterModels(
+	raw: Record<string, unknown>,
+	modelType: ModelType = "chat",
+): ParsedModel[] {
 	const data = raw.data as Record<string, unknown>[] | undefined;
 	if (!data) return [];
 	const results: ParsedModel[] = [];
@@ -44,12 +48,12 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 	for (const m of data) {
 		const id = m.id as string;
 		const pricing = m.pricing as Record<string, string> | undefined;
-		if (!id || !pricing?.prompt || !pricing?.completion) continue;
+		if (!id || !pricing?.prompt) continue;
 
 		const inputUsdPerM = Number.parseFloat(pricing.prompt) * 1_000_000;
-		const outputUsdPerM = Number.parseFloat(pricing.completion) * 1_000_000;
-		if (Number.isNaN(inputUsdPerM) || Number.isNaN(outputUsdPerM)) continue;
-		if (inputUsdPerM < 0 || outputUsdPerM < 0) continue;
+		const outputUsdPerM =
+			Number.parseFloat(pricing.completion || "0") * 1_000_000;
+		if (Number.isNaN(inputUsdPerM) || inputUsdPerM < 0) continue;
 
 		const arch = m.architecture as Record<string, unknown> | undefined;
 		const createdEpoch = (m.created as number) || 0;
@@ -59,12 +63,13 @@ function parseOpenRouterModels(raw: Record<string, unknown>): ParsedModel[] {
 			provider_id: "openrouter",
 			model_id: id,
 			name: (m.name as string) || null,
+			model_type: modelType,
 			input_price: inputUsdPerM,
 			output_price: outputUsdPerM,
 			context_length: (m.context_length as number) || null,
 			input_modalities: serializeModalities(arch?.input_modalities),
 			output_modalities: serializeModalities(arch?.output_modalities),
-			sort_order: results.length,
+			sort_order: modelType === "embedding" ? 800000 + results.length : results.length,
 			upstream_model_id: null,
 			metadata: JSON.stringify(m),
 			created_at: createdMs && now - createdMs > ONE_DAY ? createdMs : now,
@@ -93,6 +98,7 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			provider_id: "zenmux",
 			model_id: id,
 			name: (m.display_name as string) || null,
+			model_type: "chat",
 			input_price: promptArr[0].value,
 			output_price: compArr[0].value,
 			context_length: (m.context_length as number) || null,
@@ -128,6 +134,7 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			provider_id: "deepinfra",
 			model_id: canonicalId,
 			name: null,
+			model_type: "chat",
 			input_price: pricing.input_tokens,
 			output_price: pricing.output_tokens,
 			context_length: (metadata?.context_length as number) || null,
@@ -161,6 +168,7 @@ function parseStaticUsdModels(
 		provider_id: provider,
 		model_id: m.id,
 		name: m.name,
+		model_type: "chat" as const,
 		input_price: m.input_usd,
 		output_price: m.output_usd,
 		context_length: m.context_length,
@@ -227,7 +235,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		supportsAutoCredits: true,
 		creditsUrl: "https://openrouter.ai/api/v1/credits",
 		validationUrl: "https://openrouter.ai/api/v1/auth/key",
-		parseModels: parseOpenRouterModels,
+		parseModels: (raw) => parseOpenRouterModels(raw),
 		extraHeaders: {
 			"HTTP-Referer": "https://github.com/BingoWon/Keyaos",
 			"X-Title": "Keyaos",

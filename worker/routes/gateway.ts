@@ -61,23 +61,40 @@ function sanitizeMessages(
 	return changed ? { ...body, messages: cleaned } : body;
 }
 
-export interface CompletionRequest {
+type RequestMode = "chat" | "embedding";
+
+export interface GatewayRequest {
 	modelId: string;
 	body: Record<string, unknown>;
 	providerIds?: string[];
 }
 
-export interface CompletionResult {
+export interface GatewayResult {
 	response: Response;
 	requestId: string;
 	providerId: string;
 	credentialId: string;
 }
 
-export async function executeCompletion(
+export function executeCompletion(
 	c: Context<AppEnv>,
-	req: CompletionRequest,
-): Promise<CompletionResult> {
+	req: GatewayRequest,
+): Promise<GatewayResult> {
+	return execute(c, req, "chat");
+}
+
+export function executeEmbedding(
+	c: Context<AppEnv>,
+	req: GatewayRequest,
+): Promise<GatewayResult> {
+	return execute(c, req, "embedding");
+}
+
+async function execute(
+	c: Context<AppEnv>,
+	req: GatewayRequest,
+	mode: RequestMode,
+): Promise<GatewayResult> {
 	const consumerId = c.get("owner_id");
 	const apiKeyId = c.get("api_key_id");
 	const allowedModels = c.get("allowed_models");
@@ -111,7 +128,10 @@ export async function executeCompletion(
 	});
 	const credDao = new CredentialsDao(c.env.DB, encryptionKey);
 
-	rlog.info("gateway", "Dispatching", { candidates: candidates.length });
+	rlog.info("gateway", "Dispatching", {
+		candidates: candidates.length,
+		mode,
+	});
 
 	let lastError: unknown;
 
@@ -120,7 +140,8 @@ export async function executeCompletion(
 			candidates[attempt];
 		const isSub = provider.info.isSubscription ?? false;
 
-		// Circuit breaker: skip known-bad (provider, model) pairs
+		if (mode === "embedding" && !provider.forwardEmbedding) continue;
+
 		if (cb.isOpen(provider.info.id, modelId)) {
 			rlog.info("gateway", "Circuit breaker open, skipping", {
 				attempt,
@@ -129,24 +150,31 @@ export async function executeCompletion(
 			continue;
 		}
 
-		const upstreamBody = {
-			...sanitizeMessages(req.body),
-			model: upstreamModelId ?? modelId,
-			stream_options: req.body.stream ? { include_usage: true } : undefined,
-		};
+		const upstreamModel = upstreamModelId ?? modelId;
+		const upstreamBody =
+			mode === "chat"
+				? {
+						...sanitizeMessages(req.body),
+						model: upstreamModel,
+						stream_options: req.body.stream
+							? { include_usage: true }
+							: undefined,
+					}
+				: { ...req.body, model: upstreamModel };
 
 		try {
 			const secret = await credDao.decryptSecret(credential);
 			const t0 = Date.now();
-			const response = await provider.forwardRequest(secret, upstreamBody);
+			const response =
+				mode === "chat"
+					? await provider.forwardRequest(secret, upstreamBody)
+					: await provider.forwardEmbedding!(secret, upstreamBody);
 
 			if (!response.ok) {
 				await credDao.reportFailure(credential.id, response.status, isSub);
 				cb.recordFailure(provider.info.id, modelId);
 
-				// Capture error body for diagnostics (non-blocking read)
 				const errorBody = await response.text().catch(() => "");
-
 				rlog.warn("gateway", "Upstream error, retrying", {
 					attempt,
 					providerId: provider.info.id,
@@ -154,7 +182,6 @@ export async function executeCompletion(
 					detail: errorBody.slice(0, 200),
 				});
 
-				// Record failure log asynchronously
 				c.executionCtx.waitUntil(
 					recordFailureLog(c.env.DB, {
 						consumerId,

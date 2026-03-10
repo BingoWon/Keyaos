@@ -1,9 +1,10 @@
-import type { Modality } from "../../worker/core/db/schema";
+import type { Modality, ModelType } from "../../worker/core/db/schema";
 import type { ModelEntry } from "../types/model";
 import { mergeModalities } from "./modalities";
 
 export interface ModelGroup {
 	id: string;
+	type: ModelType;
 	displayName: string;
 	description: string | null;
 	providers: ProviderRow[];
@@ -30,6 +31,7 @@ export function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 		if (!group) {
 			group = {
 				id: e.id,
+				type: e.type ?? "chat",
 				displayName: e.name || e.id,
 				description: e.description ?? null,
 				providers: [],

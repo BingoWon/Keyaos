@@ -47,6 +47,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 			meta: Record<string, unknown> | null;
 			providers: string[];
 			name: string | null;
+			modelType: string;
 			contextLength: number | null;
 		}
 	>();
@@ -59,6 +60,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 				meta,
 				providers: [],
 				name: row.name,
+				modelType: row.model_type,
 				contextLength: row.context_length,
 			};
 			groups.set(row.model_id, g);
@@ -105,6 +107,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 
 		return {
 			id,
+			type: g.modelType,
 			name: (m?.name as string) ?? g.name ?? id,
 			created: (m?.created as number) ?? 0,
 			description: cleanDescription(m?.description),
@@ -142,6 +145,7 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 		const meta = m.metadata ? JSON.parse(m.metadata) : null;
 		return {
 			id: m.model_id,
+			type: m.model_type,
 			provider_id: m.provider_id,
 			name: m.name,
 			description: cleanDescription(meta?.description),

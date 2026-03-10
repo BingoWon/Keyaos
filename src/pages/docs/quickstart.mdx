@@ -45,6 +45,23 @@ message = client.messages.create(
 print(message.content[0].text)
 ```
 
+### Embeddings
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-keyaos-xxxxxxxx",
+    base_url="https://keyaos.com/v1",
+)
+
+response = client.embeddings.create(
+    model="qwen/qwen3-embedding-4b",
+    input="The quick brown fox jumps over the lazy dog",
+)
+print(f"Dimensions: {len(response.data[0].embedding)}")
+```
+
 ## 3. Explore
 
 - Browse available models on the [Models page](/models)

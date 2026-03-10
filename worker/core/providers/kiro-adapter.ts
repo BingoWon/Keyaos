@@ -261,6 +261,7 @@ export class KiroAdapter implements ProviderAdapter {
 			provider_id: "kiro",
 			model_id: m.id,
 			name: m.name,
+			model_type: "chat" as const,
 			input_price: m.input_usd,
 			output_price: m.output_usd,
 			context_length: m.context_length,

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import type { ModelType } from "../../worker/core/db/schema";
 import { CopyButton } from "../components/CopyButton";
 import { ModalityBadges } from "../components/Modalities";
 import {
@@ -32,6 +33,8 @@ import {
 	formatRelativeTime,
 } from "../utils/format";
 import { aggregateModels } from "../utils/models";
+
+type TypeTab = "all" | ModelType;
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -78,6 +81,19 @@ export function Models() {
 		}
 	}, [urlQ]);
 
+	// ─── Type tab ────────────────────────────────────────
+	const [typeTab, setTypeTab] = useState<TypeTab>("all");
+
+	const typeCounts = useMemo(() => {
+		let chat = 0;
+		let embedding = 0;
+		for (const g of groups) {
+			if (g.type === "embedding") embedding++;
+			else chat++;
+		}
+		return { chat, embedding, all: chat + embedding };
+	}, [groups]);
+
 	// ─── Filters ─────────────────────────────────────────
 	const [filters, setFilters] = useState<ModelFiltersState>(EMPTY_FILTERS);
 
@@ -91,15 +107,23 @@ export function Models() {
 	const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
 	// ─── Derived data ────────────────────────────────────
+	const typed = useMemo(
+		() =>
+			typeTab === "all"
+				? groups
+				: groups.filter((g) => g.type === typeTab),
+		[groups, typeTab],
+	);
+
 	const searched = useMemo(() => {
-		if (!query.trim()) return groups;
+		if (!query.trim()) return typed;
 		const q = query.toLowerCase();
-		return groups.filter(
+		return typed.filter(
 			(g) =>
 				g.id.toLowerCase().includes(q) ||
 				g.displayName.toLowerCase().includes(q),
 		);
-	}, [groups, query]);
+	}, [typed, query]);
 
 	const filtered = useMemo(
 		() =>
@@ -168,10 +192,43 @@ export function Models() {
 				</p>
 			) : (
 				<>
-					{/* Filter bar */}
-					<div className="mt-4">
+					{/* Type tabs + filters */}
+					<div className="mt-4 space-y-3">
+						{typeCounts.embedding > 0 && (
+							<div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 dark:border-white/10 dark:bg-white/5">
+								{(
+									[
+										["all", t("models.type_all"), typeCounts.all],
+										["chat", t("models.type_chat"), typeCounts.chat],
+										["embedding", t("models.type_embedding"), typeCounts.embedding],
+									] as const
+								).map(([key, label, count]) => (
+									<button
+										key={key}
+										type="button"
+										onClick={() => { setTypeTab(key); setPage(1); }}
+										className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
+											typeTab === key
+												? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
+												: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+										}`}
+									>
+										{label}
+										<span
+											className={`tabular-nums text-[10px] ${
+												typeTab === key
+													? "text-gray-300 dark:text-gray-600"
+													: "text-gray-400 dark:text-gray-500"
+											}`}
+										>
+											{count}
+										</span>
+									</button>
+								))}
+							</div>
+						)}
 						<ModelFilters
-							groups={groups}
+							groups={typed}
 							providerMap={providerMap}
 							filters={filters}
 							onChange={handleFiltersChange}
@@ -234,6 +291,11 @@ export function Models() {
 														>
 															<OrgLogo modelId={g.id} />
 															{g.displayName}
+															{g.type === "embedding" && (
+																<Badge variant="default">
+																	{t("models.type_embedding")}
+																</Badge>
+															)}
 														</Link>
 														<div className="hidden items-center gap-1.5 mt-0.5 sm:flex">
 															<code className="text-xs font-mono text-gray-500 dark:text-gray-400">

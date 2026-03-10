@@ -34,16 +34,19 @@ export interface DbCredential {
 
 export type Modality = "text" | "image" | "audio" | "video" | "file";
 
+export type ModelType = "chat" | "embedding";
+
 export interface DbModelPricing {
 	id: string;
 	provider_id: string;
 	model_id: string;
 	name: string | null;
+	model_type: ModelType;
 	input_price: number;
 	output_price: number;
 	context_length: number | null;
-	input_modalities: string | null; // JSON array or null if unknown
-	output_modalities: string | null; // JSON array or null if unknown
+	input_modalities: string | null;
+	output_modalities: string | null;
 	is_active: number;
 	sort_order: number;
 	upstream_model_id: string | null;

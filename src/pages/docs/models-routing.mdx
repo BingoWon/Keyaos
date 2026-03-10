@@ -16,7 +16,30 @@ Currently supported model families include:
 | DeepSeek | `deepseek/deepseek-chat`, `deepseek/deepseek-reasoner` |
 | Meta | `meta-llama/llama-4-maverick` |
 
+### Embedding Models
+
+Keyaos also provides embedding models through the OpenAI-compatible `/v1/embeddings` endpoint:
+
+| Family | Example Models |
+|--------|---------------|
+| Qwen | `qwen/qwen3-embedding-4b`, `qwen/qwen3-embedding-8b` |
+| OpenAI | `openai/text-embedding-3-small`, `openai/text-embedding-3-large` |
+| Google | `google/gemini-embedding-001` |
+| NVIDIA | `nvidia/llama-nemotron-embed-vl-1b-v2:free` |
+| BAAI | `baai/bge-large-en-v1.5`, `baai/bge-m3` |
+
+Embedding models are marked with the `embedding` type in the [Models page](/models) and can be filtered from the type tabs.
+
 > Model availability depends on your connected upstream credentials and their current health status.
+
+## Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/chat/completions` | POST | Chat completions (OpenAI-compatible) |
+| `/v1/embeddings` | POST | Text embeddings (OpenAI-compatible) |
+| `/v1/messages` | POST | Messages (Anthropic-compatible) |
+| `/v1/models` | GET | List available models |
 
 ## How Routing Works
 

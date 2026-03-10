@@ -47,6 +47,7 @@ function defaultParseModels(
 			provider_id: providerId,
 			model_id: m.id as string,
 			name: (m.name as string) || null,
+			model_type: "chat" as const,
 			input_price: 0,
 			output_price: 0,
 			context_length: (m.context_length as number) || null,
@@ -144,9 +145,10 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		}
 	}
 
-	async forwardRequest(
+	private async forward(
 		secret: string,
 		body: Record<string, unknown>,
+		endpoint: string,
 	): Promise<Response> {
 		const fwdBody =
 			this.config.stripModelPrefix && typeof body.model === "string"
@@ -154,7 +156,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 				: body;
 
 		const upstreamResponse = await fetch(
-			`${this.config.baseUrl}/chat/completions`,
+			`${this.config.baseUrl}/${endpoint}`,
 			{
 				method: "POST",
 				headers: {
@@ -183,5 +185,19 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			statusText: upstreamResponse.statusText,
 			headers,
 		});
+	}
+
+	async forwardRequest(
+		secret: string,
+		body: Record<string, unknown>,
+	): Promise<Response> {
+		return this.forward(secret, body, "chat/completions");
+	}
+
+	async forwardEmbedding(
+		secret: string,
+		body: Record<string, unknown>,
+	): Promise<Response> {
+		return this.forward(secret, body, "embeddings");
 	}
 }

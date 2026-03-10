@@ -253,7 +253,10 @@
 		"search_placeholder": "Search models…",
 		"result_count": "{{count}} of {{total}} models",
 		"total_count": "{{count}} models total",
-		"no_match": "No models matching \"{{query}}\""
+		"no_match": "No models matching \"{{query}}\"",
+		"type_all": "All",
+		"type_chat": "Chat",
+		"type_embedding": "Embedding"
 	},
 	"providers": {
 		"title": "Providers",
