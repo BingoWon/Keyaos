@@ -250,7 +250,7 @@ export default {
 				await candleDao.aggregate(Date.now() - 60_000);
 				await candleDao.generateQuotedCandles();
 				await sweepAutoTopUp(env.DB, env.STRIPE_SECRET_KEY);
-				await syncAllModels(env.DB, rate);
+				await syncAllModels(env.DB, rate, env);
 				await syncAutoCredits(env.DB, env.ENCRYPTION_KEY, rate);
 				await candleDao.pruneOldCandles();
 			})(),

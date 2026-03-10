@@ -294,6 +294,8 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("deepseek", deepseekModels),
+		systemKeyEnvVar: "DEEPSEEK_KEY",
+		mapModelId: (id) => `deepseek/${id}`,
 		credentialGuide: {
 			placeholder: "sk-...",
 			secretPattern: "^sk-[a-f0-9]+$",
@@ -310,6 +312,8 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		stripModelPrefix: true,
 		parseModels: () =>
 			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
+		systemKeyEnvVar: "GEMINI_KEY",
+		mapModelId: (id) => `google/${id.replace(/^models\//, "")}`,
 		credentialGuide: {
 			placeholder: "AIza...",
 			secretPattern: "^AIza[A-Za-z0-9_-]+$",
@@ -340,6 +344,8 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () => parseStaticUsdModels("openai", openaiModels),
+		systemKeyEnvVar: "OPENAI_KEY",
+		mapModelId: (id) => `openai/${id}`,
 		credentialGuide: {
 			placeholder: "sk-proj-...",
 			secretPattern: "^sk-(proj-)?[A-Za-z0-9_-]+$",

@@ -13,3 +13,11 @@ ENCRYPTION_KEY=
 # CLERK_SECRET_KEY=sk_test_xxxxx
 # STRIPE_SECRET_KEY=sk_test_xxxxx
 # STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+
+# ─── Provider System Keys (optional — enables dynamic model sync) ─────
+# When set, the sync service fetches live models from provider APIs
+# instead of relying on static JSON files.
+# DEEPSEEK_KEY=sk-xxxxx
+# OPENAI_KEY=sk-proj-xxxxx
+# GEMINI_KEY=AIzaxxxxx
+# ANTHROPIC_KEY=sk-ant-api03-xxxxx

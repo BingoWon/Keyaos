@@ -9,6 +9,7 @@
  */
 
 import { log } from "../../shared/logger";
+import type { Env } from "../../shared/types";
 import { CredentialsDao } from "../db/credentials-dao";
 import { PricingDao } from "../db/pricing-dao";
 import {
@@ -23,6 +24,7 @@ const OPENROUTER_EMBEDDINGS_URL =
 export async function syncAllModels(
 	db: D1Database,
 	cnyUsdRate = 7,
+	env?: Env,
 ): Promise<void> {
 	const dao = new PricingDao(db);
 	const allProviders = getAllProviders();
@@ -81,7 +83,10 @@ export async function syncAllModels(
 	);
 	const results = await Promise.allSettled(
 		otherProviders.map(async (provider) => {
-			const models = await provider.fetchModels(cnyUsdRate);
+			const systemKey = provider.systemKeyEnvVar && env
+				? (env as unknown as Record<string, string | undefined>)[provider.systemKeyEnvVar]
+				: undefined;
+			const models = await provider.fetchModels(cnyUsdRate, systemKey);
 			if (models.length === 0) {
 				log.warn("sync", "0 models, skipping", {
 					provider_id: provider.info.id,

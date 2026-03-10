@@ -9,6 +9,11 @@ export type Env = {
 	STRIPE_SECRET_KEY?: string;
 	STRIPE_WEBHOOK_SECRET?: string;
 	ASSETS?: Fetcher;
+	/** System-level API keys for dynamic model sync (provider /models endpoints) */
+	DEEPSEEK_KEY?: string;
+	OPENAI_KEY?: string;
+	GEMINI_KEY?: string;
+	ANTHROPIC_KEY?: string;
 };
 
 export type AppEnv = {

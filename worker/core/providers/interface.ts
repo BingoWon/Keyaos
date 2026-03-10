@@ -28,6 +28,9 @@ export type ParsedModel = Omit<DbModelPricing, "refreshed_at" | "is_active">;
 export interface ProviderAdapter {
 	info: ProviderInfo;
 
+	/** Env var name for the system-level API key used in dynamic model sync. */
+	systemKeyEnvVar?: string;
+
 	/** Normalize raw user input into the canonical secret for storage. Throws on invalid input. */
 	normalizeSecret?(raw: string): string;
 
@@ -45,5 +48,6 @@ export interface ProviderAdapter {
 		body: Record<string, unknown>,
 	): Promise<Response>;
 
-	fetchModels(cnyUsdRate?: number): Promise<ParsedModel[]>;
+	/** Fetch provider models. When systemKey is provided, prefer dynamic API fetch over static JSON. */
+	fetchModels(cnyUsdRate?: number, systemKey?: string): Promise<ParsedModel[]>;
 }

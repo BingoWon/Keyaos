@@ -151,7 +151,7 @@ admin.post("/remask", async (c) => {
 admin.post("/sync-models", async (c) => {
 	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
 	const start = Date.now();
-	await syncAllModels(c.env.DB, rate);
+	await syncAllModels(c.env.DB, rate, c.env);
 	await syncAutoCredits(c.env.DB, c.env.ENCRYPTION_KEY, rate);
 	await new CandleDao(c.env.DB).pruneOldCandles();
 	return c.json({ message: "Models synced", elapsed: Date.now() - start });

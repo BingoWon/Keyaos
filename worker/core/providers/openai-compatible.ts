@@ -32,6 +32,10 @@ export interface OpenAICompatibleConfig {
 	/** Subscription-based provider — no quota tracking, uses cooldown health recovery. */
 	isSubscription?: boolean;
 	credentialGuide?: CredentialGuide;
+	/** Env var name for system-level API key enabling dynamic model sync. */
+	systemKeyEnvVar?: string;
+	/** Map native API model ID to OpenRouter canonical model_id (e.g. `gpt-4` → `openai/gpt-4`). */
+	mapModelId?: (apiId: string) => string;
 }
 
 function defaultParseModels(
@@ -61,6 +65,7 @@ function defaultParseModels(
 
 export class OpenAICompatibleAdapter implements ProviderAdapter {
 	info: ProviderInfo;
+	systemKeyEnvVar?: string;
 
 	constructor(private config: OpenAICompatibleConfig) {
 		this.info = {
@@ -72,6 +77,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			isSubscription: config.isSubscription,
 			credentialGuide: config.credentialGuide,
 		};
+		this.systemKeyEnvVar = config.systemKeyEnvVar;
 	}
 
 	async validateKey(secret: string): Promise<boolean> {
@@ -125,7 +131,11 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		}
 	}
 
-	async fetchModels(cnyUsdRate = 7): Promise<ParsedModel[]> {
+	async fetchModels(cnyUsdRate = 7, systemKey?: string): Promise<ParsedModel[]> {
+		if (systemKey && this.config.mapModelId) {
+			return this.dynamicFetchModels(systemKey);
+		}
+
 		if (this.config.staticModels && this.config.parseModels) {
 			return this.config.parseModels({}, cnyUsdRate);
 		}
@@ -139,6 +149,51 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 				return this.config.parseModels(raw, cnyUsdRate);
 			}
 			return defaultParseModels(raw, this.config.id);
+		} catch {
+			return [];
+		}
+	}
+
+	private async dynamicFetchModels(
+		systemKey: string,
+	): Promise<ParsedModel[]> {
+		const mapId = this.config.mapModelId!;
+		const url = this.config.modelsUrl || `${this.config.baseUrl}/models`;
+		try {
+			const res = await fetch(url, {
+				headers: {
+					Authorization: `Bearer ${systemKey}`,
+					...this.config.extraHeaders,
+				},
+			});
+			if (!res.ok) return [];
+			const raw = (await res.json()) as Record<string, unknown>;
+			const data = raw.data as Record<string, unknown>[] | undefined;
+			if (!data) return [];
+
+			const now = Date.now();
+			return data
+				.filter((m) => m.id)
+				.map((m) => {
+					const apiId = m.id as string;
+					const canonicalId = mapId(apiId);
+					const stripped = canonicalId.replace(/^[^/]+\//, "");
+					return {
+						id: `${this.config.id}:${canonicalId}`,
+						provider_id: this.config.id,
+						model_id: canonicalId,
+						name: (m.name as string) || null,
+						model_type: "chat" as const,
+						input_price: -1,
+						output_price: -1,
+						context_length: (m.context_length as number) || null,
+						input_modalities: null,
+						output_modalities: null,
+						upstream_model_id: stripped !== apiId ? apiId : null,
+						metadata: null,
+						created: now,
+					};
+				});
 		} catch {
 			return [];
 		}

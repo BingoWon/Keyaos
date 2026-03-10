@@ -4,7 +4,7 @@
  * Non-OpenAI-compatible provider: requires protocol conversion.
  * Auth: X-Api-Key header + anthropic-version header.
  * Chat: POST /v1/messages (Anthropic Messages API).
- * Models: static JSON (API returns dated IDs, we map to OpenRouter canonical).
+ * Models: dynamic fetch with ID mapping (falls back to static JSON).
  */
 
 import anthropicModels from "../models/anthropic.json";
@@ -23,13 +23,20 @@ import type {
 const BASE_URL = "https://api.anthropic.com/v1";
 const ANTHROPIC_VERSION = "2023-06-01";
 
-interface ModelEntry {
+interface StaticModelEntry {
 	id: string;
 	name: string;
 	input_usd: number;
 	output_usd: number;
 	context_length: number;
 	upstream_model_id?: string;
+}
+
+/** Convert Anthropic native ID to OpenRouter canonical: strip date, `d-d` → `d.d`, add prefix. */
+function toCanonicalId(nativeId: string): string {
+	const stripped = nativeId.replace(/-\d{8}$/, "");
+	const dotted = stripped.replace(/(\d+)-(\d+)$/, "$1.$2");
+	return `anthropic/${dotted}`;
 }
 
 class AnthropicAdapter implements ProviderAdapter {
@@ -44,6 +51,8 @@ class AnthropicAdapter implements ProviderAdapter {
 			secretPattern: "^sk-ant-api\\d+-[A-Za-z0-9_-]+$",
 		},
 	};
+
+	systemKeyEnvVar = "ANTHROPIC_KEY";
 
 	async validateKey(secret: string): Promise<boolean> {
 		try {
@@ -110,8 +119,55 @@ class AnthropicAdapter implements ProviderAdapter {
 		});
 	}
 
-	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
-		return (anthropicModels as ModelEntry[]).map((m) => ({
+	async fetchModels(
+		_cnyUsdRate?: number,
+		systemKey?: string,
+	): Promise<ParsedModel[]> {
+		if (systemKey) return this.dynamicFetchModels(systemKey);
+		return this.staticFetchModels();
+	}
+
+	private async dynamicFetchModels(
+		systemKey: string,
+	): Promise<ParsedModel[]> {
+		try {
+			const res = await fetch(`${BASE_URL}/models?limit=100`, {
+				headers: {
+					"X-Api-Key": systemKey,
+					"anthropic-version": ANTHROPIC_VERSION,
+				},
+			});
+			if (!res.ok) return this.staticFetchModels();
+			const json = (await res.json()) as {
+				data: { id: string; display_name: string }[];
+			};
+
+			const now = Date.now();
+			return json.data.map((m) => {
+				const canonicalId = toCanonicalId(m.id);
+				return {
+					id: `anthropic:${canonicalId}`,
+					provider_id: "anthropic",
+					model_id: canonicalId,
+					name: m.display_name || null,
+					model_type: "chat" as const,
+					input_price: -1,
+					output_price: -1,
+					context_length: null,
+					input_modalities: null,
+					output_modalities: null,
+					upstream_model_id: m.id,
+					metadata: null,
+					created: now,
+				};
+			});
+		} catch {
+			return this.staticFetchModels();
+		}
+	}
+
+	private staticFetchModels(): ParsedModel[] {
+		return (anthropicModels as StaticModelEntry[]).map((m) => ({
 			id: `anthropic:${m.id}`,
 			provider_id: "anthropic",
 			model_id: m.id,
