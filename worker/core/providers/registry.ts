@@ -14,10 +14,11 @@ import openaiModels from "../models/openai.json";
 import qwenCodeModels from "../models/qwen-code.json";
 import { anthropicAdapter } from "./anthropic-adapter";
 import { antigravityAdapter, geminiCliAdapter } from "./google-oauth-adapter";
-import type {
-	ParsedModel,
-	ProviderAdapter,
-	ProviderCredits,
+import {
+	parseStaticModels,
+	type ParsedModel,
+	type ProviderAdapter,
+	type ProviderCredits,
 } from "./interface";
 import { kiroAdapter } from "./kiro-adapter";
 import {
@@ -148,37 +149,7 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 	return results;
 }
 
-// ─── Static parsers (read from models/*.json, no HTTP) ──────
-
-interface StaticModelEntry {
-	id: string;
-	name: string | null;
-	input_usd: number;
-	output_usd: number;
-	context_length: number | null;
-	upstream_model_id?: string;
-}
-
-function parseStaticUsdModels(
-	provider: string,
-	models: StaticModelEntry[],
-): ParsedModel[] {
-	return models.map((m) => ({
-		id: `${provider}:${m.id}`,
-		provider_id: provider,
-		model_id: m.id,
-		name: m.name,
-		model_type: "chat" as const,
-		input_price: m.input_usd,
-		output_price: m.output_usd,
-		context_length: m.context_length,
-		input_modalities: null,
-		output_modalities: null,
-		upstream_model_id: m.upstream_model_id ?? null,
-		metadata: null,
-		created: Date.now(),
-	}));
-}
+// ─── Credits parsers ────────────────────────────────────────
 
 /** DeepSeek /user/balance → { balance_infos: [{ total_balance }] } (CNY) */
 function parseDeepSeekCredits(
@@ -293,7 +264,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		parseCredits: parseDeepSeekCredits,
 		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticUsdModels("deepseek", deepseekModels),
+		parseModels: () => parseStaticModels("deepseek", deepseekModels),
 		systemKeyEnvVar: "DEEPSEEK_KEY",
 		mapModelId: (id) => `deepseek/${id}`,
 		credentialGuide: {
@@ -311,7 +282,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		staticModels: true,
 		stripModelPrefix: true,
 		parseModels: () =>
-			parseStaticUsdModels("google-ai-studio", googleAIStudioModels),
+			parseStaticModels("google-ai-studio", googleAIStudioModels),
 		systemKeyEnvVar: "GEMINI_KEY",
 		mapModelId: (id) => `google/${id.replace(/^models\//, "")}`,
 		credentialGuide: {
@@ -328,7 +299,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		supportsAutoCredits: false,
 		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticUsdModels("oaipro", oaiproModels),
+		parseModels: () => parseStaticModels("oaipro", oaiproModels),
 		credentialGuide: {
 			placeholder: "sk-...",
 			secretPattern: "^sk-[A-Za-z0-9]+$",
@@ -343,7 +314,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		supportsAutoCredits: false,
 		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticUsdModels("openai", openaiModels),
+		parseModels: () => parseStaticModels("openai", openaiModels),
 		systemKeyEnvVar: "OPENAI_KEY",
 		mapModelId: (id) => `openai/${id}`,
 		credentialGuide: {
@@ -361,7 +332,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		isSubscription: true,
 		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticUsdModels("qwen-code", qwenCodeModels),
+		parseModels: () => parseStaticModels("qwen-code", qwenCodeModels),
 		customValidateKey: validateViaChat(
 			"https://coding.dashscope.aliyuncs.com/v1/chat/completions",
 			"qwen3-coder-plus",
@@ -382,7 +353,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		parseCredits: parseMoonshotCredits,
 		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticUsdModels("moonshot", moonshotModels),
+		parseModels: () => parseStaticModels("moonshot", moonshotModels),
 		credentialGuide: {
 			placeholder: "sk-...",
 		},

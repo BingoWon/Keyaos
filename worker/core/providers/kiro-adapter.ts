@@ -12,11 +12,12 @@ import {
 	toKiroRequest,
 	toOpenAIResponse,
 } from "../protocols/kiro";
-import type {
-	ParsedModel,
-	ProviderAdapter,
-	ProviderCredits,
-	ProviderInfo,
+import {
+	parseStaticModels,
+	type ParsedModel,
+	type ProviderAdapter,
+	type ProviderCredits,
+	type ProviderInfo,
 } from "./interface";
 
 // ─── Constants ──────────────────────────────────────────
@@ -26,14 +27,6 @@ const KIRO_VERSION = "0.10.16";
 const API_URL = `https://q.${REGION}.amazonaws.com/generateAssistantResponse`;
 const REFRESH_URL = `https://prod.${REGION}.auth.desktop.kiro.dev/refreshToken`;
 const DEFAULT_CONTEXT = 200_000;
-
-interface ModelEntry {
-	id: string;
-	name: string;
-	input_usd: number;
-	output_usd: number;
-	context_length: number;
-}
 
 // ─── Token cache ────────────────────────────────────────
 
@@ -256,26 +249,12 @@ export class KiroAdapter implements ProviderAdapter {
 	}
 
 	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
-		return (kiroModels as ModelEntry[]).map((m) => ({
-			id: `kiro:${m.id}`,
-			provider_id: "kiro",
-			model_id: m.id,
-			name: m.name,
-			model_type: "chat" as const,
-			input_price: m.input_usd,
-			output_price: m.output_usd,
-			context_length: m.context_length,
-			input_modalities: null,
-			output_modalities: null,
-			upstream_model_id: null,
-			metadata: null,
-			created: Date.now(),
-		}));
+		return parseStaticModels("kiro", kiroModels);
 	}
 
 	private contextLengthFor(model: string): number {
 		const bare = model.replace(/^[^/]+\//, "");
-		const entry = (kiroModels as ModelEntry[]).find(
+		const entry = kiroModels.find(
 			(m) => m.id === model || m.id === bare || m.id.endsWith(`/${bare}`),
 		);
 		return entry?.context_length ?? DEFAULT_CONTEXT;

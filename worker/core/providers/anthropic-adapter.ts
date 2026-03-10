@@ -4,7 +4,7 @@
  * Non-OpenAI-compatible provider: requires protocol conversion.
  * Auth: X-Api-Key header + anthropic-version header.
  * Chat: POST /v1/messages (Anthropic Messages API).
- * Models: dynamic fetch with ID mapping (falls back to static JSON).
+ * Models: dynamic fetch via system key; static JSON when no key is configured.
  */
 
 import anthropicModels from "../models/anthropic.json";
@@ -13,24 +13,16 @@ import {
 	fromAnthropicNativeResponse,
 	toAnthropicNativeRequest,
 } from "../protocols/anthropic";
-import type {
-	ParsedModel,
-	ProviderAdapter,
-	ProviderCredits,
-	ProviderInfo,
+import {
+	parseStaticModels,
+	type ParsedModel,
+	type ProviderAdapter,
+	type ProviderCredits,
+	type ProviderInfo,
 } from "./interface";
 
 const BASE_URL = "https://api.anthropic.com/v1";
 const ANTHROPIC_VERSION = "2023-06-01";
-
-interface StaticModelEntry {
-	id: string;
-	name: string;
-	input_usd: number;
-	output_usd: number;
-	context_length: number;
-	upstream_model_id?: string;
-}
 
 /** Convert Anthropic native ID to OpenRouter canonical: strip date, `d-d` → `d.d`, add prefix. */
 function toCanonicalId(nativeId: string): string {
@@ -124,7 +116,7 @@ class AnthropicAdapter implements ProviderAdapter {
 		systemKey?: string,
 	): Promise<ParsedModel[]> {
 		if (systemKey) return this.dynamicFetchModels(systemKey);
-		return this.staticFetchModels();
+		return parseStaticModels("anthropic", anthropicModels);
 	}
 
 	private async dynamicFetchModels(
@@ -137,7 +129,7 @@ class AnthropicAdapter implements ProviderAdapter {
 					"anthropic-version": ANTHROPIC_VERSION,
 				},
 			});
-			if (!res.ok) return this.staticFetchModels();
+			if (!res.ok) return [];
 			const json = (await res.json()) as {
 				data: { id: string; display_name: string }[];
 			};
@@ -162,26 +154,8 @@ class AnthropicAdapter implements ProviderAdapter {
 				};
 			});
 		} catch {
-			return this.staticFetchModels();
+			return [];
 		}
-	}
-
-	private staticFetchModels(): ParsedModel[] {
-		return (anthropicModels as StaticModelEntry[]).map((m) => ({
-			id: `anthropic:${m.id}`,
-			provider_id: "anthropic",
-			model_id: m.id,
-			name: m.name,
-			model_type: "chat" as const,
-			input_price: m.input_usd,
-			output_price: m.output_usd,
-			context_length: m.context_length,
-			input_modalities: null,
-			output_modalities: null,
-			upstream_model_id: m.upstream_model_id ?? null,
-			metadata: null,
-			created: Date.now(),
-		}));
 	}
 }
 

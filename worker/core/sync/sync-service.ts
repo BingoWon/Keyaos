@@ -97,15 +97,20 @@ export async function syncAllModels(
 			const filtered = models.filter((m) =>
 				allowedModelIds.has(m.model_id),
 			);
+			if (filtered.length === 0) {
+				log.warn("sync", "0 models after OpenRouter filter, skipping", {
+					provider_id: provider.info.id,
+					total: models.length,
+				});
+				return;
+			}
 
 			for (const m of filtered) {
 				const canonical = canonicalMap.get(m.model_id);
 				if (!canonical) continue;
 
-				// Inherit the model's true creation time from the canonical catalog
 				m.created = canonical.created;
 
-				// Enrich models that lack upstream pricing (price == -1)
 				if (m.input_price < 0) {
 					m.input_price = canonical.input_price;
 					m.output_price = canonical.output_price;
@@ -117,9 +122,7 @@ export async function syncAllModels(
 				}
 			}
 
-			if (filtered.length > 0) {
-				await dao.upsertPricing(filtered);
-			}
+			await dao.upsertPricing(filtered);
 			await dao.deactivateMissing(
 				provider.info.id,
 				filtered.map((m) => m.id),

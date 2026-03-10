@@ -14,22 +14,16 @@ import {
 	toGeminiRequest,
 	toOpenAIResponse,
 } from "../protocols/gemini-native";
-import type {
-	ParsedModel,
-	ProviderAdapter,
-	ProviderCredits,
-	ProviderInfo,
+import {
+	parseStaticModels,
+	type ParsedModel,
+	type ProviderAdapter,
+	type ProviderCredits,
+	type ProviderInfo,
+	type StaticModelEntry,
 } from "./interface";
 
 // ─── Config ─────────────────────────────────────────────
-
-interface ModelEntry {
-	id: string;
-	name: string;
-	input_usd: number;
-	output_usd: number;
-	context_length: number;
-}
 
 export interface GoogleOAuthConfig {
 	id: string;
@@ -39,7 +33,7 @@ export interface GoogleOAuthConfig {
 	clientSecret: string;
 	baseUrls: string[];
 	userAgent?: string;
-	models: ModelEntry[];
+	models: StaticModelEntry[];
 	credentialHint: string;
 	credentialCommand?: string | string[];
 	extractRefreshToken?: (json: Record<string, unknown>) => string | undefined;
@@ -280,21 +274,7 @@ export class GoogleOAuthAdapter implements ProviderAdapter {
 	}
 
 	async fetchModels(_cnyUsdRate?: number): Promise<ParsedModel[]> {
-		return this.cfg.models.map((m) => ({
-			id: `${this.cfg.id}:${m.id}`,
-			provider_id: this.cfg.id,
-			model_id: m.id,
-			name: m.name,
-			model_type: "chat" as const,
-			input_price: m.input_usd,
-			output_price: m.output_usd,
-			context_length: m.context_length,
-			input_modalities: null,
-			output_modalities: null,
-			upstream_model_id: null,
-			metadata: null,
-			created: Date.now(),
-		}));
+		return parseStaticModels(this.cfg.id, this.cfg.models);
 	}
 }
 
