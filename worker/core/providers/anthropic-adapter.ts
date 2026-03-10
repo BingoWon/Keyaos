@@ -7,18 +7,16 @@
  * Models: dynamic fetch via system key; static JSON when no key is configured.
  */
 
-import anthropicModels from "../models/anthropic.json";
 import {
 	createAnthropicNativeToOpenAIStream,
 	fromAnthropicNativeResponse,
 	toAnthropicNativeRequest,
 } from "../protocols/anthropic";
-import {
-	parseStaticModels,
-	type ParsedModel,
-	type ProviderAdapter,
-	type ProviderCredits,
-	type ProviderInfo,
+import type {
+	ParsedModel,
+	ProviderAdapter,
+	ProviderCredits,
+	ProviderInfo,
 } from "./interface";
 
 const BASE_URL = "https://api.anthropic.com/v1";
@@ -116,7 +114,7 @@ class AnthropicAdapter implements ProviderAdapter {
 		systemKey?: string,
 	): Promise<ParsedModel[]> {
 		if (systemKey) return this.dynamicFetchModels(systemKey);
-		return parseStaticModels("anthropic", anthropicModels);
+		return [];
 	}
 
 	private async dynamicFetchModels(

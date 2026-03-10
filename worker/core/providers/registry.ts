@@ -6,11 +6,8 @@
  */
 
 import type { ModelType } from "../db/schema";
-import deepseekModels from "../models/deepseek.json";
-import googleAIStudioModels from "../models/google-ai-studio.json";
 import moonshotModels from "../models/moonshot.json";
 import oaiproModels from "../models/oaipro.json";
-import openaiModels from "../models/openai.json";
 import qwenCodeModels from "../models/qwen-code.json";
 import { anthropicAdapter } from "./anthropic-adapter";
 import { antigravityAdapter, geminiCliAdapter } from "./google-oauth-adapter";
@@ -262,9 +259,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		supportsAutoCredits: true,
 		creditsUrl: "https://api.deepseek.com/user/balance",
 		parseCredits: parseDeepSeekCredits,
-		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticModels("deepseek", deepseekModels),
 		systemKeyEnvVar: "DEEPSEEK_KEY",
 		mapModelId: (id) => `deepseek/${id}`,
 		credentialGuide: {
@@ -279,10 +274,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
 		currency: "USD",
 		supportsAutoCredits: false,
-		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () =>
-			parseStaticModels("google-ai-studio", googleAIStudioModels),
 		systemKeyEnvVar: "GEMINI_KEY",
 		mapModelId: (id) => `google/${id.replace(/^models\//, "")}`,
 		credentialGuide: {
@@ -312,9 +304,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		baseUrl: "https://api.openai.com/v1",
 		currency: "USD",
 		supportsAutoCredits: false,
-		staticModels: true,
 		stripModelPrefix: true,
-		parseModels: () => parseStaticModels("openai", openaiModels),
 		systemKeyEnvVar: "OPENAI_KEY",
 		mapModelId: (id) => `openai/${id}`,
 		credentialGuide: {
