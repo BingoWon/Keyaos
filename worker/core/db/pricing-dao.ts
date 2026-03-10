@@ -8,7 +8,7 @@ export class PricingDao {
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO model_pricing (id, provider_id, model_id, name, model_type, input_price, output_price, context_length, input_modalities, output_modalities, is_active, upstream_model_id, metadata, created_at, refreshed_at)
+			`INSERT INTO model_pricing (id, provider_id, model_id, name, model_type, input_price, output_price, context_length, input_modalities, output_modalities, is_active, upstream_model_id, metadata, created, refreshed_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   name = excluded.name,
@@ -21,7 +21,7 @@ export class PricingDao {
 			   is_active = 1,
 			   upstream_model_id = excluded.upstream_model_id,
 			   metadata = excluded.metadata,
-			   created_at = excluded.created_at,
+			   created = excluded.created,
 			   refreshed_at = excluded.refreshed_at`,
 		);
 
@@ -39,7 +39,7 @@ export class PricingDao {
 				m.output_modalities,
 				m.upstream_model_id,
 				m.metadata,
-				m.created_at,
+				m.created,
 				now,
 			),
 		);
@@ -101,7 +101,7 @@ export class PricingDao {
 				   AND c.health_status NOT IN ('dead')
 				 WHERE mp.is_active = 1
 				 GROUP BY mp.id
-				 ORDER BY mp.created_at DESC,
+				 ORDER BY mp.created DESC,
 				   CASE WHEN mp.metadata IS NOT NULL THEN 0 ELSE 1 END,
 				   mp.input_price ASC`,
 			)

@@ -2,10 +2,10 @@
  * Model & Credential Sync Service
  *
  * Three-phase OpenRouter-first sync:
- * Phase 1 — Sync OpenRouter chat models (canonical catalog, authoritative created_at).
+ * Phase 1 — Sync OpenRouter chat models (canonical catalog, authoritative `created`).
  * Phase 2 — Sync OpenRouter embedding models (separate endpoint).
  * Phase 3 — Sync remaining providers in parallel, filtered to OpenRouter allowlist.
- *           Inherits canonical created_at so all providers share the model's true creation time.
+ *           Inherits canonical `created` so all providers share the model's true creation time.
  */
 
 import { log } from "../../shared/logger";
@@ -98,7 +98,7 @@ export async function syncAllModels(
 				if (!canonical) continue;
 
 				// Inherit the model's true creation time from the canonical catalog
-				m.created_at = canonical.created_at;
+				m.created = canonical.created;
 
 				// Enrich models that lack upstream pricing (price == -1)
 				if (m.input_price < 0) {

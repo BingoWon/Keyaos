@@ -33,9 +33,9 @@ DeepInfra API 返回 HuggingFace 风格的大写 model_id（如 `Qwen/Qwen3-Max`
 
 ### 2. 使用 OpenRouter 的 `created` 时间戳排序
 
-OpenRouter API 返回的模型数组顺序与 `created` 时间戳的降序完全一致（经验证 100% 吻合）。系统使用 `model_pricing.created_at`（毫秒时间戳）存储每个模型的真实创建时间，所有模型列表查询 `ORDER BY created_at DESC`，即最新模型排在最前。
+OpenRouter API 返回的模型数组顺序与 `created` 时间戳的降序完全一致（经验证 100% 吻合）。系统使用 `model_pricing.created`（毫秒时间戳）存储每个模型的真实创建时间，所有模型列表查询 `ORDER BY created DESC`，即最新模型排在最前。列名为 `created` 而非 `created_at`，以区分于行生命周期时间戳（如 `refreshed_at`），并与 OpenRouter/OpenAI API 的 `created` 字段名对齐。
 
-非 OpenRouter 供应商在同步 Phase 3 中继承同一模型的 OpenRouter canonical `created_at`，确保同一模型的所有 provider 行共享相同的创建时间。SQL 通过 `CASE WHEN metadata IS NOT NULL THEN 0 ELSE 1 END` 作为次级排序，保证 OpenRouter 的富元数据行优先于无元数据的其他供应商行。
+非 OpenRouter 供应商在同步 Phase 3 中继承同一模型的 OpenRouter canonical `created`，确保同一模型的所有 provider 行共享相同的创建时间。SQL 通过 `CASE WHEN metadata IS NOT NULL THEN 0 ELSE 1 END` 作为次级排序，保证 OpenRouter 的富元数据行优先于无元数据的其他供应商行。
 
 ### 3. DeepInfra model_id 归一化与转发
 
@@ -47,7 +47,7 @@ OpenRouter API 返回的模型数组顺序与 `created` 时间戳的降序完全
 
 ```
 Phase 1: 同步 OpenRouter chat 模型（canonical catalog）
-         ├─ 写入 DB，携带真实 created_at
+         ├─ 写入 DB，携带真实 created
          └─ 构建 allowedModelIds Set
 
 Phase 2: 同步 OpenRouter embedding 模型（/api/v1/embeddings/models）
@@ -57,7 +57,7 @@ Phase 2: 同步 OpenRouter embedding 模型（/api/v1/embeddings/models）
 Phase 3: 并行同步其他供应商
          ├─ 获取模型列表
          ├─ 过滤：models.filter(m => allowedModelIds.has(m.model_id))
-         ├─ 继承 canonical created_at（排序）+ 补全缺失定价/元数据
+         ├─ 继承 canonical created（排序）+ 补全缺失定价/元数据
          ├─ 仅写入过滤后的模型
          └─ deactivateMissing 清理不在过滤结果中的旧记录
 ```
@@ -78,13 +78,13 @@ Phase 3: 并行同步其他供应商
 - 前端模型数量会下降，但这些模型的质量和排序更可靠
 - 未来新增供应商时，其模型自动过滤到 OpenRouter 白名单，无需额外配置
 - 如果 OpenRouter 下架了某个模型，下次同步时该模型会从所有供应商的记录中被 deactivate
-- `created_at` 在每次同步中从 OpenRouter 的 `created` 字段更新，反映模型的真实创建时间
+- `created` 在每次同步中从 OpenRouter 的 `created` 字段更新，反映模型的真实创建时间
 
 ## 相关文件
 
 - `worker/core/sync/sync-service.ts` — 三阶段同步实现（chat + embedding + 其他供应商）
 - `worker/core/providers/registry.ts` — OpenRouter 解析 + DeepInfra 大小写归一化 + `upstream_model_id`
-- `worker/core/db/pricing-dao.ts` — UPSERT 与 `ORDER BY created_at DESC` 查询
+- `worker/core/db/pricing-dao.ts` — UPSERT 与 `ORDER BY created DESC` 查询
 - `worker/core/dispatcher.ts` — 调度结果返回 `upstreamModelId`
 - `worker/routes/gateway.ts` — 转发使用 `upstreamModelId ?? modelId`
-- `migrations/0001_initial.sql` — `created_at` / `upstream_model_id` 列定义
+- `migrations/0001_initial.sql` — `created` / `upstream_model_id` 列定义

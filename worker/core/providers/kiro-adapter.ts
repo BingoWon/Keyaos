@@ -269,7 +269,7 @@ export class KiroAdapter implements ProviderAdapter {
 			output_modalities: null,
 			upstream_model_id: null,
 			metadata: null,
-			created_at: Date.now(),
+			created: Date.now(),
 		}));
 	}
 

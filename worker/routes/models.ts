@@ -40,7 +40,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 	// USD-per-M-tokens → USD-per-token string (OpenRouter format)
 	const toUsdPerToken = (usdPerM: number) => String(usdPerM / 1_000_000);
 
-	// Group by model_id (Map preserves insertion order = created_at DESC)
+	// Group by model_id (Map preserves insertion order = created DESC)
 	const groups = new Map<
 		string,
 		{
@@ -162,7 +162,7 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 					platform_output_price: m.output_price * mul,
 				}),
 			context_length: m.context_length,
-			created_at: m.created_at || null,
+			created: m.created || null,
 			input_modalities: m.input_modalities
 				? JSON.parse(m.input_modalities)
 				: null,

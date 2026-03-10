@@ -58,13 +58,13 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     is_active INTEGER NOT NULL,
     upstream_model_id TEXT,
     metadata TEXT,
-    created_at INTEGER NOT NULL,
+    created INTEGER NOT NULL,
     refreshed_at INTEGER NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_model ON model_pricing(provider_id, model_id);
 CREATE INDEX IF NOT EXISTS idx_model_pricing_routing ON model_pricing(model_id, is_active, input_price);
-CREATE INDEX IF NOT EXISTS idx_model_pricing_created ON model_pricing(is_active, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_model_pricing_created ON model_pricing(is_active, created DESC);
 
 -- 4. API request logs (two-sided: consumer + credential owner)
 CREATE TABLE IF NOT EXISTS logs (

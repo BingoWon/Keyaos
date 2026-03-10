@@ -50,7 +50,7 @@ export interface DbModelPricing {
 	is_active: number;
 	upstream_model_id: string | null;
 	metadata: string | null;
-	created_at: number;
+	created: number;
 	refreshed_at: number;
 }
 

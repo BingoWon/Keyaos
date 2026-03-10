@@ -57,8 +57,8 @@ export function aggregateModels(entries: ModelEntry[]): ModelGroup[] {
 				}
 			}
 		}
-		if (e.created_at && (!group.createdAt || e.created_at < group.createdAt)) {
-			group.createdAt = e.created_at;
+		if (e.created && (!group.createdAt || e.created < group.createdAt)) {
+			group.createdAt = e.created;
 		}
 		group.providers.push({
 			provider_id: e.provider_id,
