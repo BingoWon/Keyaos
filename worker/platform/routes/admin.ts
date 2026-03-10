@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { CandleDao } from "../../core/db/candle-dao";
-import { syncAllModels, syncAutoCredits } from "../../core/sync/sync-service";
+import {
+	syncAllModels,
+	syncAutoCredits,
+	syncFromRemote,
+} from "../../core/sync/sync-service";
 import { briefHint, decrypt, mask } from "../../shared/crypto";
 import { BadRequestError } from "../../shared/errors";
 import type { AppEnv } from "../../shared/types";
@@ -151,7 +155,13 @@ admin.post("/remask", async (c) => {
 admin.post("/sync-models", async (c) => {
 	const rate = Number.parseFloat(c.env.CNY_USD_RATE || "7");
 	const start = Date.now();
-	await syncAllModels(c.env.DB, rate, c.env);
+
+	if (c.env.LOCAL_SYNC) {
+		await syncAllModels(c.env.DB, rate, c.env);
+	} else {
+		await syncFromRemote(c.env.DB);
+	}
+
 	await syncAutoCredits(c.env.DB, c.env.ENCRYPTION_KEY, rate);
 	await new CandleDao(c.env.DB).pruneOldCandles();
 	return c.json({ message: "Models synced", elapsed: Date.now() - start });

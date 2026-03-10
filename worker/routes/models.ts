@@ -10,7 +10,7 @@ import type { AppEnv } from "../shared/types";
  */
 export const catalogRouter = new Hono<AppEnv>();
 
-catalogRouter.get("/", edgeCache(60), async (c) => {
+catalogRouter.get("/", edgeCache(30), async (c) => {
 	const dao = new CatalogDao(c.env.DB);
 	const rows = await dao.getAllActive();
 	return c.json({
