@@ -227,6 +227,10 @@
 			"moonshot": [
 				"前往 https://platform.moonshot.cn/console/api-keys",
 				"创建新的 API 密钥并复制"
+			],
+			"anthropic": [
+				"前往 https://console.anthropic.com/settings/keys",
+				"创建新的 API 密钥并复制"
 			]
 		}
 	},

@@ -1,11 +1,16 @@
 /**
  * Anthropic Protocol Converter (Anthropic Messages ↔ OpenAI Chat Completions)
  *
- * Enables Anthropic SDK users to call Keyaos by converting between formats.
- * Covers: text, tool use, images, and streaming (both directions).
+ * Two-way conversion:
+ * 1. Inbound (messages.ts): Anthropic SDK users → OpenAI internal format
+ * 2. Outbound (anthropic-adapter.ts): OpenAI internal format → Anthropic native API
  */
 
 import { extractText } from "./shared";
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INBOUND: Anthropic SDK users calling Keyaos
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // ─── Request: Anthropic → OpenAI ────────────────────────
 
@@ -392,6 +397,339 @@ export function createOpenAIToAnthropicStream(
 					finalize(ctrl, "end_turn");
 				}
 			}
+		},
+	});
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// OUTBOUND: Keyaos forwarding to Anthropic native API
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ─── Request: OpenAI → Anthropic Native ─────────────────
+
+export function toAnthropicNativeRequest(
+	body: Record<string, unknown>,
+): Record<string, unknown> {
+	const messages = body.messages as { role: string; content: unknown }[];
+
+	let system: string | undefined;
+	const nativeMsgs: Record<string, unknown>[] = [];
+
+	for (const msg of messages) {
+		if (msg.role === "system") {
+			system = extractText(msg.content);
+			continue;
+		}
+
+		if (msg.role === "tool") {
+			nativeMsgs.push({
+				role: "user",
+				content: [
+					{
+						type: "tool_result",
+						tool_use_id: (msg as Record<string, unknown>).tool_call_id,
+						content: extractText(msg.content),
+					},
+				],
+			});
+			continue;
+		}
+
+		if (msg.role === "assistant") {
+			if (typeof msg.content === "string") {
+				const m = msg as Record<string, unknown>;
+				if (m.tool_calls) {
+					const content: Record<string, unknown>[] = [];
+					if (msg.content) content.push({ type: "text", text: msg.content });
+					for (const tc of m.tool_calls as Record<string, unknown>[]) {
+						const fn = tc.function as Record<string, unknown>;
+						let input: unknown;
+						try {
+							input = JSON.parse(fn.arguments as string);
+						} catch {
+							input = {};
+						}
+						content.push({ type: "tool_use", id: tc.id, name: fn.name, input });
+					}
+					nativeMsgs.push({ role: "assistant", content });
+				} else {
+					nativeMsgs.push({ role: "assistant", content: msg.content });
+				}
+			} else {
+				nativeMsgs.push({ role: msg.role, content: msg.content });
+			}
+			continue;
+		}
+
+		// user role — convert image_url blocks
+		if (typeof msg.content === "string") {
+			nativeMsgs.push({ role: "user", content: msg.content });
+		} else {
+			const blocks = msg.content as Record<string, unknown>[];
+			const content: Record<string, unknown>[] = [];
+			for (const b of blocks) {
+				if (b.type === "text") {
+					content.push({ type: "text", text: b.text });
+				} else if (b.type === "image_url") {
+					const url = (b.image_url as { url: string }).url;
+					const m = url.match(/^data:(image\/\w+);base64,(.+)/);
+					if (m) {
+						content.push({
+							type: "image",
+							source: { type: "base64", media_type: m[1], data: m[2] },
+						});
+					}
+				}
+			}
+			nativeMsgs.push({ role: "user", content });
+		}
+	}
+
+	const result: Record<string, unknown> = {
+		model: body.model,
+		messages: nativeMsgs,
+		max_tokens: body.max_tokens ?? body.max_completion_tokens ?? 4096,
+	};
+
+	if (system) result.system = system;
+	if (body.temperature != null) result.temperature = body.temperature;
+	if (body.top_p != null) result.top_p = body.top_p;
+	if (body.stop) result.stop_sequences = body.stop;
+	if (body.stream === true) result.stream = true;
+
+	const tools = body.tools as Record<string, unknown>[] | undefined;
+	if (tools?.length) {
+		result.tools = tools.map((t) => {
+			const fn = (t.function ?? t) as Record<string, unknown>;
+			return {
+				name: fn.name,
+				description: fn.description,
+				input_schema: fn.parameters ?? fn.input_schema,
+			};
+		});
+	}
+
+	const tc = body.tool_choice;
+	if (tc === "auto") result.tool_choice = { type: "auto" };
+	else if (tc === "required") result.tool_choice = { type: "any" };
+	else if (tc && typeof tc === "object") {
+		const fn = (tc as Record<string, unknown>).function as
+			| Record<string, unknown>
+			| undefined;
+		if (fn?.name) result.tool_choice = { type: "tool", name: fn.name };
+	}
+
+	return result;
+}
+
+// ─── Response: Anthropic Native → OpenAI ────────────────
+
+function mapFinishReason(reason: string | null): string {
+	switch (reason) {
+		case "end_turn":
+			return "stop";
+		case "max_tokens":
+			return "length";
+		case "tool_use":
+			return "tool_calls";
+		case "stop_sequence":
+			return "stop";
+		default:
+			return "stop";
+	}
+}
+
+export function fromAnthropicNativeResponse(
+	resp: Record<string, unknown>,
+): Record<string, unknown> {
+	const content = resp.content as Record<string, unknown>[] | undefined;
+	const usage = resp.usage as Record<string, number> | undefined;
+
+	let text = "";
+	const toolCalls: Record<string, unknown>[] = [];
+
+	for (const block of content ?? []) {
+		if (block.type === "text") text += block.text;
+		else if (block.type === "tool_use") {
+			toolCalls.push({
+				id: block.id,
+				type: "function",
+				function: {
+					name: block.name,
+					arguments: JSON.stringify(block.input),
+				},
+			});
+		}
+	}
+
+	const message: Record<string, unknown> = { role: "assistant", content: text };
+	if (toolCalls.length) message.tool_calls = toolCalls;
+
+	return {
+		id: `chatcmpl-${(resp.id as string)?.replace("msg_", "") ?? crypto.randomUUID().slice(0, 12)}`,
+		object: "chat.completion",
+		created: Math.floor(Date.now() / 1000),
+		model: resp.model,
+		choices: [
+			{
+				index: 0,
+				message,
+				finish_reason: mapFinishReason(resp.stop_reason as string | null),
+			},
+		],
+		usage: {
+			prompt_tokens: usage?.input_tokens ?? 0,
+			completion_tokens: usage?.output_tokens ?? 0,
+			total_tokens: (usage?.input_tokens ?? 0) + (usage?.output_tokens ?? 0),
+		},
+	};
+}
+
+// ─── Streaming: Anthropic Native SSE → OpenAI SSE ───────
+
+export function createAnthropicNativeToOpenAIStream(
+	model: string,
+): TransformStream<Uint8Array, Uint8Array> {
+	const encoder = new TextEncoder();
+	const decoder = new TextDecoder();
+	const chatId = `chatcmpl-${crypto.randomUUID().slice(0, 12)}`;
+	const created = Math.floor(Date.now() / 1000);
+
+	let buffer = "";
+	let isFirst = true;
+	let inputTokens = 0;
+	let outputTokens = 0;
+
+	function emitChunk(
+		ctrl: TransformStreamDefaultController<Uint8Array>,
+		delta: Record<string, unknown>,
+		finishReason: string | null,
+		usage?: Record<string, unknown>,
+	) {
+		const chunk: Record<string, unknown> = {
+			id: chatId,
+			object: "chat.completion.chunk",
+			created,
+			model,
+			choices: [{ index: 0, delta, finish_reason: finishReason }],
+		};
+		if (usage) chunk.usage = usage;
+		ctrl.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+	}
+
+	return new TransformStream({
+		transform(chunk, ctrl) {
+			buffer += decoder.decode(chunk, { stream: true }).replace(/\r\n/g, "\n");
+
+			while (true) {
+				const end = buffer.indexOf("\n\n");
+				if (end === -1) break;
+
+				const frame = buffer.slice(0, end);
+				buffer = buffer.slice(end + 2);
+
+				let eventType: string | null = null;
+				let dataStr: string | null = null;
+				for (const line of frame.split("\n")) {
+					if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+					else if (line.startsWith("data: ")) dataStr = line.slice(6);
+				}
+				if (!eventType || !dataStr) continue;
+
+				let data: Record<string, unknown>;
+				try {
+					data = JSON.parse(dataStr);
+				} catch {
+					continue;
+				}
+
+				switch (eventType) {
+					case "message_start": {
+						const msg = data.message as Record<string, unknown> | undefined;
+						const u = msg?.usage as Record<string, number> | undefined;
+						if (u) inputTokens = u.input_tokens ?? 0;
+						if (isFirst) {
+							emitChunk(ctrl, { role: "assistant", content: "" }, null);
+							isFirst = false;
+						}
+						break;
+					}
+					case "content_block_delta": {
+						const delta = data.delta as Record<string, unknown> | undefined;
+						if (delta?.type === "text_delta" && delta.text) {
+							emitChunk(ctrl, { content: delta.text }, null);
+						} else if (
+							delta?.type === "thinking_delta" &&
+							delta.thinking
+						) {
+							emitChunk(
+								ctrl,
+								{ reasoning_content: delta.thinking },
+								null,
+							);
+						} else if (
+							delta?.type === "input_json_delta" &&
+							delta.partial_json
+						) {
+							emitChunk(
+								ctrl,
+								{
+									tool_calls: [
+										{
+											index: data.index ?? 0,
+											function: { arguments: delta.partial_json },
+										},
+									],
+								},
+								null,
+							);
+						}
+						break;
+					}
+					case "content_block_start": {
+						const block = data.content_block as
+							| Record<string, unknown>
+							| undefined;
+						if (block?.type === "tool_use") {
+							emitChunk(
+								ctrl,
+								{
+									tool_calls: [
+										{
+											index: data.index ?? 0,
+											id: block.id,
+											type: "function",
+											function: {
+												name: block.name,
+												arguments: "",
+											},
+										},
+									],
+								},
+								null,
+							);
+						}
+						break;
+					}
+					case "message_delta": {
+						const u = data.usage as Record<string, number> | undefined;
+						if (u) outputTokens = u.output_tokens ?? outputTokens;
+						const d = data.delta as Record<string, unknown> | undefined;
+						const reason = mapFinishReason(
+							(d?.stop_reason as string) ?? null,
+						);
+						emitChunk(ctrl, {}, reason, {
+							prompt_tokens: inputTokens,
+							completion_tokens: outputTokens,
+							total_tokens: inputTokens + outputTokens,
+						});
+						break;
+					}
+				}
+			}
+		},
+		flush(ctrl) {
+			ctrl.enqueue(encoder.encode("data: [DONE]\n\n"));
 		},
 	});
 }

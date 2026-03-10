@@ -230,6 +230,10 @@
 			"moonshot": [
 				"Go to https://platform.moonshot.cn/console/api-keys",
 				"Create a new API key and copy it"
+			],
+			"anthropic": [
+				"Go to https://console.anthropic.com/settings/keys",
+				"Create a new API key and copy it"
 			]
 		}
 	},

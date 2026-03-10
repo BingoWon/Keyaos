@@ -12,6 +12,7 @@ import moonshotModels from "../models/moonshot.json";
 import oaiproModels from "../models/oaipro.json";
 import openaiModels from "../models/openai.json";
 import qwenCodeModels from "../models/qwen-code.json";
+import { anthropicAdapter } from "./anthropic-adapter";
 import { antigravityAdapter, geminiCliAdapter } from "./google-oauth-adapter";
 import type {
 	ParsedModel,
@@ -389,6 +390,7 @@ for (const config of PROVIDER_CONFIGS) {
 	adapters.set(config.id, new OpenAICompatibleAdapter(config));
 }
 
+adapters.set("anthropic", anthropicAdapter);
 adapters.set("gemini-cli", geminiCliAdapter);
 adapters.set("antigravity", antigravityAdapter);
 adapters.set("kiro", kiroAdapter);
