@@ -296,11 +296,6 @@ export function Models() {
 														>
 															<OrgLogo modelId={g.id} />
 															{g.displayName}
-															{g.type === "embedding" && (
-																<Badge variant="default">
-																	{t("models.type_embedding")}
-																</Badge>
-															)}
 														</Link>
 														<div className="hidden items-center gap-1.5 mt-0.5 sm:flex">
 															<code className="text-xs font-mono text-gray-500 dark:text-gray-400">

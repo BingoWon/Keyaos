@@ -10,7 +10,7 @@ import { ApiKeyPicker } from "./ApiKeyPicker";
 
 /* ── Types ──────────────────────────────────────────── */
 
-export type CodeVariant = "standard" | "reasoning" | "image";
+export type CodeVariant = "standard" | "reasoning" | "image" | "embedding";
 
 interface CodeTab {
 	label: string;
@@ -22,7 +22,10 @@ interface CodeTab {
 export function detectCodeVariant(
 	outputModalities: Modality[],
 	supportedParams: string[],
+	modelType?: string,
 ): CodeVariant {
+	if (modelType === "embedding" || outputModalities.includes("embeddings"))
+		return "embedding";
 	if (outputModalities.includes("image")) return "image";
 	if (
 		supportedParams.includes("include_reasoning") ||
@@ -342,6 +345,98 @@ console.log(response.choices[0].message.content);`,
 	];
 }
 
+/* ·· Embedding ······································· */
+
+function embeddingTabs(m: string): CodeTab[] {
+	return [
+		{
+			label: "openai-python",
+			code: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="${API}",
+    api_key="YOUR_API_KEY",
+)
+
+embedding = client.embeddings.create(
+    model="${m}",
+    input="Your text string goes here",
+    # input=["text1", "text2", "text3"]  # batch embeddings also supported
+    encoding_format="float",
+)
+print(embedding.data[0].embedding)`,
+		},
+		{
+			label: "python",
+			code: `import requests
+
+response = requests.post(
+    "${API}/embeddings",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "${m}",
+        "input": "Your text string goes here",
+        # "input": ["text1", "text2", "text3"],  # batch embeddings also supported
+        "encoding_format": "float",
+    },
+)
+print(response.json()["data"][0]["embedding"])`,
+		},
+		{
+			label: "typescript",
+			code: `const res = await fetch("${API}/embeddings", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "${m}",
+    input: "Your text string goes here",
+    // input: ["text1", "text2", "text3"], // batch embeddings also supported
+    encoding_format: "float",
+  }),
+});
+
+const data = await res.json();
+console.log(data.data[0].embedding);`,
+		},
+		{
+			label: "openai-typescript",
+			code: `import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "${API}",
+  apiKey: "YOUR_API_KEY",
+});
+
+const embedding = await client.embeddings.create({
+  model: "${m}",
+  input: "Your text string goes here",
+  // input: ["text1", "text2", "text3"], // batch embeddings also supported
+  encoding_format: "float",
+});
+
+console.log(embedding.data[0].embedding);`,
+		},
+		{
+			label: "curl",
+			code: `# "input" also supports batch processing: ["text1", "text2", "text3"]
+curl ${API}/embeddings \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $KEYAOS_API_KEY" \\
+  -d '{
+    "model": "${m}",
+    "input": "Your text string goes here",
+    "encoding_format": "float"
+  }'`,
+		},
+	];
+}
+
 /* ── Snippet dispatcher ─────────────────────────────── */
 
 function getSnippets(modelId: string, variant: CodeVariant): CodeTab[] {
@@ -350,6 +445,8 @@ function getSnippets(modelId: string, variant: CodeVariant): CodeTab[] {
 			return reasoningTabs(modelId);
 		case "image":
 			return imageTabs(modelId);
+		case "embedding":
+			return embeddingTabs(modelId);
 		default:
 			return standardTabs(modelId);
 	}
@@ -364,6 +461,8 @@ const INTRO: Record<CodeVariant, string> = {
 		"This model supports chain-of-thought reasoning. Enable the reasoning parameter to access the model's step-by-step thinking process alongside the final answer.",
 	image:
 		'This model supports image generation. Set modalities to ["image", "text"] to receive generated images as base64 data URLs in the response.',
+	embedding:
+		"Keyaos provides an OpenAI-compatible embeddings API. Pass a single string or an array of strings to get vector representations. Supports batch processing for multiple inputs in one request.",
 };
 
 /* ── API key placeholder replacement ────────────────── */

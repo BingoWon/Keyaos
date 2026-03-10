@@ -100,6 +100,7 @@ export function ModelDetail() {
 	const codeVariant = detectCodeVariant(
 		group.outputModalities,
 		group.supportedParameters,
+		group.type,
 	);
 
 	return (
@@ -118,6 +119,9 @@ export function ModelDetail() {
 					<h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
 						<OrgLogo modelId={group.id} size={24} />
 						{group.displayName}
+						{group.type === "embedding" && (
+							<Badge variant="brand">Embedding</Badge>
+						)}
 					</h1>
 					<div className="mt-1.5 flex items-center gap-2">
 						<code className="text-sm font-mono text-gray-500 dark:text-gray-400">
@@ -155,6 +159,7 @@ export function ModelDetail() {
 						/>
 					</div>
 				</div>
+				{group.type !== "embedding" && (
 				<Link
 					to={`/chat?model=${encodeURIComponent(group.id)}`}
 					className={buttonClass("primary", "lg", "shrink-0")}
@@ -162,6 +167,7 @@ export function ModelDetail() {
 					<ChatBubbleLeftRightIcon className="size-5" />
 					Chat
 				</Link>
+			)}
 			</div>
 
 			{/* Collapsible Description */}
