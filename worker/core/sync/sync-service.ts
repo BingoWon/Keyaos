@@ -2,9 +2,10 @@
  * Model & Credential Sync Service
  *
  * Three-phase OpenRouter-first sync:
- * Phase 1 — Sync OpenRouter chat models (canonical catalog, sets sort_order).
+ * Phase 1 — Sync OpenRouter chat models (canonical catalog, authoritative created_at).
  * Phase 2 — Sync OpenRouter embedding models (separate endpoint).
  * Phase 3 — Sync remaining providers in parallel, filtered to OpenRouter allowlist.
+ *           Inherits canonical created_at so all providers share the model's true creation time.
  */
 
 import { log } from "../../shared/logger";
@@ -88,16 +89,19 @@ export async function syncAllModels(
 				return;
 			}
 
-			const filtered = models.filter((m) =>
-				allowedModelIds.has(m.model_id),
-			);
+		const filtered = models.filter((m) =>
+			allowedModelIds.has(m.model_id),
+		);
+
+		for (const m of filtered) {
+			const canonical = canonicalMap.get(m.model_id);
+			if (!canonical) continue;
+
+			// Inherit the model's true creation time from the canonical catalog
+			m.created_at = canonical.created_at;
 
 			// Enrich models that lack upstream pricing (price == -1)
-			// with the canonical OpenRouter data
-			for (const m of filtered) {
-				if (m.input_price >= 0) continue;
-				const canonical = canonicalMap.get(m.model_id);
-				if (!canonical) continue;
+			if (m.input_price < 0) {
 				m.input_price = canonical.input_price;
 				m.output_price = canonical.output_price;
 				m.model_type = canonical.model_type;
@@ -106,6 +110,7 @@ export async function syncAllModels(
 				m.input_modalities ??= canonical.input_modalities;
 				m.output_modalities ??= canonical.output_modalities;
 			}
+		}
 
 			if (filtered.length > 0) {
 				await dao.upsertPricing(filtered);

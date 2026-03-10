@@ -43,7 +43,6 @@ export function parseOpenRouterModels(
 	if (!data) return [];
 	const results: ParsedModel[] = [];
 	const now = Date.now();
-	const ONE_DAY = 86_400_000;
 
 	for (const m of data) {
 		const id = m.id as string;
@@ -56,8 +55,7 @@ export function parseOpenRouterModels(
 		if (Number.isNaN(inputUsdPerM) || inputUsdPerM < 0) continue;
 
 		const arch = m.architecture as Record<string, unknown> | undefined;
-		const createdEpoch = (m.created as number) || 0;
-		const createdMs = createdEpoch * 1000;
+		const createdMs = ((m.created as number) || 0) * 1000;
 		results.push({
 			id: `openrouter:${id}`,
 			provider_id: "openrouter",
@@ -69,10 +67,9 @@ export function parseOpenRouterModels(
 			context_length: (m.context_length as number) || null,
 			input_modalities: serializeModalities(arch?.input_modalities),
 			output_modalities: serializeModalities(arch?.output_modalities),
-			sort_order: modelType === "embedding" ? 800000 + results.length : results.length,
 			upstream_model_id: null,
 			metadata: JSON.stringify(m),
-			created_at: createdMs && now - createdMs > ONE_DAY ? createdMs : now,
+			created_at: createdMs || now,
 		});
 	}
 	return results;
@@ -104,7 +101,6 @@ function parseZenMuxModels(raw: Record<string, unknown>): ParsedModel[] {
 			context_length: (m.context_length as number) || null,
 			input_modalities: serializeModalities(m.input_modalities),
 			output_modalities: serializeModalities(m.output_modalities),
-			sort_order: 999999,
 			upstream_model_id: null,
 			metadata: null,
 			created_at: Date.now(),
@@ -142,7 +138,6 @@ function parseDeepInfraModels(raw: Record<string, unknown>): ParsedModel[] {
 			context_length: (metadata?.context_length as number) || null,
 			input_modalities: null,
 			output_modalities: null,
-			sort_order: 999999,
 			upstream_model_id: id !== canonicalId ? id : null,
 			metadata: null,
 			created_at: Date.now(),
@@ -176,7 +171,6 @@ function parseStaticUsdModels(
 		context_length: m.context_length,
 		input_modalities: null,
 		output_modalities: null,
-		sort_order: 999999,
 		upstream_model_id: null,
 		metadata: null,
 		created_at: Date.now(),

@@ -8,8 +8,8 @@ export class PricingDao {
 	): Promise<void> {
 		const now = Date.now();
 		const stmt = this.db.prepare(
-			`INSERT INTO model_pricing (id, provider_id, model_id, name, model_type, input_price, output_price, context_length, input_modalities, output_modalities, is_active, sort_order, upstream_model_id, metadata, created_at, refreshed_at)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)
+			`INSERT INTO model_pricing (id, provider_id, model_id, name, model_type, input_price, output_price, context_length, input_modalities, output_modalities, is_active, upstream_model_id, metadata, created_at, refreshed_at)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
 			 ON CONFLICT(id) DO UPDATE SET
 			   name = excluded.name,
 			   model_type = excluded.model_type,
@@ -19,7 +19,6 @@ export class PricingDao {
 			   input_modalities = excluded.input_modalities,
 			   output_modalities = excluded.output_modalities,
 			   is_active = 1,
-			   sort_order = excluded.sort_order,
 			   upstream_model_id = excluded.upstream_model_id,
 			   metadata = excluded.metadata,
 			   refreshed_at = excluded.refreshed_at`,
@@ -37,7 +36,6 @@ export class PricingDao {
 				m.context_length,
 				m.input_modalities,
 				m.output_modalities,
-				m.sort_order,
 				m.upstream_model_id,
 				m.metadata,
 				m.created_at,
@@ -102,7 +100,9 @@ export class PricingDao {
 				   AND c.health_status NOT IN ('dead')
 				 WHERE mp.is_active = 1
 				 GROUP BY mp.id
-				 ORDER BY mp.sort_order ASC, mp.input_price ASC`,
+				 ORDER BY mp.created_at DESC,
+				   CASE WHEN mp.metadata IS NOT NULL THEN 0 ELSE 1 END,
+				   mp.input_price ASC`,
 			)
 			.all<DbModelPricing & { best_multiplier: number | null }>();
 		return res.results || [];

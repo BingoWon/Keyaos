@@ -48,7 +48,6 @@ export interface DbModelPricing {
 	input_modalities: string | null;
 	output_modalities: string | null;
 	is_active: number;
-	sort_order: number;
 	upstream_model_id: string | null;
 	metadata: string | null;
 	created_at: number;

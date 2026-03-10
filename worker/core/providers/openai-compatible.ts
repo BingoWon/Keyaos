@@ -53,7 +53,6 @@ function defaultParseModels(
 			context_length: (m.context_length as number) || null,
 			input_modalities: '["text"]',
 			output_modalities: '["text"]',
-			sort_order: 999999,
 			upstream_model_id: null,
 			metadata: null,
 			created_at: Date.now(),

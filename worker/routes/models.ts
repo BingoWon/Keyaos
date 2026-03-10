@@ -40,7 +40,7 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 	// USD-per-M-tokens → USD-per-token string (OpenRouter format)
 	const toUsdPerToken = (usdPerM: number) => String(usdPerM / 1_000_000);
 
-	// Group by model_id (Map preserves insertion order = sort_order)
+	// Group by model_id (Map preserves insertion order = created_at DESC)
 	const groups = new Map<
 		string,
 		{
