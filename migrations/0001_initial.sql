@@ -43,8 +43,8 @@ CREATE INDEX IF NOT EXISTS idx_credentials_owner ON upstream_credentials(owner_i
 CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_secret_hash ON upstream_credentials(secret_hash);
 CREATE INDEX IF NOT EXISTS idx_credentials_provider ON upstream_credentials(provider_id, is_enabled, health_status);
 
--- 3. Model catalog (auto-synced by cron, renamed to model_catalog in 0002)
-CREATE TABLE IF NOT EXISTS model_pricing (
+-- 3. Model catalog (auto-synced by cron)
+CREATE TABLE IF NOT EXISTS model_catalog (
     id TEXT PRIMARY KEY,
     provider_id TEXT NOT NULL,
     model_id TEXT NOT NULL,
@@ -62,9 +62,9 @@ CREATE TABLE IF NOT EXISTS model_pricing (
     refreshed_at INTEGER NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_model_pricing_provider_model ON model_pricing(provider_id, model_id);
-CREATE INDEX IF NOT EXISTS idx_model_pricing_routing ON model_pricing(model_id, is_active, input_price);
-CREATE INDEX IF NOT EXISTS idx_model_pricing_created ON model_pricing(is_active, created DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_model_catalog_provider_model ON model_catalog(provider_id, model_id);
+CREATE INDEX IF NOT EXISTS idx_model_catalog_routing ON model_catalog(model_id, is_active, input_price);
+CREATE INDEX IF NOT EXISTS idx_model_catalog_created ON model_catalog(is_active, created DESC);
 
 -- 4. API request logs (two-sided: consumer + credential owner)
 CREATE TABLE IF NOT EXISTS logs (
