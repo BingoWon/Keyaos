@@ -223,6 +223,10 @@
 				"安装 Kiro IDE 并使用 GitHub 或 Google 登录",
 				"执行命令：cat ~/.aws/sso/cache/kiro-auth-token.json",
 				"粘贴文件内容或仅粘贴 refreshToken 的值"
+			],
+			"moonshot": [
+				"前往 https://platform.moonshot.cn/console/api-keys",
+				"创建新的 API 密钥并复制"
 			]
 		}
 	},

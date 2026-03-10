@@ -8,6 +8,7 @@
 import type { ModelType } from "../db/schema";
 import deepseekModels from "../models/deepseek.json";
 import googleAIStudioModels from "../models/google-ai-studio.json";
+import moonshotModels from "../models/moonshot.json";
 import oaiproModels from "../models/oaipro.json";
 import openaiModels from "../models/openai.json";
 import qwenCodeModels from "../models/qwen-code.json";
@@ -154,6 +155,7 @@ interface StaticModelEntry {
 	input_usd: number;
 	output_usd: number;
 	context_length: number | null;
+	upstream_model_id?: string;
 }
 
 function parseStaticUsdModels(
@@ -171,13 +173,13 @@ function parseStaticUsdModels(
 		context_length: m.context_length,
 		input_modalities: null,
 		output_modalities: null,
-		upstream_model_id: null,
+		upstream_model_id: m.upstream_model_id ?? null,
 		metadata: null,
 		created: Date.now(),
 	}));
 }
 
-/** DeepSeek /user/balance credits parser */
+/** DeepSeek /user/balance → { balance_infos: [{ total_balance }] } (CNY) */
 function parseDeepSeekCredits(
 	json: Record<string, unknown>,
 ): ProviderCredits | null {
@@ -188,6 +190,15 @@ function parseDeepSeekCredits(
 	const balance = Number.parseFloat(infos[0].total_balance);
 	if (Number.isNaN(balance)) return null;
 	return { remaining: balance, usage: null };
+}
+
+/** Moonshot /users/me/balance → { data: { available_balance } } (CNY) */
+function parseMoonshotCredits(
+	json: Record<string, unknown>,
+): ProviderCredits | null {
+	const data = json.data as { available_balance?: number } | undefined;
+	if (data?.available_balance == null) return null;
+	return { remaining: data.available_balance, usage: null };
 }
 
 // ─── Shared validation helpers ──────────────────────────────
@@ -275,7 +286,7 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		name: "DeepSeek",
 		logoUrl: "https://www.deepseek.com/favicon.ico",
 		baseUrl: "https://api.deepseek.com",
-		currency: "USD",
+		currency: "CNY",
 		supportsAutoCredits: true,
 		creditsUrl: "https://api.deepseek.com/user/balance",
 		parseCredits: parseDeepSeekCredits,
@@ -351,6 +362,22 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 		credentialGuide: {
 			placeholder: "sk-sp-...",
 			secretPattern: "^sk-sp-[a-f0-9]+$",
+		},
+	},
+	{
+		id: "moonshot",
+		name: "Moonshot",
+		logoUrl: "https://statics.moonshot.cn/moonshot-ai/favicon.ico",
+		baseUrl: "https://api.moonshot.cn/v1",
+		currency: "CNY",
+		supportsAutoCredits: true,
+		creditsUrl: "https://api.moonshot.cn/v1/users/me/balance",
+		parseCredits: parseMoonshotCredits,
+		staticModels: true,
+		stripModelPrefix: true,
+		parseModels: () => parseStaticUsdModels("moonshot", moonshotModels),
+		credentialGuide: {
+			placeholder: "sk-...",
 		},
 	},
 ];

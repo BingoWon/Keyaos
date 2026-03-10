@@ -1,0 +1,32 @@
+[
+	{
+		"id": "moonshotai/kimi-k2.5",
+		"name": "Kimi K2.5",
+		"input_usd": -1,
+		"output_usd": -1,
+		"context_length": 262144
+	},
+	{
+		"id": "moonshotai/kimi-k2-thinking",
+		"name": "Kimi K2 Thinking",
+		"input_usd": -1,
+		"output_usd": -1,
+		"context_length": 131072
+	},
+	{
+		"id": "moonshotai/kimi-k2-0905",
+		"name": "Kimi K2 0905",
+		"input_usd": -1,
+		"output_usd": -1,
+		"context_length": 131072,
+		"upstream_model_id": "kimi-k2-0905-preview"
+	},
+	{
+		"id": "moonshotai/kimi-k2",
+		"name": "Kimi K2",
+		"input_usd": -1,
+		"output_usd": -1,
+		"context_length": 131000,
+		"upstream_model_id": "kimi-k2-0711-preview"
+	}
+]
