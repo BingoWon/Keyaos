@@ -192,46 +192,51 @@ export function Models() {
 				</p>
 			) : (
 				<>
-					{/* Type tabs + filters */}
-					<div className="mt-4 space-y-3">
-						{typeCounts.embedding > 0 && (
-							<div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 dark:border-white/10 dark:bg-white/5">
-								{(
-									[
-										["all", t("models.type_all"), typeCounts.all],
-										["chat", t("models.type_chat"), typeCounts.chat],
-										["embedding", t("models.type_embedding"), typeCounts.embedding],
-									] as const
-								).map(([key, label, count]) => (
-									<button
-										key={key}
-										type="button"
-										onClick={() => { setTypeTab(key); setPage(1); }}
-										className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-all ${
-											typeTab === key
-												? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
-												: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-										}`}
-									>
-										{label}
-										<span
-											className={`tabular-nums text-[10px] ${
-												typeTab === key
-													? "text-gray-300 dark:text-gray-600"
-													: "text-gray-400 dark:text-gray-500"
-											}`}
-										>
-											{count}
-										</span>
-									</button>
-								))}
-							</div>
-						)}
+					{/* Filters */}
+					<div className="mt-4">
 						<ModelFilters
 							groups={typed}
 							providerMap={providerMap}
 							filters={filters}
 							onChange={handleFiltersChange}
+							prefix={
+								typeCounts.embedding > 0 ? (
+									<>
+										<div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 dark:border-white/10 dark:bg-white/5">
+											{(
+												[
+													["all", t("models.type_all"), typeCounts.all],
+													["chat", t("models.type_chat"), typeCounts.chat],
+													["embedding", t("models.type_embedding"), typeCounts.embedding],
+												] as const
+											).map(([key, label, count]) => (
+												<button
+													key={key}
+													type="button"
+													onClick={() => { setTypeTab(key); setPage(1); }}
+													className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+														typeTab === key
+															? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"
+															: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+													}`}
+												>
+													{label}
+													<span
+														className={`tabular-nums text-[10px] ${
+															typeTab === key
+																? "text-gray-300 dark:text-gray-600"
+																: "text-gray-400 dark:text-gray-500"
+														}`}
+													>
+														{count}
+													</span>
+												</button>
+											))}
+										</div>
+										<div className="h-5 w-px bg-gray-200 dark:bg-white/10" />
+									</>
+								) : undefined
+							}
 						/>
 					</div>
 

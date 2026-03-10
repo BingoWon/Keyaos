@@ -25,6 +25,7 @@
   ],
   "tags": [
     { "name": "OpenAI Chat Completions", "description": "OpenAI SDK-compatible chat completions endpoint" },
+    { "name": "Embeddings", "description": "OpenAI SDK-compatible text embeddings endpoint" },
     { "name": "Anthropic Messages", "description": "Anthropic SDK-compatible messages endpoint" },
     { "name": "Models", "description": "List available models and pricing" },
     { "name": "Credits", "description": "Check credit balance" },
@@ -152,6 +153,66 @@
               },
               "text/event-stream": {
                 "description": "When `stream: true`, response is delivered as SSE with OpenAI delta format."
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "402": { "$ref": "#/components/responses/InsufficientCredits" },
+          "503": { "$ref": "#/components/responses/NoProvider" }
+        }
+      }
+    },
+    "/v1/embeddings": {
+      "post": {
+        "operationId": "createEmbedding",
+        "summary": "Create embedding",
+        "description": "Creates embeddings for the given input text using the specified model. Supports single strings, arrays of strings, and token arrays as input.\n\nAll embedding models are available at the `/v1/models` endpoint with `type: \"embedding\"`.",
+        "tags": ["Embeddings"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EmbeddingRequest" },
+              "examples": {
+                "basic": {
+                  "summary": "Single text input",
+                  "value": {
+                    "model": "qwen/qwen3-embedding-4b",
+                    "input": "The quick brown fox jumps over the lazy dog"
+                  }
+                },
+                "batch": {
+                  "summary": "Batch text input",
+                  "value": {
+                    "model": "openai/text-embedding-3-small",
+                    "input": ["Hello world", "Goodbye world"],
+                    "encoding_format": "float"
+                  }
+                },
+                "dimensions": {
+                  "summary": "With reduced dimensions",
+                  "value": {
+                    "model": "openai/text-embedding-3-large",
+                    "input": "Dimensionality reduction example",
+                    "dimensions": 512
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Embedding response",
+            "headers": {
+              "x-request-id": { "schema": { "type": "string" }, "description": "Unique request identifier" },
+              "x-provider": { "schema": { "type": "string" }, "description": "Upstream provider that served the request" },
+              "x-credential-id": { "schema": { "type": "string" }, "description": "Credential used for the request" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EmbeddingResponse" }
               }
             }
           },
@@ -891,10 +952,71 @@
           }
         }
       },
+      "EmbeddingRequest": {
+        "type": "object",
+        "required": ["model", "input"],
+        "properties": {
+          "model": { "type": "string", "description": "Embedding model ID", "example": "qwen/qwen3-embedding-4b" },
+          "input": {
+            "description": "Input text to embed — a string, array of strings, array of token integers, or array of token integer arrays",
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } },
+              { "type": "array", "items": { "type": "integer" } },
+              { "type": "array", "items": { "type": "array", "items": { "type": "integer" } } }
+            ]
+          },
+          "encoding_format": { "type": "string", "enum": ["float", "base64"], "default": "float", "description": "Output encoding format" },
+          "dimensions": { "type": "integer", "description": "Number of output dimensions (supported by some models)" },
+          "user": { "type": "string", "description": "Unique end-user identifier for abuse monitoring" },
+          "provider": {
+            "description": "Restrict routing to specific provider(s)",
+            "oneOf": [
+              { "type": "string" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        }
+      },
+      "EmbeddingResponse": {
+        "type": "object",
+        "required": ["object", "data", "model", "usage"],
+        "properties": {
+          "object": { "type": "string", "enum": ["list"] },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["object", "embedding", "index"],
+              "properties": {
+                "object": { "type": "string", "enum": ["embedding"] },
+                "embedding": {
+                  "description": "Embedding vector (float array or base64 string depending on encoding_format)",
+                  "oneOf": [
+                    { "type": "array", "items": { "type": "number" } },
+                    { "type": "string" }
+                  ]
+                },
+                "index": { "type": "integer" }
+              }
+            }
+          },
+          "model": { "type": "string", "example": "qwen/qwen3-embedding-4b" },
+          "usage": {
+            "type": "object",
+            "required": ["prompt_tokens", "total_tokens"],
+            "properties": {
+              "prompt_tokens": { "type": "integer" },
+              "total_tokens": { "type": "integer" }
+            }
+          }
+        }
+      },
       "Model": {
         "type": "object",
         "properties": {
           "id": { "type": "string", "description": "Model ID in `org/model` format", "example": "openai/gpt-4o" },
+          "type": { "type": "string", "enum": ["chat", "embedding"], "description": "Model type", "example": "chat" },
           "name": { "type": "string", "description": "Display name", "example": "GPT-4o" },
           "created": { "type": "integer", "description": "Unix timestamp" },
           "description": { "type": "string", "nullable": true },

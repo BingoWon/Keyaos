@@ -168,6 +168,7 @@ interface Props {
 	providerMap: Map<string, ProviderMeta>;
 	filters: ModelFiltersState;
 	onChange: (f: ModelFiltersState) => void;
+	prefix?: React.ReactNode;
 }
 
 export function ModelFilters({
@@ -175,6 +176,7 @@ export function ModelFilters({
 	providerMap,
 	filters,
 	onChange,
+	prefix,
 }: Props) {
 	const { t } = useTranslation();
 
@@ -293,6 +295,7 @@ export function ModelFilters({
 		<div className="space-y-2.5">
 			{/* Filter buttons row */}
 			<div className="flex flex-wrap items-center gap-2">
+				{prefix}
 				<FilterPopover
 					label={t("filters.input_modalities")}
 					count={filters.inputModalities.size}
