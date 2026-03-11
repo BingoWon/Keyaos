@@ -14,6 +14,7 @@ Currently supported model families include:
 | Anthropic | `anthropic/claude-sonnet-4`, `anthropic/claude-haiku-4.5` |
 | Google | `google/gemini-2.5-pro`, `google/gemini-2.5-flash` |
 | DeepSeek | `deepseek/deepseek-chat`, `deepseek/deepseek-reasoner` |
+| xAI | `x-ai/grok-3`, `x-ai/grok-3-mini` |
 | Meta | `meta-llama/llama-4-maverick` |
 
 ### Embedding Models
@@ -79,6 +80,59 @@ Multiple providers:
 ```
 
 Omit `provider` to let the system choose from all available providers.
+
+## Reasoning Effort
+
+Many models support adjustable reasoning depth — more thinking yields higher quality at the cost of more tokens. Keyaos supports three input formats and automatically normalizes them for the upstream provider.
+
+### `reasoning_effort` (OpenAI / xAI / Google style)
+
+The simplest format — a flat string parameter:
+
+```json
+{
+  "model": "openai/o4-mini",
+  "messages": [{ "role": "user", "content": "Solve: x^2 + 3x - 10 = 0" }],
+  "reasoning_effort": "high"
+}
+```
+
+Supported values: `"low"`, `"medium"`, `"high"`. Works with OpenAI o-series, xAI grok-3-mini, Google Gemini 2.5+, and any provider that accepts this parameter.
+
+### `reasoning: { effort }` (OpenRouter style)
+
+A nested object format — Keyaos automatically extracts it to `reasoning_effort`:
+
+```json
+{
+  "model": "openai/o4-mini",
+  "reasoning": { "effort": "low" },
+  "messages": [{ "role": "user", "content": "What is 15 + 28?" }]
+}
+```
+
+### `thinking` (Anthropic native)
+
+For Anthropic models via `/v1/messages`, use the native `thinking` parameter for fine-grained budget control:
+
+```json
+{
+  "model": "anthropic/claude-sonnet-4",
+  "max_tokens": 16384,
+  "thinking": { "type": "enabled", "budget_tokens": 8192 },
+  "messages": [{ "role": "user", "content": "Explain quantum entanglement." }]
+}
+```
+
+When using `reasoning_effort` via `/v1/chat/completions` with an Anthropic upstream, Keyaos automatically converts it to the native `thinking` format:
+
+| `reasoning_effort` | Anthropic `budget_tokens` |
+|--------------------|--------------------------|
+| `low` | 1,024 |
+| `medium` | 8,192 |
+| `high` | 24,576 |
+
+> Models that don't support reasoning parameters simply ignore them — the request still succeeds.
 
 ## Health-Aware Failover
 

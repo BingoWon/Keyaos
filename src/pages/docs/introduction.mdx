@@ -21,12 +21,14 @@ Keyaos is **not** a model provider — it doesn't run any AI inference. It is a 
 
 ### Unified API Endpoint
 
-Connect once, access all models. Keyaos provides both **OpenAI** and **Anthropic** compatible endpoints:
+Connect once, access all models. Keyaos provides OpenAI and Anthropic compatible endpoints:
 
-| Protocol | Endpoint | SDK Support |
-|----------|----------|-------------|
-| OpenAI | `POST /v1/chat/completions` | OpenAI SDK, LangChain, LiteLLM |
-| Anthropic | `POST /v1/messages` | Anthropic SDK (with reasoning→thinking) |
+| Endpoint | Description | SDK Support |
+|----------|-------------|-------------|
+| `POST /v1/chat/completions` | Chat completions | OpenAI SDK, LangChain, LiteLLM |
+| `POST /v1/embeddings` | Text embeddings | OpenAI SDK |
+| `POST /v1/messages` | Anthropic Messages (with thinking) | Anthropic SDK |
+| `GET /v1/models` | List available models | Any HTTP client |
 
 ### Smart Lowest-Cost Routing
 

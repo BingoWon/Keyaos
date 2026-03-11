@@ -67,13 +67,13 @@
                   }
                 },
                 "reasoning": {
-                  "summary": "With reasoning control",
+                  "summary": "With reasoning effort",
                   "value": {
-                    "model": "openai/o3-mini",
+                    "model": "openai/o4-mini",
                     "messages": [
                       { "role": "user", "content": "Solve: x^2 + 3x - 10 = 0" }
                     ],
-                    "reasoning": { "effort": "high" }
+                    "reasoning_effort": "high"
                   }
                 },
                 "structuredOutput": {
@@ -466,7 +466,20 @@
           },
           "logprobs": { "type": "boolean", "nullable": true, "description": "Return log probabilities of output tokens" },
           "top_logprobs": { "type": "integer", "minimum": 0, "maximum": 20, "nullable": true, "description": "Number of most likely tokens to return (requires `logprobs: true`)" },
+          "reasoning_effort": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Reasoning effort level (OpenAI / xAI / Gemini style). For Anthropic models, this is automatically converted to the native `thinking` parameter."
+          },
           "reasoning": { "$ref": "#/components/schemas/ReasoningConfig" },
+          "thinking": {
+            "type": "object",
+            "description": "Anthropic native thinking configuration (pass-through). Only used when the upstream is an Anthropic model.",
+            "properties": {
+              "type": { "type": "string", "enum": ["enabled", "disabled"] },
+              "budget_tokens": { "type": "integer", "description": "Token budget for thinking" }
+            }
+          },
           "response_format": { "$ref": "#/components/schemas/ResponseFormat" },
           "tools": {
             "type": "array",
@@ -670,7 +683,8 @@
                       "items": { "$ref": "#/components/schemas/ToolCall" }
                     },
                     "refusal": { "type": "string", "nullable": true },
-                    "reasoning": { "type": "string", "nullable": true, "description": "Reasoning output (for reasoning models)" }
+                    "reasoning_content": { "type": "string", "nullable": true, "description": "Internal chain-of-thought text (DeepSeek, xAI, Anthropic via conversion)" },
+                    "reasoning": { "type": "string", "nullable": true, "description": "Reasoning output (legacy alias)" }
                   }
                 },
                 "finish_reason": { "type": "string", "enum": ["stop", "length", "tool_calls", "content_filter", "error"] },
