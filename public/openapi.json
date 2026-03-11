@@ -57,7 +57,7 @@
                 "streaming": {
                   "summary": "Streaming completion",
                   "value": {
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-4",
                     "messages": [
                       { "role": "user", "content": "Write a haiku about APIs." }
                     ],
@@ -238,7 +238,7 @@
                 "basic": {
                   "summary": "Basic message",
                   "value": {
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-4",
                     "max_tokens": 1024,
                     "messages": [
                       { "role": "user", "content": "Explain quantum computing in one paragraph." }
@@ -248,7 +248,7 @@
                 "thinking": {
                   "summary": "With extended thinking",
                   "value": {
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-4",
                     "max_tokens": 8192,
                     "thinking": { "type": "enabled", "budget_tokens": 4096 },
                     "messages": [
@@ -259,7 +259,7 @@
                 "structuredOutput": {
                   "summary": "Structured output via output_config",
                   "value": {
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-4",
                     "max_tokens": 1024,
                     "output_config": {
                       "format": {
@@ -282,7 +282,7 @@
                 "streaming": {
                   "summary": "Streaming message",
                   "value": {
-                    "model": "anthropic/claude-sonnet-4.6",
+                    "model": "anthropic/claude-sonnet-4",
                     "max_tokens": 1024,
                     "stream": true,
                     "messages": [
@@ -476,7 +476,7 @@
             "type": "object",
             "description": "Anthropic native thinking configuration (pass-through). Only used when the upstream is an Anthropic model.",
             "properties": {
-              "type": { "type": "string", "enum": ["enabled", "disabled"] },
+              "type": { "type": "string", "enum": ["enabled", "disabled", "adaptive"] },
               "budget_tokens": { "type": "integer", "description": "Token budget for thinking" }
             }
           },
@@ -684,7 +684,7 @@
                     },
                     "refusal": { "type": "string", "nullable": true },
                     "reasoning_content": { "type": "string", "nullable": true, "description": "Internal chain-of-thought text (DeepSeek, xAI, Anthropic via conversion)" },
-                    "reasoning": { "type": "string", "nullable": true, "description": "Reasoning output (legacy alias)" }
+                    "reasoning": { "type": "string", "nullable": true, "description": "Reasoning output (alternative field name used by some providers)" }
                   }
                 },
                 "finish_reason": { "type": "string", "enum": ["stop", "length", "tool_calls", "content_filter", "error"] },
