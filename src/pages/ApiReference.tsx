@@ -1,10 +1,9 @@
 import { ApiReferenceReact } from "@scalar/api-reference-react";
-import { useEffect, useState } from "react";
-
 // Vite resolves this to a hashed asset URL without injecting the CSS globally.
 // We manage the <link> lifecycle ourselves so the styles are removed on unmount.
 // @ts-expect-error Vite ?url suffix — see https://vite.dev/guide/assets#explicit-url-imports
 import scalarCssUrl from "@scalar/api-reference-react/style.css?url";
+import { useEffect, useState } from "react";
 
 const NAV_HEIGHT = "56px";
 

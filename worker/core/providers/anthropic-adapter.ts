@@ -117,9 +117,7 @@ class AnthropicAdapter implements ProviderAdapter {
 		return [];
 	}
 
-	private async dynamicFetchModels(
-		systemKey: string,
-	): Promise<ParsedModel[]> {
+	private async dynamicFetchModels(systemKey: string): Promise<ParsedModel[]> {
 		try {
 			const res = await fetch(`${BASE_URL}/models?limit=100`, {
 				headers: {

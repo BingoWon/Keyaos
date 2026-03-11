@@ -66,12 +66,7 @@ export class KeyExpiredError extends ApiError {
 
 export class KeyQuotaExceededError extends ApiError {
 	constructor() {
-		super(
-			"API key quota exceeded",
-			429,
-			"billing_error",
-			"key_quota_exceeded",
-		);
+		super("API key quota exceeded", 429, "billing_error", "key_quota_exceeded");
 	}
 }
 

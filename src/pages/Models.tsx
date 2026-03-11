@@ -109,9 +109,7 @@ export function Models() {
 	// ─── Derived data ────────────────────────────────────
 	const typed = useMemo(
 		() =>
-			typeTab === "all"
-				? groups
-				: groups.filter((g) => g.type === typeTab),
+			typeTab === "all" ? groups : groups.filter((g) => g.type === typeTab),
 		[groups, typeTab],
 	);
 
@@ -207,13 +205,20 @@ export function Models() {
 												[
 													["all", t("models.type_all"), typeCounts.all],
 													["chat", t("models.type_chat"), typeCounts.chat],
-													["embedding", t("models.type_embedding"), typeCounts.embedding],
+													[
+														"embedding",
+														t("models.type_embedding"),
+														typeCounts.embedding,
+													],
 												] as const
 											).map(([key, label, count]) => (
 												<button
 													key={key}
 													type="button"
-													onClick={() => { setTypeTab(key); setPage(1); }}
+													onClick={() => {
+														setTypeTab(key);
+														setPage(1);
+													}}
 													className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
 														typeTab === key
 															? "bg-gray-900 text-white shadow-sm dark:bg-white dark:text-gray-900"

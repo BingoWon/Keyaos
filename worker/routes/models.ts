@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { CatalogDao } from "../core/db/catalog-dao";
 import { CandleDao } from "../core/db/candle-dao";
+import { CatalogDao } from "../core/db/catalog-dao";
 import { edgeCache } from "../shared/cache";
 import type { AppEnv } from "../shared/types";
 
@@ -96,48 +96,48 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 			return true;
 		})
 		.map(([id, g]) => {
-		const m = g.meta;
+			const m = g.meta;
 
-		// Build pricing from candle data
-		const basePricing = (m?.pricing as Record<string, string>) ?? {};
-		const pricing: Record<string, string> = { ...basePricing };
+			// Build pricing from candle data
+			const basePricing = (m?.pricing as Record<string, string>) ?? {};
+			const pricing: Record<string, string> = { ...basePricing };
 
-		const inputClose = inputPrices.get(id);
-		const outputClose = outputPrices.get(id);
+			const inputClose = inputPrices.get(id);
+			const outputClose = outputPrices.get(id);
 
-		if (inputClose != null) {
-			pricing.prompt = toUsdPerToken(inputClose);
+			if (inputClose != null) {
+				pricing.prompt = toUsdPerToken(inputClose);
 
-			// Derive discount ratio for multi-modal pricing
-			const originalPrompt =
-				Number.parseFloat(basePricing.prompt || "0") * 1_000_000;
-			if (originalPrompt > 0) {
-				const ratio = inputClose / originalPrompt;
-				for (const [key, val] of Object.entries(basePricing)) {
-					if (key !== "prompt" && key !== "completion" && val) {
-						pricing[key] = String(Number.parseFloat(val) * ratio);
+				// Derive discount ratio for multi-modal pricing
+				const originalPrompt =
+					Number.parseFloat(basePricing.prompt || "0") * 1_000_000;
+				if (originalPrompt > 0) {
+					const ratio = inputClose / originalPrompt;
+					for (const [key, val] of Object.entries(basePricing)) {
+						if (key !== "prompt" && key !== "completion" && val) {
+							pricing[key] = String(Number.parseFloat(val) * ratio);
+						}
 					}
 				}
 			}
-		}
-		if (outputClose != null) {
-			pricing.completion = toUsdPerToken(outputClose);
-		}
+			if (outputClose != null) {
+				pricing.completion = toUsdPerToken(outputClose);
+			}
 
-		return {
-			id,
-			type: g.modelType,
-			name: (m?.name as string) ?? g.name ?? id,
-			created: (m?.created as number) ?? 0,
-			description: cleanDescription(m?.description),
-			hugging_face_id: (m?.hugging_face_id as string) ?? null,
-			context_length: (m?.context_length as number) ?? g.contextLength,
-			pricing,
-			architecture: (m?.architecture as Record<string, unknown>) ?? null,
-			supported_parameters: (m?.supported_parameters as string[]) ?? null,
-			providers: g.providers,
-		};
-	});
+			return {
+				id,
+				type: g.modelType,
+				name: (m?.name as string) ?? g.name ?? id,
+				created: (m?.created as number) ?? 0,
+				description: cleanDescription(m?.description),
+				hugging_face_id: (m?.hugging_face_id as string) ?? null,
+				context_length: (m?.context_length as number) ?? g.contextLength,
+				pricing,
+				architecture: (m?.architecture as Record<string, unknown>) ?? null,
+				supported_parameters: (m?.supported_parameters as string[]) ?? null,
+				providers: g.providers,
+			};
+		});
 
 	return c.json({ data });
 });

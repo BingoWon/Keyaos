@@ -131,7 +131,10 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		}
 	}
 
-	async fetchModels(cnyUsdRate = 7, systemKey?: string): Promise<ParsedModel[]> {
+	async fetchModels(
+		cnyUsdRate = 7,
+		systemKey?: string,
+	): Promise<ParsedModel[]> {
 		if (systemKey && this.config.mapModelId) {
 			return this.dynamicFetchModels(systemKey);
 		}
@@ -154,10 +157,10 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 		}
 	}
 
-	private async dynamicFetchModels(
-		systemKey: string,
-	): Promise<ParsedModel[]> {
-		const mapId = this.config.mapModelId!;
+	private async dynamicFetchModels(systemKey: string): Promise<ParsedModel[]> {
+		const mapId = this.config.mapModelId as NonNullable<
+			typeof this.config.mapModelId
+		>;
 		const url = this.config.modelsUrl || `${this.config.baseUrl}/models`;
 		try {
 			const res = await fetch(url, {
@@ -209,18 +212,15 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 				? { ...body, model: body.model.replace(/^[^/]+\//, "") }
 				: body;
 
-		const upstreamResponse = await fetch(
-			`${this.config.baseUrl}/${endpoint}`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${secret}`,
-					...this.config.extraHeaders,
-				},
-				body: JSON.stringify(fwdBody),
+		const upstreamResponse = await fetch(`${this.config.baseUrl}/${endpoint}`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${secret}`,
+				...this.config.extraHeaders,
 			},
-		);
+			body: JSON.stringify(fwdBody),
+		});
 
 		const headers = new Headers();
 		const skipHeaders = new Set([

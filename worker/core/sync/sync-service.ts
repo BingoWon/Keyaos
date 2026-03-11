@@ -79,14 +79,15 @@ export async function syncAllModels(
 	const canonicalMap = new Map(allOrModels.map((m) => [m.model_id, m]));
 
 	// ─── Phase 3: Sync other providers, filtering to allowlist ──
-	const otherProviders = allProviders.filter(
-		(p) => p.info.id !== "openrouter",
-	);
+	const otherProviders = allProviders.filter((p) => p.info.id !== "openrouter");
 	const results = await Promise.allSettled(
 		otherProviders.map(async (provider) => {
-			const systemKey = provider.systemKeyEnvVar && env
-				? (env as unknown as Record<string, string | undefined>)[provider.systemKeyEnvVar]
-				: undefined;
+			const systemKey =
+				provider.systemKeyEnvVar && env
+					? (env as unknown as Record<string, string | undefined>)[
+							provider.systemKeyEnvVar
+						]
+					: undefined;
 			const models = await provider.fetchModels(cnyUsdRate, systemKey);
 			if (models.length === 0) {
 				log.warn("sync", "0 models, skipping", {
@@ -95,9 +96,7 @@ export async function syncAllModels(
 				return;
 			}
 
-			const filtered = models.filter((m) =>
-				allowedModelIds.has(m.model_id),
-			);
+			const filtered = models.filter((m) => allowedModelIds.has(m.model_id));
 			if (filtered.length === 0) {
 				log.warn("sync", "0 models after OpenRouter filter, skipping", {
 					provider_id: provider.info.id,
@@ -140,8 +139,7 @@ export async function syncAllModels(
 	for (const r of results) {
 		if (r.status === "rejected") {
 			log.error("sync", "Provider failed", {
-				error:
-					r.reason instanceof Error ? r.reason.message : String(r.reason),
+				error: r.reason instanceof Error ? r.reason.message : String(r.reason),
 			});
 		}
 	}

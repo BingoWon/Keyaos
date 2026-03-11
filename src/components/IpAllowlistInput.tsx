@@ -1,8 +1,4 @@
-import {
-	GlobeAltIcon,
-	PlusIcon,
-	XMarkIcon,
-} from "@heroicons/react/20/solid";
+import { GlobeAltIcon, PlusIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";

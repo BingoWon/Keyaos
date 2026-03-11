@@ -168,9 +168,9 @@ async function execute(
 			const response =
 				mode === "chat"
 					? await provider.forwardRequest(secret, upstreamBody)
-					: await provider.forwardEmbedding!(secret, upstreamBody);
+					: await provider.forwardEmbedding?.(secret, upstreamBody);
 
-			if (!response.ok) {
+			if (!response?.ok) {
 				await credDao.reportFailure(credential.id, response.status, isSub);
 				cb.recordFailure(provider.info.id, modelId);
 

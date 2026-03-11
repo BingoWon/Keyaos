@@ -17,12 +17,7 @@ interface Props {
 	onUpdated: () => void;
 }
 
-export function EditApiKeyModal({
-	open,
-	onClose,
-	apiKey,
-	onUpdated,
-}: Props) {
+export function EditApiKeyModal({ open, onClose, apiKey, onUpdated }: Props) {
 	const { t } = useTranslation();
 	const { getToken } = useAuth();
 
@@ -63,7 +58,8 @@ export function EditApiKeyModal({
 		const modelsChanged =
 			JSON.stringify([...allowedModels].sort()) !==
 			JSON.stringify([...(apiKey.allowedModels ?? [])].sort());
-		if (modelsChanged) body.allowedModels = allowedModels.length ? allowedModels : null;
+		if (modelsChanged)
+			body.allowedModels = allowedModels.length ? allowedModels : null;
 
 		const ipsChanged =
 			JSON.stringify([...allowedIps].sort()) !==
@@ -101,12 +97,16 @@ export function EditApiKeyModal({
 
 	if (!apiKey) return null;
 
-	const labelCls =
-		"block text-sm font-medium text-gray-700 dark:text-gray-300";
+	const labelCls = "block text-sm font-medium text-gray-700 dark:text-gray-300";
 	const hintCls = "mt-1 text-xs text-gray-400 dark:text-gray-500";
 
 	return (
-		<Modal open={open} onClose={onClose} title={t("api_keys.edit_title")} size="lg">
+		<Modal
+			open={open}
+			onClose={onClose}
+			title={t("api_keys.edit_title")}
+			size="lg"
+		>
 			<form onSubmit={handleSubmit} className="space-y-5">
 				{/* Name */}
 				<div>
@@ -165,7 +165,7 @@ export function EditApiKeyModal({
 
 				{/* Expiration */}
 				<div>
-					<label className={labelCls}>{t("api_keys.expires_at")}</label>
+					<span className={labelCls}>{t("api_keys.expires_at")}</span>
 					<p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
 						{t("api_keys.current_expiry", {
 							value: apiKey.expiresAt
@@ -212,7 +212,7 @@ export function EditApiKeyModal({
 				{/* Quota */}
 				<div>
 					<div className="flex items-center justify-between">
-						<label className={labelCls}>{t("api_keys.quota")}</label>
+						<span className={labelCls}>{t("api_keys.quota")}</span>
 						<ToggleSwitch enabled={quotaEnabled} onChange={setQuotaEnabled} />
 					</div>
 					{quotaEnabled && (
@@ -238,7 +238,7 @@ export function EditApiKeyModal({
 
 				{/* Allowed Models */}
 				<div>
-					<label className={labelCls}>{t("api_keys.allowed_models")}</label>
+					<span className={labelCls}>{t("api_keys.allowed_models")}</span>
 					<div className="mt-2">
 						<ModelMultiSelect
 							value={allowedModels}
@@ -251,7 +251,7 @@ export function EditApiKeyModal({
 
 				{/* IP Allowlist */}
 				<div>
-					<label className={labelCls}>{t("api_keys.allowed_ips")}</label>
+					<span className={labelCls}>{t("api_keys.allowed_ips")}</span>
 					<div className="mt-2">
 						<IpAllowlistInput value={allowedIps} onChange={setAllowedIps} />
 					</div>

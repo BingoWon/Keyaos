@@ -658,15 +658,8 @@ export function createAnthropicNativeToOpenAIStream(
 						const delta = data.delta as Record<string, unknown> | undefined;
 						if (delta?.type === "text_delta" && delta.text) {
 							emitChunk(ctrl, { content: delta.text }, null);
-						} else if (
-							delta?.type === "thinking_delta" &&
-							delta.thinking
-						) {
-							emitChunk(
-								ctrl,
-								{ reasoning_content: delta.thinking },
-								null,
-							);
+						} else if (delta?.type === "thinking_delta" && delta.thinking) {
+							emitChunk(ctrl, { reasoning_content: delta.thinking }, null);
 						} else if (
 							delta?.type === "input_json_delta" &&
 							delta.partial_json
@@ -715,9 +708,7 @@ export function createAnthropicNativeToOpenAIStream(
 						const u = data.usage as Record<string, number> | undefined;
 						if (u) outputTokens = u.output_tokens ?? outputTokens;
 						const d = data.delta as Record<string, unknown> | undefined;
-						const reason = mapFinishReason(
-							(d?.stop_reason as string) ?? null,
-						);
+						const reason = mapFinishReason((d?.stop_reason as string) ?? null);
 						emitChunk(ctrl, {}, reason, {
 							prompt_tokens: inputTokens,
 							completion_tokens: outputTokens,

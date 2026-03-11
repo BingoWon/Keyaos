@@ -12,11 +12,11 @@ import {
 	toOpenAIResponse,
 } from "../protocols/kiro";
 import {
-	parseStaticModels,
 	type ParsedModel,
 	type ProviderAdapter,
 	type ProviderCredits,
 	type ProviderInfo,
+	parseStaticModels,
 } from "./interface";
 
 // ─── Constants ──────────────────────────────────────────

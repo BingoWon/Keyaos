@@ -9,11 +9,10 @@ import type { ModelType } from "../db/schema";
 import { anthropicAdapter } from "./anthropic-adapter";
 import { antigravityAdapter, geminiCliAdapter } from "./google-oauth-adapter";
 import {
-	parseStaticModels,
 	type ParsedModel,
 	type ProviderAdapter,
 	type ProviderCredits,
-	type StaticModelEntry,
+	parseStaticModels,
 } from "./interface";
 import { kiroAdapter } from "./kiro-adapter";
 import {
@@ -381,7 +380,10 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 			parseStaticModels("moonshot", [
 				{ id: "moonshotai/kimi-k2.5" },
 				{ id: "moonshotai/kimi-k2-thinking" },
-				{ id: "moonshotai/kimi-k2-0905", upstream_model_id: "kimi-k2-0905-preview" },
+				{
+					id: "moonshotai/kimi-k2-0905",
+					upstream_model_id: "kimi-k2-0905-preview",
+				},
 				{ id: "moonshotai/kimi-k2", upstream_model_id: "kimi-k2-0711-preview" },
 			]),
 		credentialGuide: {

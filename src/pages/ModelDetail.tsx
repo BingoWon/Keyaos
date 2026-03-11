@@ -160,14 +160,14 @@ export function ModelDetail() {
 					</div>
 				</div>
 				{group.type !== "embedding" && (
-				<Link
-					to={`/chat?model=${encodeURIComponent(group.id)}`}
-					className={buttonClass("primary", "lg", "shrink-0")}
-				>
-					<ChatBubbleLeftRightIcon className="size-5" />
-					Chat
-				</Link>
-			)}
+					<Link
+						to={`/chat?model=${encodeURIComponent(group.id)}`}
+						className={buttonClass("primary", "lg", "shrink-0")}
+					>
+						<ChatBubbleLeftRightIcon className="size-5" />
+						Chat
+					</Link>
+				)}
 			</div>
 
 			{/* Collapsible Description */}

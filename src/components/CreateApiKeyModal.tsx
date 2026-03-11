@@ -78,8 +78,7 @@ export function CreateApiKeyModal({
 				body: JSON.stringify({
 					name,
 					expiresAt: expiryToTimestamp(expiryPreset, customDate),
-					quotaLimit:
-						quotaEnabled && quotaLimit ? Number(quotaLimit) : null,
+					quotaLimit: quotaEnabled && quotaLimit ? Number(quotaLimit) : null,
 					allowedModels: allowedModels.length ? allowedModels : null,
 					allowedIps: allowedIps.length ? allowedIps : null,
 				}),
@@ -104,8 +103,7 @@ export function CreateApiKeyModal({
 		}
 	};
 
-	const labelCls =
-		"block text-sm font-medium text-gray-700 dark:text-gray-300";
+	const labelCls = "block text-sm font-medium text-gray-700 dark:text-gray-300";
 	const hintCls = "mt-1 text-xs text-gray-400 dark:text-gray-500";
 
 	const hasAdvancedSettings =
@@ -215,9 +213,7 @@ export function CreateApiKeyModal({
 						<div className="space-y-5 rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-white/5 dark:bg-white/[0.02]">
 							{/* Expiration */}
 							<div>
-								<label className={labelCls}>
-									{t("api_keys.expires_at")}
-								</label>
+								<span className={labelCls}>{t("api_keys.expires_at")}</span>
 								<div className="mt-2 flex flex-wrap gap-1.5">
 									{(
 										[
@@ -231,9 +227,7 @@ export function CreateApiKeyModal({
 										<button
 											key={val}
 											type="button"
-											onClick={() =>
-												setExpiryPreset(val as ExpiryPreset)
-											}
+											onClick={() => setExpiryPreset(val as ExpiryPreset)}
 											className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
 												expiryPreset === val
 													? "bg-brand-500 text-white shadow-sm"
@@ -258,7 +252,7 @@ export function CreateApiKeyModal({
 							{/* Quota */}
 							<div>
 								<div className="flex items-center justify-between">
-									<label className={labelCls}>{t("api_keys.quota")}</label>
+									<span className={labelCls}>{t("api_keys.quota")}</span>
 									<ToggleSwitch
 										enabled={quotaEnabled}
 										onChange={setQuotaEnabled}
@@ -280,18 +274,14 @@ export function CreateApiKeyModal({
 												min="0.01"
 											/>
 										</div>
-										<p className={hintCls}>
-											{t("api_keys.quota_hint")}
-										</p>
+										<p className={hintCls}>{t("api_keys.quota_hint")}</p>
 									</div>
 								)}
 							</div>
 
 							{/* Allowed Models */}
 							<div>
-								<label className={labelCls}>
-									{t("api_keys.allowed_models")}
-								</label>
+								<span className={labelCls}>{t("api_keys.allowed_models")}</span>
 								<div className="mt-2">
 									<ModelMultiSelect
 										value={allowedModels}
@@ -299,25 +289,19 @@ export function CreateApiKeyModal({
 										placeholder={t("api_keys.allowed_models_all")}
 									/>
 								</div>
-								<p className={hintCls}>
-									{t("api_keys.allowed_models_hint")}
-								</p>
+								<p className={hintCls}>{t("api_keys.allowed_models_hint")}</p>
 							</div>
 
 							{/* IP Allowlist */}
 							<div>
-								<label className={labelCls}>
-									{t("api_keys.allowed_ips")}
-								</label>
+								<span className={labelCls}>{t("api_keys.allowed_ips")}</span>
 								<div className="mt-2">
 									<IpAllowlistInput
 										value={allowedIps}
 										onChange={setAllowedIps}
 									/>
 								</div>
-								<p className={hintCls}>
-									{t("api_keys.allowed_ips_hint")}
-								</p>
+								<p className={hintCls}>{t("api_keys.allowed_ips_hint")}</p>
 							</div>
 						</div>
 					)}

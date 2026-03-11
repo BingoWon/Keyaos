@@ -13,11 +13,11 @@ import {
 	toOpenAIResponse,
 } from "../protocols/gemini-native";
 import {
-	parseStaticModels,
 	type ParsedModel,
 	type ProviderAdapter,
 	type ProviderCredits,
 	type ProviderInfo,
+	parseStaticModels,
 	type StaticModelEntry,
 } from "./interface";
 

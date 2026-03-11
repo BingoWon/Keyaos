@@ -129,10 +129,7 @@ app.use("/v1/*", async (c, next) => {
 		if (key.expires_at && key.expires_at <= Date.now()) {
 			throw new KeyExpiredError();
 		}
-		if (
-			key.quota_limit != null &&
-			key.quota_used >= key.quota_limit
-		) {
+		if (key.quota_limit != null && key.quota_used >= key.quota_limit) {
 			throw new KeyQuotaExceededError();
 		}
 		if (key.allowed_ips) {

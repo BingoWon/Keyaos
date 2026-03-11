@@ -299,9 +299,7 @@ export function ApiKeys() {
 												{/* Key */}
 												<td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
 													<div className="flex items-center gap-2">
-														<span>
-															{revealedKeys.get(k.id) ?? k.keyHint}
-														</span>
+														<span>{revealedKeys.get(k.id) ?? k.keyHint}</span>
 														<button
 															type="button"
 															disabled={revealingId === k.id}
@@ -347,9 +345,7 @@ export function ApiKeys() {
 													{k.expiresAt ? (
 														<span
 															className={
-																k.expiresAt <= Date.now()
-																	? "text-red-500"
-																	: ""
+																k.expiresAt <= Date.now() ? "text-red-500" : ""
 															}
 														>
 															{formatDateTime(k.expiresAt)}

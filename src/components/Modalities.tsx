@@ -1,4 +1,5 @@
 import {
+	CubeTransparentIcon,
 	DocumentArrowUpIcon,
 	MicrophoneIcon,
 	PhotoIcon,
@@ -21,10 +22,6 @@ function TextIcon({ size }: { size: number }) {
 	return <Icon icon="solar:text-square-bold" width={size} height={size} />;
 }
 
-function EmbeddingsIcon({ size }: { size: number }) {
-	return <Icon icon="solar:graph-new-bold" width={size} height={size} />;
-}
-
 const ICON_MAP: Record<
 	Modality,
 	React.FC<{ className?: string; style?: React.CSSProperties }>
@@ -34,9 +31,7 @@ const ICON_MAP: Record<
 	file: DocumentArrowUpIcon,
 	audio: MicrophoneIcon,
 	video: VideoCameraIcon,
-	embeddings: ({ style }) => (
-		<EmbeddingsIcon size={(style?.width as number) ?? 16} />
-	),
+	embeddings: CubeTransparentIcon,
 };
 
 function ModalityDot({ modality, size }: { modality: Modality; size: number }) {
