@@ -143,7 +143,7 @@ const MODALITY_ICON: Record<Modality, React.FC<{ className?: string }>> = {
 	audio: MicrophoneIcon,
 	video: VideoCameraIcon,
 	embeddings: ({ className }) => (
-		<Icon icon="solar:graph-new-bold" className={className} />
+		<Icon icon="solar:three-squares-bold" className={className} />
 	),
 };
 

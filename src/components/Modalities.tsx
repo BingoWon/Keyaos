@@ -1,5 +1,4 @@
 import {
-	CubeTransparentIcon,
 	DocumentArrowUpIcon,
 	MicrophoneIcon,
 	PhotoIcon,
@@ -31,7 +30,13 @@ const ICON_MAP: Record<
 	file: DocumentArrowUpIcon,
 	audio: MicrophoneIcon,
 	video: VideoCameraIcon,
-	embeddings: CubeTransparentIcon,
+	embeddings: ({ style }) => (
+		<Icon
+			icon="solar:three-squares-bold"
+			width={(style?.width as number) ?? 16}
+			height={(style?.height as number) ?? 16}
+		/>
+	),
 };
 
 function ModalityDot({ modality, size }: { modality: Modality; size: number }) {
