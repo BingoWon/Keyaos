@@ -28,14 +28,20 @@ credits.get("/balance", async (c) => {
 credits.post("/checkout", async (c) => {
 	if (!c.env.STRIPE_SECRET_KEY) {
 		return c.json(
-			{ error: { message: "Payments not configured", type: "server_error" } },
+			{
+				error: {
+					message: "Payments not configured",
+					type: "server_error",
+					code: "payments_not_configured",
+				},
+			},
 			503,
 		);
 	}
 
 	const { amount } = await c.req.json<{ amount: number }>();
 	if (!amount || !Number.isInteger(amount) || amount < 100) {
-		throw new BadRequestError("Amount must be at least 100 cents ($1)");
+		throw new BadRequestError("Min $1", "checkout_min_amount");
 	}
 
 	const ownerId = c.get("owner_id");
@@ -74,7 +80,7 @@ credits.post("/checkout", async (c) => {
 credits.post("/redeem", async (c) => {
 	const { code } = await c.req.json<{ code: string }>();
 	if (!code || typeof code !== "string" || code.trim().length < 4) {
-		throw new BadRequestError("A valid redemption code is required");
+		throw new BadRequestError("Invalid code", "redeem_code_required");
 	}
 
 	const result = await new GiftCardDao(c.env.DB).redeem(
@@ -253,15 +259,13 @@ credits.put("/auto-topup", async (c) => {
 	if (body.enabled) {
 		const config = await new AutoTopUpDao(c.env.DB).getConfig(ownerId);
 		if (!config?.payment_method_id) {
-			throw new BadRequestError(
-				"No saved payment method. Complete a payment first.",
-			);
+			throw new BadRequestError("No payment method saved", "no_payment_method");
 		}
 		if (body.threshold !== undefined && body.threshold < 1) {
-			throw new BadRequestError("Threshold must be at least $1");
+			throw new BadRequestError("Min $1 threshold", "topup_min_threshold");
 		}
 		if (body.amountCents !== undefined && body.amountCents < 500) {
-			throw new BadRequestError("Top-up amount must be at least $5");
+			throw new BadRequestError("Min $5 topup", "topup_min_amount");
 		}
 	}
 

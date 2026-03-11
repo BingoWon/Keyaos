@@ -19,6 +19,7 @@ import { useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { ApiKeyInfo } from "../types/api-key";
 import { TOKENS } from "../utils/colors";
+import { toastApiError } from "../utils/toast-error";
 
 function RestrictionBadges({
 	k,
@@ -113,7 +114,7 @@ export function ApiKeys() {
 				toast.success(t("common.success"), { id: tid });
 			} else {
 				const data = await res.json();
-				toast.error(data.error?.message || res.statusText, { id: tid });
+				toastApiError(data, t, tid);
 			}
 		} catch (err) {
 			console.error(err);

@@ -43,7 +43,10 @@ admin.post("/credits", async (c) => {
 	}>();
 
 	if (!ownerId || typeof amount !== "number" || amount === 0) {
-		throw new BadRequestError("ownerId and a non-zero amount are required");
+		throw new BadRequestError(
+			"ownerId + non-zero amount required",
+			"admin_amount_required",
+		);
 	}
 
 	await new AdminDao(c.env.DB).adjustCredits(ownerId, amount, reason || "");
@@ -72,6 +75,7 @@ admin.get("/table/:name", async (c) => {
 	} catch (err) {
 		throw new BadRequestError(
 			err instanceof Error ? err.message : "Invalid table",
+			"admin_invalid_table",
 		);
 	}
 });
@@ -90,9 +94,11 @@ admin.post("/gift-cards", async (c) => {
 		count: number;
 	}>();
 
-	if (!amount || amount <= 0) throw new BadRequestError("amount must be > 0");
+	if (!amount || amount <= 0) {
+		throw new BadRequestError("amount > 0", "admin_gift_card_amount");
+	}
 	if (!count || !Number.isInteger(count) || count < 1 || count > 500) {
-		throw new BadRequestError("count must be 1–500");
+		throw new BadRequestError("count 1–500", "admin_gift_card_count");
 	}
 
 	const dao = new GiftCardDao(c.env.DB);

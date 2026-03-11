@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { LogsDao } from "../core/db/logs-dao";
-import { getAllProviders, getProvider } from "../core/providers/registry";
+import { getProvider } from "../core/providers/registry";
 import { sha256 } from "../shared/crypto";
 import { ApiError, BadRequestError } from "../shared/errors";
 import type { AppEnv } from "../shared/types";
@@ -47,17 +47,15 @@ credentialsRouter.post("/", async (c) => {
 	const body = parse(
 		AddCredentialBody,
 		await c.req.json().catch(() => {
-			throw new BadRequestError("Invalid JSON body");
+			throw new BadRequestError("Invalid JSON body", "invalid_json");
 		}),
 	);
 
 	const provider = getProvider(body.provider_id);
 	if (!provider) {
-		const supported = getAllProviders()
-			.map((p) => p.info.id)
-			.join(", ");
 		throw new BadRequestError(
-			`Unknown provider: ${body.provider_id}. Supported: ${supported}`,
+			`Unknown provider: ${body.provider_id}`,
+			"unknown_provider",
 		);
 	}
 
@@ -65,9 +63,7 @@ credentialsRouter.post("/", async (c) => {
 	const needsManualQuota = !isSub && !provider.info.supportsAutoCredits;
 
 	if (needsManualQuota && (body.quota == null || body.quota <= 0)) {
-		throw new BadRequestError(
-			`${body.provider_id} does not support automatic quota detection. Please provide a "quota" value.`,
-		);
+		throw new BadRequestError("Manual quota required", "quota_required");
 	}
 
 	let secret: string;
@@ -78,6 +74,7 @@ credentialsRouter.post("/", async (c) => {
 	} catch (err) {
 		throw new BadRequestError(
 			err instanceof Error ? err.message : "Invalid secret format",
+			"invalid_secret_format",
 		);
 	}
 
@@ -90,7 +87,8 @@ credentialsRouter.post("/", async (c) => {
 			.first();
 		if (ownKey) {
 			throw new BadRequestError(
-				"Cannot add your own Keyaos API key as a credential — this would cause circular routing.",
+				"Self-credential cycle detected",
+				"self_credential_cycle",
 			);
 		}
 	}
@@ -98,13 +96,14 @@ credentialsRouter.post("/", async (c) => {
 	const isValid = await provider.validateKey(secret);
 	if (!isValid) {
 		throw new BadRequestError(
-			`Invalid credential for ${body.provider_id}. The secret was rejected by the provider.`,
+			"Credential rejected by provider",
+			"invalid_credential",
 		);
 	}
 
 	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	if (await dao.existsBySecretHash(secret)) {
-		throw new BadRequestError("This credential has already been added.");
+		throw new BadRequestError("Duplicate credential", "credential_duplicate");
 	}
 
 	const authType = provider.info.authType ?? "api_key";
@@ -190,21 +189,23 @@ credentialsRouter.patch("/:id/quota", async (c) => {
 
 	if (credential.quota_source === "auto") {
 		throw new BadRequestError(
-			"Cannot manually set quota for auto-detected providers. System fetches them automatically.",
+			"Quota is auto-detected for this provider",
+			"quota_auto_only",
 		);
 	}
 
 	const provider = getProvider(credential.provider_id);
 	if (provider?.info.isSubscription) {
 		throw new BadRequestError(
-			"Subscription-based providers do not use quota tracking.",
+			"Subscription providers have no quota",
+			"quota_subscription",
 		);
 	}
 
 	const body = parse(
 		UpdateQuotaBody,
 		await c.req.json().catch(() => {
-			throw new BadRequestError("Invalid JSON body");
+			throw new BadRequestError("Invalid JSON body", "invalid_json");
 		}),
 	);
 
@@ -240,19 +241,14 @@ credentialsRouter.patch("/:id/settings", async (c) => {
 	const body = parse(
 		UpdateSettingsBody,
 		await c.req.json().catch(() => {
-			throw new BadRequestError("Invalid JSON body");
+			throw new BadRequestError("Invalid JSON body", "invalid_json");
 		}),
 	);
 
 	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);
 	const credential = await dao.get(id, c.get("owner_id"));
 	if (!credential) {
-		throw new ApiError(
-			"Credential not found",
-			404,
-			"not_found",
-			"credential_not_found",
-		);
+		throw new ApiError("Not found", 404, "not_found", "credential_not_found");
 	}
 
 	const isEnabled = body.isEnabled ?? credential.is_enabled;

@@ -12,6 +12,7 @@ import { useFetch } from "../../hooks/useFetch";
 import { useFormatDateTime } from "../../hooks/useFormatDateTime";
 import { TOKENS } from "../../utils/colors";
 import { formatUSD } from "../../utils/format";
+import { toastApiError } from "../../utils/toast-error";
 
 interface GiftCard {
 	code: string;
@@ -62,7 +63,7 @@ export function GiftCards() {
 		const amt = Number.parseFloat(amount);
 		const cnt = Number.parseInt(count, 10);
 		if (!amt || amt <= 0 || !cnt || cnt < 1 || cnt > 500) {
-			toast.error("Amount must be > 0, count must be 1–500");
+			toast.error(t("errors.admin_gift_card_invalid"));
 			return;
 		}
 		setGenerating(true);
@@ -87,10 +88,10 @@ export function GiftCards() {
 				);
 				refetch();
 			} else {
-				toast.error(json.error?.message ?? "Failed");
+				toastApiError(json, t);
 			}
 		} catch {
-			toast.error("Network error");
+			toast.error(t("common.network_error"));
 		} finally {
 			setGenerating(false);
 		}

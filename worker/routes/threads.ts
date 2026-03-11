@@ -58,7 +58,7 @@ threadsRouter.patch("/:id/rename", async (c) => {
 	const ownerId = c.get("owner_id");
 	const id = c.req.param("id");
 	const { title } = await c.req.json<{ title: string }>();
-	if (!title) throw new BadRequestError("title is required");
+	if (!title) throw new BadRequestError("title required", "title_required");
 	const dao = new ThreadsDao(c.env.DB);
 	await dao.updateTitle(id, ownerId, title);
 	return c.json({ ok: true });
@@ -211,7 +211,8 @@ threadsRouter.post("/:id/messages", async (c) => {
 	const body = await c.req.json<{
 		messages: { id: string; role: string; parts: unknown; model?: string }[];
 	}>();
-	if (!body.messages?.length) throw new BadRequestError("messages is required");
+	if (!body.messages?.length)
+		throw new BadRequestError("messages required", "messages_required");
 	const dao = new ThreadsDao(c.env.DB);
 	const now = Date.now();
 	for (const m of body.messages) {

@@ -30,6 +30,7 @@
 	"common": {
 		"loading": "加载中...",
 		"error": "发生错误",
+		"network_error": "网络错误，请重试",
 		"success": "成功",
 		"save": "保存",
 		"cancel": "取消",
@@ -233,6 +234,10 @@
 			"anthropic": [
 				"前往 https://console.anthropic.com/settings/keys",
 				"创建新的 API 密钥并复制"
+			],
+			"keyaos": [
+				"前往另一个 Keyaos 账户的 API Keys 页面",
+				"创建一个 API 密钥并复制"
 			]
 		}
 	},
@@ -444,6 +449,35 @@
 		"time_last_7_days": "过去 7 天",
 		"time_last_30_days": "过去 30 天",
 		"time_older": "更早"
+	},
+	"errors": {
+		"bad_request": "请求参数有误",
+		"validation_error": "输入格式不正确",
+		"invalid_json": "请求格式无效",
+		"unknown_provider": "不支持该服务商",
+		"quota_required": "该服务商需要手动填写配额",
+		"invalid_secret_format": "凭证格式不正确",
+		"self_credential_cycle": "不能将自己的 API 密钥作为凭证添加",
+		"invalid_credential": "凭证被服务商拒绝，请仔细检查",
+		"credential_duplicate": "该凭证已被添加过",
+		"credential_not_found": "未找到该凭证",
+		"quota_auto_only": "该服务商的配额由系统自动更新",
+		"quota_subscription": "订阅制服务商无需配额管理",
+		"api_key_not_found": "未找到该 API 密钥",
+		"checkout_min_amount": "最低充值金额为 $1",
+		"redeem_code_required": "请输入有效的兑换码",
+		"no_payment_method": "请先完成一次手动充值以保存支付方式",
+		"topup_min_threshold": "触发阈值至少为 $1",
+		"topup_min_amount": "自动充值金额至少为 $5",
+		"admin_amount_required": "请输入非零金额",
+		"admin_invalid_table": "无效的表名",
+		"admin_gift_card_amount": "金额必须大于 0",
+		"admin_gift_card_count": "数量必须在 1 到 500 之间",
+		"admin_gift_card_invalid": "金额必须大于 0，数量为 1 到 500",
+		"model_required": "请选择模型",
+		"messages_required": "请提供消息内容",
+		"title_required": "请提供标题",
+		"payments_not_configured": "支付功能暂不可用"
 	},
 	"landing": {
 		"hero_tagline": "万钥归一",

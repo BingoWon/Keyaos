@@ -31,8 +31,8 @@ export class AuthenticationError extends ApiError {
 }
 
 export class BadRequestError extends ApiError {
-	constructor(message: string) {
-		super(message, 400, "invalid_request_error", "bad_request");
+	constructor(message: string, code = "bad_request") {
+		super(message, 400, "invalid_request_error", code);
 	}
 }
 

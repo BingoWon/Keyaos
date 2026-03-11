@@ -47,7 +47,7 @@ apiKeysRouter.post("/", async (c) => {
 	const body = parse(
 		CreateKeyBody,
 		await c.req.json().catch(() => {
-			throw new BadRequestError("Invalid JSON body");
+			throw new BadRequestError("Invalid JSON body", "invalid_json");
 		}),
 	);
 
@@ -95,7 +95,7 @@ apiKeysRouter.patch("/:id", async (c) => {
 	const body = parse(
 		UpdateKeyBody,
 		await c.req.json().catch(() => {
-			throw new BadRequestError("Invalid JSON body");
+			throw new BadRequestError("Invalid JSON body", "invalid_json");
 		}),
 	);
 

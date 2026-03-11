@@ -30,6 +30,7 @@ import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import type { CredentialGuide, ProviderMeta } from "../types/provider";
 import { TOKENS } from "../utils/colors";
 import { formatUSD } from "../utils/format";
+import { toastApiError } from "../utils/toast-error";
 
 interface CredentialInfo {
 	id: string;
@@ -167,7 +168,7 @@ export function Byok() {
 				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				toast.error(data.error?.message || res.statusText, { id: tid });
+				toastApiError(data, t, tid);
 			}
 		} catch (err) {
 			console.error(err);
@@ -191,7 +192,7 @@ export function Byok() {
 				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				toast.error(data.error?.message || res.statusText, { id: tid });
+				toastApiError(data, t, tid);
 			}
 		} catch (err) {
 			console.error(err);
@@ -210,7 +211,7 @@ export function Byok() {
 				toast.success(t("common.success"));
 			} else {
 				const data = await res.json();
-				toast.error(data.error?.message || res.statusText);
+				toastApiError(data, t);
 			}
 		} catch (err) {
 			console.error(err);
@@ -237,7 +238,7 @@ export function Byok() {
 				refetch();
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				toast.error(data.error?.message || res.statusText, { id: tid });
+				toastApiError(data, t, tid);
 			}
 		} catch (err) {
 			console.error(err);

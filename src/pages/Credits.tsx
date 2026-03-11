@@ -24,6 +24,7 @@ import { invalidateCache, useFetch } from "../hooks/useFetch";
 import { useFormatDateTime } from "../hooks/useFormatDateTime";
 import { TOKENS, type TokenName } from "../utils/colors";
 import { formatSignedUSD, formatUSD } from "../utils/format";
+import { toastApiError } from "../utils/toast-error";
 
 const CONFETTI_COLORS = [
 	"#ff6b6b",
@@ -259,14 +260,14 @@ export function Credits() {
 				});
 				const json = await res.json();
 				if (json.url) window.location.href = json.url;
-				else toast.error(json.error?.message ?? "Checkout failed");
+				else toastApiError(json, t);
 			} catch {
-				toast.error("Network error");
+				toast.error(t("common.network_error"));
 			} finally {
 				setLoading(false);
 			}
 		},
-		[getToken],
+		[getToken, t],
 	);
 
 	const handleAutoSave = useCallback(
@@ -293,11 +294,11 @@ export function Credits() {
 					refetchAuto();
 				} else {
 					if (enabledOverride !== undefined) setAutoEnabled(!enabled);
-					toast.error(json.error?.message ?? "Failed");
+					toastApiError(json, t);
 				}
 			} catch {
 				if (enabledOverride !== undefined) setAutoEnabled(!enabled);
-				toast.error("Network error");
+				toast.error(t("common.network_error"));
 			} finally {
 				setAutoSaving(false);
 			}
@@ -333,7 +334,7 @@ export function Credits() {
 				toast.error(t("credits.redeem_error_invalid"));
 			}
 		} catch {
-			toast.error("Network error");
+			toast.error(t("common.network_error"));
 		} finally {
 			setRedeeming(false);
 		}

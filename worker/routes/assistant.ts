@@ -17,7 +17,7 @@ assistantRouter.post("/", async (c) => {
 	try {
 		body = await c.req.json();
 	} catch {
-		throw new BadRequestError("Invalid JSON body");
+		throw new BadRequestError("Invalid JSON body", "invalid_json");
 	}
 
 	const messages = body.messages as UIMessage[] | undefined;
@@ -26,8 +26,10 @@ assistantRouter.post("/", async (c) => {
 	const threadId = (body.id ?? body.threadId) as string | undefined;
 	const providerIds = body.provider_ids as string[] | undefined;
 
-	if (!modelId) throw new BadRequestError("model_id is required");
-	if (!messages?.length) throw new BadRequestError("messages is required");
+	if (!modelId)
+		throw new BadRequestError("model_id is required", "model_required");
+	if (!messages?.length)
+		throw new BadRequestError("messages required", "messages_required");
 
 	type ContentPart =
 		| { type: "text"; text: string }

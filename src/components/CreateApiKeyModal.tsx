@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import { TOKENS } from "../utils/colors";
 import { type ExpiryPreset, expiryToTimestamp } from "../utils/expiry";
+import { toastApiError } from "../utils/toast-error";
 import { IpAllowlistInput } from "./IpAllowlistInput";
 import { Modal } from "./Modal";
 import { ModelMultiSelect } from "./ModelMultiSelect";
@@ -95,7 +96,7 @@ export function CreateApiKeyModal({
 				});
 				toast.success(t("common.success"), { id: tid });
 			} else {
-				toast.error(result.error?.message || res.statusText, { id: tid });
+				toastApiError(result, t, tid);
 			}
 		} catch (err) {
 			console.error(err);

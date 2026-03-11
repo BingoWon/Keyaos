@@ -30,6 +30,7 @@
 	"common": {
 		"loading": "Loading...",
 		"error": "An error occurred",
+		"network_error": "Network error, please try again",
 		"success": "Success",
 		"save": "Save",
 		"cancel": "Cancel",
@@ -236,6 +237,10 @@
 			"anthropic": [
 				"Go to https://console.anthropic.com/settings/keys",
 				"Create a new API key and copy it"
+			],
+			"keyaos": [
+				"Go to the API Keys page on another Keyaos account",
+				"Create an API key and copy it"
 			]
 		}
 	},
@@ -447,6 +452,35 @@
 		"time_last_7_days": "Last 7 Days",
 		"time_last_30_days": "Last 30 Days",
 		"time_older": "Older"
+	},
+	"errors": {
+		"bad_request": "Invalid request",
+		"validation_error": "Input validation failed",
+		"invalid_json": "Invalid request format",
+		"unknown_provider": "This provider is not supported",
+		"quota_required": "This provider requires a manual quota value",
+		"invalid_secret_format": "The credential format is invalid",
+		"self_credential_cycle": "You cannot add your own API key as a credential",
+		"invalid_credential": "This credential was rejected by the provider — please double-check",
+		"credential_duplicate": "This credential has already been added",
+		"credential_not_found": "Credential not found",
+		"quota_auto_only": "This provider's quota is updated automatically",
+		"quota_subscription": "Subscription-based providers do not use quota tracking",
+		"api_key_not_found": "API key not found",
+		"checkout_min_amount": "Minimum purchase amount is $1",
+		"redeem_code_required": "Please enter a valid redemption code",
+		"no_payment_method": "Please complete a payment first to save your card",
+		"topup_min_threshold": "Threshold must be at least $1",
+		"topup_min_amount": "Top-up amount must be at least $5",
+		"admin_amount_required": "Please enter a non-zero amount",
+		"admin_invalid_table": "Invalid table name",
+		"admin_gift_card_amount": "Amount must be greater than 0",
+		"admin_gift_card_count": "Quantity must be between 1 and 500",
+		"admin_gift_card_invalid": "Amount must be > 0 and quantity 1–500",
+		"model_required": "Please select a model",
+		"messages_required": "Messages are required",
+		"title_required": "Title is required",
+		"payments_not_configured": "Payments are not available at this time"
 	},
 	"landing": {
 		"hero_tagline": "Order in Chaos",

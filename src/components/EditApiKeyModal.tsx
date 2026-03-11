@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth";
 import type { ApiKeyInfo } from "../types/api-key";
 import { type ExpiryPreset, expiryToTimestamp } from "../utils/expiry";
+import { toastApiError } from "../utils/toast-error";
 import { IpAllowlistInput } from "./IpAllowlistInput";
 import { Modal } from "./Modal";
 import { ModelMultiSelect } from "./ModelMultiSelect";
@@ -87,7 +88,7 @@ export function EditApiKeyModal({ open, onClose, apiKey, onUpdated }: Props) {
 				onClose();
 			} else {
 				const data = await res.json();
-				toast.error(data.error?.message || res.statusText, { id: tid });
+				toastApiError(data, t, tid);
 			}
 		} catch (err) {
 			console.error(err);
