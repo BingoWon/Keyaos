@@ -72,6 +72,7 @@ app.use(
 			"Authorization",
 			"x-api-key",
 			"anthropic-version",
+			"x-keyaos-depth",
 		],
 		exposeHeaders: ["x-request-id", "x-provider", "x-credential-id"],
 	}),

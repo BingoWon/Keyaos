@@ -111,6 +111,9 @@ async function execute(
 		if (!matched) throw new ModelNotAllowedError(req.modelId);
 	}
 
+	const depth = Number(c.req.header("x-keyaos-depth")) || 0;
+	const excludeProviderIds = depth > 0 ? ["keyaos"] : undefined;
+
 	let creditsFallback = false;
 	if (isPlatform) {
 		const balance = await new WalletDao(c.env.DB).getBalance(consumerId);
@@ -124,6 +127,7 @@ async function execute(
 		req.modelId,
 		poolOwnerId,
 		req.providerIds,
+		excludeProviderIds,
 	).catch((err) => {
 		if (creditsFallback && err instanceof NoKeyAvailableError) {
 			throw new CreditsExhaustedNoFallbackError(req.modelId);

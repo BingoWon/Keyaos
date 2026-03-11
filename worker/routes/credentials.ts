@@ -3,6 +3,7 @@ import { z } from "zod";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { LogsDao } from "../core/db/logs-dao";
 import { getAllProviders, getProvider } from "../core/providers/registry";
+import { sha256 } from "../shared/crypto";
 import { ApiError, BadRequestError } from "../shared/errors";
 import type { AppEnv } from "../shared/types";
 import { parse } from "../shared/validate";
@@ -85,6 +86,20 @@ credentialsRouter.post("/", async (c) => {
 		throw new BadRequestError(
 			`Invalid credential for ${body.provider_id}. The secret was rejected by the provider.`,
 		);
+	}
+
+	if (body.provider_id === "keyaos") {
+		const keyHash = await sha256(secret);
+		const ownKey = await c.env.DB.prepare(
+			"SELECT 1 FROM api_keys WHERE key_hash = ? AND owner_id = ? LIMIT 1",
+		)
+			.bind(keyHash, c.get("owner_id"))
+			.first();
+		if (ownKey) {
+			throw new BadRequestError(
+				"Cannot add your own Keyaos API key as a credential — this would cause circular routing.",
+			);
+		}
 	}
 
 	const dao = new CredentialsDao(c.env.DB, c.env.ENCRYPTION_KEY);

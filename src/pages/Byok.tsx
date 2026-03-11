@@ -54,9 +54,10 @@ export function Byok() {
 		useFetch<CredentialInfo[]>("/api/credentials");
 	const credentials = data || [];
 
-	const { data: providersData } = useFetch<ProviderMeta[]>("/api/providers", {
-		requireAuth: false,
-	});
+	const { data: providersData } = useFetch<ProviderMeta[]>(
+		"/api/providers?all=1",
+		{ requireAuth: false },
+	);
 	const providers = providersData || [];
 
 	const [isAddOpen, setIsAddOpen] = useState(false);

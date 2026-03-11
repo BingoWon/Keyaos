@@ -195,6 +195,49 @@ function validateViaChat(
 	};
 }
 
+// ─── Keyaos self-provider catalog parser ────────────────────
+
+/** Parse /api/catalog response into ParsedModel[], deduplicated by model_id (best price wins). */
+function parseKeyaosCatalog(raw: Record<string, unknown>): ParsedModel[] {
+	const data = raw.data as Record<string, unknown>[] | undefined;
+	if (!data) return [];
+
+	const best = new Map<string, ParsedModel>();
+	const now = Date.now();
+
+	for (const entry of data) {
+		const modelId = entry.model_id as string;
+		if (!modelId) continue;
+
+		const inputPrice = (entry.input_price as number) ?? -1;
+		if (inputPrice < 0) continue;
+
+		const existing = best.get(modelId);
+		if (existing && existing.input_price <= inputPrice) continue;
+
+		best.set(modelId, {
+			id: `keyaos:${modelId}`,
+			provider_id: "keyaos",
+			model_id: modelId,
+			name: (entry.name as string) || null,
+			model_type:
+				((entry.model_type as string) || "chat") === "embedding"
+					? "embedding"
+					: "chat",
+			input_price: inputPrice,
+			output_price: (entry.output_price as number) ?? 0,
+			context_length: (entry.context_length as number) || null,
+			input_modalities: (entry.input_modalities as string) || null,
+			output_modalities: (entry.output_modalities as string) || null,
+			upstream_model_id: null,
+			metadata: (entry.metadata as string) || null,
+			created: (entry.created as number) || now,
+		});
+	}
+
+	return [...best.values()];
+}
+
 // ─── Provider configs ───────────────────────────────────────
 // To add a new provider: add one entry here. Nothing else.
 
@@ -412,6 +455,22 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 			secretPattern: "^xai-[A-Za-z0-9]+$",
 		},
 	},
+	{
+		id: "keyaos",
+		name: "Keyaos",
+		logoUrl: "https://keyaos.com/favicon.ico",
+		baseUrl: "https://keyaos.com/v1",
+		currency: "USD",
+		supportsAutoCredits: false,
+		hidden: true,
+		modelsUrl: "https://keyaos.com/api/catalog",
+		parseModels: parseKeyaosCatalog,
+		extraHeaders: { "X-Keyaos-Depth": "1" },
+		credentialGuide: {
+			placeholder: "sk-keyaos-...",
+			secretPattern: "^sk-keyaos-[a-f0-9]{32}$",
+		},
+	},
 ];
 
 // ─── Registry API ───────────────────────────────────────────
@@ -432,4 +491,9 @@ export function getProvider(id: string): ProviderAdapter | undefined {
 
 export function getAllProviders(): ProviderAdapter[] {
 	return Array.from(adapters.values());
+}
+
+/** Providers visible on public pages (excludes hidden providers like Keyaos). */
+export function getVisibleProviders(): ProviderAdapter[] {
+	return Array.from(adapters.values()).filter((p) => !p.info.hidden);
 }

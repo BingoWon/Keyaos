@@ -31,6 +31,8 @@ export interface OpenAICompatibleConfig {
 	customValidateKey?: (secret: string) => Promise<boolean>;
 	/** Subscription-based provider — no quota tracking, uses cooldown health recovery. */
 	isSubscription?: boolean;
+	/** Hidden from public pages (providers, models) but available in BYOK. */
+	hidden?: boolean;
 	credentialGuide?: CredentialGuide;
 	/** Env var name for system-level API key enabling dynamic model sync. */
 	systemKeyEnvVar?: string;
@@ -75,6 +77,7 @@ export class OpenAICompatibleAdapter implements ProviderAdapter {
 			supportsAutoCredits: config.supportsAutoCredits,
 			currency: config.currency,
 			isSubscription: config.isSubscription,
+			hidden: config.hidden,
 			credentialGuide: config.credentialGuide,
 		};
 		this.systemKeyEnvVar = config.systemKeyEnvVar;

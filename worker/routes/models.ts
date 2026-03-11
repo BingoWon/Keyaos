@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { CandleDao } from "../core/db/candle-dao";
 import { CatalogDao } from "../core/db/catalog-dao";
+import { getVisibleProviders } from "../core/providers/registry";
 import { edgeCache } from "../shared/cache";
 import type { AppEnv } from "../shared/types";
 
@@ -51,6 +52,8 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 		candleDao.getLatestPrices("model:output"),
 	]);
 
+	const visibleIds = new Set(getVisibleProviders().map((p) => p.info.id));
+
 	// USD-per-M-tokens → USD-per-token string (OpenRouter format)
 	const toUsdPerToken = (usdPerM: number) => String(usdPerM / 1_000_000);
 
@@ -67,6 +70,8 @@ publicModelsRouter.get("/", edgeCache(), async (c) => {
 	>();
 
 	for (const row of all) {
+		if (!visibleIds.has(row.provider_id)) continue;
+
 		let g = groups.get(row.model_id);
 		if (!g) {
 			const meta = row.metadata ? JSON.parse(row.metadata) : null;
@@ -159,33 +164,37 @@ dashboardModelsRouter.get("/", edgeCache(), async (c) => {
 		candleDao.getLatestPrices("provider"),
 	]);
 
-	const data = all.map((m) => {
-		const mul = providerMuls.get(m.provider_id) ?? m.best_multiplier;
-		const meta = m.metadata ? JSON.parse(m.metadata) : null;
-		return {
-			id: m.model_id,
-			type: m.model_type,
-			provider_id: m.provider_id,
-			name: m.name,
-			description: cleanDescription(meta?.description),
-			input_price: m.input_price,
-			output_price: m.output_price,
-			...(mul != null &&
-				mul < 1 && {
-					platform_input_price: m.input_price * mul,
-					platform_output_price: m.output_price * mul,
-				}),
-			context_length: m.context_length,
-			created: m.created || null,
-			input_modalities: m.input_modalities
-				? JSON.parse(m.input_modalities)
-				: null,
-			output_modalities: m.output_modalities
-				? JSON.parse(m.output_modalities)
-				: null,
-			supported_parameters: (meta?.supported_parameters as string[]) ?? null,
-		};
-	});
+	const visibleIds = new Set(getVisibleProviders().map((p) => p.info.id));
+
+	const data = all
+		.filter((m) => visibleIds.has(m.provider_id))
+		.map((m) => {
+			const mul = providerMuls.get(m.provider_id) ?? m.best_multiplier;
+			const meta = m.metadata ? JSON.parse(m.metadata) : null;
+			return {
+				id: m.model_id,
+				type: m.model_type,
+				provider_id: m.provider_id,
+				name: m.name,
+				description: cleanDescription(meta?.description),
+				input_price: m.input_price,
+				output_price: m.output_price,
+				...(mul != null &&
+					mul < 1 && {
+						platform_input_price: m.input_price * mul,
+						platform_output_price: m.output_price * mul,
+					}),
+				context_length: m.context_length,
+				created: m.created || null,
+				input_modalities: m.input_modalities
+					? JSON.parse(m.input_modalities)
+					: null,
+				output_modalities: m.output_modalities
+					? JSON.parse(m.output_modalities)
+					: null,
+				supported_parameters: (meta?.supported_parameters as string[]) ?? null,
+			};
+		});
 
 	return c.json({ data });
 });

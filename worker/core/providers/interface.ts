@@ -15,6 +15,8 @@ export interface ProviderInfo {
 	currency: "USD" | "CNY";
 	authType?: "api_key" | "oauth";
 	isSubscription?: boolean;
+	/** Hidden providers are excluded from public pages but available in BYOK. */
+	hidden?: boolean;
 	credentialGuide?: CredentialGuide;
 }
 

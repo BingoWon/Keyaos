@@ -34,6 +34,7 @@ export async function dispatchAll(
 	modelId: string,
 	ownerId?: string,
 	providerIds?: string[],
+	excludeProviderIds?: string[],
 ): Promise<DispatchResult[]> {
 	if (!modelId) throw new BadRequestError("Model is required");
 
@@ -46,6 +47,7 @@ export async function dispatchAll(
 	for (const offering of offerings) {
 		if (providerIds?.length && !providerIds.includes(offering.provider_id))
 			continue;
+		if (excludeProviderIds?.includes(offering.provider_id)) continue;
 		if (offering.input_price < 0 || offering.output_price < 0) continue;
 		const provider = getProvider(offering.provider_id);
 		if (!provider) continue;

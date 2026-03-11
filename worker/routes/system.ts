@@ -2,7 +2,10 @@ import { Hono } from "hono";
 import { CandleDao, type CandleDimension } from "../core/db/candle-dao";
 import { CredentialsDao } from "../core/db/credentials-dao";
 import { LogsDao } from "../core/db/logs-dao";
-import { getAllProviders } from "../core/providers/registry";
+import {
+	getAllProviders,
+	getVisibleProviders,
+} from "../core/providers/registry";
 import { edgeCache } from "../shared/cache";
 import type { AppEnv } from "../shared/types";
 
@@ -38,7 +41,9 @@ systemRouter.get("/pool/stats", async (c) => {
 });
 
 systemRouter.get("/providers", edgeCache(), async (c) => {
-	const providers = getAllProviders().map((p) => ({
+	const includeHidden = c.req.query("all") === "1";
+	const source = includeHidden ? getAllProviders() : getVisibleProviders();
+	const providers = source.map((p) => ({
 		id: p.info.id,
 		name: p.info.name,
 		logoUrl: p.info.logoUrl,
