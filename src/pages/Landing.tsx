@@ -1,138 +1,596 @@
-import { Link } from "react-router-dom";
+import { ArrowRightIcon } from "@heroicons/react/20/solid";
+import {
+	BoltIcon,
+	CodeBracketIcon,
+	CommandLineIcon,
+	GlobeAltIcon,
+	HeartIcon,
+	KeyIcon,
+	SignalIcon,
+	UserGroupIcon,
+} from "@heroicons/react/24/outline";
+import { type ComponentType, type SVGProps, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth";
+import { CopyButton } from "../components/CopyButton";
+import { Logo } from "../components/Logo";
+import { OrgLogo } from "../components/OrgLogo";
+import { ProviderGrid } from "../components/ProviderGrid";
+import { ProviderLogo } from "../components/ProviderLogo";
+import { Sparkline, type SparklineData } from "../components/Sparkline";
+import { Badge, DualPrice } from "../components/ui";
+import { useFetch } from "../hooks/useFetch";
+import type { ModelEntry } from "../types/model";
+import type { ProviderMeta } from "../types/provider";
+import { formatContext, formatRelativeTime } from "../utils/format";
+import { aggregateModels } from "../utils/models";
+import { aggregateProviders } from "../utils/providers";
 
-const FEATURES = [
-	{
-		icon: "M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418",
-		title: "统一接口管理",
-		desc: "通过标准化 API 接口统一管理多种 AI 模型服务，简化集成流程，降低开发复杂度。",
-	},
-	{
-		icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z",
-		title: "用量分析与监控",
-		desc: "实时追踪 API 调用量、响应时间与费用支出，提供可视化报表与异常预警。",
-	},
-	{
-		icon: "M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z",
-		title: "智能路由调度",
-		desc: "根据模型可用性、延迟和成本自动选择最优服务节点，确保请求高效可靠。",
-	},
-	{
-		icon: "M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z",
-		title: "密钥安全管理",
-		desc: "集中管理 API 密钥与访问权限，支持细粒度配额控制与审计日志。",
-	},
-];
+const GITHUB_URL = "https://github.com/BingoWon/Keyaos";
 
-export function Landing() {
+type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+function GitHubIcon({ className }: { className?: string }) {
 	return (
-		<div className="min-h-screen bg-white text-gray-900">
-			{/* Nav */}
-			<header className="border-b border-gray-100">
-				<div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-					<div className="flex items-center gap-2.5">
-						<img src="/logo.png" alt="Keyaos" className="size-8 rounded-lg" />
-						<span className="text-lg font-bold tracking-tight">Keyaos</span>
-						<span className="text-xs text-gray-400">氪钥枢</span>
-					</div>
-					<Link
-						to="/login"
-						className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700"
-					>
-						登录 / 注册
-					</Link>
-				</div>
-			</header>
+		<svg
+			viewBox="0 0 16 16"
+			className={className}
+			fill="currentColor"
+			aria-hidden="true"
+		>
+			<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+		</svg>
+	);
+}
 
-			{/* Hero */}
-			<section className="mx-auto max-w-5xl px-6 pt-12 pb-12 text-center sm:pt-20 sm:pb-16">
-				<h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-					AI 接口统一管理平台
+function Hero() {
+	const { t } = useTranslation();
+	const { isLoaded, isSignedIn } = useAuth();
+	const authed = isLoaded && isSignedIn;
+
+	return (
+		<section className="relative isolate overflow-hidden pt-14">
+			{/* Grid pattern */}
+			<div
+				className="absolute inset-0 -z-10 opacity-[0.03] dark:opacity-[0.04]"
+				style={{
+					backgroundImage:
+						"linear-gradient(var(--color-brand-500) 1px, transparent 1px), linear-gradient(90deg, var(--color-brand-500) 1px, transparent 1px)",
+					backgroundSize: "64px 64px",
+				}}
+			/>
+
+			{/* Gradient orbs */}
+			<div className="pointer-events-none absolute -z-10 inset-0">
+				<div className="animate-float-slow absolute -top-32 left-1/4 h-[500px] w-[500px] rounded-full bg-brand-400/15 blur-[128px] dark:bg-brand-500/10" />
+				<div className="animate-float-slow-reverse absolute -bottom-32 right-1/4 h-[400px] w-[400px] rounded-full bg-accent-400/15 blur-[128px] dark:bg-accent-400/10" />
+			</div>
+
+			<div className="mx-auto max-w-4xl px-6 pb-24 pt-32 text-center sm:pt-40">
+				{/* Tagline badge */}
+				<div className="mb-8 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-4 py-1.5 text-sm font-medium text-brand-700 backdrop-blur dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
+					<span className="relative flex size-2">
+						<span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-400 opacity-75" />
+						<span className="relative inline-flex size-2 rounded-full bg-brand-500" />
+					</span>
+					{t("landing.hero_tagline")}
+				</div>
+
+				{/* Title */}
+				<h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
+					<span className="bg-gradient-to-br from-gray-900 via-brand-700 to-brand-500 bg-clip-text text-transparent dark:from-white dark:via-brand-200 dark:to-brand-400">
+						{t("landing.hero_title")}
+					</span>
 				</h1>
-				<p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-gray-500">
-					为开发者与企业提供标准化的 AI
-					模型接口管理服务，整合用量监控、成本优化与智能路由调度，让 AI
-					集成更简单、更高效。
+
+				{/* Subtitle */}
+				<p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-400 sm:text-xl">
+					{t("landing.hero_subtitle")}
 				</p>
-				<div className="mt-10 flex justify-center gap-4">
+
+				{/* CTAs */}
+				<div className="mt-10 flex flex-wrap items-center justify-center gap-4">
 					<Link
-						to="/login"
-						className="rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+						to={authed ? "/dashboard" : "/login"}
+						className="group inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 transition-all hover:bg-brand-600 hover:shadow-brand-500/35 dark:hover:bg-brand-400"
 					>
-						开始使用
+						{authed ? t("landing.cta_dashboard") : t("landing.cta_start")}
+						<ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
 					</Link>
-					<Link
-						to="/docs/introduction"
-						className="rounded-lg border border-gray-200 px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+					<a
+						href={GITHUB_URL}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white/80 px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm backdrop-blur transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
 					>
-						查看文档
-					</Link>
+						<GitHubIcon className="size-5" />
+						{t("landing.cta_github")}
+					</a>
+				</div>
+			</div>
+		</section>
+	);
+}
+
+const LANDING_MODELS_LIMIT = 8;
+
+function PlatformShowcase() {
+	const { t, i18n } = useTranslation();
+	const navigate = useNavigate();
+
+	const { data: providers } = useFetch<ProviderMeta[]>("/api/providers", {
+		requireAuth: false,
+	});
+	const { data: models } = useFetch<ModelEntry[]>("/api/models", {
+		requireAuth: false,
+	});
+	const { data: inputSparks } = useFetch<Record<string, SparklineData>>(
+		"/api/sparklines/model:input",
+		{ requireAuth: false },
+	);
+
+	const providerGroups = useMemo(
+		() => aggregateProviders(models ?? [], providers ?? []),
+		[models, providers],
+	);
+
+	const providerMap = useMemo(
+		() => new Map((providers ?? []).map((p) => [p.id, p])),
+		[providers],
+	);
+
+	const modelGroups = useMemo(
+		() => aggregateModels(models ?? []).slice(0, LANDING_MODELS_LIMIT),
+		[models],
+	);
+
+	if (!providerGroups.length && !modelGroups.length) return null;
+
+	return (
+		<>
+			{/* Providers */}
+			<section className="border-y border-gray-200 bg-gray-50/50 py-10 dark:border-white/5 dark:bg-white/[0.02]">
+				<div className="mx-auto max-w-6xl px-6">
+					<p className="mb-6 text-center text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+						{t("landing.providers_label")}
+					</p>
+					<ProviderGrid groups={providerGroups} center />
 				</div>
 			</section>
 
-			{/* Features */}
-			<section className="border-t border-gray-100 bg-gray-50/60">
-				<div className="mx-auto grid max-w-5xl gap-8 px-6 py-20 sm:grid-cols-2">
-					{FEATURES.map((f) => (
-						<div key={f.title} className="flex gap-4">
-							<div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50">
-								<svg
-									className="size-5 text-brand-600"
-									fill="none"
-									viewBox="0 0 24 24"
-									strokeWidth={1.5}
-									stroke="currentColor"
-									role="img"
-									aria-label={f.title}
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d={f.icon}
-									/>
-								</svg>
+			{/* Latest Models */}
+			{modelGroups.length > 0 && (
+				<section className="py-16 sm:py-20">
+					<div className="mx-auto max-w-6xl px-6">
+						<p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+							{t("landing.models_label")}
+						</p>
+						<div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+							<table className="min-w-full">
+								<tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+									{modelGroups.map((g) => {
+										const best = g.providers[0];
+										const maxCtx = Math.max(
+											...g.providers.map((p) => p.contextLength),
+										);
+										const spark = inputSparks?.[g.id];
+										return (
+											<tr
+												key={g.id}
+												onClick={(e) => {
+													if ((e.target as HTMLElement).closest("a,button"))
+														return;
+													navigate(`/${g.id}`);
+												}}
+												className="hover:bg-gray-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+											>
+												<td className="py-3 pl-5 pr-2">
+													<div className="min-w-0">
+														<Link
+															to={`/${g.id}`}
+															className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-brand-600 dark:text-white dark:hover:text-brand-400 transition-colors whitespace-nowrap"
+														>
+															<OrgLogo modelId={g.id} size={16} />
+															{g.displayName}
+														</Link>
+														<div className="flex items-center gap-1.5 mt-0.5">
+															<code className="text-xs font-mono text-gray-500 dark:text-gray-400">
+																{g.id}
+															</code>
+															<CopyButton text={g.id} />
+															{g.createdAt > 0 && (
+																<Badge variant="warning">
+																	{formatRelativeTime(
+																		g.createdAt,
+																		i18n.language,
+																	)}
+																</Badge>
+															)}
+														</div>
+													</div>
+												</td>
+												<td className="px-2 py-3 hidden md:table-cell">
+													{spark && <Sparkline data={spark} className="h-7" />}
+												</td>
+												<td className="px-2 py-3 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
+													<DualPrice
+														original={best.inputPrice}
+														platform={best.platformInputPrice}
+													/>
+												</td>
+												<td className="px-2 py-3 text-sm font-mono text-right text-gray-600 dark:text-gray-400 whitespace-nowrap">
+													<DualPrice
+														original={best.outputPrice}
+														platform={best.platformOutputPrice}
+													/>
+												</td>
+												<td className="px-2 py-3 text-sm font-mono text-right text-gray-600 dark:text-gray-400 hidden sm:table-cell whitespace-nowrap">
+													{maxCtx > 0 ? formatContext(maxCtx) : "—"}
+												</td>
+												<td className="py-3 pl-2 pr-5">
+													<div className="flex items-center justify-end gap-1">
+														<span className="hidden sm:inline-flex items-center gap-0.5">
+															{g.providers.slice(0, 4).map((p) => {
+																const meta = providerMap.get(p.provider_id);
+																return meta ? (
+																	<ProviderLogo
+																		key={p.provider_id}
+																		src={meta.logoUrl}
+																		name={meta.name}
+																		size={16}
+																	/>
+																) : null;
+															})}
+														</span>
+														<Badge variant="brand">{g.providers.length}</Badge>
+													</div>
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+						<div className="mt-5 text-center">
+							<Link
+								to="/models"
+								className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+							>
+								{t("landing.models_explore")}
+								<ArrowRightIcon className="size-3.5" />
+							</Link>
+						</div>
+					</div>
+				</section>
+			)}
+		</>
+	);
+}
+
+function HowItWorks() {
+	const { t } = useTranslation();
+	const steps: { icon: HeroIcon; title: string; desc: string }[] = [
+		{
+			icon: KeyIcon,
+			title: t("landing.step1_title"),
+			desc: t("landing.step1_desc"),
+		},
+		{
+			icon: BoltIcon,
+			title: t("landing.step2_title"),
+			desc: t("landing.step2_desc"),
+		},
+		{
+			icon: CommandLineIcon,
+			title: t("landing.step3_title"),
+			desc: t("landing.step3_desc"),
+		},
+	];
+
+	return (
+		<section className="py-24 sm:py-32">
+			<div className="mx-auto max-w-6xl px-6">
+				<div className="mx-auto max-w-2xl text-center">
+					<h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+						{t("landing.how_title")}
+					</h2>
+					<p className="mt-3 text-base text-gray-500 dark:text-gray-400">
+						{t("landing.how_subtitle")}
+					</p>
+				</div>
+
+				<div className="mt-16 grid gap-8 sm:grid-cols-3">
+					{steps.map((step, i) => (
+						<div key={step.title} className="relative text-center">
+							{/* Connector line (hidden on mobile, between cards on sm+) */}
+							{i < steps.length - 1 && (
+								<div className="absolute right-0 top-8 hidden h-px w-full translate-x-1/2 bg-gradient-to-r from-brand-300 to-transparent sm:block dark:from-brand-500/40" />
+							)}
+
+							<div className="relative mx-auto flex size-16 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-500/10">
+								<step.icon className="size-7 text-brand-500" />
+								<span className="absolute -right-1.5 -top-1.5 flex size-6 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">
+									{i + 1}
+								</span>
 							</div>
-							<div>
-								<h3 className="text-base font-semibold">{f.title}</h3>
-								<p className="mt-1.5 text-sm leading-relaxed text-gray-500">
-									{f.desc}
-								</p>
-							</div>
+							<h3 className="mt-5 text-base font-semibold text-gray-900 dark:text-white">
+								{step.title}
+							</h3>
+							<p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+								{step.desc}
+							</p>
 						</div>
 					))}
 				</div>
-			</section>
+			</div>
+		</section>
+	);
+}
 
-			{/* CTA */}
-			<section className="mx-auto max-w-5xl px-6 py-20 text-center">
-				<h2 className="text-2xl font-bold">立即体验</h2>
-				<p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-gray-500">
-					注册即可获得免费额度，快速接入并管理您的 AI 模型服务。
-				</p>
-				<Link
-					to="/login"
-					className="mt-8 inline-block rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
-				>
-					免费注册
-				</Link>
-			</section>
+function Features() {
+	const { t } = useTranslation();
+	const features: { icon: HeroIcon; title: string; desc: string }[] = [
+		{
+			icon: BoltIcon,
+			title: t("landing.feat_routing_title"),
+			desc: t("landing.feat_routing_desc"),
+		},
+		{
+			icon: CodeBracketIcon,
+			title: t("landing.feat_protocol_title"),
+			desc: t("landing.feat_protocol_desc"),
+		},
+		{
+			icon: UserGroupIcon,
+			title: t("landing.feat_sharing_title"),
+			desc: t("landing.feat_sharing_desc"),
+		},
+		{
+			icon: SignalIcon,
+			title: t("landing.feat_streaming_title"),
+			desc: t("landing.feat_streaming_desc"),
+		},
+		{
+			icon: HeartIcon,
+			title: t("landing.feat_opensource_title"),
+			desc: t("landing.feat_opensource_desc"),
+		},
+		{
+			icon: GlobeAltIcon,
+			title: t("landing.feat_edge_title"),
+			desc: t("landing.feat_edge_desc"),
+		},
+	];
 
-			{/* Footer */}
-			<footer className="border-t border-gray-100">
-				<div className="mx-auto flex max-w-5xl flex-col items-center gap-3 px-6 py-6 text-xs text-gray-400 sm:flex-row sm:justify-between">
-					<span>© {new Date().getFullYear()} Keyaos. All rights reserved.</span>
-					<div className="flex gap-4">
-						<Link to="/docs/privacy-policy" className="hover:text-gray-600">
-							隐私政策
-						</Link>
-						<Link to="/docs/terms-of-service" className="hover:text-gray-600">
-							服务条款
-						</Link>
-						<Link to="/docs/contact" className="hover:text-gray-600">
-							联系我们
-						</Link>
+	return (
+		<section className="border-t border-gray-200 bg-gray-50/50 py-24 sm:py-32 dark:border-white/5 dark:bg-white/[0.02]">
+			<div className="mx-auto max-w-6xl px-6">
+				<div className="mx-auto max-w-2xl text-center">
+					<h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+						{t("landing.features_title")}
+					</h2>
+					<p className="mt-3 text-base text-gray-500 dark:text-gray-400">
+						{t("landing.features_subtitle")}
+					</p>
+				</div>
+
+				<div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{features.map((f) => (
+						<div
+							key={f.title}
+							className="group rounded-2xl border border-gray-200 bg-white p-6 transition-shadow hover:shadow-lg hover:shadow-brand-500/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:shadow-brand-500/5"
+						>
+							<div className="flex size-11 items-center justify-center rounded-xl bg-brand-50 transition-colors group-hover:bg-brand-100 dark:bg-brand-500/10 dark:group-hover:bg-brand-500/15">
+								<f.icon className="size-5.5 text-brand-500" />
+							</div>
+							<h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">
+								{f.title}
+							</h3>
+							<p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+								{f.desc}
+							</p>
+						</div>
+					))}
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function CodeExample() {
+	const { t } = useTranslation();
+	return (
+		<section className="py-24 sm:py-32">
+			<div className="mx-auto max-w-6xl px-6">
+				<div className="mx-auto max-w-2xl text-center">
+					<h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+						{t("landing.code_title")}
+					</h2>
+					<p className="mt-3 text-base text-gray-500 dark:text-gray-400">
+						{t("landing.code_subtitle")}
+					</p>
+				</div>
+
+				<div className="mx-auto mt-12 max-w-2xl">
+					<div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-950 shadow-2xl">
+						{/* Terminal chrome */}
+						<div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+							<span className="size-3 rounded-full bg-red-500/80" />
+							<span className="size-3 rounded-full bg-yellow-500/80" />
+							<span className="size-3 rounded-full bg-green-500/80" />
+							<span className="ml-3 text-xs text-gray-500">app.py</span>
+						</div>
+						{/* Code */}
+						<pre className="overflow-x-auto p-5 text-[13px] leading-relaxed">
+							<code>
+								<span className="text-blue-400">from</span>
+								<span className="text-gray-300"> openai </span>
+								<span className="text-blue-400">import</span>
+								<span className="text-green-400"> OpenAI</span>
+								{"\n\n"}
+								<span className="text-gray-300">client = </span>
+								<span className="text-green-400">OpenAI</span>
+								<span className="text-gray-500">(</span>
+								{"\n"}
+								<span className="text-gray-300">{"    "}</span>
+								<span className="text-orange-300">base_url</span>
+								<span className="text-gray-500">=</span>
+								<span className="text-amber-300">"https://keyaos.com/v1"</span>
+								<span className="text-gray-500">,</span>
+								<span className="ml-2 text-gray-600">{"# ← just this"}</span>
+								{"\n"}
+								<span className="text-gray-300">{"    "}</span>
+								<span className="text-orange-300">api_key</span>
+								<span className="text-gray-500">=</span>
+								<span className="text-amber-300">"key-..."</span>
+								<span className="text-gray-500">,</span>
+								{"\n"}
+								<span className="text-gray-500">)</span>
+								{"\n\n"}
+								<span className="text-gray-300">response = client.</span>
+								<span className="text-blue-300">chat.completions.create</span>
+								<span className="text-gray-500">(</span>
+								{"\n"}
+								<span className="text-gray-300">{"    "}</span>
+								<span className="text-orange-300">model</span>
+								<span className="text-gray-500">=</span>
+								<span className="text-amber-300">
+									"google/gemini-2.5-flash"
+								</span>
+								<span className="text-gray-500">,</span>
+								{"\n"}
+								<span className="text-gray-300">{"    "}</span>
+								<span className="text-orange-300">messages</span>
+								<span className="text-gray-500">=</span>
+								<span className="text-gray-500">[{"{"}</span>
+								<span className="text-amber-300">"role"</span>
+								<span className="text-gray-500">: </span>
+								<span className="text-amber-300">"user"</span>
+								<span className="text-gray-500">, </span>
+								<span className="text-amber-300">"content"</span>
+								<span className="text-gray-500">: </span>
+								<span className="text-amber-300">"Hello!"</span>
+								<span className="text-gray-500">{"}],"}</span>
+								{"\n"}
+								<span className="text-gray-500">)</span>
+							</code>
+						</pre>
 					</div>
 				</div>
-			</footer>
+			</div>
+		</section>
+	);
+}
+
+function FinalCTA() {
+	const { t } = useTranslation();
+	const { isLoaded, isSignedIn } = useAuth();
+	const authed = isLoaded && isSignedIn;
+
+	return (
+		<section className="py-24 sm:py-32">
+			<div className="mx-auto max-w-6xl px-6">
+				<div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-accent-400 px-8 py-20 text-center shadow-2xl shadow-brand-500/20 sm:px-16">
+					{/* Subtle grid overlay */}
+					<div
+						className="absolute inset-0 -z-10 opacity-[0.07]"
+						style={{
+							backgroundImage:
+								"linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
+							backgroundSize: "48px 48px",
+						}}
+					/>
+
+					<h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+						{t("landing.cta_final_title")}
+					</h2>
+					<p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-white/70">
+						{t("landing.cta_final_subtitle")}
+					</p>
+					<div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+						<Link
+							to={authed ? "/dashboard" : "/login"}
+							className="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-600 shadow-lg transition-colors hover:bg-white/90"
+						>
+							{authed ? t("landing.cta_dashboard") : t("landing.cta_start")}
+							<ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
+						</Link>
+						<a
+							href={GITHUB_URL}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
+						>
+							{t("landing.cta_github")}
+						</a>
+					</div>
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function Footer() {
+	const { t } = useTranslation();
+	return (
+		<footer className="border-t border-gray-200 py-12 dark:border-white/5">
+			<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 sm:flex-row">
+				<div className="flex items-center gap-2.5">
+					<Logo size="sm" as="div" />
+					<span className="text-xs text-gray-400 dark:text-gray-500">
+						{t("landing.footer_desc")}
+					</span>
+				</div>
+				<div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+					<Link to="/docs" className="transition-colors hover:text-brand-500">
+						{t("landing.footer_docs")}
+					</Link>
+					<a
+						href={GITHUB_URL}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="transition-colors hover:text-brand-500"
+					>
+						{t("landing.footer_github")}
+					</a>
+				</div>
+				<p className="text-xs text-gray-400 dark:text-gray-600">
+					&copy; {new Date().getFullYear()} Keyaos
+				</p>
+			</div>
+		</footer>
+	);
+}
+
+const JSON_LD = {
+	"@context": "https://schema.org",
+	"@type": "SoftwareApplication",
+	name: "Keyaos",
+	url: "https://keyaos.com",
+	applicationCategory: "DeveloperApplication",
+	operatingSystem: "Web",
+	description:
+		"Source-available AI API gateway that routes every request to the cheapest healthy provider.",
+	offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+	license: `${GITHUB_URL}/blob/main/LICENSE`,
+};
+
+export function Landing() {
+	return (
+		<div className="min-h-screen bg-white dark:bg-gray-950">
+			<script
+				type="application/ld+json"
+				// biome-ignore lint/security/noDangerouslySetInnerHtml: static JSON-LD
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+			/>
+			<Hero />
+			<PlatformShowcase />
+			<HowItWorks />
+			<Features />
+			<CodeExample />
+			<FinalCTA />
+			<Footer />
 		</div>
 	);
 }

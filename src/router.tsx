@@ -248,11 +248,11 @@ const docsChildren = [
 // ─── Route definitions ───────────────────────────────────
 
 export const router = createBrowserRouter([
-	{ path: "/", element: <Landing /> },
 	{
 		element: <AppLayout />,
 		errorElement: <RouteError />,
 		children: [
+			{ path: "/", element: <Landing /> },
 			{ path: "/login/*", element: <LoginRoute /> },
 			{ path: "/signup/*", element: <SignupRoute /> },
 
