@@ -9,7 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BingoWon/Keyaos/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License" /></a>
   <img src="https://img.shields.io/badge/runtime-Cloudflare_Workers-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare Workers" />
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
@@ -25,8 +24,7 @@
   <a href="README.md">English</a> ·
   <a href="https://keyaos.com">官网</a> ·
   <a href="https://keyaos.com/docs">文档</a> ·
-  <a href="https://keyaos.com/api-reference">API 参考</a> ·
-  <a href="LICENSE">许可证</a>
+  <a href="https://keyaos.com/api-reference">API 参考</a>
 </p>
 
 ---
@@ -235,7 +233,3 @@ npx wrangler secret put VITE_CLERK_PUBLISHABLE_KEY
 所有配置项详见 `.dev.vars.example` 和 `.env.example`。
 
 </details>
-
-## 许可证
-
-[BSL 1.1](LICENSE) — 可自由自部署和使用。作为竞争性服务进行商业托管需要另行授权。四年后自动转为 Apache 2.0。

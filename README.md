@@ -9,7 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/BingoWon/Keyaos/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSL_1.1-blue" alt="License" /></a>
   <img src="https://img.shields.io/badge/runtime-Cloudflare_Workers-F38020?logo=cloudflare&logoColor=white" alt="Cloudflare Workers" />
   <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
@@ -25,8 +24,7 @@
   <a href="README_CN.md">中文</a> ·
   <a href="https://keyaos.com">Website</a> ·
   <a href="https://keyaos.com/docs">Docs</a> ·
-  <a href="https://keyaos.com/api-reference">API Reference</a> ·
-  <a href="LICENSE">License</a>
+  <a href="https://keyaos.com/api-reference">API Reference</a>
 </p>
 
 ---
@@ -235,7 +233,3 @@ npx wrangler secret put VITE_CLERK_PUBLISHABLE_KEY
 See `.dev.vars.example` and `.env.example` for all configuration options.
 
 </details>
-
-## License
-
-[BSL 1.1](LICENSE) — free to self-host and use. Commercial hosting as a competing service requires a separate license. Converts to Apache 2.0 after four years.
