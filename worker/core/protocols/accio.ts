@@ -11,7 +11,7 @@
  *   - Anthropic: content_block_delta / message_delta / message_start
  */
 
-import { extractText } from "./shared";
+import { extractText, parseSSEDataLine } from "./shared";
 
 /**
  * Accio model name → OpenRouter canonical ID.
@@ -260,17 +260,7 @@ function mapUsage(
 	};
 }
 
-// ─── Shared SSE utilities ───────────────────────────────
-
-/** Extract the data payload from an SSE `data:` line, or null if not a data line. */
-export function parseSSEDataLine(line: string): string | null {
-	const trimmed = line.trim();
-	if (!trimmed.startsWith("data:")) return null;
-	const payload = trimmed.startsWith("data: ")
-		? trimmed.substring(6)
-		: trimmed.substring(5);
-	return payload === "[DONE]" ? null : payload;
-}
+// parseSSEDataLine lives in ./shared (generic SSE utility, not Accio-specific)
 
 // ─── Raw response parsing ───────────────────────────────
 
@@ -593,8 +583,6 @@ export function createAccioToOpenAIStream(
 	// State for accumulating Anthropic tool_use across frames
 	const pendingToolCalls: OpenAIToolCall[] = [];
 	let currentToolArgsAccumulator = "";
-	// Track whether the initial tool_calls chunk (with id+name) has been emitted for each tool
-	const emittedToolStartIndices = new Set<number>();
 
 	const emitChunk = (
 		controller: TransformStreamDefaultController<Uint8Array>,
@@ -662,7 +650,6 @@ export function createAccioToOpenAIStream(
 								},
 							];
 							emitChunk(controller, firstDelta, null);
-							emittedToolStartIndices.add(tc.index);
 						}
 						continue;
 					}

@@ -9,10 +9,10 @@
 import {
 	ACCIO_MODEL_MAP,
 	createAccioToOpenAIStream,
-	parseSSEDataLine,
 	toAccioRequest,
 	toOpenAIResponse,
 } from "../protocols/accio";
+import { parseSSEDataLine } from "../protocols/shared";
 import {
 	type ParsedModel,
 	type ProviderAdapter,
@@ -30,8 +30,7 @@ const CONFIG_URL = `${GATEWAY_BASE}/llm/config`;
 // ─── Model Mapping ──────────────────────────────────────
 
 function mapAccioModelId(adkModelName: string): string | null {
-	const m = adkModelName.toLowerCase();
-	return ACCIO_MODEL_MAP[m] ?? null;
+	return ACCIO_MODEL_MAP[adkModelName] ?? null;
 }
 
 // ─── Adapter ────────────────────────────────────────────
@@ -112,7 +111,7 @@ export class AccioAdapter implements ProviderAdapter {
 					contents: [
 						{
 							role: "user",
-							parts: [{ text: ".", thought: false }],
+							parts: [{ text: "." }],
 						},
 					],
 					max_output_tokens: 1,
