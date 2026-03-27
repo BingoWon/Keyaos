@@ -488,6 +488,9 @@ const PROVIDER_CONFIGS: OpenAICompatibleConfig[] = [
 // ─── Registry API ───────────────────────────────────────────
 
 const adapters = new Map<string, ProviderAdapter>();
+
+adapters.set("accio", accioAdapter);
+
 for (const config of PROVIDER_CONFIGS) {
 	adapters.set(config.id, new OpenAICompatibleAdapter(config));
 }
@@ -496,7 +499,6 @@ adapters.set("anthropic", anthropicAdapter);
 adapters.set("gemini-cli", geminiCliAdapter);
 adapters.set("antigravity", antigravityAdapter);
 adapters.set("kiro", kiroAdapter);
-adapters.set("accio", accioAdapter);
 
 export function getProvider(id: string): ProviderAdapter | undefined {
 	return adapters.get(id);
