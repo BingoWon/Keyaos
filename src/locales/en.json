@@ -250,11 +250,10 @@
 				"Create an API key and copy it"
 			],
 			"accio": [
-				"Go to https://www.accio.com and sign in",
-				"Log out, then sign in again to ensure the cookie is generated",
-				"Open Developer Tools (F12) > Application > Cookies",
-				"Find the phoenix_cookie, copy the entire string or just the accessToken value",
-				"Paste it into the Credential field below"
+				"Open the Accio desktop app and click to Log In (or log out and re-login)",
+				"When the browser automatically opens the login page, press F12 (Developer Tools)",
+				"Navigate to Application > Storage > Cookies",
+				"Find phoenix_cookie and paste the entire string or accessToken below"
 			]
 		}
 	},

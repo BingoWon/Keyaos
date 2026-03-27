@@ -70,8 +70,7 @@ export class AccioAdapter implements ProviderAdapter {
 	info: ProviderInfo = {
 		id: "accio",
 		name: "Accio",
-		logoUrl:
-			"https://sc02.alicdn.com/kf/A01fa5c73064d4f3abedffcec8af79b6fB.png",
+		logoUrl: "https://keyaos.com/accio-favicon.png",
 		supportsAutoCredits: false,
 		currency: "USD",
 		authType: "oauth",

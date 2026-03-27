@@ -247,11 +247,10 @@
 				"创建一个 API 密钥并复制"
 			],
 			"accio": [
-				"前往 https://www.accio.com 并完成登录",
-				"先退出登录，然后再重新登录一次以生成有效 Cookie",
-				"按下 F12 打开开发者工具 > Application/应用 > Cookies",
-				"找到 phoenix_cookie，复制整个字符串或者仅提取 accessToken 的值",
-				"粘贴到下方的凭证框中即可"
+				"打开 Accio 桌面客户端并点击登录（如果需要更新 Cookie，请先在客户端内退出再重新登录）",
+				"当客户端自动跳转到到浏览器登录网页时，按下 F12 打开开发者工具",
+				"进入 Application（应用）> Storage（存储）> Cookies",
+				"找到 phoenix_cookie，复制整段字符串或 accessToken 的值粘贴在下方"
 			]
 		}
 	},
