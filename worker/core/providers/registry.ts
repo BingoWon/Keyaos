@@ -6,6 +6,7 @@
  */
 
 import type { ModelType } from "../db/schema";
+import { accioAdapter } from "./accio-adapter";
 import { anthropicAdapter } from "./anthropic-adapter";
 import { antigravityAdapter, geminiCliAdapter } from "./google-oauth-adapter";
 import {
@@ -495,6 +496,7 @@ adapters.set("anthropic", anthropicAdapter);
 adapters.set("gemini-cli", geminiCliAdapter);
 adapters.set("antigravity", antigravityAdapter);
 adapters.set("kiro", kiroAdapter);
+adapters.set("accio", accioAdapter);
 
 export function getProvider(id: string): ProviderAdapter | undefined {
 	return adapters.get(id);

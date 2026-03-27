@@ -1,0 +1,73 @@
+{
+  "credentials": {
+    "found": true,
+    "tokenLength": 32
+  },
+  "nonStreamChat": {
+    "success": true,
+    "status": 200,
+    "totalFrames": 1,
+    "textContent": "Hello.",
+    "finishReason": "STOP",
+    "hasUsage": true,
+    "promptTokens": 6,
+    "candidatesTokens": 2,
+    "thoughtsTokens": 67
+  },
+  "streamChat": {
+    "success": true,
+    "status": 200,
+    "totalBytes": 1294,
+    "totalFrames": 1,
+    "textContent": "1, 2, 3, 4, 5.",
+    "finishReason": "STOP",
+    "hasUsage": true,
+    "promptTokens": 8,
+    "candidatesTokens": 14,
+    "thoughtsTokens": 80
+  },
+  "cfWorkerHeader": {
+    "blocked": false,
+    "status": 200
+  },
+  "invalidToken": {
+    "status": 200,
+    "rejected": true,
+    "body": "data:{\"turn_complete\":true,\"error_code\":\"402\",\"error_message\":\"unauthorized\"}\n\n"
+  },
+  "model_gemini-3-flash-preview": {
+    "success": true,
+    "status": 200,
+    "text": "YES",
+    "hasUsage": true
+  },
+  "model_gemini-2.5-flash": {
+    "success": true,
+    "status": 200,
+    "text": "",
+    "hasUsage": false
+  },
+  "model_gemini-2.5-pro": {
+    "success": true,
+    "status": 200,
+    "text": "",
+    "hasUsage": false
+  },
+  "model_gpt-4o": {
+    "success": true,
+    "status": 200,
+    "text": "",
+    "hasUsage": false
+  },
+  "model_claude-sonnet-4-20250514": {
+    "success": true,
+    "status": 200,
+    "text": "",
+    "hasUsage": false
+  },
+  "systemInstruction": {
+    "success": true,
+    "mentionsKeyaos": false,
+    "text": ""
+  }
+}
