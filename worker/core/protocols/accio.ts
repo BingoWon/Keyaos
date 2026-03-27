@@ -10,6 +10,36 @@
 
 import { extractText } from "./shared";
 
+// ─── Shared Dictionary ──────────────────────────────────────
+
+export const ACCIO_MODEL_MAP: Record<string, string> = {
+	"claude-sonnet-4-6": "anthropic/claude-sonnet-4.6",
+	"claude-opus-4-6": "anthropic/claude-opus-4.6",
+	"claude-sonnet-4-20250514": "anthropic/claude-sonnet-4-20250514",
+	"gemini-3.1-flash-image-preview": "google/gemini-3.1-flash-image",
+	"gemini-3-flash-preview": "google/gemini-3-flash-preview",
+	"gemini-3.1-pro-preview": "google/gemini-3.1-pro-preview",
+	"gemini-3-pro-image-preview": "google/gemini-3-pro-image",
+	"gemini-3-pro-preview": "google/gemini-3-pro-preview",
+	"gemini-2.5-flash": "google/gemini-2.5-flash",
+	"gemini-2.5-pro": "google/gemini-2.5-pro",
+	"gpt-5.4": "openai/gpt-5.4",
+	"gpt-5.2-1211": "openai/gpt-5.2-1211",
+	"gpt-4o": "openai/gpt-4o",
+	"gpt-4o-mini": "openai/gpt-4o-mini",
+	"gpt-4-turbo": "openai/gpt-4-turbo",
+	"gpt-5-preview": "openai/gpt-5-preview",
+	"qwen3-max-2026-01-23": "qwen/qwen3-max",
+	"qwen3-max": "qwen/qwen3-max",
+	"kimi-k2.5": "moonshot/kimi-k2.5",
+	"glm-5": "zhipu/glm-5",
+	"minimax-m2.5": "minimax/minimax-m2.5",
+};
+
+export const OPENROUTER_TO_ACCIO_MAP = Object.fromEntries(
+	Object.entries(ACCIO_MODEL_MAP).reverse().map(([k, v]) => [v, k])
+);
+
 // ─── Request: OpenAI → Accio ADK ────────────────────────
 
 interface AccioPart {
@@ -43,29 +73,8 @@ export function toAccioRequest(
 	}
 
 	const rawModel = body.model as string;
-	let model = rawModel.replace(/^[^/]+\//, "");
-
-	// Reverse mapping: OpenRouter -> Accio
-	if (rawModel === "anthropic/claude-sonnet-4.6") model = "claude-sonnet-4-6";
-	if (rawModel === "anthropic/claude-opus-4.6") model = "claude-opus-4-6";
-	if (rawModel === "anthropic/claude-sonnet-4-20250514") model = "claude-sonnet-4-20250514";
-	if (rawModel === "google/gemini-3.1-flash-image") model = "gemini-3.1-flash-image-preview";
-	if (rawModel === "google/gemini-3-flash-preview") model = "gemini-3-flash-preview";
-	if (rawModel === "google/gemini-3.1-pro-preview") model = "gemini-3.1-pro-preview";
-	if (rawModel === "google/gemini-3-pro-image") model = "gemini-3-pro-image-preview";
-	if (rawModel === "google/gemini-3-pro-preview") model = "gemini-3-pro-preview";
-	if (rawModel === "google/gemini-2.5-flash") model = "gemini-2.5-flash";
-	if (rawModel === "google/gemini-2.5-pro") model = "gemini-2.5-pro";
-	if (rawModel === "openai/gpt-5.4") model = "gpt-5.4";
-	if (rawModel === "openai/gpt-5.2-1211") model = "gpt-5.2-1211";
-	if (rawModel === "openai/gpt-4o") model = "gpt-4o";
-	if (rawModel === "openai/gpt-4o-mini") model = "gpt-4o-mini";
-	if (rawModel === "openai/gpt-4-turbo") model = "gpt-4-turbo";
-	if (rawModel === "openai/gpt-5-preview") model = "gpt-5-preview";
-	if (rawModel === "qwen/qwen3-max") model = "qwen3-max-2026-01-23";
-	if (rawModel === "moonshot/kimi-k2.5") model = "kimi-k2.5";
-	if (rawModel === "zhipu/glm-5") model = "glm-5";
-	if (rawModel === "minimax/minimax-m2.5") model = "MiniMax-M2.5";
+	// Use exactly mapped model or fallback to stripping the provider prefix
+	const model = OPENROUTER_TO_ACCIO_MAP[rawModel] ?? rawModel.replace(/^[^/]+\//, "");
 
 	const request: Record<string, unknown> = {
 		model,
