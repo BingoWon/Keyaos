@@ -140,7 +140,15 @@ function mapUsage(
 	};
 }
 
-/** Parse the `raw_response_json` from a gateway SSE frame. */
+/**
+ * Parse the `raw_response_json` from a gateway SSE frame.
+ *
+ * Phoenix wraps the upstream vendor's native response inside this field,
+ * so we must detect and handle three distinct formats:
+ *   1. Gemini:    candidates[].content.parts[].text
+ *   2. OpenAI:    choices[].delta.content  (streaming)
+ *   3. Anthropic: content_block_delta → delta.text
+ */
 function parseRawResponse(frame: Record<string, unknown>): {
 	text: string;
 	finishReason: string | null;
@@ -156,14 +164,91 @@ function parseRawResponse(frame: Record<string, unknown>): {
 		return { text: "", finishReason: null, usage: undefined };
 	}
 
+	// ── Gemini format: candidates[].content.parts[].text ──
 	const candidates = raw.candidates as Record<string, unknown>[] | undefined;
-	const c = candidates?.[0];
-	const content = c?.content as { parts?: { text?: string }[] } | undefined;
-	const text = content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-	const finishReason = mapFinishReason(c?.finishReason as string | undefined);
-	const usage = mapUsage(raw.usageMetadata as GeminiUsage | undefined);
+	if (candidates?.length) {
+		const c = candidates[0];
+		const content = c?.content as { parts?: { text?: string }[] } | undefined;
+		const text = content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+		const finishReason = mapFinishReason(
+			c?.finishReason as string | undefined,
+		);
+		const usage = mapUsage(raw.usageMetadata as GeminiUsage | undefined);
+		return { text, finishReason, usage };
+	}
 
-	return { text, finishReason, usage };
+	// ── OpenAI format: choices[].delta.content (streaming) ──
+	const choices = raw.choices as Record<string, unknown>[] | undefined;
+	if (choices?.length) {
+		const choice = choices[0];
+		const delta = choice?.delta as Record<string, unknown> | undefined;
+		const text = (delta?.content as string) ?? "";
+		const fr = choice?.finish_reason as string | null | undefined;
+		const finishReason = fr === "stop" || fr === "length" ? fr : null;
+
+		// OpenAI usage comes in the final chunk
+		const rawUsage = raw.usage as
+			| {
+					prompt_tokens?: number;
+					completion_tokens?: number;
+					total_tokens?: number;
+			  }
+			| undefined;
+		const usage = rawUsage?.prompt_tokens
+			? {
+					prompt_tokens: rawUsage.prompt_tokens,
+					completion_tokens: rawUsage.completion_tokens ?? 0,
+					total_tokens:
+						rawUsage.total_tokens ??
+						rawUsage.prompt_tokens + (rawUsage.completion_tokens ?? 0),
+				}
+			: undefined;
+		return { text, finishReason, usage };
+	}
+
+	// ── Anthropic format: content_block_delta → delta.text ──
+	const aType = raw.type as string | undefined;
+	if (aType === "content_block_delta") {
+		const delta = raw.delta as { type?: string; text?: string } | undefined;
+		return { text: delta?.text ?? "", finishReason: null, usage: undefined };
+	}
+	if (aType === "message_delta") {
+		const delta = raw.delta as { stop_reason?: string } | undefined;
+		const fr =
+			delta?.stop_reason === "end_turn"
+				? "stop"
+				: delta?.stop_reason === "max_tokens"
+					? "length"
+					: null;
+		const rawUsage = raw.usage as
+			| { output_tokens?: number }
+			| undefined;
+		// Anthropic usage on message_delta only has output_tokens; merge with frame-level later
+		const usage = rawUsage?.output_tokens
+			? {
+					prompt_tokens: 0,
+					completion_tokens: rawUsage.output_tokens,
+					total_tokens: rawUsage.output_tokens,
+				}
+			: undefined;
+		return { text: "", finishReason: fr, usage };
+	}
+	if (aType === "message_start") {
+		const msg = raw.message as
+			| { usage?: { input_tokens?: number } }
+			| undefined;
+		const inputTokens = msg?.usage?.input_tokens;
+		const usage = inputTokens
+			? {
+					prompt_tokens: inputTokens,
+					completion_tokens: 0,
+					total_tokens: inputTokens,
+				}
+			: undefined;
+		return { text: "", finishReason: null, usage };
+	}
+
+	return { text: "", finishReason: null, usage: undefined };
 }
 
 /** Convert a non-streaming Accio gateway response (collected SSE frames) to OpenAI chat.completion. */
