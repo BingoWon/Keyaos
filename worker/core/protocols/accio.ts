@@ -53,7 +53,6 @@ export const OPENROUTER_TO_ACCIO_MAP = Object.fromEntries(
 
 interface AccioPart {
 	text?: string;
-	thought: boolean;
 	function_call?: { id: string; name: string; args_json: string };
 	function_response?: { id: string; name: string; response_json: string };
 }
@@ -76,13 +75,14 @@ export function toAccioRequest(
 ): Record<string, unknown> {
 	const messages = body.messages as Record<string, unknown>[];
 
-	const systemParts: AccioPart[] = [];
+	const systemTexts: string[] = [];
 	const contents: AccioContent[] = [];
 
 	for (const m of messages) {
 		const role = m.role as string;
-		if (role === "system") {
-			systemParts.push({ text: extractText(m.content), thought: false });
+		if (role === "system" || role === "developer") {
+			const t = extractText(m.content);
+			if (t) systemTexts.push(t);
 		} else if (role === "tool") {
 			// OpenAI tool result → Accio functionResponse
 			const toolCallId = (m.tool_call_id as string) ?? "";
@@ -92,7 +92,6 @@ export function toAccioRequest(
 				role: "tool",
 				parts: [
 					{
-						thought: false,
 						function_response: {
 							id: toolCallId,
 							name: (m.name as string) ?? "",
@@ -111,11 +110,9 @@ export function toAccioRequest(
 				function: { name: string; arguments: string };
 			}[];
 			const parts: AccioPart[] = [];
-			if (m.content)
-				parts.push({ text: extractText(m.content), thought: false });
+			if (m.content) parts.push({ text: extractText(m.content) });
 			for (const tc of toolCalls) {
 				parts.push({
-					thought: false,
 					function_call: {
 						id: tc.id,
 						name: tc.function.name,
@@ -127,7 +124,7 @@ export function toAccioRequest(
 		} else {
 			contents.push({
 				role: role === "assistant" ? "model" : "user",
-				parts: [{ text: extractText(m.content), thought: false }],
+				parts: [{ text: extractText(m.content) }],
 			});
 		}
 	}
@@ -153,8 +150,28 @@ export function toAccioRequest(
 		properties: {},
 	};
 
-	if (systemParts.length > 0) {
-		request.system_instruction = { parts: systemParts };
+	// ── Inline system prompt into first user message ──
+	// Accio's generateContent endpoint does NOT support `system_instruction`;
+	// all tested formats return 400 "Invalid request format".
+	// Instead, prepend the system text to the first user message.
+	if (systemTexts.length > 0) {
+		const systemBlock = systemTexts.join("\n\n");
+		const firstUserIdx = contents.findIndex((c) => c.role === "user");
+		if (firstUserIdx >= 0) {
+			const firstUser = contents[firstUserIdx];
+			const existingText =
+				firstUser.parts.map((p) => p.text ?? "").join("") || "";
+			contents[firstUserIdx] = {
+				role: "user",
+				parts: [{ text: `${systemBlock}\n\n${existingText}` }],
+			};
+		} else {
+			// No user message yet — insert system as first user message
+			contents.unshift({
+				role: "user",
+				parts: [{ text: systemBlock }],
+			});
+		}
 	}
 
 	// ── Generation parameters ──
@@ -273,6 +290,19 @@ const EMPTY_FRAME: ParsedFrame = {
 
 /** Parse the `raw_response_json` from a gateway SSE frame. */
 function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
+	// ── Handle Accio-level error frames (error is embedded in SSE, HTTP is still 200) ──
+	const errorCode = frame.error_code as string | undefined;
+	if (errorCode) {
+		const errorMsg =
+			(frame.error_message as string) ?? `Accio error ${errorCode}`;
+		return {
+			text: `[Error ${errorCode}] ${errorMsg}`,
+			finishReason: "stop",
+			usage: undefined,
+			responseId: undefined,
+		};
+	}
+
 	const rawJson = frame.raw_response_json as string | undefined;
 	if (!rawJson) return EMPTY_FRAME;
 
