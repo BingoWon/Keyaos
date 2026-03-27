@@ -9,6 +9,7 @@
 import {
 	ACCIO_MODEL_MAP,
 	createAccioToOpenAIStream,
+	parseSSEDataLine,
 	toAccioRequest,
 	toOpenAIResponse,
 } from "../protocols/accio";
@@ -23,8 +24,7 @@ import {
 // ─── Constants ──────────────────────────────────────────
 
 const GATEWAY_BASE = "https://phoenix-gw.alibaba.com/api";
-const LLM_BASE = `${GATEWAY_BASE}/adk/llm`;
-const API_URL = `${LLM_BASE}/generateContent`;
+const API_URL = `${GATEWAY_BASE}/adk/llm/generateContent`;
 const CONFIG_URL = `${GATEWAY_BASE}/llm/config`;
 
 // ─── Model Mapping ──────────────────────────────────────
@@ -106,7 +106,7 @@ export class AccioAdapter implements ProviderAdapter {
 					Accept: "text/event-stream",
 				},
 				body: JSON.stringify({
-					model: "gemini-3-flash-preview",
+					model: "gemini-2.5-flash",
 					token: secret,
 					empid: "",
 					tenant: "",
@@ -195,12 +195,8 @@ export class AccioAdapter implements ProviderAdapter {
 
 		for (const block of text.split("\n\n")) {
 			for (const line of block.split("\n")) {
-				const trimmed = line.trim();
-				if (!trimmed.startsWith("data:")) continue;
-				const dataStr = trimmed.startsWith("data: ")
-					? trimmed.substring(6)
-					: trimmed.substring(5);
-				if (dataStr === "[DONE]") continue;
+				const dataStr = parseSSEDataLine(line);
+				if (dataStr === null) continue;
 				try {
 					frames.push(JSON.parse(dataStr));
 				} catch {}

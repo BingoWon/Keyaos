@@ -4,8 +4,11 @@
  * Converts between OpenAI chat completion format and the Accio ADK
  * proto-based gateway at phoenix-gw.alibaba.com/api/adk/llm.
  *
- * The gateway wraps Gemini-style responses in an envelope with
- * `raw_response_json` containing the actual model output.
+ * The gateway wraps the upstream vendor's **native** response inside
+ * `raw_response_json`, so we detect and handle three distinct formats:
+ *   - Gemini:    candidates[].content.parts[].text
+ *   - OpenAI:    choices[].delta.content
+ *   - Anthropic: content_block_delta / message_delta / message_start
  */
 
 import { extractText } from "./shared";
@@ -140,28 +143,46 @@ function mapUsage(
 	};
 }
 
-/**
- * Parse the `raw_response_json` from a gateway SSE frame.
- *
- * Phoenix wraps the upstream vendor's native response inside this field,
- * so we must detect and handle three distinct formats:
- *   1. Gemini:    candidates[].content.parts[].text
- *   2. OpenAI:    choices[].delta.content  (streaming)
- *   3. Anthropic: content_block_delta → delta.text
- */
-function parseRawResponse(frame: Record<string, unknown>): {
+// ─── Shared SSE utilities ───────────────────────────────
+
+/** Extract the data payload from an SSE `data:` line, or null if not a data line. */
+export function parseSSEDataLine(line: string): string | null {
+	const trimmed = line.trim();
+	if (!trimmed.startsWith("data:")) return null;
+	const payload = trimmed.startsWith("data: ")
+		? trimmed.substring(6)
+		: trimmed.substring(5);
+	return payload === "[DONE]" ? null : payload;
+}
+
+// ─── Raw response parsing ───────────────────────────────
+
+interface ParsedFrame {
 	text: string;
 	finishReason: string | null;
-	usage: ReturnType<typeof mapUsage>;
-} {
+	usage:
+		| { prompt_tokens: number; completion_tokens: number; total_tokens: number }
+		| undefined;
+	responseId: string | undefined;
+}
+
+const EMPTY_FRAME: ParsedFrame = {
+	text: "",
+	finishReason: null,
+	usage: undefined,
+	responseId: undefined,
+};
+
+/** Parse the `raw_response_json` from a gateway SSE frame. */
+function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 	const rawJson = frame.raw_response_json as string | undefined;
-	if (!rawJson) return { text: "", finishReason: null, usage: undefined };
+	if (!rawJson) return EMPTY_FRAME;
 
 	let raw: Record<string, unknown>;
 	try {
 		raw = JSON.parse(rawJson);
 	} catch {
-		return { text: "", finishReason: null, usage: undefined };
+		return EMPTY_FRAME;
 	}
 
 	// ── Gemini format: candidates[].content.parts[].text ──
@@ -170,11 +191,12 @@ function parseRawResponse(frame: Record<string, unknown>): {
 		const c = candidates[0];
 		const content = c?.content as { parts?: { text?: string }[] } | undefined;
 		const text = content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-		const finishReason = mapFinishReason(
-			c?.finishReason as string | undefined,
-		);
-		const usage = mapUsage(raw.usageMetadata as GeminiUsage | undefined);
-		return { text, finishReason, usage };
+		return {
+			text,
+			finishReason: mapFinishReason(c?.finishReason as string | undefined),
+			usage: mapUsage(raw.usageMetadata as GeminiUsage | undefined),
+			responseId: raw.responseId as string | undefined,
+		};
 	}
 
 	// ── OpenAI format: choices[].delta.content (streaming) ──
@@ -184,15 +206,9 @@ function parseRawResponse(frame: Record<string, unknown>): {
 		const delta = choice?.delta as Record<string, unknown> | undefined;
 		const text = (delta?.content as string) ?? "";
 		const fr = choice?.finish_reason as string | null | undefined;
-		const finishReason = fr === "stop" || fr === "length" ? fr : null;
 
-		// OpenAI usage comes in the final chunk
 		const rawUsage = raw.usage as
-			| {
-					prompt_tokens?: number;
-					completion_tokens?: number;
-					total_tokens?: number;
-			  }
+			| { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
 			| undefined;
 		const usage = rawUsage?.prompt_tokens
 			? {
@@ -203,52 +219,43 @@ function parseRawResponse(frame: Record<string, unknown>): {
 						rawUsage.prompt_tokens + (rawUsage.completion_tokens ?? 0),
 				}
 			: undefined;
-		return { text, finishReason, usage };
+
+		return {
+			text,
+			finishReason: fr === "stop" || fr === "length" ? fr : null,
+			usage,
+			responseId: raw.id as string | undefined,
+		};
 	}
 
-	// ── Anthropic format: content_block_delta → delta.text ──
+	// ── Anthropic format ──
 	const aType = raw.type as string | undefined;
 	if (aType === "content_block_delta") {
-		const delta = raw.delta as { type?: string; text?: string } | undefined;
-		return { text: delta?.text ?? "", finishReason: null, usage: undefined };
+		const delta = raw.delta as { text?: string } | undefined;
+		return { text: delta?.text ?? "", finishReason: null, usage: undefined, responseId: undefined };
 	}
 	if (aType === "message_delta") {
 		const delta = raw.delta as { stop_reason?: string } | undefined;
 		const fr =
-			delta?.stop_reason === "end_turn"
-				? "stop"
-				: delta?.stop_reason === "max_tokens"
-					? "length"
-					: null;
-		const rawUsage = raw.usage as
-			| { output_tokens?: number }
-			| undefined;
-		// Anthropic usage on message_delta only has output_tokens; merge with frame-level later
+			delta?.stop_reason === "end_turn" ? "stop"
+			: delta?.stop_reason === "max_tokens" ? "length"
+			: null;
+		const rawUsage = raw.usage as { output_tokens?: number } | undefined;
 		const usage = rawUsage?.output_tokens
-			? {
-					prompt_tokens: 0,
-					completion_tokens: rawUsage.output_tokens,
-					total_tokens: rawUsage.output_tokens,
-				}
+			? { prompt_tokens: 0, completion_tokens: rawUsage.output_tokens, total_tokens: rawUsage.output_tokens }
 			: undefined;
-		return { text: "", finishReason: fr, usage };
+		return { text: "", finishReason: fr, usage, responseId: undefined };
 	}
 	if (aType === "message_start") {
-		const msg = raw.message as
-			| { usage?: { input_tokens?: number } }
-			| undefined;
+		const msg = raw.message as { id?: string; usage?: { input_tokens?: number } } | undefined;
 		const inputTokens = msg?.usage?.input_tokens;
 		const usage = inputTokens
-			? {
-					prompt_tokens: inputTokens,
-					completion_tokens: 0,
-					total_tokens: inputTokens,
-				}
+			? { prompt_tokens: inputTokens, completion_tokens: 0, total_tokens: inputTokens }
 			: undefined;
-		return { text: "", finishReason: null, usage };
+		return { text: "", finishReason: null, usage, responseId: msg?.id };
 	}
 
-	return { text: "", finishReason: null, usage: undefined };
+	return EMPTY_FRAME;
 }
 
 /** Convert a non-streaming Accio gateway response (collected SSE frames) to OpenAI chat.completion. */
@@ -258,20 +265,23 @@ export function toOpenAIResponse(
 ): Record<string, unknown> {
 	const parts: string[] = [];
 	let lastFinishReason: string | null = null;
-	let lastUsage: ReturnType<typeof mapUsage>;
 	let responseId: string | undefined;
 
-	for (const frame of frames) {
-		const { text, finishReason, usage } = parseRawResponse(frame);
-		if (text) parts.push(text);
-		if (finishReason) lastFinishReason = finishReason;
-		if (usage) lastUsage = usage;
+	// Accumulate usage across frames (Anthropic splits input/output across message_start and message_delta)
+	const mergedUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+	let hasUsage = false;
 
-		// Extract responseId from raw_response_json
-		try {
-			const raw = JSON.parse(frame.raw_response_json as string);
-			responseId ??= raw.responseId;
-		} catch {}
+	for (const frame of frames) {
+		const parsed = parseRawResponse(frame);
+		if (parsed.text) parts.push(parsed.text);
+		if (parsed.finishReason) lastFinishReason = parsed.finishReason;
+		responseId ??= parsed.responseId;
+		if (parsed.usage) {
+			hasUsage = true;
+			mergedUsage.prompt_tokens += parsed.usage.prompt_tokens;
+			mergedUsage.completion_tokens += parsed.usage.completion_tokens;
+			mergedUsage.total_tokens += parsed.usage.total_tokens;
+		}
 	}
 
 	return {
@@ -286,7 +296,7 @@ export function toOpenAIResponse(
 				finish_reason: lastFinishReason ?? "stop",
 			},
 		],
-		...(lastUsage && { usage: lastUsage }),
+		...(hasUsage && { usage: mergedUsage }),
 	};
 }
 
@@ -315,18 +325,12 @@ export function createAccioToOpenAIStream(
 				const end = buffer.indexOf("\n\n");
 				if (end === -1) break;
 
-				const frame = buffer.slice(0, end);
+				const raw = buffer.slice(0, end);
 				buffer = buffer.slice(end + 2);
 
-				for (const line of frame.split("\n")) {
-					const trimmed = line.trim();
-					if (!trimmed.startsWith("data:")) continue;
-
-					const dataStr = trimmed.startsWith("data: ")
-						? trimmed.substring(6)
-						: trimmed.substring(5);
-
-					if (dataStr === "[DONE]") continue;
+				for (const line of raw.split("\n")) {
+					const dataStr = parseSSEDataLine(line);
+					if (dataStr === null) continue;
 
 					let parsed: Record<string, unknown>;
 					try {
