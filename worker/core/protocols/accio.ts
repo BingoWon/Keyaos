@@ -44,7 +44,9 @@ export const ACCIO_MODEL_MAP: Record<string, string> = {
 };
 
 export const OPENROUTER_TO_ACCIO_MAP = Object.fromEntries(
-	Object.entries(ACCIO_MODEL_MAP).reverse().map(([k, v]) => [v, k]),
+	Object.entries(ACCIO_MODEL_MAP)
+		.reverse()
+		.map(([k, v]) => [v, k]),
 );
 
 // ─── Request: OpenAI → Accio ADK ────────────────────────
@@ -52,28 +54,78 @@ export const OPENROUTER_TO_ACCIO_MAP = Object.fromEntries(
 interface AccioPart {
 	text?: string;
 	thought: boolean;
+	function_call?: { id: string; name: string; args_json: string };
+	function_response?: { id: string; name: string; response_json: string };
 }
 
 interface AccioContent {
-	role: "user" | "model";
+	role: "user" | "model" | "tool";
 	parts: AccioPart[];
+}
+
+interface OpenAIToolCall {
+	id: string;
+	type: "function";
+	function: { name: string; arguments: string };
 }
 
 export function toAccioRequest(
 	body: Record<string, unknown>,
 	token: string,
 ): Record<string, unknown> {
-	const messages = body.messages as { role: string; content: unknown }[];
+	const messages = body.messages as Record<string, unknown>[];
 
 	const systemParts: AccioPart[] = [];
 	const contents: AccioContent[] = [];
 
 	for (const m of messages) {
-		if (m.role === "system") {
+		const role = m.role as string;
+		if (role === "system") {
 			systemParts.push({ text: extractText(m.content), thought: false });
+		} else if (role === "tool") {
+			// OpenAI tool result → Accio functionResponse
+			const toolCallId = (m.tool_call_id as string) ?? "";
+			const resultContent =
+				typeof m.content === "string" ? m.content : JSON.stringify(m.content);
+			contents.push({
+				role: "tool",
+				parts: [
+					{
+						thought: false,
+						function_response: {
+							id: toolCallId,
+							name: (m.name as string) ?? "",
+							response_json: JSON.stringify({
+								content: resultContent,
+								is_error: false,
+							}),
+						},
+					},
+				],
+			});
+		} else if (role === "assistant" && m.tool_calls) {
+			// Assistant message with tool_calls → Accio model + functionCall parts
+			const toolCalls = m.tool_calls as {
+				id: string;
+				function: { name: string; arguments: string };
+			}[];
+			const parts: AccioPart[] = [];
+			if (m.content)
+				parts.push({ text: extractText(m.content), thought: false });
+			for (const tc of toolCalls) {
+				parts.push({
+					thought: false,
+					function_call: {
+						id: tc.id,
+						name: tc.function.name,
+						args_json: tc.function.arguments,
+					},
+				});
+			}
+			contents.push({ role: "model", parts });
 		} else {
 			contents.push({
-				role: m.role === "assistant" ? "model" : "user",
+				role: role === "assistant" ? "model" : "user",
 				parts: [{ text: extractText(m.content), thought: false }],
 			});
 		}
@@ -81,7 +133,8 @@ export function toAccioRequest(
 
 	const rawModel = body.model as string;
 	// Use exactly mapped model or fallback to stripping the provider prefix
-	const model = OPENROUTER_TO_ACCIO_MAP[rawModel] ?? rawModel.replace(/^[^/]+\//, "");
+	const model =
+		OPENROUTER_TO_ACCIO_MAP[rawModel] ?? rawModel.replace(/^[^/]+\//, "");
 
 	const request: Record<string, unknown> = {
 		// ── Core identity (matches real Accio ADK convertRequestToProto) ──
@@ -114,6 +167,35 @@ export function toAccioRequest(
 	// ── Advanced parameters (forwarded when present) ──
 	if (body.response_format != null)
 		request.response_format = body.response_format;
+
+	// ── Tools: OpenAI format → Accio proto ToolDeclaration ──
+	const tools = body.tools as
+		| {
+				type: string;
+				function: { name: string; description?: string; parameters?: unknown };
+		  }[]
+		| undefined;
+	if (tools?.length) {
+		request.tools = tools
+			.filter((t) => t.type === "function" && t.function)
+			.map((t) => ({
+				name: t.function.name,
+				description: t.function.description ?? "",
+				parameters_json: JSON.stringify(t.function.parameters ?? {}),
+			}));
+	}
+
+	// ── Tool choice ──
+	if (body.tool_choice != null) {
+		const choice = body.tool_choice;
+		if (typeof choice === "string") {
+			// "auto", "none", "required"
+			request.tool_choice = choice;
+		} else if (typeof choice === "object") {
+			// {type:"function", function:{name:"xxx"}} → pass through
+			request.tool_choice = choice;
+		}
+	}
 
 	return request;
 }
@@ -176,6 +258,9 @@ interface ParsedFrame {
 		| { prompt_tokens: number; completion_tokens: number; total_tokens: number }
 		| undefined;
 	responseId: string | undefined;
+	toolCalls?: OpenAIToolCall[];
+	/** Anthropic input_json_delta partial JSON fragment to accumulate onto the last tool call */
+	partialToolJson?: string;
 }
 
 const EMPTY_FRAME: ParsedFrame = {
@@ -197,30 +282,82 @@ function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 		return EMPTY_FRAME;
 	}
 
-	// ── Gemini format: candidates[].content.parts[].text ──
+	// ── Gemini format: candidates[].content.parts[].text | functionCall ──
 	const candidates = raw.candidates as Record<string, unknown>[] | undefined;
 	if (candidates?.length) {
 		const c = candidates[0];
-		const content = c?.content as { parts?: { text?: string }[] } | undefined;
-		const text = content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+		const content = c?.content as
+			| { parts?: Record<string, unknown>[] }
+			| undefined;
+		const parts = content?.parts ?? [];
+
+		const textParts: string[] = [];
+		const toolCalls: OpenAIToolCall[] = [];
+
+		for (const p of parts) {
+			if (p.text) textParts.push(p.text as string);
+			if (p.functionCall) {
+				const fc = p.functionCall as {
+					id?: string;
+					name?: string;
+					args?: unknown;
+				};
+				toolCalls.push({
+					id: fc.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
+					type: "function",
+					function: {
+						name: fc.name ?? "",
+						arguments:
+							typeof fc.args === "string"
+								? fc.args
+								: JSON.stringify(fc.args ?? {}),
+					},
+				});
+			}
+		}
+
+		const fr = mapFinishReason(c?.finishReason as string | undefined);
 		return {
-			text,
-			finishReason: mapFinishReason(c?.finishReason as string | undefined),
+			text: textParts.join(""),
+			finishReason: toolCalls.length > 0 ? "tool_calls" : fr,
 			usage: mapUsage(raw.usageMetadata as GeminiUsage | undefined),
 			responseId: raw.responseId as string | undefined,
+			...(toolCalls.length > 0 && { toolCalls }),
 		};
 	}
 
-	// ── OpenAI format: choices[].delta.content (streaming) ──
+	// ── OpenAI format: choices[].delta.content / tool_calls (streaming) ──
 	const choices = raw.choices as Record<string, unknown>[] | undefined;
 	if (choices?.length) {
 		const choice = choices[0];
 		const delta = choice?.delta as Record<string, unknown> | undefined;
-		const text = (delta?.content as string) ?? "";
+		const msg = choice?.message as Record<string, unknown> | undefined;
+		const text = (delta?.content as string) ?? (msg?.content as string) ?? "";
 		const fr = choice?.finish_reason as string | null | undefined;
 
+		// Forward tool_calls from upstream OpenAI responses
+		const rawToolCalls = (delta?.tool_calls ?? msg?.tool_calls) as
+			| {
+					id?: string;
+					type?: string;
+					function?: { name?: string; arguments?: string };
+			  }[]
+			| undefined;
+		const toolCalls: OpenAIToolCall[] | undefined = rawToolCalls?.map((tc) => ({
+			id: tc.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
+			type: "function" as const,
+			function: {
+				name: tc.function?.name ?? "",
+				arguments: tc.function?.arguments ?? "",
+			},
+		}));
+
 		const rawUsage = raw.usage as
-			| { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
+			| {
+					prompt_tokens?: number;
+					completion_tokens?: number;
+					total_tokens?: number;
+			  }
 			| undefined;
 		const usage = rawUsage?.prompt_tokens
 			? {
@@ -234,35 +371,96 @@ function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 
 		return {
 			text,
-			finishReason: fr === "stop" || fr === "length" ? fr : null,
+			finishReason: toolCalls?.length
+				? "tool_calls"
+				: fr === "stop" || fr === "length" || fr === "tool_calls"
+					? fr
+					: null,
 			usage,
 			responseId: raw.id as string | undefined,
+			...(toolCalls?.length && { toolCalls }),
 		};
 	}
 
 	// ── Anthropic format ──
 	const aType = raw.type as string | undefined;
+	if (aType === "content_block_start") {
+		// Anthropic tool_use block start: {type:"content_block_start", content_block:{type:"tool_use",id,name,input:{}}}
+		const block = raw.content_block as
+			| { type?: string; id?: string; name?: string; input?: unknown }
+			| undefined;
+		if (block?.type === "tool_use") {
+			return {
+				text: "",
+				finishReason: null,
+				usage: undefined,
+				responseId: undefined,
+				toolCalls: [
+					{
+						id: block.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
+						type: "function",
+						function: {
+							name: block.name ?? "",
+							arguments: JSON.stringify(block.input ?? {}),
+						},
+					},
+				],
+			};
+		}
+		return EMPTY_FRAME;
+	}
 	if (aType === "content_block_delta") {
-		const delta = raw.delta as { text?: string } | undefined;
-		return { text: delta?.text ?? "", finishReason: null, usage: undefined, responseId: undefined };
+		const delta = raw.delta as
+			| { type?: string; text?: string; partial_json?: string }
+			| undefined;
+		if (delta?.type === "input_json_delta" && delta.partial_json) {
+			// Return the partial JSON fragment for accumulation by the caller
+			return {
+				text: "",
+				finishReason: null,
+				usage: undefined,
+				responseId: undefined,
+				partialToolJson: delta.partial_json,
+			};
+		}
+		return {
+			text: delta?.text ?? "",
+			finishReason: null,
+			usage: undefined,
+			responseId: undefined,
+		};
 	}
 	if (aType === "message_delta") {
 		const delta = raw.delta as { stop_reason?: string } | undefined;
 		const fr =
-			delta?.stop_reason === "end_turn" ? "stop"
-			: delta?.stop_reason === "max_tokens" ? "length"
-			: null;
+			delta?.stop_reason === "end_turn"
+				? "stop"
+				: delta?.stop_reason === "max_tokens"
+					? "length"
+					: delta?.stop_reason === "tool_use"
+						? "tool_calls"
+						: null;
 		const rawUsage = raw.usage as { output_tokens?: number } | undefined;
 		const usage = rawUsage?.output_tokens
-			? { prompt_tokens: 0, completion_tokens: rawUsage.output_tokens, total_tokens: rawUsage.output_tokens }
+			? {
+					prompt_tokens: 0,
+					completion_tokens: rawUsage.output_tokens,
+					total_tokens: rawUsage.output_tokens,
+				}
 			: undefined;
 		return { text: "", finishReason: fr, usage, responseId: undefined };
 	}
 	if (aType === "message_start") {
-		const msg = raw.message as { id?: string; usage?: { input_tokens?: number } } | undefined;
+		const msg = raw.message as
+			| { id?: string; usage?: { input_tokens?: number } }
+			| undefined;
 		const inputTokens = msg?.usage?.input_tokens;
 		const usage = inputTokens
-			? { prompt_tokens: inputTokens, completion_tokens: 0, total_tokens: inputTokens }
+			? {
+					prompt_tokens: inputTokens,
+					completion_tokens: 0,
+					total_tokens: inputTokens,
+				}
 			: undefined;
 		return { text: "", finishReason: null, usage, responseId: msg?.id };
 	}
@@ -278,15 +476,28 @@ export function toOpenAIResponse(
 	const parts: string[] = [];
 	let lastFinishReason: string | null = null;
 	let responseId: string | undefined;
+	const allToolCalls: OpenAIToolCall[] = [];
 
 	// Accumulate usage across frames (Anthropic splits input/output across message_start and message_delta)
-	const mergedUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+	const mergedUsage = {
+		prompt_tokens: 0,
+		completion_tokens: 0,
+		total_tokens: 0,
+	};
 	let hasUsage = false;
 
 	for (const frame of frames) {
 		const parsed = parseRawResponse(frame);
 		if (parsed.text) parts.push(parsed.text);
 		if (parsed.finishReason) lastFinishReason = parsed.finishReason;
+		if (parsed.toolCalls) allToolCalls.push(...parsed.toolCalls);
+		// Accumulate Anthropic input_json_delta partials onto the last tool call
+		if (parsed.partialToolJson && allToolCalls.length > 0) {
+			const lastTc = allToolCalls[allToolCalls.length - 1];
+			const prev = lastTc.function.arguments;
+			lastTc.function.arguments =
+				prev === "{}" ? parsed.partialToolJson : prev + parsed.partialToolJson;
+		}
 		responseId ??= parsed.responseId;
 		if (parsed.usage) {
 			hasUsage = true;
@@ -294,6 +505,14 @@ export function toOpenAIResponse(
 			mergedUsage.completion_tokens += parsed.usage.completion_tokens;
 			mergedUsage.total_tokens += parsed.usage.total_tokens;
 		}
+	}
+
+	const message: Record<string, unknown> = {
+		role: "assistant",
+		content: parts.join("") || null,
+	};
+	if (allToolCalls.length > 0) {
+		message.tool_calls = allToolCalls;
 	}
 
 	return {
@@ -304,7 +523,7 @@ export function toOpenAIResponse(
 		choices: [
 			{
 				index: 0,
-				message: { role: "assistant", content: parts.join("") },
+				message,
 				finish_reason: lastFinishReason ?? "stop",
 			},
 		],
@@ -328,6 +547,9 @@ export function createAccioToOpenAIStream(
 	const created = Math.floor(Date.now() / 1000);
 	let buffer = "";
 	let isFirst = true;
+	// State for accumulating Anthropic tool_use partial args across frames
+	const pendingToolCalls: OpenAIToolCall[] = [];
+	let partialArgsBuffer = "";
 
 	return new TransformStream({
 		transform(chunk, controller) {
@@ -351,14 +573,41 @@ export function createAccioToOpenAIStream(
 						continue;
 					}
 
-					const { text, finishReason, usage } = parseRawResponse(parsed);
+					const frame = parseRawResponse(parsed);
 
-					const delta: Record<string, string> = {};
+					// Accumulate Anthropic partial tool JSON
+					if (frame.toolCalls?.length) {
+						pendingToolCalls.push(...frame.toolCalls);
+						partialArgsBuffer = "";
+					}
+					if (frame.partialToolJson && pendingToolCalls.length > 0) {
+						partialArgsBuffer += frame.partialToolJson;
+						const lastTc = pendingToolCalls[pendingToolCalls.length - 1];
+						lastTc.function.arguments =
+							lastTc.function.arguments === "{}"
+								? partialArgsBuffer
+								: partialArgsBuffer;
+						continue; // don't emit partial tool json chunks
+					}
+
+					const { text, finishReason, usage, toolCalls } = frame;
+
+					const delta: Record<string, unknown> = {};
 					if (isFirst) {
 						delta.role = "assistant";
 						isFirst = false;
 					}
 					if (text) delta.content = text;
+					// Emit tool_calls: use pendingToolCalls if finish_reason is tool_calls
+					// (for Anthropic where tool calls arrive via content_block_start)
+					if (toolCalls?.length) {
+						delta.tool_calls = toolCalls;
+					} else if (
+						finishReason === "tool_calls" &&
+						pendingToolCalls.length > 0
+					) {
+						delta.tool_calls = pendingToolCalls;
+					}
 
 					const openaiChunk: Record<string, unknown> = {
 						id: chatId,
