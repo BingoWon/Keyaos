@@ -84,15 +84,18 @@ export function toAccioRequest(
 	const model = OPENROUTER_TO_ACCIO_MAP[rawModel] ?? rawModel.replace(/^[^/]+\//, "");
 
 	const request: Record<string, unknown> = {
+		// ── Core identity (matches real Accio ADK convertRequestToProto) ──
 		model,
 		token,
 		empid: "",
 		tenant: "",
 		iai_tag: "",
 		request_id: `req-${Date.now()}`,
+		message_id: "",
+		// ── Content ──
 		contents,
 		include_thoughts: false,
-		stop_sequences: [],
+		stop_sequences: (body.stop as string[] | undefined) ?? [],
 		properties: {},
 	};
 
@@ -100,12 +103,17 @@ export function toAccioRequest(
 		request.system_instruction = { parts: systemParts };
 	}
 
+	// ── Generation parameters ──
 	if (body.temperature != null) request.temperature = body.temperature;
 	if (body.max_tokens != null) request.max_output_tokens = body.max_tokens;
 	if (body.top_p != null) request.top_p = body.top_p;
 
 	// Default max_output_tokens to avoid thinking budget exhaustion
 	if (request.max_output_tokens == null) request.max_output_tokens = 8192;
+
+	// ── Advanced parameters (forwarded when present) ──
+	if (body.response_format != null)
+		request.response_format = body.response_format;
 
 	return request;
 }
