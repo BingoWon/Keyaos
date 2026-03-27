@@ -250,10 +250,11 @@
 				"Create an API key and copy it"
 			],
 			"accio": [
-				"Open the Accio desktop app and click to Log In (or log out and re-login)",
-				"When the browser automatically opens the login page, press F12 (Developer Tools)",
-				"Navigate to Application > Storage > Cookies",
-				"Find phoenix_cookie and paste the entire string or accessToken below"
+				"Log into the Accio app. Once authorized, click Log Out in the app.",
+				"Click Log In in the app again. The browser will say 'You have signed into an existing account'.",
+				"Press F12 to open Developer Tools and select the Network tab.",
+				"Select any network request, scroll down to Request Headers, and find the Cookie field.",
+				"Copy the entire Cookie string and paste it below."
 			]
 		}
 	},
