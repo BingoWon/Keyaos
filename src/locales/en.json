@@ -248,6 +248,12 @@
 			"keyaos": [
 				"Go to the API Keys page on another Keyaos account",
 				"Create an API key and copy it"
+			],
+			"accio": [
+				"Go to https://www.accio.com and sign in",
+				"Open Developer Tools (F12) > Application > Cookies",
+				"Find the phoenix_cookie, copy the entire string or just the accessToken value",
+				"Paste it into the Credential field below"
 			]
 		}
 	},
