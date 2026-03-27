@@ -175,9 +175,14 @@ export function toAccioRequest(
 	}
 
 	// ── Generation parameters ──
-	if (body.temperature != null) request.temperature = body.temperature;
+	// Accio returns 505 when both temperature AND top_p are sent together.
+	// Prefer temperature (more commonly set by clients); only send top_p alone.
+	if (body.temperature != null) {
+		request.temperature = body.temperature;
+	} else if (body.top_p != null) {
+		request.top_p = body.top_p;
+	}
 	if (body.max_tokens != null) request.max_output_tokens = body.max_tokens;
-	if (body.top_p != null) request.top_p = body.top_p;
 
 	// Default max_output_tokens to avoid thinking budget exhaustion
 	if (request.max_output_tokens == null) request.max_output_tokens = 8192;
