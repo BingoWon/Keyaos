@@ -13,34 +13,38 @@
 
 import { extractText } from "./shared";
 
-// ─── Shared Dictionary ──────────────────────────────────────
-
+/**
+ * Accio model name → OpenRouter canonical ID.
+ * Only models returned by Accio's /llm/config endpoint belong here.
+ * Run `POST /api/llm/config` to refresh the list.
+ */
 export const ACCIO_MODEL_MAP: Record<string, string> = {
+	// Anthropic
 	"claude-sonnet-4-6": "anthropic/claude-sonnet-4.6",
 	"claude-opus-4-6": "anthropic/claude-opus-4.6",
-	"claude-sonnet-4-20250514": "anthropic/claude-sonnet-4-20250514",
-	"gemini-3.1-flash-image-preview": "google/gemini-3.1-flash-image",
+	// Google (visible)
 	"gemini-3-flash-preview": "google/gemini-3-flash-preview",
 	"gemini-3.1-pro-preview": "google/gemini-3.1-pro-preview",
-	"gemini-3-pro-image-preview": "google/gemini-3-pro-image",
+	// Google (currently hidden by Accio — kept for forward-compatibility)
+	"gemini-3.1-flash-image-preview": "google/gemini-3.1-flash-image",
 	"gemini-3-pro-preview": "google/gemini-3-pro-preview",
-	"gemini-2.5-flash": "google/gemini-2.5-flash",
-	"gemini-2.5-pro": "google/gemini-2.5-pro",
+	"gemini-3-pro-image-preview": "google/gemini-3-pro-image",
+	// OpenAI
 	"gpt-5.4": "openai/gpt-5.4",
 	"gpt-5.2-1211": "openai/gpt-5.2",
-	"gpt-4o": "openai/gpt-4o",
-	"gpt-4o-mini": "openai/gpt-4o-mini",
-	"gpt-4-turbo": "openai/gpt-4-turbo",
-	"gpt-5-preview": "openai/gpt-5-preview",
+	// Alibaba / Qwen
 	"qwen3-max-2026-01-23": "qwen/qwen3-max",
 	"qwen3-max": "qwen/qwen3-max",
+	// Moonshot
 	"kimi-k2.5": "moonshotai/kimi-k2.5",
+	// Zhipu
 	"glm-5": "z-ai/glm-5",
+	// MiniMax
 	"minimax-m2.5": "minimax/minimax-m2.5",
 };
 
 export const OPENROUTER_TO_ACCIO_MAP = Object.fromEntries(
-	Object.entries(ACCIO_MODEL_MAP).reverse().map(([k, v]) => [v, k])
+	Object.entries(ACCIO_MODEL_MAP).reverse().map(([k, v]) => [v, k]),
 );
 
 // ─── Request: OpenAI → Accio ADK ────────────────────────
