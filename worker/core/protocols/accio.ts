@@ -64,6 +64,7 @@ interface AccioContent {
 }
 
 interface OpenAIToolCall {
+	index: number;
 	id: string;
 	type: "function";
 	function: { name: string; arguments: string };
@@ -303,6 +304,7 @@ function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 					args?: unknown;
 				};
 				toolCalls.push({
+					index: toolCalls.length,
 					id: fc.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
 					type: "function",
 					function: {
@@ -343,14 +345,17 @@ function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 					function?: { name?: string; arguments?: string };
 			  }[]
 			| undefined;
-		const toolCalls: OpenAIToolCall[] | undefined = rawToolCalls?.map((tc) => ({
-			id: tc.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
-			type: "function" as const,
-			function: {
-				name: tc.function?.name ?? "",
-				arguments: tc.function?.arguments ?? "",
-			},
-		}));
+		const toolCalls: OpenAIToolCall[] | undefined = rawToolCalls?.map(
+			(tc, i) => ({
+				index: i,
+				id: tc.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
+				type: "function" as const,
+				function: {
+					name: tc.function?.name ?? "",
+					arguments: tc.function?.arguments ?? "",
+				},
+			}),
+		);
 
 		const rawUsage = raw.usage as
 			| {
@@ -390,6 +395,7 @@ function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 			| { type?: string; id?: string; name?: string; input?: unknown }
 			| undefined;
 		if (block?.type === "tool_use") {
+			const blockIndex = raw.index as number | undefined;
 			return {
 				text: "",
 				finishReason: null,
@@ -397,6 +403,7 @@ function parseRawResponse(frame: Record<string, unknown>): ParsedFrame {
 				responseId: undefined,
 				toolCalls: [
 					{
+						index: blockIndex ?? 0,
 						id: block.id ?? `call_${crypto.randomUUID().slice(0, 8)}`,
 						type: "function",
 						function: {
@@ -512,7 +519,8 @@ export function toOpenAIResponse(
 		content: parts.join("") || null,
 	};
 	if (allToolCalls.length > 0) {
-		message.tool_calls = allToolCalls;
+		// Re-index all tool calls sequentially for the final response
+		message.tool_calls = allToolCalls.map((tc, i) => ({ ...tc, index: i }));
 	}
 
 	return {
@@ -547,9 +555,30 @@ export function createAccioToOpenAIStream(
 	const created = Math.floor(Date.now() / 1000);
 	let buffer = "";
 	let isFirst = true;
-	// State for accumulating Anthropic tool_use partial args across frames
+	// State for accumulating Anthropic tool_use across frames
 	const pendingToolCalls: OpenAIToolCall[] = [];
-	let partialArgsBuffer = "";
+	let currentToolArgsAccumulator = "";
+	// Track whether the initial tool_calls chunk (with id+name) has been emitted for each tool
+	const emittedToolStartIndices = new Set<number>();
+
+	const emitChunk = (
+		controller: TransformStreamDefaultController<Uint8Array>,
+		delta: Record<string, unknown>,
+		finishReason: string | null,
+		usage?: Record<string, unknown>,
+	) => {
+		const openaiChunk: Record<string, unknown> = {
+			id: chatId,
+			object: "chat.completion.chunk",
+			created,
+			model,
+			choices: [{ index: 0, delta, finish_reason: finishReason }],
+		};
+		if (usage) openaiChunk.usage = usage;
+		controller.enqueue(
+			encoder.encode(`data: ${JSON.stringify(openaiChunk)}\n\n`),
+		);
+	};
 
 	return new TransformStream({
 		transform(chunk, controller) {
@@ -575,22 +604,58 @@ export function createAccioToOpenAIStream(
 
 					const frame = parseRawResponse(parsed);
 
-					// Accumulate Anthropic partial tool JSON
+					// ── Handle new tool call definitions (Anthropic content_block_start / Gemini functionCall) ──
 					if (frame.toolCalls?.length) {
-						pendingToolCalls.push(...frame.toolCalls);
-						partialArgsBuffer = "";
-					}
-					if (frame.partialToolJson && pendingToolCalls.length > 0) {
-						partialArgsBuffer += frame.partialToolJson;
-						const lastTc = pendingToolCalls[pendingToolCalls.length - 1];
-						lastTc.function.arguments =
-							lastTc.function.arguments === "{}"
-								? partialArgsBuffer
-								: partialArgsBuffer;
-						continue; // don't emit partial tool json chunks
+						for (const tc of frame.toolCalls) {
+							tc.index = pendingToolCalls.length;
+							pendingToolCalls.push(tc);
+							currentToolArgsAccumulator = "";
+
+							// Emit the first chunk for this tool_call: id + name + empty arguments
+							const firstDelta: Record<string, unknown> = {};
+							if (isFirst) {
+								firstDelta.role = "assistant";
+								firstDelta.content = null;
+								isFirst = false;
+							}
+							firstDelta.tool_calls = [
+								{
+									index: tc.index,
+									id: tc.id,
+									type: "function",
+									function: { name: tc.function.name, arguments: "" },
+								},
+							];
+							emitChunk(controller, firstDelta, null);
+							emittedToolStartIndices.add(tc.index);
+						}
+						continue;
 					}
 
-					const { text, finishReason, usage, toolCalls } = frame;
+					// ── Handle Anthropic input_json_delta partials ──
+					if (frame.partialToolJson && pendingToolCalls.length > 0) {
+						const lastTc = pendingToolCalls[pendingToolCalls.length - 1];
+						currentToolArgsAccumulator += frame.partialToolJson;
+						lastTc.function.arguments = currentToolArgsAccumulator;
+
+						// Emit incremental arguments chunk (no id, only index + partial args)
+						emitChunk(
+							controller,
+							{
+								tool_calls: [
+									{
+										index: lastTc.index,
+										function: { arguments: frame.partialToolJson },
+									},
+								],
+							},
+							null,
+						);
+						continue;
+					}
+
+					// ── Handle regular text / finish / usage frames ──
+					const { text, finishReason, usage } = frame;
 
 					const delta: Record<string, unknown> = {};
 					if (isFirst) {
@@ -598,29 +663,17 @@ export function createAccioToOpenAIStream(
 						isFirst = false;
 					}
 					if (text) delta.content = text;
-					// Emit tool_calls: use pendingToolCalls if finish_reason is tool_calls
-					// (for Anthropic where tool calls arrive via content_block_start)
-					if (toolCalls?.length) {
-						delta.tool_calls = toolCalls;
-					} else if (
-						finishReason === "tool_calls" &&
-						pendingToolCalls.length > 0
-					) {
-						delta.tool_calls = pendingToolCalls;
+
+					// Skip empty deltas unless there's a finish_reason or usage
+					if (!text && !finishReason && !usage && !delta.role) {
+						continue;
 					}
 
-					const openaiChunk: Record<string, unknown> = {
-						id: chatId,
-						object: "chat.completion.chunk",
-						created,
-						model,
-						choices: [{ index: 0, delta, finish_reason: finishReason }],
-					};
-
-					if (usage) openaiChunk.usage = usage;
-
-					controller.enqueue(
-						encoder.encode(`data: ${JSON.stringify(openaiChunk)}\n\n`),
+					emitChunk(
+						controller,
+						delta,
+						finishReason,
+						usage as Record<string, unknown> | undefined,
 					);
 				}
 			}
