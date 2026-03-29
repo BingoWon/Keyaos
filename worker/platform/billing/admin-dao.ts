@@ -204,7 +204,7 @@ export class AdminDao {
 		const res = await this.db
 			.prepare(
 				`SELECT
-					(created_at / ? * ?) AS bucket,
+					(created_at / ${bucketMs} * ${bucketMs}) AS bucket,
 					COUNT(*) AS volume,
 					COALESCE(SUM(input_tokens + output_tokens), 0) AS tokens
 				 FROM logs
@@ -213,7 +213,7 @@ export class AdminDao {
 				 GROUP BY bucket
 				 ORDER BY bucket ASC`,
 			)
-			.bind(bucketMs, bucketMs, since)
+			.bind(since)
 			.all<{
 				bucket: number;
 				volume: number;
