@@ -25,13 +25,17 @@ import { useFetch } from "../../hooks/useFetch";
 import { getThemeColors, isDarkMode, utcToLocal } from "../../utils/chart";
 import { formatUSD } from "../../utils/format";
 
+// ─── Chart types & constants ────────────────────────────
+
 interface ActivityPoint {
 	time: number;
 	volume: number;
 	tokens: number;
-	selfVolume?: number;
-	selfTokens?: number;
+	selfVolume: number;
+	selfTokens: number;
 }
+
+type SelfFilter = "all" | "non-self" | "self";
 
 const RANGE_OPTIONS = [
 	{ label: "24h", hours: 24 },
@@ -41,38 +45,62 @@ const RANGE_OPTIONS = [
 
 const CHART_HEIGHT = 240;
 
+/** Colors from the global design system (globals.css @theme) */
+const CHART_COLORS = {
+	volumePrimary: "#9e52e0", // brand-500 (purple)
+	volumeSelf: "#d09060", // accent-400 (gold)
+	tokensPrimary: "#10b981", // emerald-500
+	tokensSelf: "#fb7185", // rose-400
+} as const;
+
 function fmtCompact(v: number): string {
 	if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
 	if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
 	return Math.round(v).toLocaleString();
 }
 
+// ─── ActivityBarChart ───────────────────────────────────
+
 function ActivityBarChart({
 	points,
+	selfFilter,
 	accessor,
 	selfAccessor,
 	color,
-	selfColor = "#f59e0b80",
+	selfColor,
 	label,
 }: {
 	points: ActivityPoint[];
+	selfFilter: SelfFilter;
 	accessor: (p: ActivityPoint) => number;
-	selfAccessor?: (p: ActivityPoint) => number;
+	selfAccessor: (p: ActivityPoint) => number;
 	color: string;
-	selfColor?: string;
+	selfColor: string;
 	label: string;
 }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
-	const mainSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
-	const selfSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+	const fgSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+	const bgSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+	const selfFilterRef = useRef(selfFilter);
+	selfFilterRef.current = selfFilter;
 	const [hoverValue, setHoverValue] = useState<number | null>(null);
 
-	const total = useMemo(
-		() => points.reduce((sum, p) => sum + accessor(p), 0),
-		[points, accessor],
-	);
+	const displayTotal = useMemo(() => {
+		switch (selfFilter) {
+			case "all":
+				return points.reduce((s, p) => s + accessor(p), 0);
+			case "non-self":
+				return points.reduce(
+					(s, p) => s + accessor(p) - selfAccessor(p),
+					0,
+				);
+			case "self":
+				return points.reduce((s, p) => s + selfAccessor(p), 0);
+		}
+	}, [points, selfFilter, accessor, selfAccessor]);
 
+	// Create chart once
 	useEffect(() => {
 		if (!containerRef.current) return;
 
@@ -104,37 +132,44 @@ function ActivityBarChart({
 			},
 		});
 
-		// Total series (behind) — shows full height in self color when stacked
-		const totalSeries = chart.addSeries(HistogramSeries, {
+		const priceFmt = {
+			type: "custom" as const,
+			formatter: fmtCompact,
+		};
+
+		// Background series (drawn first = behind) — total bar in "all" mode
+		const bgSeries = chart.addSeries(HistogramSeries, {
 			color: selfColor,
-			priceFormat: {
-				type: "custom" as const,
-				formatter: fmtCompact,
-			},
+			priceFormat: priceFmt,
 		});
 
-		// Main series (in front) — shows non-self portion in primary color
-		const mainSeries = chart.addSeries(HistogramSeries, {
+		// Foreground series (drawn second = in front) — primary bar
+		const fgSeries = chart.addSeries(HistogramSeries, {
 			color,
-			priceFormat: {
-				type: "custom" as const,
-				formatter: fmtCompact,
-			},
+			priceFormat: priceFmt,
 		});
 
 		chartRef.current = chart;
-		mainSeriesRef.current = mainSeries;
-		selfSeriesRef.current = totalSeries;
+		fgSeriesRef.current = fgSeries;
+		bgSeriesRef.current = bgSeries;
 
 		chart.subscribeCrosshairMove((param) => {
 			if (!param.time || !param.seriesData.size) {
 				setHoverValue(null);
 				return;
 			}
-			// Prefer the total series value for hover if stacked, else main
-			const td = param.seriesData.get(totalSeries) as { value: number } | undefined;
-			const md = param.seriesData.get(mainSeries) as { value: number } | undefined;
-			setHoverValue(td?.value ?? md?.value ?? null);
+			const mode = selfFilterRef.current;
+			if (mode === "all") {
+				const d = param.seriesData.get(bgSeries) as
+					| { value: number }
+					| undefined;
+				setHoverValue(d?.value ?? null);
+			} else {
+				const d = param.seriesData.get(fgSeries) as
+					| { value: number }
+					| undefined;
+				setHoverValue(d?.value ?? null);
+			}
 		});
 
 		const resizeObserver = new ResizeObserver((entries) => {
@@ -148,7 +183,10 @@ function ActivityBarChart({
 			const c = getThemeColors(d);
 			chart.applyOptions({
 				layout: {
-					background: { type: ColorType.Solid, color: "transparent" },
+					background: {
+						type: ColorType.Solid,
+						color: "transparent",
+					},
 					textColor: c.textColor,
 				},
 				grid: {
@@ -169,37 +207,54 @@ function ActivityBarChart({
 			resizeObserver.disconnect();
 			chart.remove();
 			chartRef.current = null;
-			mainSeriesRef.current = null;
-			selfSeriesRef.current = null;
+			fgSeriesRef.current = null;
+			bgSeriesRef.current = null;
 		};
 	}, [color, selfColor]);
 
+	// Update data on points or filter change
 	useEffect(() => {
-		if (!mainSeriesRef.current || points.length === 0) return;
+		const fg = fgSeriesRef.current;
+		const bg = bgSeriesRef.current;
+		if (!fg || !bg || points.length === 0) return;
 
-		if (selfAccessor && selfSeriesRef.current) {
-			// Stacked mode: total behind, non-self in front
-			const totalData = points.map((p) => ({
-				time: utcToLocal(p.time) as Time,
-				value: accessor(p),
-			}));
-			const nonSelfData = points.map((p) => ({
-				time: utcToLocal(p.time) as Time,
-				value: accessor(p) - (selfAccessor(p) || 0),
-			}));
-			selfSeriesRef.current.setData(totalData);
-			mainSeriesRef.current.setData(nonSelfData);
+		const toTime = (p: ActivityPoint) => utcToLocal(p.time) as Time;
+
+		if (selfFilter === "all") {
+			// Stacked: bg = total, fg = non-self
+			fg.applyOptions({ color });
+			bg.setData(
+				points.map((p) => ({ time: toTime(p), value: accessor(p) })),
+			);
+			fg.setData(
+				points.map((p) => ({
+					time: toTime(p),
+					value: accessor(p) - selfAccessor(p),
+				})),
+			);
+		} else if (selfFilter === "non-self") {
+			fg.applyOptions({ color });
+			bg.setData([]);
+			fg.setData(
+				points.map((p) => ({
+					time: toTime(p),
+					value: accessor(p) - selfAccessor(p),
+				})),
+			);
 		} else {
-			// Single mode
-			const data = points.map((p) => ({
-				time: utcToLocal(p.time) as Time,
-				value: accessor(p),
-			}));
-			mainSeriesRef.current.setData(data);
-			selfSeriesRef.current?.setData([]);
+			// "self" — use selfColor for the bars
+			fg.applyOptions({ color: selfColor });
+			bg.setData([]);
+			fg.setData(
+				points.map((p) => ({
+					time: toTime(p),
+					value: selfAccessor(p),
+				})),
+			);
 		}
+
 		chartRef.current?.timeScale().fitContent();
-	}, [points, accessor, selfAccessor]);
+	}, [points, selfFilter, accessor, selfAccessor, color, selfColor]);
 
 	return (
 		<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
@@ -208,7 +263,7 @@ function ActivityBarChart({
 					{label}
 				</span>
 				<span className="text-lg font-semibold text-gray-900 dark:text-white tabular-nums">
-					{fmtCompact(hoverValue ?? total)}
+					{fmtCompact(hoverValue ?? displayTotal)}
 					{hoverValue === null && (
 						<span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-gray-500">
 							total
@@ -220,6 +275,8 @@ function ActivityBarChart({
 		</div>
 	);
 }
+
+// ─── Overview types & helpers ───────────────────────────
 
 interface PlatformOverview {
 	totalRevenue: number;
@@ -278,10 +335,14 @@ function SyncButton({ label, endpoint }: { label: string; endpoint: string }) {
 	);
 }
 
+// ─── Accessors ──────────────────────────────────────────
+
 const volumeAccessor = (p: ActivityPoint) => p.volume;
 const tokensAccessor = (p: ActivityPoint) => p.tokens;
-const selfVolumeAccessor = (p: ActivityPoint) => p.selfVolume ?? 0;
-const selfTokensAccessor = (p: ActivityPoint) => p.selfTokens ?? 0;
+const selfVolumeAccessor = (p: ActivityPoint) => p.selfVolume;
+const selfTokensAccessor = (p: ActivityPoint) => p.selfTokens;
+
+// ─── Overview page ──────────────────────────────────────
 
 export function Overview() {
 	const { t } = useTranslation();
@@ -289,11 +350,12 @@ export function Overview() {
 		"/api/admin/overview",
 	);
 	const [activityRange, setActivityRange] = useState(24);
-	const [selfFilter, setSelfFilter] = useState<"all" | "non-self" | "self">("all");
-	const { data: activity } = useFetch<ActivityPoint[]>(
-		`/api/admin/activity?hours=${activityRange}&self=${selfFilter}`,
-	);
+	const [selfFilter, setSelfFilter] = useState<SelfFilter>("all");
 
+	// selfFilter is frontend-only — backend always returns full data
+	const { data: activity } = useFetch<ActivityPoint[]>(
+		`/api/admin/activity?hours=${activityRange}`,
+	);
 	const activityData = useMemo(() => activity ?? [], [activity]);
 
 	const cards = data
@@ -431,18 +493,20 @@ export function Overview() {
 
 				<ActivityBarChart
 					points={activityData}
+					selfFilter={selfFilter}
 					accessor={volumeAccessor}
-					selfAccessor={selfFilter === "all" ? selfVolumeAccessor : undefined}
-					color="#6366f1"
-					selfColor="#f59e0b80"
+					selfAccessor={selfVolumeAccessor}
+					color={CHART_COLORS.volumePrimary}
+					selfColor={CHART_COLORS.volumeSelf}
 					label={t("admin.chart_volume")}
 				/>
 				<ActivityBarChart
 					points={activityData}
+					selfFilter={selfFilter}
 					accessor={tokensAccessor}
-					selfAccessor={selfFilter === "all" ? selfTokensAccessor : undefined}
-					color="#f59e0b"
-					selfColor="#ef444480"
+					selfAccessor={selfTokensAccessor}
+					color={CHART_COLORS.tokensPrimary}
+					selfColor={CHART_COLORS.tokensSelf}
 					label={t("admin.chart_tokens")}
 				/>
 			</div>

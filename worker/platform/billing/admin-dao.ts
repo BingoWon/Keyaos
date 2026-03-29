@@ -179,76 +179,26 @@ export class AdminDao {
 	}
 
 	/**
-	 * Aggregated activity for admin overview charts.
-	 * Queries the logs table directly so we can filter by self-use mode:
-	 *   'all'      — all successful requests (default)
-	 *   'non-self' — only requests where consumer ≠ credential owner
-	 *   'self'     — only requests where consumer = credential owner
+	 * Activity data for admin charts.
+	 * Always returns total + self-use breakdown via conditional aggregation
+	 * in a single query — the frontend decides which view to render.
 	 */
-	async getActivity(
-		hours: number,
-		selfFilter: "all" | "non-self" | "self" = "all",
-	): Promise<
-		{
-			time: number;
-			volume: number;
-			tokens: number;
-			selfVolume?: number;
-			selfTokens?: number;
-		}[]
-	> {
+	async getActivity(hours: number) {
 		const since = Date.now() - hours * 60 * 60 * 1000;
 		// 24h → 5 min, 3d → 30 min, 7d → 2 hr
 		const bucketMs =
 			hours <= 24 ? 300_000 : hours <= 72 ? 1_800_000 : 7_200_000;
-
-		if (selfFilter === "all") {
-			// Single query with conditional aggregation — no extra cost
-			const res = await this.db
-				.prepare(
-					`SELECT
-						(created_at / ${bucketMs} * ${bucketMs}) AS bucket,
-						COUNT(*) AS volume,
-						COALESCE(SUM(input_tokens + output_tokens), 0) AS tokens,
-						SUM(CASE WHEN consumer_id = credential_owner_id THEN 1 ELSE 0 END) AS self_volume,
-						COALESCE(SUM(CASE WHEN consumer_id = credential_owner_id THEN input_tokens + output_tokens ELSE 0 END), 0) AS self_tokens
-					 FROM logs
-					 WHERE status = 'ok' AND created_at >= ?
-					 GROUP BY bucket
-					 ORDER BY bucket ASC`,
-				)
-				.bind(since)
-				.all<{
-					bucket: number;
-					volume: number;
-					tokens: number;
-					self_volume: number;
-					self_tokens: number;
-				}>();
-
-			return (res.results || []).map((r) => ({
-				time: r.bucket,
-				volume: r.volume,
-				tokens: r.tokens,
-				selfVolume: r.self_volume,
-				selfTokens: r.self_tokens,
-			}));
-		}
-
-		const selfClause =
-			selfFilter === "non-self"
-				? "AND consumer_id != credential_owner_id"
-				: "AND consumer_id = credential_owner_id";
 
 		const res = await this.db
 			.prepare(
 				`SELECT
 					(created_at / ${bucketMs} * ${bucketMs}) AS bucket,
 					COUNT(*) AS volume,
-					COALESCE(SUM(input_tokens + output_tokens), 0) AS tokens
+					COALESCE(SUM(input_tokens + output_tokens), 0) AS tokens,
+					SUM(CASE WHEN consumer_id = credential_owner_id THEN 1 ELSE 0 END) AS self_volume,
+					COALESCE(SUM(CASE WHEN consumer_id = credential_owner_id THEN input_tokens + output_tokens ELSE 0 END), 0) AS self_tokens
 				 FROM logs
 				 WHERE status = 'ok' AND created_at >= ?
-				 ${selfClause}
 				 GROUP BY bucket
 				 ORDER BY bucket ASC`,
 			)
@@ -257,12 +207,16 @@ export class AdminDao {
 				bucket: number;
 				volume: number;
 				tokens: number;
+				self_volume: number;
+				self_tokens: number;
 			}>();
 
 		return (res.results || []).map((r) => ({
 			time: r.bucket,
 			volume: r.volume,
 			tokens: r.tokens,
+			selfVolume: r.self_volume,
+			selfTokens: r.self_tokens,
 		}));
 	}
 

@@ -265,7 +265,12 @@ export function PriceChart({
 				{/* Left: title + sub-dimension toggle */}
 				<div className="flex items-center gap-3">
 					<h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-						{title ?? t("chart.price_trend")}
+						{title ??
+						t(
+							dimension === "provider"
+								? "chart.multiplier_trend"
+								: "chart.price_trend",
+						)}
 					</h4>
 					{dimension === "model" && (
 						<div className="flex gap-0.5 rounded-md bg-gray-100 p-0.5 dark:bg-white/10">
