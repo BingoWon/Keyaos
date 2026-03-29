@@ -29,6 +29,8 @@ interface ActivityPoint {
 	time: number;
 	volume: number;
 	tokens: number;
+	selfVolume?: number;
+	selfTokens?: number;
 }
 
 const RANGE_OPTIONS = [
@@ -45,20 +47,25 @@ function fmtCompact(v: number): string {
 	return Math.round(v).toLocaleString();
 }
 
-function ActivityAreaChart({
+function ActivityBarChart({
 	points,
 	accessor,
+	selfAccessor,
 	color,
+	selfColor = "#f59e0b80",
 	label,
 }: {
 	points: ActivityPoint[];
 	accessor: (p: ActivityPoint) => number;
+	selfAccessor?: (p: ActivityPoint) => number;
 	color: string;
+	selfColor?: string;
 	label: string;
 }) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const chartRef = useRef<IChartApi | null>(null);
-	const seriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+	const mainSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
+	const selfSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
 	const [hoverValue, setHoverValue] = useState<number | null>(null);
 
 	const total = useMemo(
@@ -97,7 +104,17 @@ function ActivityAreaChart({
 			},
 		});
 
-		const series = chart.addSeries(HistogramSeries, {
+		// Total series (behind) — shows full height in self color when stacked
+		const totalSeries = chart.addSeries(HistogramSeries, {
+			color: selfColor,
+			priceFormat: {
+				type: "custom" as const,
+				formatter: fmtCompact,
+			},
+		});
+
+		// Main series (in front) — shows non-self portion in primary color
+		const mainSeries = chart.addSeries(HistogramSeries, {
 			color,
 			priceFormat: {
 				type: "custom" as const,
@@ -106,15 +123,18 @@ function ActivityAreaChart({
 		});
 
 		chartRef.current = chart;
-		seriesRef.current = series;
+		mainSeriesRef.current = mainSeries;
+		selfSeriesRef.current = totalSeries;
 
 		chart.subscribeCrosshairMove((param) => {
 			if (!param.time || !param.seriesData.size) {
 				setHoverValue(null);
 				return;
 			}
-			const d = param.seriesData.get(series) as { value: number } | undefined;
-			if (d) setHoverValue(d.value);
+			// Prefer the total series value for hover if stacked, else main
+			const td = param.seriesData.get(totalSeries) as { value: number } | undefined;
+			const md = param.seriesData.get(mainSeries) as { value: number } | undefined;
+			setHoverValue(td?.value ?? md?.value ?? null);
 		});
 
 		const resizeObserver = new ResizeObserver((entries) => {
@@ -149,19 +169,37 @@ function ActivityAreaChart({
 			resizeObserver.disconnect();
 			chart.remove();
 			chartRef.current = null;
-			seriesRef.current = null;
+			mainSeriesRef.current = null;
+			selfSeriesRef.current = null;
 		};
-	}, [color]);
+	}, [color, selfColor]);
 
 	useEffect(() => {
-		if (!seriesRef.current || points.length === 0) return;
-		const data = points.map((p) => ({
-			time: utcToLocal(p.time) as Time,
-			value: accessor(p),
-		}));
-		seriesRef.current.setData(data);
+		if (!mainSeriesRef.current || points.length === 0) return;
+
+		if (selfAccessor && selfSeriesRef.current) {
+			// Stacked mode: total behind, non-self in front
+			const totalData = points.map((p) => ({
+				time: utcToLocal(p.time) as Time,
+				value: accessor(p),
+			}));
+			const nonSelfData = points.map((p) => ({
+				time: utcToLocal(p.time) as Time,
+				value: accessor(p) - (selfAccessor(p) || 0),
+			}));
+			selfSeriesRef.current.setData(totalData);
+			mainSeriesRef.current.setData(nonSelfData);
+		} else {
+			// Single mode
+			const data = points.map((p) => ({
+				time: utcToLocal(p.time) as Time,
+				value: accessor(p),
+			}));
+			mainSeriesRef.current.setData(data);
+			selfSeriesRef.current?.setData([]);
+		}
 		chartRef.current?.timeScale().fitContent();
-	}, [points, accessor]);
+	}, [points, accessor, selfAccessor]);
 
 	return (
 		<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
@@ -242,6 +280,8 @@ function SyncButton({ label, endpoint }: { label: string; endpoint: string }) {
 
 const volumeAccessor = (p: ActivityPoint) => p.volume;
 const tokensAccessor = (p: ActivityPoint) => p.tokens;
+const selfVolumeAccessor = (p: ActivityPoint) => p.selfVolume ?? 0;
+const selfTokensAccessor = (p: ActivityPoint) => p.selfTokens ?? 0;
 
 export function Overview() {
 	const { t } = useTranslation();
@@ -389,16 +429,20 @@ export function Overview() {
 					</div>
 				</div>
 
-				<ActivityAreaChart
+				<ActivityBarChart
 					points={activityData}
 					accessor={volumeAccessor}
+					selfAccessor={selfFilter === "all" ? selfVolumeAccessor : undefined}
 					color="#6366f1"
+					selfColor="#f59e0b80"
 					label={t("admin.chart_volume")}
 				/>
-				<ActivityAreaChart
+				<ActivityBarChart
 					points={activityData}
 					accessor={tokensAccessor}
+					selfAccessor={selfFilter === "all" ? selfTokensAccessor : undefined}
 					color="#f59e0b"
+					selfColor="#ef444480"
 					label={t("admin.chart_tokens")}
 				/>
 			</div>
