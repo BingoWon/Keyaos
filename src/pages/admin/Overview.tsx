@@ -157,14 +157,27 @@ function ActivityAreaChart({
 	}, [color]);
 
 	useEffect(() => {
+		console.log("[chart-debug]", label, {
+			hasSeriesRef: !!seriesRef.current,
+			hasChartRef: !!chartRef.current,
+			pointsLength: points.length,
+			firstPoint: points[0],
+			lastPoint: points[points.length - 1],
+		});
 		if (!seriesRef.current || points.length === 0) return;
 		const data = points.map((p) => ({
 			time: utcToLocal(p.time) as Time,
 			value: accessor(p),
 		}));
-		seriesRef.current.setData(data);
-		chartRef.current?.timeScale().fitContent();
-	}, [points, accessor]);
+		console.log("[chart-debug]", label, "setData sample:", data.slice(0, 3));
+		try {
+			seriesRef.current.setData(data);
+			chartRef.current?.timeScale().fitContent();
+			console.log("[chart-debug]", label, "setData OK");
+		} catch (err) {
+			console.error("[chart-debug]", label, "setData FAILED:", err);
+		}
+	}, [points, accessor, label]);
 
 	return (
 		<div className="rounded-xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/5">
@@ -288,12 +301,12 @@ export function Overview() {
 				},
 				{
 					name: t("admin.registered_users"),
-					value: (data.registeredUsers ?? 0).toString(),
+					value: data.registeredUsers.toString(),
 					icon: UserGroupIcon,
 				},
 				{
 					name: t("admin.active_users"),
-					value: (data.activeUsers ?? 0).toString(),
+					value: data.activeUsers.toString(),
 					icon: UserIcon,
 				},
 			]
