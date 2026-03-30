@@ -90,7 +90,7 @@ export function PriceChart({
 	const apiDimension = dimension === "model" ? `model:${subDim}` : "provider";
 	const url = `/api/candles/${apiDimension}/${encodeURIComponent(value)}?hours=${hours}`;
 	const { data: candles, loading, refetch } = useFetch<Candle[]>(url);
-	const lastUpdated = useAutoRefresh(refetch, candles);
+	const lastUpdated = useAutoRefresh(refetch, candles, 600_000);
 
 	const fmtPrice = useCallback(
 		(p: number) =>

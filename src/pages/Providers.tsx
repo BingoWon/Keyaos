@@ -39,7 +39,7 @@ export function Providers() {
 		refetchSparks();
 	}, [refetchModels, refetchSparks]);
 
-	const lastUpdated = useAutoRefresh(refetch, models);
+	const lastUpdated = useAutoRefresh(refetch, models, 600_000);
 
 	const groups = useMemo(
 		() => aggregateProviders(models ?? [], providersData ?? []),

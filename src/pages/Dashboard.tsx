@@ -113,7 +113,7 @@ export function Dashboard() {
 		refetchSparks,
 	]);
 
-	const lastUpdated = useAutoRefresh(handleRefresh, rawModels);
+	const lastUpdated = useAutoRefresh(handleRefresh, rawModels, 600_000);
 
 	const uniqueModelCount = useMemo(() => {
 		if (!rawModels) return 0;

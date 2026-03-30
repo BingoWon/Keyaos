@@ -59,7 +59,7 @@ export function Models() {
 		refetchSparks();
 	}, [refetchModels, refetchSparks]);
 
-	const lastUpdated = useAutoRefresh(refetch, raw);
+	const lastUpdated = useAutoRefresh(refetch, raw, 600_000);
 
 	const providerMap = useMemo(() => {
 		const m = new Map<string, ProviderMeta>();

@@ -11,7 +11,7 @@ import type { AppEnv } from "../shared/types";
  */
 export const catalogRouter = new Hono<AppEnv>();
 
-catalogRouter.get("/", edgeCache(300), async (c) => {
+catalogRouter.get("/", edgeCache(3600), async (c) => {
 	const dao = new CatalogDao(c.env.DB);
 	const rows = await dao.getAllActive();
 	return c.json({
@@ -42,7 +42,7 @@ function cleanDescription(raw: unknown): string | null {
  */
 export const publicModelsRouter = new Hono<AppEnv>();
 
-publicModelsRouter.get("/", edgeCache(300), async (c) => {
+publicModelsRouter.get("/", edgeCache(3600), async (c) => {
 	const dao = new CatalogDao(c.env.DB);
 	const candleDao = new CandleDao(c.env.DB);
 
@@ -155,7 +155,7 @@ publicModelsRouter.get("/", edgeCache(300), async (c) => {
  */
 export const dashboardModelsRouter = new Hono<AppEnv>();
 
-dashboardModelsRouter.get("/", edgeCache(300), async (c) => {
+dashboardModelsRouter.get("/", edgeCache(3600), async (c) => {
 	const dao = new CatalogDao(c.env.DB);
 	const candleDao = new CandleDao(c.env.DB);
 

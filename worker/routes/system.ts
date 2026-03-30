@@ -40,7 +40,7 @@ systemRouter.get("/pool/stats", async (c) => {
 	});
 });
 
-systemRouter.get("/providers", edgeCache(300), async (c) => {
+systemRouter.get("/providers", edgeCache(3600), async (c) => {
 	const includeHidden = c.req.query("all") === "1";
 	const source = includeHidden ? getAllProviders() : getVisibleProviders();
 	const providers = source.map((p) => ({
@@ -107,7 +107,7 @@ function resolveIntervalMs(hours: number): number {
 }
 
 /** Bulk 24h sparkline data for all items in a dimension */
-systemRouter.get("/sparklines/:dimension", edgeCache(), async (c) => {
+systemRouter.get("/sparklines/:dimension", edgeCache(600), async (c) => {
 	const dimension = c.req.param("dimension");
 	const validDimensions = new Set(["model:input", "model:output", "provider"]);
 	if (!validDimensions.has(dimension)) {
@@ -130,7 +130,7 @@ systemRouter.get("/sparklines/:dimension", edgeCache(), async (c) => {
 });
 
 /** Price candle data for charts */
-systemRouter.get("/candles/:dimension/:value", edgeCache(), async (c) => {
+systemRouter.get("/candles/:dimension/:value", edgeCache(600), async (c) => {
 	const dimension = c.req.param("dimension");
 	const validDimensions = new Set(["model:input", "model:output", "provider"]);
 	if (!validDimensions.has(dimension)) {
