@@ -27,6 +27,21 @@ const GATEWAY_BASE = "https://phoenix-gw.alibaba.com/api";
 const API_URL = `${GATEWAY_BASE}/adk/llm/generateContent`;
 const CONFIG_URL = `${GATEWAY_BASE}/llm/config`;
 
+/**
+ * Build headers for Accio gateway requests.
+ * Accio's WAF returns an HTML login page (200 OK, text/html) instead of SSE
+ * when it detects a non-browser User-Agent. Using the Headers API and explicitly
+ * deleting User-Agent prevents the runtime (workerd/Node) from injecting its default.
+ */
+function accioHeaders(): Headers {
+	const h = new Headers({
+		"Content-Type": "application/json",
+		Accept: "text/event-stream",
+	});
+	h.delete("User-Agent");
+	return h;
+}
+
 // ─── Model Mapping ──────────────────────────────────────
 
 function mapAccioModelId(adkModelName: string): string | null {
@@ -97,10 +112,7 @@ export class AccioAdapter implements ProviderAdapter {
 		try {
 			const res = await fetch(API_URL, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "text/event-stream",
-				},
+				headers: accioHeaders(),
 				body: JSON.stringify({
 					model: "gemini-3-flash-preview",
 					token: secret,
@@ -143,12 +155,25 @@ export class AccioAdapter implements ProviderAdapter {
 
 		const upstream = await fetch(API_URL, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "text/event-stream",
-			},
+			headers: accioHeaders(),
 			body: JSON.stringify(accioBody),
 		});
+
+		// Accio WAF may return 200 with text/html (login page) instead of SSE
+		// when it blocks the request. Detect and treat as an auth error.
+		const ct = upstream.headers.get("content-type") || "";
+		if (ct.includes("text/html")) {
+			return new Response(
+				JSON.stringify({
+					error: {
+						message:
+							"Accio gateway returned HTML instead of SSE — token may be expired or request was blocked by WAF",
+						type: "api_error",
+					},
+				}),
+				{ status: 502, headers: { "Content-Type": "application/json" } },
+			);
+		}
 
 		if (!upstream.ok) {
 			const errText = await upstream.text();
